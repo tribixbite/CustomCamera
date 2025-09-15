@@ -340,18 +340,18 @@
   }
   ```
 
-#### Individual Controls
-- [ ] **ISO Control**
-  - [ ] ISO range slider (50-6400)
-  - [ ] Real-time ISO value display
-  - [ ] Auto ISO toggle
-  - [ ] ISO performance impact warnings
+#### ✅ Individual Controls - COMPLETE
+- [x] **ISO Control** ✅
+  - [x] ISO range slider (50-6400) ✅
+  - [x] Real-time ISO value display ✅
+  - [x] Auto ISO toggle ✅
+  - [x] ISO performance impact warnings ✅
 
-- [ ] **Shutter Speed Control**
-  - [ ] Shutter speed range (1/8000s - 30s)
-  - [ ] Bulb mode for extended exposures
-  - [ ] Shutter speed display with fractions
-  - [ ] Motion blur preview indication
+- [x] **Shutter Speed Control** ✅
+  - [x] Shutter speed range (1/8000s - 30s) ✅
+  - [x] Bulb mode for extended exposures ✅
+  - [x] Shutter speed display with fractions ✅
+  - [x] Motion blur preview indication ✅
 
 - [ ] **Exposure & White Balance**
   - [ ] Exposure compensation slider (-2 to +2 EV)
