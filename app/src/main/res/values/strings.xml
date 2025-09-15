@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">Custom Camera</string>
+    <string name="camera_permission_required">Camera permission is required</string>
+    <string name="no_cameras_available">No cameras available on this device</string>
+    <string name="camera_selection_title">Select Camera</string>
+    <string name="camera_selection_subtitle">Choose which camera to use for this session</string>
+    <string name="continue_button">Continue</string>
+    <string name="skip_button">Skip</string>
+    <string name="back_button">Back</string>
+    <string name="capture_photo">Capture Photo</string>
+    <string name="switch_camera">Switch Camera</string>
+    <string name="toggle_flash">Toggle Flash</string>
+    <string name="open_gallery">Open Gallery</string>
+    <string name="camera_settings">Camera Settings</string>
+</resources>

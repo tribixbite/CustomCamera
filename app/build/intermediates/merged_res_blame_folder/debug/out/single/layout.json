@@ -1,0 +1,14 @@
+[
+    {
+        "merged": "com.customcamera.app-mergeDebugResources-41:/layout/activity_main.xml",
+        "source": "com.customcamera.app-main-44:/layout/activity_main.xml"
+    },
+    {
+        "merged": "com.customcamera.app-mergeDebugResources-41:/layout/activity_camera.xml",
+        "source": "com.customcamera.app-main-44:/layout/activity_camera.xml"
+    },
+    {
+        "merged": "com.customcamera.app-mergeDebugResources-41:/layout/activity_camera_selection.xml",
+        "source": "com.customcamera.app-main-44:/layout/activity_camera_selection.xml"
+    }
+]
