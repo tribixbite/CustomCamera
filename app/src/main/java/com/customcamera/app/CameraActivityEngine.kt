@@ -10,6 +10,9 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.*
+import androidx.camera.video.Recorder
+import androidx.camera.video.Recording
+import androidx.camera.video.VideoCapture
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.customcamera.app.databinding.ActivityCameraBinding
@@ -36,6 +39,8 @@ class CameraActivityEngine : AppCompatActivity() {
 
     private var cameraIndex: Int = 0
     private var isFlashOn: Boolean = false
+    private var isRecording: Boolean = false
+    private var activeRecording: Recording? = null
 
     // Plugins
     private lateinit var autoFocusPlugin: AutoFocusPlugin
@@ -102,6 +107,7 @@ class CameraActivityEngine : AppCompatActivity() {
 
     private fun setupUI() {
         binding.captureButton.setOnClickListener { capturePhoto() }
+        binding.videoRecordButton.setOnClickListener { toggleVideoRecording() }
         binding.switchCameraButton.setOnClickListener { switchCamera() }
         binding.flashButton.setOnClickListener { toggleFlash() }
         binding.galleryButton.setOnClickListener { openGallery() }
@@ -170,7 +176,7 @@ class CameraActivityEngine : AppCompatActivity() {
                     cameraIndex = cameraIndex,
                     enablePreview = true,
                     enableImageCapture = true,
-                    enableVideoCapture = false,
+                    enableVideoCapture = true,
                     enableImageAnalysis = false
                 )
 
@@ -229,6 +235,67 @@ class CameraActivityEngine : AppCompatActivity() {
             Log.e(TAG, "Photo capture setup failed with engine", e)
             Toast.makeText(this, "Capture failed: ${e.message}", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    private fun toggleVideoRecording() {
+        if (isRecording) {
+            stopVideoRecording()
+        } else {
+            startVideoRecording()
+        }
+    }
+
+    private fun startVideoRecording() {
+        val videoCapture = cameraEngine.getVideoCapture() ?: return
+
+        try {
+            val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+            val videoFile = File(filesDir, "VIDEO_$timestamp.mp4")
+
+            val outputOptions = androidx.camera.video.FileOutputOptions.Builder(videoFile).build()
+
+            activeRecording = videoCapture.output
+                .prepareRecording(this, outputOptions)
+                .start(ContextCompat.getMainExecutor(this)) { recordEvent ->
+                    when (recordEvent) {
+                        is androidx.camera.video.VideoRecordEvent.Start -> {
+                            isRecording = true
+                            updateVideoButton()
+                            Log.i(TAG, "Video recording started")
+                        }
+                        is androidx.camera.video.VideoRecordEvent.Finalize -> {
+                            isRecording = false
+                            activeRecording = null
+                            updateVideoButton()
+
+                            if (!recordEvent.hasError()) {
+                                Toast.makeText(this@CameraActivityEngine, "Video saved: ${videoFile.name}", Toast.LENGTH_SHORT).show()
+                                Log.i(TAG, "Video saved: ${videoFile.absolutePath}")
+                            } else {
+                                Log.e(TAG, "Video recording error: ${recordEvent.error}")
+                                Toast.makeText(this@CameraActivityEngine, "Video recording failed", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    }
+                }
+
+            Log.i(TAG, "Video recording initiated")
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to start video recording", e)
+            Toast.makeText(this, "Recording failed: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun stopVideoRecording() {
+        activeRecording?.stop()
+        Log.i(TAG, "Video recording stopped")
+    }
+
+    private fun updateVideoButton() {
+        val iconRes = if (isRecording) android.R.drawable.ic_media_pause else R.drawable.ic_videocam
+        binding.videoRecordButton.setImageResource(iconRes)
+        binding.videoRecordButton.alpha = if (isRecording) 1.0f else 0.8f
     }
 
     private fun switchCamera() {
@@ -290,17 +357,22 @@ class CameraActivityEngine : AppCompatActivity() {
 
     private fun openGallery() {
         try {
-            val intent = Intent(Intent.ACTION_PICK).apply {
-                type = "image/*"
-            }
+            val intent = Intent(this, GalleryActivity::class.java)
             startActivity(intent)
         } catch (e: Exception) {
-            Toast.makeText(this, "Gallery not available", Toast.LENGTH_SHORT).show()
+            Log.e(TAG, "Failed to open gallery", e)
+            Toast.makeText(this, "Gallery error: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
 
     private fun openSettings() {
-        Toast.makeText(this, "Settings coming soon - Use camera controls for now", Toast.LENGTH_LONG).show()
+        try {
+            val intent = Intent(this, SimpleSettingsActivity::class.java)
+            startActivity(intent)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to open settings", e)
+            Toast.makeText(this, "Settings error: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun showAdvancedControls() {
