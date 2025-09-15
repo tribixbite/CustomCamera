@@ -44,6 +44,7 @@ class CameraActivityEngine : AppCompatActivity() {
     private var isHistogramVisible: Boolean = false
     private var histogramView: com.customcamera.app.analysis.HistogramView? = null
     private var isBarcodeScanningEnabled: Boolean = false
+    private var isPiPEnabled: Boolean = false
 
     // Plugins
     private lateinit var autoFocusPlugin: AutoFocusPlugin
@@ -122,6 +123,7 @@ class CameraActivityEngine : AppCompatActivity() {
         binding.captureButton.setOnClickListener { capturePhoto() }
         binding.videoRecordButton.setOnClickListener { toggleVideoRecording() }
         binding.nightModeButton.setOnClickListener { toggleNightMode() }
+        binding.pipButton.setOnClickListener { togglePiP() }
         binding.switchCameraButton.setOnClickListener { switchCamera() }
         binding.flashButton.setOnClickListener { toggleFlash() }
         binding.galleryButton.setOnClickListener { openGallery() }
@@ -577,7 +579,7 @@ class CameraActivityEngine : AppCompatActivity() {
                         override fun onProgressChanged(seekBar: android.widget.SeekBar?, progress: Int, fromUser: Boolean) {
                             if (fromUser) {
                                 // Map 0-100 to ISO 50-6400 logarithmically
-                                val iso = (50 * pow(128.0, progress / 100.0)).toInt().coerceIn(50, 6400)
+                                val iso = (50 * 128.0.pow(progress / 100.0)).toInt().coerceIn(50, 6400)
                                 isoText.text = "ISO: $iso"
                                 Log.d(TAG, "ISO adjusted to: $iso")
                             }
@@ -679,6 +681,43 @@ class CameraActivityEngine : AppCompatActivity() {
                 Log.e(TAG, "Error showing advanced controls", e)
                 Toast.makeText(this@CameraActivityEngine, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
             }
+        }
+    }
+
+    private fun togglePiP() {
+        isPiPEnabled = !isPiPEnabled
+
+        try {
+            val pipPlugin = cameraEngine.getPlugin("PiP") as? PiPPlugin
+
+            if (pipPlugin != null) {
+                lifecycleScope.launch {
+                    if (isPiPEnabled) {
+                        val pipResult = pipPlugin.enablePiP()
+                        if (pipResult) {
+                            binding.pipButton.alpha = 1.0f
+                            Toast.makeText(this@CameraActivityEngine, "PiP mode enabled", Toast.LENGTH_SHORT).show()
+                            Log.i(TAG, "PiP mode enabled successfully")
+                        } else {
+                            isPiPEnabled = false
+                            Toast.makeText(this@CameraActivityEngine, "PiP mode failed - dual cameras not available", Toast.LENGTH_LONG).show()
+                            Log.w(TAG, "PiP mode failed - dual cameras not available")
+                        }
+                    } else {
+                        pipPlugin.disablePiP()
+                        binding.pipButton.alpha = 0.6f
+                        Toast.makeText(this@CameraActivityEngine, "PiP mode disabled", Toast.LENGTH_SHORT).show()
+                        Log.i(TAG, "PiP mode disabled")
+                    }
+                }
+            } else {
+                Toast.makeText(this, "PiP plugin not available", Toast.LENGTH_SHORT).show()
+                Log.w(TAG, "PiP plugin not found")
+            }
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Error toggling PiP", e)
+            Toast.makeText(this, "PiP error: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
 

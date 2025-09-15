@@ -65,6 +65,12 @@
             android:exported="false"
             android:parentActivityName=".CameraActivityEngine"
             android:theme="@style/Theme.CustomCamera" />
+
+        <activity
+            android:name=".DebugActivity"
+            android:exported="false"
+            android:parentActivityName=".SimpleSettingsActivity"
+            android:theme="@style/Theme.CustomCamera" />
     </application>
 
 </manifest>

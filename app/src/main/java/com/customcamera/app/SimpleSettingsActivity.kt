@@ -102,6 +102,23 @@ class SimpleSettingsActivity : AppCompatActivity() {
             Toast.makeText(this, "Camera info plugin ${if (enabled) "enabled" else "disabled"}", Toast.LENGTH_SHORT).show()
         }
 
+        // Debug interface
+        addTitle("Debug & Testing")
+
+        val debugButton = android.widget.Button(this).apply {
+            text = "Open Debug Interface"
+            setOnClickListener {
+                try {
+                    val intent = android.content.Intent(this@SimpleSettingsActivity, DebugActivity::class.java)
+                    startActivity(intent)
+                } catch (e: Exception) {
+                    android.util.Log.e(TAG, "Failed to open debug interface", e)
+                    android.widget.Toast.makeText(this@SimpleSettingsActivity, "Debug interface error", android.widget.Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+        settingsContainer.addView(debugButton)
+
         Log.i(TAG, "Settings UI created")
     }
 
