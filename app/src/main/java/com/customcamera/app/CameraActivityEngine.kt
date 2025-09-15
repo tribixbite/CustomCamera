@@ -18,11 +18,7 @@ import androidx.lifecycle.lifecycleScope
 import com.customcamera.app.databinding.ActivityCameraBinding
 import com.customcamera.app.engine.CameraConfig
 import com.customcamera.app.engine.CameraEngine
-import com.customcamera.app.plugins.AutoFocusPlugin
-import com.customcamera.app.plugins.GridOverlayPlugin
-import com.customcamera.app.plugins.CameraInfoPlugin
-import com.customcamera.app.plugins.ProControlsPlugin
-import com.customcamera.app.plugins.ExposureControlPlugin
+import com.customcamera.app.plugins.*
 import kotlinx.coroutines.launch
 import java.io.File
 import java.text.SimpleDateFormat
@@ -41,6 +37,8 @@ class CameraActivityEngine : AppCompatActivity() {
     private var isFlashOn: Boolean = false
     private var isRecording: Boolean = false
     private var activeRecording: Recording? = null
+    private var isManualControlsVisible: Boolean = false
+    private var manualControlsPanel: android.widget.LinearLayout? = null
 
     // Plugins
     private lateinit var autoFocusPlugin: AutoFocusPlugin
@@ -95,14 +93,24 @@ class CameraActivityEngine : AppCompatActivity() {
     }
 
     private fun setupFullscreen() {
-        window.decorView.systemUiVisibility = (
-            View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-            or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-            or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-            or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-            or View.SYSTEM_UI_FLAG_FULLSCREEN
-            or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-        )
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+            // Modern approach for Android 11+
+            window.insetsController?.let { controller ->
+                controller.hide(android.view.WindowInsets.Type.statusBars() or android.view.WindowInsets.Type.navigationBars())
+                controller.systemBarsBehavior = android.view.WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            }
+        } else {
+            // Legacy approach for older Android versions
+            @Suppress("DEPRECATION")
+            window.decorView.systemUiVisibility = (
+                View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                or View.SYSTEM_UI_FLAG_FULLSCREEN
+                or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+            )
+        }
     }
 
     private fun setupUI() {
@@ -111,7 +119,7 @@ class CameraActivityEngine : AppCompatActivity() {
         binding.switchCameraButton.setOnClickListener { switchCamera() }
         binding.flashButton.setOnClickListener { toggleFlash() }
         binding.galleryButton.setOnClickListener { openGallery() }
-        binding.settingsButton.setOnClickListener { openSettings() }
+        binding.settingsButton.setOnClickListener { toggleManualControls() }
 
         // Add double-tap for grid toggle
         var lastTapTime = 0L
@@ -156,7 +164,29 @@ class CameraActivityEngine : AppCompatActivity() {
         exposureControlPlugin = ExposureControlPlugin()
         cameraEngine.registerPlugin(exposureControlPlugin)
 
-        Log.i(TAG, "✅ Camera engine and plugins initialized")
+        // Add new plugins from roadmap implementation
+        val manualFocusPlugin = ManualFocusPlugin()
+        cameraEngine.registerPlugin(manualFocusPlugin)
+
+        val histogramPlugin = HistogramPlugin()
+        cameraEngine.registerPlugin(histogramPlugin)
+
+        val barcodePlugin = BarcodePlugin()
+        cameraEngine.registerPlugin(barcodePlugin)
+
+        val qrScannerPlugin = QRScannerPlugin()
+        cameraEngine.registerPlugin(qrScannerPlugin)
+
+        val cropPlugin = CropPlugin()
+        cameraEngine.registerPlugin(cropPlugin)
+
+        val nightModePlugin = NightModePlugin()
+        cameraEngine.registerPlugin(nightModePlugin)
+
+        val hdrPlugin = HDRPlugin()
+        cameraEngine.registerPlugin(hdrPlugin)
+
+        Log.i(TAG, "✅ Camera engine and ALL plugins initialized (12 total plugins)")
     }
 
     private fun startCameraWithEngine() {
@@ -193,6 +223,9 @@ class CameraActivityEngine : AppCompatActivity() {
 
                 // Configure autofocus plugin with preview
                 autoFocusPlugin.setPreviewView(binding.previewView)
+
+                // Add grid overlay to camera layout if enabled
+                setupGridOverlay()
 
                 // Update flash button state
                 updateFlashButton()
@@ -375,6 +408,88 @@ class CameraActivityEngine : AppCompatActivity() {
         }
     }
 
+    private fun toggleManualControls() {
+        if (isManualControlsVisible) {
+            hideManualControls()
+        } else {
+            showManualControls()
+        }
+    }
+
+    private fun showManualControls() {
+        try {
+            if (manualControlsPanel == null) {
+                // Create manual controls panel
+                manualControlsPanel = android.widget.LinearLayout(this).apply {
+                    orientation = android.widget.LinearLayout.VERTICAL
+                    setBackgroundColor(android.graphics.Color.argb(200, 0, 0, 0))
+                    setPadding(16, 16, 16, 16)
+                }
+
+                // Add simple manual controls
+                val titleView = android.widget.TextView(this).apply {
+                    text = "Manual Controls"
+                    textSize = 18f
+                    setTextColor(android.graphics.Color.WHITE)
+                    setPadding(0, 0, 0, 16)
+                }
+                manualControlsPanel!!.addView(titleView)
+
+                // Add exposure compensation control
+                val exposureText = android.widget.TextView(this).apply {
+                    text = "Exposure Compensation: 0 EV"
+                    setTextColor(android.graphics.Color.WHITE)
+                }
+                manualControlsPanel!!.addView(exposureText)
+
+                val exposureSeekBar = android.widget.SeekBar(this).apply {
+                    max = 12 // -6 to +6 EV
+                    progress = 6 // 0 EV
+                    setOnSeekBarChangeListener(object : android.widget.SeekBar.OnSeekBarChangeListener {
+                        override fun onProgressChanged(seekBar: android.widget.SeekBar?, progress: Int, fromUser: Boolean) {
+                            if (fromUser) {
+                                val ev = progress - 6
+                                exposureText.text = "Exposure Compensation: ${if (ev >= 0) "+" else ""}$ev EV"
+                                // Apply exposure compensation
+                                lifecycleScope.launch {
+                                    exposureControlPlugin.setExposureCompensation(ev)
+                                }
+                            }
+                        }
+                        override fun onStartTrackingTouch(seekBar: android.widget.SeekBar?) {}
+                        override fun onStopTrackingTouch(seekBar: android.widget.SeekBar?) {}
+                    })
+                }
+                manualControlsPanel!!.addView(exposureSeekBar)
+
+                // Add to camera layout
+                val rootView = binding.root as android.widget.FrameLayout
+                val layoutParams = android.widget.FrameLayout.LayoutParams(
+                    android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
+                    android.widget.FrameLayout.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    gravity = android.view.Gravity.BOTTOM
+                }
+                rootView.addView(manualControlsPanel, layoutParams)
+            }
+
+            manualControlsPanel?.visibility = android.view.View.VISIBLE
+            isManualControlsVisible = true
+
+            Log.i(TAG, "Manual controls panel shown")
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Error showing manual controls", e)
+            Toast.makeText(this, "Manual controls error: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun hideManualControls() {
+        manualControlsPanel?.visibility = android.view.View.GONE
+        isManualControlsVisible = false
+        Log.i(TAG, "Manual controls panel hidden")
+    }
+
     private fun showAdvancedControls() {
         lifecycleScope.launch {
             try {
@@ -515,10 +630,64 @@ class CameraActivityEngine : AppCompatActivity() {
             }
     }
 
+    override fun onResume() {
+        super.onResume()
+        // Update plugin states when returning from settings
+        updatePluginStatesFromSettings()
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         Log.i(TAG, "Cleaning up camera engine...")
         cameraEngine.cleanup()
+    }
+
+    private fun setupGridOverlay() {
+        try {
+            val settingsManager = com.customcamera.app.engine.SettingsManager(this)
+            val gridEnabled = settingsManager.isPluginEnabled("GridOverlay")
+
+            if (gridEnabled) {
+                // Create grid overlay view and add to camera layout
+                val gridView = com.customcamera.app.plugins.GridOverlayView(this)
+
+                // Add grid overlay on top of preview
+                val rootView = binding.root as android.widget.FrameLayout
+                val layoutParams = android.widget.FrameLayout.LayoutParams(
+                    android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
+                    android.widget.FrameLayout.LayoutParams.MATCH_PARENT
+                )
+                rootView.addView(gridView, layoutParams)
+
+                Log.i(TAG, "Grid overlay added to camera UI")
+            }
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Error setting up grid overlay", e)
+        }
+    }
+
+    private fun updatePluginStatesFromSettings() {
+        try {
+            val settingsManager = com.customcamera.app.engine.SettingsManager(this)
+
+            // Update grid overlay visibility based on setting
+            val gridEnabled = settingsManager.isPluginEnabled("GridOverlay")
+            if (gridEnabled != gridOverlayPlugin.isGridVisible()) {
+                if (gridEnabled) {
+                    gridOverlayPlugin.showGrid()
+                } else {
+                    gridOverlayPlugin.hideGrid()
+                }
+                Log.i(TAG, "Grid overlay updated from settings: $gridEnabled")
+            }
+
+            // Update other plugin states as needed
+            Log.d(TAG, "Plugin states updated from settings")
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Error updating plugin states from settings", e)
+        }
     }
 
     companion object {

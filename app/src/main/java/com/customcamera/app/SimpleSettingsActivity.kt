@@ -72,11 +72,35 @@ class SimpleSettingsActivity : AppCompatActivity() {
         addTitle("Photo Settings")
         addInfoSetting("Photo Quality", "${settingsManager.photoQuality.value}%")
 
-        // Plugin status
-        addTitle("Plugin Status")
-        addInfoSetting("AutoFocus Plugin", if (settingsManager.isPluginEnabled("AutoFocus")) "Enabled" else "Disabled")
-        addInfoSetting("Grid Plugin", if (settingsManager.isPluginEnabled("GridOverlay")) "Enabled" else "Disabled")
-        addInfoSetting("Camera Info Plugin", if (settingsManager.isPluginEnabled("CameraInfo")) "Enabled" else "Disabled")
+        // Plugin controls
+        addTitle("Plugin Controls")
+
+        addSwitchSetting(
+            "AutoFocus Plugin",
+            "Enable advanced focus controls",
+            settingsManager.isPluginEnabled("AutoFocus")
+        ) { enabled ->
+            settingsManager.setPluginEnabled("AutoFocus", enabled)
+            Toast.makeText(this, "AutoFocus plugin ${if (enabled) "enabled" else "disabled"}", Toast.LENGTH_SHORT).show()
+        }
+
+        addSwitchSetting(
+            "Grid Overlay Plugin",
+            "Enable composition grid overlays",
+            settingsManager.isPluginEnabled("GridOverlay")
+        ) { enabled ->
+            settingsManager.setPluginEnabled("GridOverlay", enabled)
+            Toast.makeText(this, "Grid plugin ${if (enabled) "enabled" else "disabled"}", Toast.LENGTH_SHORT).show()
+        }
+
+        addSwitchSetting(
+            "Camera Info Plugin",
+            "Enable frame analysis and monitoring",
+            settingsManager.isPluginEnabled("CameraInfo")
+        ) { enabled ->
+            settingsManager.setPluginEnabled("CameraInfo", enabled)
+            Toast.makeText(this, "Camera info plugin ${if (enabled) "enabled" else "disabled"}", Toast.LENGTH_SHORT).show()
+        }
 
         Log.i(TAG, "Settings UI created")
     }
