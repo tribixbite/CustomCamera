@@ -19,6 +19,7 @@ import com.customcamera.app.databinding.ActivityCameraBinding
 import com.customcamera.app.engine.CameraConfig
 import com.customcamera.app.engine.CameraEngine
 import com.customcamera.app.plugins.*
+import com.customcamera.app.exceptions.*
 import kotlinx.coroutines.launch
 import java.io.File
 import java.text.SimpleDateFormat
@@ -811,18 +812,40 @@ class CameraActivityEngine : AppCompatActivity() {
         }
     }
 
-    private fun handleCameraError(message: String) {
-        Log.e(TAG, message)
-        Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+    private fun handleCameraError(message: String, exception: Throwable? = null) {
+        Log.e(TAG, message, exception)
 
-        // Try to gracefully fallback to camera selection
-        if (cameraIndex > 0) {
-            Log.i(TAG, "Attempting fallback to camera 0")
-            cameraIndex = 0
-            startCameraWithEngine()
-        } else {
-            Log.e(TAG, "No working cameras found, returning to selection")
-            finish()
+        // Enhanced error handling with better user feedback
+        val userMessage = when {
+            message.contains("initialization") -> "Camera system initialization failed. Please restart the app."
+            message.contains("binding") -> "Camera $cameraIndex is not working. Trying another camera..."
+            message.contains("unavailable") -> "Camera $cameraIndex is not available. Please check device cameras."
+            else -> "Camera error: $message"
+        }
+
+        Toast.makeText(this, userMessage, Toast.LENGTH_LONG).show()
+
+        // Enhanced recovery strategies
+        when {
+            message.contains("binding") -> {
+                // Try fallback to different camera
+                if (cameraIndex > 0) {
+                    Log.i(TAG, "Attempting fallback to camera 0")
+                    cameraIndex = 0
+                    startCameraWithEngine()
+                } else {
+                    Log.e(TAG, "No working cameras found, returning to selection")
+                    finish()
+                }
+            }
+            message.contains("initialization") -> {
+                Log.e(TAG, "Camera initialization failed, finishing activity")
+                finish()
+            }
+            else -> {
+                Log.e(TAG, "Unhandled camera error, finishing activity")
+                finish()
+            }
         }
     }
 
