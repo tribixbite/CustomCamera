@@ -16,6 +16,10 @@ import com.customcamera.app.databinding.ActivityCameraBinding
 import com.customcamera.app.engine.CameraConfig
 import com.customcamera.app.engine.CameraEngine
 import com.customcamera.app.plugins.AutoFocusPlugin
+import com.customcamera.app.plugins.GridOverlayPlugin
+import com.customcamera.app.plugins.CameraInfoPlugin
+import com.customcamera.app.plugins.ProControlsPlugin
+import com.customcamera.app.plugins.ExposureControlPlugin
 import kotlinx.coroutines.launch
 import java.io.File
 import java.text.SimpleDateFormat
@@ -35,6 +39,10 @@ class CameraActivityEngine : AppCompatActivity() {
 
     // Plugins
     private lateinit var autoFocusPlugin: AutoFocusPlugin
+    private lateinit var gridOverlayPlugin: GridOverlayPlugin
+    private lateinit var cameraInfoPlugin: CameraInfoPlugin
+    private lateinit var proControlsPlugin: ProControlsPlugin
+    private lateinit var exposureControlPlugin: ExposureControlPlugin
 
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -97,9 +105,20 @@ class CameraActivityEngine : AppCompatActivity() {
         binding.switchCameraButton.setOnClickListener { switchCamera() }
         binding.flashButton.setOnClickListener { toggleFlash() }
         binding.galleryButton.setOnClickListener { openGallery() }
-        binding.settingsButton.setOnClickListener { openSettings() }
+        binding.settingsButton.setOnClickListener { showAdvancedControls() }
 
-        Log.i(TAG, "✅ UI setup complete")
+        // Add double-tap for grid toggle
+        var lastTapTime = 0L
+        binding.previewView.setOnClickListener {
+            val currentTime = System.currentTimeMillis()
+            if (currentTime - lastTapTime < 300) {
+                // Double tap detected - toggle grid
+                toggleGrid()
+            }
+            lastTapTime = currentTime
+        }
+
+        Log.i(TAG, "✅ UI setup complete with advanced controls")
     }
 
     private fun hasCameraPermission(): Boolean {
@@ -118,6 +137,18 @@ class CameraActivityEngine : AppCompatActivity() {
         // Create and register plugins
         autoFocusPlugin = AutoFocusPlugin()
         cameraEngine.registerPlugin(autoFocusPlugin)
+
+        gridOverlayPlugin = GridOverlayPlugin()
+        cameraEngine.registerPlugin(gridOverlayPlugin)
+
+        cameraInfoPlugin = CameraInfoPlugin()
+        cameraEngine.registerPlugin(cameraInfoPlugin)
+
+        proControlsPlugin = ProControlsPlugin()
+        cameraEngine.registerPlugin(proControlsPlugin)
+
+        exposureControlPlugin = ExposureControlPlugin()
+        cameraEngine.registerPlugin(exposureControlPlugin)
 
         Log.i(TAG, "✅ Camera engine and plugins initialized")
     }
@@ -268,8 +299,96 @@ class CameraActivityEngine : AppCompatActivity() {
         }
     }
 
-    private fun openSettings() {
-        Toast.makeText(this, "Camera settings coming soon", Toast.LENGTH_SHORT).show()
+    private fun showAdvancedControls() {
+        lifecycleScope.launch {
+            try {
+                // Show current camera info and controls status
+                val cameraInfo = cameraInfoPlugin.getCameraInfo()
+                val exposureSettings = exposureControlPlugin.getCurrentSettings()
+                val proControlsSettings = proControlsPlugin.getCurrentSettings()
+
+                val info = buildString {
+                    appendLine("=== Camera Information ===")
+                    cameraInfo.forEach { (key, value) ->
+                        appendLine("$key: $value")
+                    }
+                    appendLine()
+                    appendLine("=== Exposure Controls ===")
+                    exposureSettings.forEach { (key, value) ->
+                        appendLine("$key: $value")
+                    }
+                    appendLine()
+                    appendLine("=== Pro Controls ===")
+                    proControlsSettings.forEach { (key, value) ->
+                        appendLine("$key: $value")
+                    }
+                }
+
+                Log.i(TAG, "Camera Controls Info:\n$info")
+                Toast.makeText(this@CameraActivityEngine, "Camera info logged - Check logcat", Toast.LENGTH_SHORT).show()
+
+                // Demonstrate exposure adjustment
+                demonstrateExposureControl()
+
+            } catch (e: Exception) {
+                Log.e(TAG, "Error showing advanced controls", e)
+                Toast.makeText(this@CameraActivityEngine, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun toggleGrid() {
+        lifecycleScope.launch {
+            try {
+                gridOverlayPlugin.toggleGrid()
+                val isVisible = gridOverlayPlugin.isGridVisible()
+                Toast.makeText(
+                    this@CameraActivityEngine,
+                    "Grid ${if (isVisible) "shown" else "hidden"}",
+                    Toast.LENGTH_SHORT
+                ).show()
+                Log.i(TAG, "Grid toggled: $isVisible")
+            } catch (e: Exception) {
+                Log.e(TAG, "Error toggling grid", e)
+            }
+        }
+    }
+
+    private suspend fun demonstrateExposureControl() {
+        try {
+            // Show current exposure
+            val currentEV = exposureControlPlugin.getCurrentEV()
+            Log.i(TAG, "Current exposure: ${currentEV}EV")
+
+            // Perform exposure analysis
+            val analysis = exposureControlPlugin.analyzeExposure()
+            analysis?.let {
+                Log.i(TAG, "Exposure analysis: $it")
+
+                if (!it.isOptimal) {
+                    Toast.makeText(
+                        this,
+                        "Exposure ${if (it.underExposed) "under" else if (it.overExposed) "over" else "sub-optimal"}",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            }
+
+            // Demonstrate manual exposure adjustment (small change)
+            val currentIndex = exposureControlPlugin.getCurrentSettings()["currentExposureIndex"] as Int
+            val testIndex = (currentIndex + 1).coerceIn(-2, 2) // Small adjustment
+
+            exposureControlPlugin.setExposureCompensation(testIndex)
+            Log.i(TAG, "Demonstrated exposure adjustment to index: $testIndex")
+
+            // Reset back after a moment
+            kotlinx.coroutines.delay(2000)
+            exposureControlPlugin.setExposureCompensation(currentIndex)
+            Log.i(TAG, "Reset exposure to original: $currentIndex")
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Error in exposure demonstration", e)
+        }
     }
 
     private fun handleCameraError(message: String) {
