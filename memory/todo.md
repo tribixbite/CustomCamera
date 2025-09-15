@@ -1,829 +1,629 @@
-# CustomCamera - Comprehensive Feature Implementation Plan
-
-## 🎯 USER REQUIREMENTS CAPTURED
-
-### Core Advanced Features Requested
-- **Auto Focus & Manual Focus** - Complete focus control system
-- **Full Settings Page** - Everything normal camera apps have and more
-- **Custom Advanced Features** - Power user features front and center
-- **Automatic Barcode/QR Scanning** - Real-time detection and processing
-- **Dual Camera PiP Overlay** - Simultaneous front and rear camera feeds
-- **Custom Pre-Shot Crop** - Similar to CaptnCtrl web app functionality
-- **Tap-to-AutoFocus** - Touch focus on any subject in frame
-- **Full Debug Output Page** - Comprehensive camera API communication logging
-- **Camera ID Debug Tools** - Troubleshoot camera selection failures
-- **Camera Reset & Queue Flush** - Reset camera state and clear queued calls
-
-### Architecture Requirements
-- **Modular DRY Design** - Plug and play code structure
-- **Plugin System** - Easy to extend with app plugins
-- **Maintainable Codebase** - Clean separation of concerns
-- **Extensible Framework** - Support future feature additions
-
-## 🏗️ MODULAR ARCHITECTURE OVERVIEW
-
-### Core Architecture Pattern: Plugin-Based Camera Framework
-
-```kotlin
-// Core Camera Engine
-abstract class CameraPlugin {
-    abstract val name: String
-    abstract val priority: Int
-    abstract fun initialize(context: CameraContext)
-    abstract fun onCameraReady(camera: Camera)
-    abstract fun onFrame(image: ImageProxy)
-    abstract fun cleanup()
-}
-
-// Plugin Manager
-class CameraPluginManager {
-    private val plugins = mutableListOf<CameraPlugin>()
-
-    fun registerPlugin(plugin: CameraPlugin)
-    fun initializeAll(context: CameraContext)
-    fun processFrame(image: ImageProxy)
-}
-
-// Camera Context - Shared state and utilities
-class CameraContext {
-    val cameraProvider: ProcessCameraProvider
-    val debugLogger: DebugLogger
-    val settingsManager: SettingsManager
-    val uiController: UIController
-}
-```
-
-### Module Structure
-```
-app/src/main/java/com/customcamera/app/
-├── core/                          # Core camera framework
-│   ├── CameraEngine.kt           # Main camera management
-│   ├── CameraPlugin.kt           # Plugin base classes
-│   ├── CameraContext.kt          # Shared state and utilities
-│   └── PluginManager.kt          # Plugin lifecycle management
-├── plugins/                       # Feature plugins
-│   ├── focus/                    # Focus control plugins
-│   ├── scanning/                 # Barcode/QR scanning
-│   ├── pip/                      # Picture-in-picture overlay
-│   ├── crop/                     # Pre-shot crop functionality
-│   ├── debug/                    # Debug and logging plugins
-│   └── settings/                 # Settings management
-├── ui/                           # User interface components
-│   ├── camera/                   # Camera interface
-│   ├── settings/                 # Settings screens
-│   ├── debug/                    # Debug interfaces
-│   └── common/                   # Shared UI components
-├── data/                         # Data management
-│   ├── repositories/             # Data access layer
-│   ├── models/                   # Data models
-│   └── preferences/              # Settings storage
-└── utils/                        # Utility classes
-    ├── camera/                   # Camera utilities
-    ├── image/                    # Image processing
-    └── logging/                  # Debug logging
-```
-
-## 📋 DETAILED FEATURE IMPLEMENTATION PLAN
-
-### PHASE 1: CORE ARCHITECTURE & CRITICAL FIXES (Sessions 1-3)
-
-#### 1.1 Fix Current Camera ID Selection Issue (CRITICAL)
-**Priority**: P0 - Blocking all other development
-**Files**: `CameraActivity.kt`, `CameraSelectionActivity.kt`
-
-**Implementation Steps**:
-```kotlin
-// Step 1: Enhanced camera debugging
-class CameraDebugger {
-    fun logAvailableCameras(provider: ProcessCameraProvider)
-    fun logCameraCharacteristics(cameraId: String)
-    fun logCameraBinding(camera: Camera, selector: CameraSelector)
-    fun testCameraBinding(cameraInfo: CameraInfo): Boolean
-}
-
-// Step 2: Alternative camera selection approach
-class CameraSelector2Manager {
-    fun createSelectorByIndex(index: Int): CameraSelector
-    fun createSelectorByCharacteristics(facing: Int): CameraSelector
-    fun validateCameraAvailability(index: Int): Boolean
-}
-
-// Step 3: Camera reset and queue flush
-class CameraResetManager {
-    suspend fun resetCamera(cameraId: String)
-    suspend fun flushCameraQueue()
-    suspend fun reinitializeCameraProvider()
-}
-```
-
-#### 1.2 Establish Plugin Architecture Foundation
-**Files**: `core/CameraEngine.kt`, `core/CameraPlugin.kt`, `core/PluginManager.kt`
-
-**Core Components**:
-```kotlin
-// Camera Engine - Central coordinator
-class CameraEngine {
-    private val pluginManager = PluginManager()
-    private val debugLogger = DebugLogger()
-
-    suspend fun initialize()
-    suspend fun bindCamera(config: CameraConfig)
-    fun processFrame(image: ImageProxy)
-    fun registerPlugin(plugin: CameraPlugin)
-}
-
-// Plugin Base Classes
-abstract class CameraPlugin {
-    abstract val name: String
-    abstract val version: String
-    abstract val dependencies: List<String>
-
-    abstract suspend fun initialize(context: CameraContext)
-    abstract suspend fun onCameraReady(camera: Camera)
-    abstract suspend fun processFrame(image: ImageProxy)
-    abstract fun cleanup()
-}
-
-abstract class UIPlugin : CameraPlugin() {
-    abstract fun createUI(): View
-    abstract fun onUIEvent(event: UIEvent)
-}
-
-abstract class ProcessingPlugin : CameraPlugin() {
-    abstract suspend fun processImage(image: ImageProxy): ProcessingResult
-}
-```
-
-#### 1.3 Debug Infrastructure Foundation
-**Files**: `plugins/debug/DebugPlugin.kt`, `utils/logging/DebugLogger.kt`
-
-**Debug System Implementation**:
-```kotlin
-// Comprehensive debug logging
-class DebugLogger {
-    fun logCameraAPI(action: String, details: Map<String, Any>)
-    fun logCameraBinding(cameraId: String, result: BindingResult)
-    fun logFrameProcessing(frameId: Long, processors: List<String>)
-    fun logPluginActivity(plugin: String, action: String, data: Any?)
-    fun exportDebugLog(): String
-}
-
-// Camera API Communication Monitor
-class CameraAPIMonitor {
-    fun monitorCameraProvider(): Flow<CameraEvent>
-    fun monitorCameraBinding(): Flow<BindingEvent>
-    fun monitorFrameFlow(): Flow<FrameEvent>
-    fun logCameraCharacteristics(cameraId: String)
-}
-
-// Debug UI Plugin
-class DebugUIPlugin : UIPlugin() {
-    override fun createUI(): View // Debug overlay
-    fun showCameraInfo(camera: Camera)
-    fun showFrameRate()
-    fun showMemoryUsage()
-    fun showPluginStatus()
-}
-```
-
-### PHASE 2: ADVANCED CAMERA FEATURES (Sessions 4-8)
-
-#### 2.1 Focus Control System
-**Files**: `plugins/focus/FocusPlugin.kt`, `plugins/focus/ManualFocusPlugin.kt`
-
-**Auto Focus Implementation**:
-```kotlin
-class AutoFocusPlugin : CameraPlugin() {
-    override suspend fun onCameraReady(camera: Camera) {
-        // Continuous auto focus setup
-        camera.cameraControl.setLinearZoom(0.0f)
-        setupTapToFocus()
-    }
-
-    private fun setupTapToFocus() {
-        // Touch listener for preview view
-        // Focus metering and auto focus trigger
-    }
-}
-
-class ManualFocusPlugin : UIPlugin() {
-    override fun createUI(): View {
-        // Manual focus slider
-        // Focus distance indicator
-        // Focus lock toggle
-    }
-
-    fun setManualFocus(distance: Float)
-    fun lockFocus()
-    fun resetToAutoFocus()
-}
-```
-
-**Tap-to-Focus Implementation**:
-```kotlin
-class TapToFocusHandler {
-    fun setupTouchListener(previewView: PreviewView, camera: Camera)
-    fun createFocusPoint(x: Float, y: Float): MeteringPoint
-    fun triggerAutoFocus(meteringPoint: MeteringPoint)
-    fun showFocusIndicator(x: Float, y: Float)
-}
-```
-
-#### 2.2 Professional Camera Controls
-**Files**: `plugins/manual/ManualControlsPlugin.kt`, `ui/manual/ManualControlsView.kt`
-
-**Manual Controls Implementation**:
-```kotlin
-class ManualControlsPlugin : UIPlugin() {
-    override fun createUI(): View {
-        return ManualControlsView().apply {
-            addControl(ISOControl())
-            addControl(ShutterSpeedControl())
-            addControl(ExposureControl())
-            addControl(WhiteBalanceControl())
-        }
-    }
-}
-
-// Individual control components
-class ISOControl : CameraControl {
-    val isoRange = 100..3200
-    fun setISO(value: Int)
-}
-
-class ShutterSpeedControl : CameraControl {
-    val speedRange = 1/4000f..30f // seconds
-    fun setShutterSpeed(seconds: Float)
-}
-
-class ExposureControl : CameraControl {
-    val compensationRange = -2.0f..2.0f // EV
-    fun setExposureCompensation(ev: Float)
-}
-```
-
-#### 2.3 Dual Camera PiP Overlay System
-**Files**: `plugins/pip/PiPPlugin.kt`, `plugins/pip/DualCameraManager.kt`
-
-**PiP Implementation**:
-```kotlin
-class PiPPlugin : UIPlugin() {
-    private val frontCamera = CameraInstance()
-    private val rearCamera = CameraInstance()
-
-    override suspend fun initialize(context: CameraContext) {
-        setupDualCameraBinding()
-        createPiPOverlay()
-    }
-
-    private suspend fun setupDualCameraBinding() {
-        // Bind both cameras simultaneously
-        frontCamera.bind(CameraSelector.DEFAULT_FRONT_CAMERA)
-        rearCamera.bind(CameraSelector.DEFAULT_BACK_CAMERA)
-    }
-
-    override fun createUI(): View {
-        return PiPOverlayView().apply {
-            setMainPreview(rearCamera.preview)
-            setPiPPreview(frontCamera.preview)
-            addPiPControls()
-        }
-    }
-}
-
-class PiPOverlayView : FrameLayout {
-    fun setMainPreview(preview: PreviewView)
-    fun setPiPPreview(preview: PreviewView)
-    fun animatePiPPosition()
-    fun togglePiPSize()
-    fun swapCameras()
-}
-```
-
-### PHASE 3: COMPUTER VISION INTEGRATION (Sessions 9-12)
-
-#### 3.1 Automatic Barcode/QR Scanning
-**Files**: `plugins/scanning/BarcodePlugin.kt`, `plugins/scanning/QRScannerPlugin.kt`
-
-**Barcode Scanning Implementation**:
-```kotlin
-class BarcodePlugin : ProcessingPlugin() {
-    private val barcodeScanner = BarcodeScanning.getClient()
-
-    override suspend fun processFrame(image: ImageProxy): ProcessingResult {
-        val inputImage = InputImage.fromMediaImage(image.image!!, image.imageInfo.rotationDegrees)
-
-        return try {
-            val barcodes = barcodeScanner.process(inputImage).await()
-            ProcessingResult.Success(barcodes.map {
-                BarcodeResult(it.displayValue, it.boundingBox, it.format)
-            })
-        } catch (e: Exception) {
-            ProcessingResult.Error(e)
-        }
-    }
-}
-
-class QRScannerPlugin : ProcessingPlugin() {
-    override suspend fun processFrame(image: ImageProxy): ProcessingResult {
-        // Real-time QR code detection
-        // Parse QR content (URLs, WiFi, contacts, etc.)
-        // Trigger appropriate actions
-    }
-}
-
-// Scanning UI overlay
-class ScanningOverlayPlugin : UIPlugin() {
-    override fun createUI(): View {
-        return ScanningOverlayView().apply {
-            addBarcodeHighlight()
-            addQRCodeHighlight()
-            addScanResultDisplay()
-        }
-    }
-}
-```
-
-#### 3.2 Custom Pre-Shot Crop System
-**Files**: `plugins/crop/CropPlugin.kt`, `plugins/crop/CropOverlayView.kt`
-
-**Crop System Implementation**:
-```kotlin
-class CropPlugin : UIPlugin() {
-    private var cropArea: RectF = RectF(0.25f, 0.25f, 0.75f, 0.75f)
-
-    override fun createUI(): View {
-        return CropOverlayView().apply {
-            setCropArea(cropArea)
-            setDraggable(true)
-            setResizable(true)
-            onCropChanged = { newArea -> cropArea = newArea }
-        }
-    }
-
-    fun applyCropToCapture(image: ImageProxy): ImageProxy {
-        // Apply crop area to captured image
-        // Return cropped image
-    }
-}
-
-class CropOverlayView : View {
-    private var cropRect = RectF()
-    private val cropPaint = Paint()
-    private val handlePaint = Paint()
-
-    override fun onDraw(canvas: Canvas) {
-        drawCropOverlay(canvas)
-        drawResizeHandles(canvas)
-        drawGridLines(canvas)
-    }
-
-    override fun onTouchEvent(event: MotionEvent): Boolean {
-        return handleCropDragging(event) || handleResizing(event)
-    }
-}
-```
-
-### PHASE 4: COMPREHENSIVE DEBUG SYSTEM (Sessions 13-15)
-
-#### 4.1 Camera API Communication Monitor
-**Files**: `plugins/debug/CameraAPIPlugin.kt`, `utils/logging/APIMonitor.kt`
-
-**API Monitoring Implementation**:
-```kotlin
-class CameraAPIMonitor {
-    private val apiCallLog = mutableListOf<APICall>()
-
-    fun logCameraProviderCall(method: String, params: Map<String, Any>, result: Any?)
-    fun logCameraBinding(cameraId: String, useCases: List<UseCase>, result: Camera?)
-    fun logCameraControl(action: String, params: Map<String, Any>)
-    fun logFrameMetadata(metadata: ImageInfo)
-
-    fun generateDebugReport(): String {
-        return buildString {
-            appendLine("=== CAMERA API COMMUNICATION LOG ===")
-            apiCallLog.forEach { call ->
-                appendLine("${call.timestamp}: ${call.method}(${call.params}) -> ${call.result}")
-            }
-        }
-    }
-}
-
-data class APICall(
-    val timestamp: Long,
-    val method: String,
-    val params: Map<String, Any>,
-    val result: Any?,
-    val error: Throwable?
-)
-```
-
-#### 4.2 Camera ID Debug Tools
-**Files**: `plugins/debug/CameraIDDebugPlugin.kt`, `ui/debug/DebugActivity.kt`
-
-**Camera ID Debug Implementation**:
-```kotlin
-class CameraIDDebugPlugin : UIPlugin() {
-    override fun createUI(): View {
-        return CameraDebugView().apply {
-            addCameraEnumerationTest()
-            addCameraBindingTest()
-            addCameraCharacteristicsDisplay()
-            addCameraResetControls()
-        }
-    }
-
-    suspend fun testCameraID(cameraId: String): CameraTestResult {
-        return try {
-            val characteristics = getCameraCharacteristics(cameraId)
-            val bindingTest = testCameraBinding(cameraId)
-            CameraTestResult.Success(characteristics, bindingTest)
-        } catch (e: Exception) {
-            CameraTestResult.Failure(e.message ?: "Unknown error")
-        }
-    }
-
-    suspend fun resetCameraID(cameraId: String) {
-        // Force camera release
-        // Clear camera service cache
-        // Reinitialize camera provider
-    }
-}
-
-// Debug UI for camera testing
-class DebugActivity : AppCompatActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setupDebugInterface()
-    }
-
-    private fun setupDebugInterface() {
-        // Camera enumeration display
-        // Individual camera testing buttons
-        // Live camera API log
-        // Camera reset controls
-        // Export debug data
-    }
-}
-```
-
-#### 4.3 Verbose Debug Output System
-**Files**: `plugins/debug/VerboseLoggingPlugin.kt`, `utils/logging/VerboseLogger.kt`
-
-**Verbose Logging Implementation**:
-```kotlin
-class VerboseLogger {
-    private val logLevels = mapOf(
-        "CAMERA_API" to LogLevel.VERBOSE,
-        "FRAME_PROCESSING" to LogLevel.DEBUG,
-        "UI_EVENTS" to LogLevel.INFO,
-        "ERRORS" to LogLevel.ERROR
-    )
-
-    fun logCameraProviderInit(details: Map<String, Any>)
-    fun logCameraBinding(cameraId: String, useCases: List<UseCase>)
-    fun logFrameAnalysis(frameId: Long, analysisResults: Map<String, Any>)
-    fun logCameraControl(control: String, parameters: Map<String, Any>)
-    fun logCameraError(error: CameraError, context: Map<String, Any>)
-
-    fun generateFullDebugReport(): String {
-        // Complete system state
-        // Camera configuration
-        // Recent API calls
-        // Error history
-        // Performance metrics
-    }
-}
-
-// Debug output UI
-class DebugOutputView : ScrollView {
-    private val logTextView = TextView(context)
-
-    fun appendLogLine(level: LogLevel, tag: String, message: String)
-    fun clearLog()
-    fun exportLog(): String
-    fun filterByLevel(level: LogLevel)
-    fun searchLog(query: String)
-}
-```
-
-### PHASE 5: ADVANCED FEATURES (Sessions 16-25)
-
-#### 5.1 Complete Settings System
-**Files**: `plugins/settings/SettingsPlugin.kt`, `ui/settings/SettingsActivity.kt`
-
-**Settings Categories**:
-```kotlin
-class SettingsManager {
-    // Camera Settings
-    data class CameraSettings(
-        val defaultCameraId: Int,
-        val photoResolution: Size,
-        val videoResolution: Size,
-        val photoQuality: Int, // 1-100
-        val videoQuality: Int,
-        val flashMode: FlashMode,
-        val gridOverlay: Boolean,
-        val levelIndicator: Boolean
-    )
-
-    // Focus Settings
-    data class FocusSettings(
-        val autoFocusMode: AutoFocusMode,
-        val tapToFocusEnabled: Boolean,
-        val manualFocusDefault: Float,
-        val focusIndicatorStyle: FocusIndicatorStyle
-    )
-
-    // Advanced Settings
-    data class AdvancedSettings(
-        val rawCaptureEnabled: Boolean,
-        val histogramOverlay: Boolean,
-        val cameraInfoOverlay: Boolean,
-        val performanceMonitoring: Boolean,
-        val verboseLogging: Boolean
-    )
-
-    // Scanning Settings
-    data class ScanningSettings(
-        val barcodeAutoScan: Boolean,
-        val qrAutoScan: Boolean,
-        val scanningOverlay: Boolean,
-        val autoActionEnabled: Boolean
-    )
-
-    // PiP Settings
-    data class PiPSettings(
-        val pipEnabled: Boolean,
-        val pipPosition: PiPPosition,
-        val pipSize: PiPSize,
-        val pipTransparency: Float
-    )
-}
-```
-
-#### 5.2 Professional Manual Controls
-**Files**: `plugins/manual/ProControlsPlugin.kt`, `ui/manual/ProControlsView.kt`
-
-**Pro Controls Implementation**:
-```kotlin
-class ProControlsPlugin : UIPlugin() {
-    override fun createUI(): View {
-        return ProControlsView().apply {
-            addISOControl(range = 50..6400)
-            addShutterSpeedControl(range = 1/8000f..30f)
-            addApertureControl() // If supported
-            addFocusDistanceControl()
-            addWhiteBalanceControl()
-            addExposureCompensation()
-        }
-    }
-}
-
-// Individual professional controls
-class ISOControl : SliderControl {
-    override val label = "ISO"
-    override val range = 50..6400
-    override val defaultValue = 200
-
-    override fun onValueChanged(value: Int) {
-        camera?.cameraControl?.setExposureCompensationIndex(calculateEV(value))
-    }
-}
-
-class ShutterSpeedControl : SliderControl {
-    override val label = "Shutter Speed"
-    override val range = 1/8000f..30f
-    override val defaultValue = 1/60f
-
-    override fun onValueChanged(value: Float) {
-        // Manual shutter speed control
-        // Requires Camera2 interop
-    }
-}
-```
-
-#### 5.3 Histogram and Analysis Tools
-**Files**: `plugins/analysis/HistogramPlugin.kt`, `plugins/analysis/ExposurePlugin.kt`
-
-**Analysis Tools Implementation**:
-```kotlin
-class HistogramPlugin : ProcessingPlugin() {
-    override suspend fun processFrame(image: ImageProxy): ProcessingResult {
-        val histogram = calculateHistogram(image)
-        return ProcessingResult.Success(histogram)
-    }
-
-    private fun calculateHistogram(image: ImageProxy): Histogram {
-        // RGB histogram calculation
-        // Luminance analysis
-        // Exposure warnings
-    }
-}
-
-class ExposureAnalysisPlugin : ProcessingPlugin() {
-    override suspend fun processFrame(image: ImageProxy): ProcessingResult {
-        val exposure = analyzeExposure(image)
-        return ProcessingResult.Success(exposure)
-    }
-
-    private fun analyzeExposure(image: ImageProxy): ExposureAnalysis {
-        // Over/under exposure detection
-        // Dynamic range analysis
-        // Suggested adjustments
-    }
-}
-```
-
-### PHASE 6: SPECIALIZED FEATURES (Sessions 26-35)
-
-#### 6.1 Night Mode and HDR
-**Files**: `plugins/night/NightModePlugin.kt`, `plugins/hdr/HDRPlugin.kt`
-
-**Night Mode Implementation**:
-```kotlin
-class NightModePlugin : ProcessingPlugin() {
-    override suspend fun processFrame(image: ImageProxy): ProcessingResult {
-        if (isLowLight(image)) {
-            return enhanceForNightMode(image)
-        }
-        return ProcessingResult.NoAction
-    }
-
-    private fun enhanceForNightMode(image: ImageProxy): ProcessingResult {
-        // Multi-frame noise reduction
-        // Exposure enhancement
-        // Detail preservation
-    }
-}
-```
-
-#### 6.2 Video Recording with Advanced Features
-**Files**: `plugins/video/VideoPlugin.kt`, `plugins/video/VideoEffectsPlugin.kt`
-
-**Video Implementation**:
-```kotlin
-class VideoPlugin : CameraPlugin() {
-    private var videoCapture: VideoCapture<Recorder>? = null
-    private var activeRecording: Recording? = null
-
-    override suspend fun onCameraReady(camera: Camera) {
-        setupVideoCapture()
-    }
-
-    fun startRecording(outputFile: File): Recording
-    fun stopRecording()
-    fun pauseRecording()
-    fun resumeRecording()
-}
-
-class VideoEffectsPlugin : ProcessingPlugin() {
-    override suspend fun processFrame(image: ImageProxy): ProcessingResult {
-        // Real-time video effects
-        // Stabilization
-        // Filters and color grading
-    }
-}
-```
-
-#### 6.3 Advanced Gallery System
-**Files**: `plugins/gallery/GalleryPlugin.kt`, `ui/gallery/GalleryActivity.kt`
-
-**Gallery Implementation**:
-```kotlin
-class GalleryPlugin : UIPlugin() {
-    override fun createUI(): View {
-        return GalleryView().apply {
-            setupPhotoGrid()
-            setupVideoThumbnails()
-            addMetadataDisplay()
-            addSharingControls()
-        }
-    }
-}
-
-class PhotoMetadata {
-    val cameraId: String
-    val timestamp: Date
-    val location: Location?
-    val exposureSettings: ExposureSettings
-    val imageSize: Size
-    val fileSize: Long
-}
-```
-
-## 🛠️ IMPLEMENTATION ROADMAP
-
-### Session-by-Session Breakdown
-
-#### Sessions 1-3: Foundation
-- **Session 1**: Fix camera ID selection critical bug
-- **Session 2**: Establish plugin architecture foundation
-- **Session 3**: Implement basic debug infrastructure
-
-#### Sessions 4-8: Core Features
-- **Session 4**: Auto focus and tap-to-focus implementation
-- **Session 5**: Manual focus controls and indicators
-- **Session 6**: Professional camera controls (ISO, shutter, exposure)
-- **Session 7**: Dual camera PiP overlay system
-- **Session 8**: Custom pre-shot crop functionality
-
-#### Sessions 9-12: Computer Vision
-- **Session 9**: Automatic barcode scanning integration
-- **Session 10**: QR code detection and action handling
-- **Session 11**: Advanced image analysis (histogram, exposure)
-- **Session 12**: Real-time object detection and highlighting
-
-#### Sessions 13-15: Debug & Tools
-- **Session 13**: Comprehensive camera API monitoring
-- **Session 14**: Debug UI with live camera information
-- **Session 15**: Camera reset and troubleshooting tools
-
-#### Sessions 16-25: Advanced Features
-- **Session 16-18**: Complete settings system with categories
-- **Session 19-21**: Video recording with effects and stabilization
-- **Session 22-24**: Night mode and HDR processing
-- **Session 25**: Advanced gallery with metadata and sharing
-
-#### Sessions 26-35: Polish & Extensions
-- **Session 26-30**: Performance optimization and memory management
-- **Session 31-35**: Plugin marketplace and custom extensions
-
-## 🧩 PLUGIN SYSTEM SPECIFICATIONS
-
-### Plugin Registration System
-```kotlin
-// Plugin registry
-object PluginRegistry {
-    private val plugins = mutableMapOf<String, CameraPlugin>()
-
-    fun register(plugin: CameraPlugin) {
-        plugins[plugin.name] = plugin
-    }
-
-    fun getPlugin(name: String): CameraPlugin?
-    fun getAllPlugins(): List<CameraPlugin>
-    fun getPluginsByType(type: PluginType): List<CameraPlugin>
-}
-
-// Plugin lifecycle
-enum class PluginState {
-    UNINITIALIZED,
-    INITIALIZING,
-    READY,
-    PROCESSING,
-    ERROR,
-    DISABLED
-}
-```
-
-### Plugin Communication
-```kotlin
-// Event system for plugin communication
-class PluginEventBus {
-    fun publishEvent(event: PluginEvent)
-    fun subscribeToEvent(eventType: EventType, handler: (PluginEvent) -> Unit)
-}
-
-sealed class PluginEvent {
-    object CameraReady : PluginEvent()
-    data class FrameProcessed(val image: ImageProxy, val results: Map<String, Any>) : PluginEvent()
-    data class UserInteraction(val type: InteractionType, val data: Any) : PluginEvent()
-    data class SettingChanged(val setting: String, val value: Any) : PluginEvent()
-}
-```
-
-## 🎯 IMMEDIATE NEXT STEPS (Next Session)
-
-### Priority Queue
-1. **P0**: Fix camera ID selection bug in current implementation
-2. **P1**: Create core plugin architecture foundation
-3. **P2**: Implement basic debug infrastructure
-4. **P3**: Add tap-to-focus functionality
-5. **P4**: Create settings screen framework
-
-### First Session Goals
-- [ ] Resolve camera ID selection using alternative approach
-- [ ] Document findings in debug log analysis
-- [ ] Begin plugin architecture with CameraEngine.kt
-- [ ] Test camera selection works across different devices
-- [ ] Update memory files with progress
-
-### Development Commands for Next Session
+# CustomCamera - Master Task List & Implementation Plan
+
+## 🚨 CRITICAL ISSUES (Fix Immediately)
+
+### P0: Camera ID Selection Not Respected (BLOCKING)
+**Status**: Under Investigation
+**Description**: User selects camera 1 or 2 in selection screen, but camera app always uses camera 0 (back camera)
+
+**Tasks**:
+- [ ] **Debug Current Implementation**
+  - [ ] Test with actual device and check complete log flow
+  - [ ] Analyze camera filter execution in detail
+  - [ ] Verify intent extra passing works correctly
+  - [ ] Check if CameraX is internally overriding selection
+
+- [ ] **Alternative Camera Selection Approaches**
+  - [ ] Try CameraCharacteristics-based selection instead of filter
+  - [ ] Implement camera testing during selection phase
+  - [ ] Use sequential camera binding to find working cameras
+  - [ ] Consider device-specific camera ID handling
+
+- [ ] **Camera Reset and Recovery**
+  - [ ] Implement camera reset functionality for failed bindings
+  - [ ] Add camera queue flush capabilities
+  - [ ] Create camera provider reinitialization
+
+**Code Locations**:
+- `CameraActivity.kt:selectCamera()` - Main camera selection logic
+- `CameraActivity.kt:createCameraSelectorForIndex()` - Camera filter creation
+- `CameraSelectionActivity.kt:setupClickListeners()` - Intent extra passing
+
+### P1: Camera 0 Broken Graceful Handling
+**Status**: Needs Testing
+**Description**: App should gracefully handle when camera 0 (back camera) is broken/unavailable
+
+**Tasks**:
+- [ ] Test fallback logic on devices with broken camera 0
+- [ ] Test on devices with only front camera
+- [ ] Test on devices with unusual camera configurations
+- [ ] Enhance error handling in `handleCameraError()` method
+
+## 🏗️ CORE ARCHITECTURE IMPLEMENTATION
+
+### Phase 1: Plugin Architecture Foundation (Sessions 1-3)
+
+#### Core Plugin System
+- [ ] **Create CameraEngine.kt** - Central camera coordinator
+  ```kotlin
+  class CameraEngine {
+      private val pluginManager = PluginManager()
+      suspend fun initialize()
+      suspend fun bindCamera(config: CameraConfig)
+      fun registerPlugin(plugin: CameraPlugin)
+  }
+  ```
+
+- [ ] **Create CameraPlugin.kt** - Base plugin classes
+  ```kotlin
+  abstract class CameraPlugin {
+      abstract val name: String
+      abstract suspend fun initialize(context: CameraContext)
+      abstract suspend fun onCameraReady(camera: Camera)
+      abstract fun cleanup()
+  }
+  ```
+
+- [ ] **Create PluginManager.kt** - Plugin lifecycle management
+  ```kotlin
+  class PluginManager {
+      fun registerPlugin(plugin: CameraPlugin)
+      fun initializeAll(context: CameraContext)
+      fun processFrame(image: ImageProxy)
+  }
+  ```
+
+- [ ] **Create CameraContext.kt** - Shared state and utilities
+  ```kotlin
+  class CameraContext {
+      val cameraProvider: ProcessCameraProvider
+      val debugLogger: DebugLogger
+      val settingsManager: SettingsManager
+  }
+  ```
+
+#### Debug Infrastructure Foundation
+- [ ] **Create DebugLogger.kt** - Comprehensive logging system
+  ```kotlin
+  class DebugLogger {
+      fun logCameraAPI(action: String, details: Map<String, Any>)
+      fun logCameraBinding(cameraId: String, result: BindingResult)
+      fun exportDebugLog(): String
+  }
+  ```
+
+- [ ] **Create CameraAPIMonitor.kt** - API communication monitoring
+  ```kotlin
+  class CameraAPIMonitor {
+      fun monitorCameraProvider(): Flow<CameraEvent>
+      fun logCameraCharacteristics(cameraId: String)
+      fun trackFrameProcessing()
+  }
+  ```
+
+## 🎯 ADVANCED CAMERA FEATURES
+
+### Phase 2: Focus Control System (Sessions 4-5)
+
+#### Auto Focus Implementation
+- [ ] **Create AutoFocusPlugin.kt**
+  - [ ] Setup continuous auto focus
+  - [ ] Implement tap-to-focus functionality
+  - [ ] Create focus indicator UI
+  - [ ] Add focus lock capability
+
+- [ ] **Create TapToFocusHandler.kt**
+  ```kotlin
+  class TapToFocusHandler {
+      fun setupTouchListener(previewView: PreviewView, camera: Camera)
+      fun createFocusPoint(x: Float, y: Float): MeteringPoint
+      fun triggerAutoFocus(meteringPoint: MeteringPoint)
+      fun showFocusIndicator(x: Float, y: Float)
+  }
+  ```
+
+#### Manual Focus Implementation
+- [ ] **Create ManualFocusPlugin.kt**
+  - [ ] Create manual focus distance slider
+  - [ ] Add focus lock toggle
+  - [ ] Implement focus distance indicator
+  - [ ] Add reset to auto focus functionality
+
+### Phase 3: Dual Camera PiP Overlay (Sessions 6-7)
+
+#### PiP System Implementation
+- [ ] **Create PiPPlugin.kt** - Picture-in-picture overlay system
+  ```kotlin
+  class PiPPlugin : UIPlugin() {
+      private val frontCamera = CameraInstance()
+      private val rearCamera = CameraInstance()
+
+      suspend fun bindDualCameras()
+      fun createPiPOverlay(): PiPOverlayView
+  }
+  ```
+
+- [ ] **Create DualCameraManager.kt** - Simultaneous camera management
+  - [ ] Bind both front and rear cameras simultaneously
+  - [ ] Handle dual camera preview surfaces
+  - [ ] Synchronize capture between both cameras
+  - [ ] Manage dual camera resource allocation
+
+- [ ] **Create PiPOverlayView.kt** - PiP UI implementation
+  ```kotlin
+  class PiPOverlayView : FrameLayout {
+      fun setMainPreview(preview: PreviewView)
+      fun setPiPPreview(preview: PreviewView)
+      fun animatePiPPosition()
+      fun togglePiPSize()
+      fun swapCameras()
+  }
+  ```
+
+#### PiP Features
+- [ ] **PiP Position Control**
+  - [ ] Draggable PiP window positioning
+  - [ ] Corner snapping for PiP overlay
+  - [ ] PiP size adjustment controls
+  - [ ] Camera swap functionality (main <-> PiP)
+
+### Phase 4: Computer Vision Integration (Sessions 8-10)
+
+#### Automatic Barcode/QR Scanning
+- [ ] **Create BarcodePlugin.kt** - ML Kit barcode scanning
+  ```kotlin
+  class BarcodePlugin : ProcessingPlugin() {
+      private val scanner = BarcodeScanning.getClient()
+      override suspend fun processFrame(image: ImageProxy): ProcessingResult
+      fun highlightDetectedCodes(barcodes: List<Barcode>)
+  }
+  ```
+
+- [ ] **Barcode Scanning Features**
+  - [ ] Real-time barcode detection and highlighting
+  - [ ] Support multiple barcode formats (QR, UPC, Code128, etc.)
+  - [ ] Auto-action triggers (open URLs, save contacts)
+  - [ ] Scanning history and management
+  - [ ] Manual scan mode toggle
+
+- [ ] **Create QRScannerPlugin.kt** - Specialized QR code handling
+  - [ ] QR code content parsing (URLs, WiFi, contacts, text)
+  - [ ] Automatic action suggestions based on QR content
+  - [ ] QR code generation functionality
+  - [ ] QR scanning overlay with corner detection
+
+#### Scanning UI Components
+- [ ] **Create ScanningOverlayPlugin.kt** - Scanning UI overlay
+  - [ ] Barcode highlighting with bounding boxes
+  - [ ] QR code corner detection indicators
+  - [ ] Scan result display and actions
+  - [ ] Scanning mode toggle controls
+
+### Phase 5: Custom Pre-Shot Crop System (Sessions 11-12)
+
+#### Crop System Implementation
+- [ ] **Create CropPlugin.kt** - Pre-shot crop functionality
+  ```kotlin
+  class CropPlugin : UIPlugin() {
+      private var cropArea: RectF = RectF(0.25f, 0.25f, 0.75f, 0.75f)
+      fun applyCropToCapture(image: ImageProxy): ImageProxy
+  }
+  ```
+
+- [ ] **Create CropOverlayView.kt** - Interactive crop interface
+  ```kotlin
+  class CropOverlayView : View {
+      override fun onDraw(canvas: Canvas) // Crop overlay rendering
+      override fun onTouchEvent(event: MotionEvent): Boolean // Drag/resize
+  }
+  ```
+
+#### Crop Features
+- [ ] **Interactive Crop Controls**
+  - [ ] Draggable crop area with visual feedback
+  - [ ] Resize handles for crop area adjustment
+  - [ ] Aspect ratio constraints and presets
+  - [ ] Grid overlay for composition guidance
+  - [ ] Real-time crop preview
+
+- [ ] **Crop Integration**
+  - [ ] Apply crop to photo capture
+  - [ ] Apply crop to video recording
+  - [ ] Save crop presets for reuse
+  - [ ] Reset crop to full frame
+
+## 🔧 PROFESSIONAL CAMERA CONTROLS
+
+### Phase 6: Manual Camera Controls (Sessions 13-15)
+
+#### Professional Control System
+- [ ] **Create ProControlsPlugin.kt** - Professional manual controls
+  ```kotlin
+  class ProControlsPlugin : UIPlugin() {
+      fun addISOControl(range: IntRange)
+      fun addShutterSpeedControl(range: ClosedFloatingPointRange<Float>)
+      fun addExposureCompensation()
+      fun addWhiteBalanceControl()
+  }
+  ```
+
+#### Individual Controls
+- [ ] **ISO Control**
+  - [ ] ISO range slider (50-6400)
+  - [ ] Real-time ISO value display
+  - [ ] Auto ISO toggle
+  - [ ] ISO performance impact warnings
+
+- [ ] **Shutter Speed Control**
+  - [ ] Shutter speed range (1/8000s - 30s)
+  - [ ] Bulb mode for extended exposures
+  - [ ] Shutter speed display with fractions
+  - [ ] Motion blur preview indication
+
+- [ ] **Exposure & White Balance**
+  - [ ] Exposure compensation slider (-2 to +2 EV)
+  - [ ] White balance presets (auto, daylight, cloudy, tungsten, fluorescent)
+  - [ ] Manual color temperature control (2000K-10000K)
+  - [ ] White balance fine-tuning
+
+#### Advanced Controls
+- [ ] **Focus Distance Control**
+  - [ ] Manual focus distance slider
+  - [ ] Focus distance display (cm/m/infinity)
+  - [ ] Focus peaking indicator
+  - [ ] Hyperfocal distance calculator
+
+- [ ] **Aperture Control** (if supported by device)
+  - [ ] Variable aperture control
+  - [ ] Depth of field preview
+  - [ ] Aperture value display
+
+### Phase 7: Analysis and Monitoring Tools (Sessions 16-18)
+
+#### Image Analysis
+- [ ] **Create HistogramPlugin.kt** - Real-time histogram analysis
+  ```kotlin
+  class HistogramPlugin : ProcessingPlugin() {
+      override suspend fun processFrame(image: ImageProxy): ProcessingResult
+      private fun calculateHistogram(image: ImageProxy): Histogram
+  }
+  ```
+
+- [ ] **Histogram Features**
+  - [ ] RGB histogram display
+  - [ ] Luminance histogram
+  - [ ] Over/under exposure warnings
+  - [ ] Dynamic range analysis
+
+- [ ] **Create ExposureAnalysisPlugin.kt** - Exposure monitoring
+  - [ ] Real-time exposure analysis
+  - [ ] Exposure warnings and suggestions
+  - [ ] Dynamic range measurement
+  - [ ] Optimal exposure recommendations
+
+#### Performance Monitoring
+- [ ] **Frame Rate Monitoring**
+  - [ ] Real-time FPS display
+  - [ ] Frame processing time analysis
+  - [ ] Memory usage tracking
+  - [ ] Camera performance metrics
+
+## 🛠️ COMPREHENSIVE DEBUG SYSTEM
+
+### Phase 8: Debug Infrastructure (Sessions 19-21)
+
+#### Camera API Communication Monitor
+- [ ] **Enhanced CameraAPIMonitor.kt**
+  ```kotlin
+  class CameraAPIMonitor {
+      fun logCameraProviderCall(method: String, params: Map<String, Any>)
+      fun logCameraBinding(cameraId: String, useCases: List<UseCase>)
+      fun logCameraControl(action: String, params: Map<String, Any>)
+      fun generateDebugReport(): String
+  }
+  ```
+
+#### Debug UI System
+- [ ] **Create DebugActivity.kt** - Comprehensive debug interface
+  - [ ] Live camera information display
+  - [ ] Camera enumeration with characteristics
+  - [ ] Individual camera testing buttons
+  - [ ] Camera API call log viewer
+  - [ ] Debug data export functionality
+
+#### Camera Troubleshooting Tools
+- [ ] **Create CameraResetManager.kt** - Camera recovery tools
+  ```kotlin
+  class CameraResetManager {
+      suspend fun resetCameraID(cameraId: String)
+      suspend fun flushCameraQueue()
+      suspend fun reinitializeCameraProvider()
+      fun clearCameraCache()
+  }
+  ```
+
+#### Verbose Debug Output
+- [ ] **Create VerboseLogger.kt** - Detailed logging system
+  - [ ] Camera API call logging with parameters
+  - [ ] Frame processing pipeline monitoring
+  - [ ] Plugin activity tracking
+  - [ ] Error history with context
+  - [ ] Performance metrics collection
+
+### Debug Features Implementation
+- [ ] **Debug Output Page in Settings**
+  - [ ] Live debug log viewer
+  - [ ] Log level filtering (Verbose, Debug, Info, Error)
+  - [ ] Search functionality in logs
+  - [ ] Export debug logs to file
+  - [ ] Clear debug log functionality
+
+- [ ] **Camera ID Debug Tools**
+  - [ ] Test each camera ID individually
+  - [ ] Display camera characteristics for each ID
+  - [ ] Show camera binding success/failure status
+  - [ ] Camera availability testing
+  - [ ] Force camera release and rebind
+
+## 🎨 ADVANCED UI/UX FEATURES
+
+### Phase 9: Complete Settings System (Sessions 22-24)
+
+#### Settings Categories Implementation
+- [ ] **Camera Settings**
+  - [ ] Default camera ID selection
+  - [ ] Photo resolution options (from camera capabilities)
+  - [ ] Video resolution selection
+  - [ ] Photo quality slider (1-100%)
+  - [ ] Video quality selection
+  - [ ] Flash mode preferences
+  - [ ] Grid overlay toggle
+  - [ ] Level indicator toggle
+
+- [ ] **Focus Settings**
+  - [ ] Auto focus mode selection
+  - [ ] Tap-to-focus enable/disable
+  - [ ] Manual focus default distance
+  - [ ] Focus indicator style options
+
+- [ ] **Advanced Settings**
+  - [ ] RAW capture enable/disable
+  - [ ] Histogram overlay toggle
+  - [ ] Camera info overlay
+  - [ ] Performance monitoring toggle
+  - [ ] Verbose logging enable/disable
+
+- [ ] **Scanning Settings**
+  - [ ] Barcode auto-scan toggle
+  - [ ] QR auto-scan toggle
+  - [ ] Scanning overlay visibility
+  - [ ] Auto-action enable/disable
+
+- [ ] **PiP Settings**
+  - [ ] PiP overlay enable/disable
+  - [ ] PiP position preferences
+  - [ ] PiP size selection
+  - [ ] PiP transparency adjustment
+
+#### Settings UI Implementation
+- [ ] **Create SettingsActivity.kt**
+  - [ ] Settings category organization
+  - [ ] Preference persistence with SharedPreferences
+  - [ ] Settings import/export functionality
+  - [ ] Reset to defaults option
+
+- [ ] **Create activity_settings.xml**
+  - [ ] Modern Material3 settings layout
+  - [ ] Category sections with headers
+  - [ ] Switch, slider, and dropdown controls
+  - [ ] Preview sections for visual settings
+
+### Phase 10: Video Recording System (Sessions 25-26)
+
+#### Video Capture Implementation
+- [ ] **Add VideoCapture to CameraActivity.kt**
+  ```kotlin
+  private var videoCapture: VideoCapture<Recorder>? = null
+  private var activeRecording: Recording? = null
+  ```
+
+- [ ] **Video Recording Features**
+  - [ ] Record/stop button with state indication
+  - [ ] Recording duration timer display
+  - [ ] Video quality selection in real-time
+  - [ ] Recording indicator overlay
+  - [ ] Pause/resume recording functionality
+
+- [ ] **Video Effects and Processing**
+  - [ ] Real-time video stabilization
+  - [ ] Video filters and color grading
+  - [ ] Video resolution and bitrate control
+  - [ ] Audio recording with level indicators
+
+### Phase 11: Enhanced Gallery System (Sessions 27-28)
+
+#### In-App Gallery
+- [ ] **Create GalleryActivity.kt** - Photo/video management
+  - [ ] Grid view of captured media
+  - [ ] Photo detail view with EXIF data
+  - [ ] Video playback with controls
+  - [ ] Share and delete functionality
+  - [ ] Bulk operations (select multiple)
+
+- [ ] **Gallery Integration**
+  - [ ] Last photo preview in camera interface
+  - [ ] Quick access to recent photos
+  - [ ] Photo metadata display
+  - [ ] Sharing controls with multiple apps
+
+#### Photo Metadata System
+- [ ] **Create PhotoMetadata.kt** - EXIF and custom metadata
+  ```kotlin
+  data class PhotoMetadata(
+      val cameraId: String,
+      val timestamp: Date,
+      val location: Location?,
+      val exposureSettings: ExposureSettings,
+      val imageSize: Size,
+      val cropArea: RectF?
+  )
+  ```
+
+## 🎛️ PROFESSIONAL FEATURES
+
+### Phase 12: Manual Camera Controls (Sessions 29-31)
+
+#### Individual Control Components
+- [ ] **Create ISOControl.kt**
+  - [ ] ISO range slider (50-6400)
+  - [ ] Real-time noise preview
+  - [ ] Auto ISO toggle
+  - [ ] ISO performance impact display
+
+- [ ] **Create ShutterSpeedControl.kt**
+  - [ ] Shutter speed range (1/8000s - 30s)
+  - [ ] Bulb mode for long exposures
+  - [ ] Motion blur indicators
+  - [ ] Shutter speed fraction display
+
+- [ ] **Create ExposureControl.kt**
+  - [ ] Exposure compensation (-2 to +2 EV)
+  - [ ] Real-time exposure preview
+  - [ ] Over/under exposure warnings
+  - [ ] Suggested exposure adjustments
+
+#### Advanced Professional Features
+- [ ] **Manual White Balance**
+  - [ ] Color temperature slider (2000K-10000K)
+  - [ ] White balance presets
+  - [ ] Custom white balance from reference
+  - [ ] White balance fine-tuning controls
+
+- [ ] **Focus Controls**
+  - [ ] Manual focus distance control
+  - [ ] Focus peaking overlay
+  - [ ] Hyperfocal distance calculator
+  - [ ] Focus stacking for macro photography
+
+### Phase 13: Analysis Tools (Sessions 32-33)
+
+#### Real-time Analysis
+- [ ] **Histogram Display**
+  - [ ] RGB channel histograms
+  - [ ] Luminance histogram
+  - [ ] Histogram overlay toggle
+  - [ ] Histogram-based exposure guidance
+
+- [ ] **Exposure Analysis**
+  - [ ] Dynamic range measurement
+  - [ ] Highlight/shadow clipping warnings
+  - [ ] Optimal exposure suggestions
+  - [ ] Zone system overlay
+
+#### Image Quality Tools
+- [ ] **Sharpness Analysis**
+  - [ ] Real-time sharpness measurement
+  - [ ] Focus confirmation indicators
+  - [ ] Optimal aperture suggestions
+  - [ ] Depth of field preview
+
+## 🌙 SPECIALIZED MODES
+
+### Phase 14: Night Mode and HDR (Sessions 34-35)
+
+#### Night Photography
+- [ ] **Create NightModePlugin.kt**
+  - [ ] Low-light detection
+  - [ ] Multi-frame noise reduction
+  - [ ] Extended exposure handling
+  - [ ] Night mode UI indicators
+
+#### HDR Implementation
+- [ ] **Create HDRPlugin.kt**
+  - [ ] Multi-exposure capture
+  - [ ] HDR tone mapping
+  - [ ] Bracketing controls
+  - [ ] HDR preview processing
+
+## 🔧 TECHNICAL DEBT & POLISH
+
+### Code Quality Improvements
+- [ ] **Fix Deprecated API Usage**
+  - [ ] Replace deprecated systemUiVisibility with WindowInsetsController
+  - [ ] Update to modern Android 12+ APIs
+  - [ ] Remove deprecated CameraX APIs
+
+- [ ] **Enhanced Error Handling**
+  - [ ] Create custom exception classes for camera errors
+  - [ ] More granular error recovery strategies
+  - [ ] Better user feedback for different error types
+
+### Performance Optimization
+- [ ] **Memory Management**
+  - [ ] Optimize camera preview memory usage
+  - [ ] Efficient bitmap handling for processing
+  - [ ] Background thread optimization for image analysis
+
+- [ ] **Battery Optimization**
+  - [ ] Reduce camera processing when not needed
+  - [ ] Optimize flash usage
+  - [ ] Background processing optimization
+
+### UI/UX Polish
+- [ ] **Camera Selection UI Enhancement**
+  - [ ] Add camera preview thumbnails to selection buttons
+  - [ ] Better visual selection indicators
+  - [ ] Smooth transitions between selection and camera
+
+- [ ] **Modern UI Refinements**
+  - [ ] Improved button animations and feedback
+  - [ ] Better loading states and progress indicators
+  - [ ] Enhanced error message presentation
+  - [ ] Accessibility improvements
+
+## 📱 MISSING RESOURCES
+
+### Drawable Resources
+- [ ] **Complete Icon Set**
+  - [ ] Refine existing vector icons for better visual quality
+  - [ ] Add missing button states (pressed, focused, disabled)
+  - [ ] Create consistent icon sizing and styling
+  - [ ] Add night mode compatible icons
+
+### Layout Resources
+- [ ] **Additional Layout Files**
+  - [ ] `activity_settings.xml` - Comprehensive settings interface
+  - [ ] `activity_gallery.xml` - In-app photo gallery
+  - [ ] `activity_debug.xml` - Debug and troubleshooting interface
+  - [ ] `item_camera_option.xml` - Enhanced camera selection item
+  - [ ] `view_crop_overlay.xml` - Crop overlay component
+  - [ ] `view_pip_overlay.xml` - Picture-in-picture overlay
+
+## 🎯 IMMEDIATE NEXT SESSION PRIORITIES
+
+### Critical Path (Must Fix First)
+1. **P0**: Camera ID selection bug resolution
+2. **P1**: Core plugin architecture foundation
+3. **P2**: Basic debug infrastructure
+
+### Development Sequence
+1. **Fix camera selection** using alternative approaches
+2. **Establish plugin system** with CameraEngine
+3. **Add debug monitoring** for better troubleshooting
+4. **Implement tap-to-focus** as first advanced feature
+5. **Create settings framework** for configuration
+
+### Session Commands
 ```bash
 cd ~/git/swype/CustomCamera
 
-# Review current status
+# Review status
 cat CLAUDE.md
-cat memory/current-tasks.md
+cat memory/todo.md
 
-# Build and test
+# Development workflow
 ./gradlew assembleDebug
 adb install -r app/build/outputs/apk/debug/app-debug.apk
-
-# Debug camera selection
-adb logcat -c
-# Test camera selection flow
 adb logcat -d | grep "customcamera"
 
 # Focus on camera ID selection fix first
@@ -831,43 +631,7 @@ adb logcat -d | grep "customcamera"
 
 ---
 
-## 📊 FEATURE COMPLEXITY MATRIX
-
-| Feature Category | Complexity | Sessions | Dependencies |
-|-----------------|------------|----------|--------------|
-| Camera ID Selection Fix | Medium | 1 | CameraX understanding |
-| Plugin Architecture | High | 2-3 | Design patterns |
-| Auto/Manual Focus | Medium | 2 | CameraX controls |
-| Debug Infrastructure | Medium | 2-3 | Logging frameworks |
-| Barcode/QR Scanning | Medium | 2 | ML Kit integration |
-| Dual Camera PiP | High | 3-4 | Multi-camera handling |
-| Custom Crop System | Medium | 2-3 | Touch handling, graphics |
-| Professional Controls | High | 3-4 | Camera2 API interop |
-| Video Recording | Medium | 2-3 | VideoCapture use case |
-| Night Mode/HDR | High | 4-5 | Image processing |
-
-## 🎨 UI/UX FEATURE SPECIFICATIONS
-
-### Camera Interface Layers
-```
-Layer 1: Camera Preview (Full screen)
-Layer 2: Crop Overlay (If enabled)
-Layer 3: Scanning Overlay (Barcode/QR highlights)
-Layer 4: PiP Overlay (Secondary camera feed)
-Layer 5: Focus Indicators (Touch focus, manual focus)
-Layer 6: Camera Controls (Floating buttons)
-Layer 7: Professional Controls (Expandable panel)
-Layer 8: Debug Overlay (If enabled)
-```
-
-### Interaction Patterns
-- **Touch Gestures**: Tap-to-focus, pinch-to-zoom, swipe for modes
-- **Button Controls**: Floating buttons for primary actions
-- **Slider Controls**: Professional settings with real-time feedback
-- **Overlay Toggles**: Show/hide different overlay types
-- **Mode Switching**: Quick access to different camera modes
-
----
-
-*Comprehensive feature plan documented: 2025-09-14*
-*Ready for modular implementation starting with camera ID selection fix*
+**MASTER TASK LIST STATUS**: All tasks consolidated from memory files
+**TOTAL TASKS**: 100+ implementation items across 6 phases
+**CRITICAL PATH**: Camera ID selection bug blocks advanced development
+**ARCHITECTURE**: Plugin-based modular system for extensibility

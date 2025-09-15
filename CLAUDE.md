@@ -13,33 +13,21 @@ Modern Kotlin camera app with Samsung/Google-style floating UI, robust camera se
 - `adb install -r app/build/outputs/apk/debug/app-debug.apk`: Install app
 - `adb logcat -d | grep "customcamera\|CameraActivity\|CameraSelection"`: Check app logs
 
-## Current Issues
-### HIGH PRIORITY
-1. **Camera ID Selection Not Respected** (ACTIVE BUG)
-   - User selects camera 1 or 2 in selection screen
-   - Camera app still uses camera 0 (back camera)
-   - Enhanced logging added but issue persists
-   - Location: `CameraActivity.kt:selectCamera()` method
+## Task Management
 
-### MEDIUM PRIORITY
-2. **Missing Drawable Resources**
-   - Need to add remaining icon drawables referenced in layouts
-   - Files: `ic_flash_on.xml`, `ic_flash_off.xml`, `ic_switch_camera.xml`, `ic_gallery.xml`
-   - Status: Partially created, may need refinement
+### MASTER TASK LIST
+**All tasks are tracked in `memory/todo.md` - ALWAYS check and update this file**
 
-3. **Camera 0 Broken Handling**
-   - App should gracefully handle when camera 0 (back camera) is broken
-   - Current fallback logic exists but needs testing
-   - Should cycle through all cameras to find working one
+Current status:
+- **Critical Issues**: Camera ID selection bug (P0), Camera 0 broken handling (P1)
+- **Implementation Queue**: 100+ tasks across 14 phases
+- **Architecture**: Plugin-based modular system for extensibility
+- **Next Priority**: Fix camera selection bug in `CameraActivity.kt:selectCamera()`
 
-### LOW PRIORITY
-4. **Gallery Integration**
-   - Gallery button opens system picker but could be enhanced
-   - Consider showing last captured photo instead of generic picker
-
-5. **Settings Implementation**
-   - Settings button currently shows "coming soon" message
-   - Could add camera resolution, quality, timer features
+### Quick Task Reference
+**Before each session**: Review `memory/todo.md` for current priorities
+**During development**: Update task completion status in `memory/todo.md`
+**Session end**: Commit progress and update `memory/todo.md` with new findings
 
 ## Technical Debt
 - Deprecated systemUiVisibility warnings (Android 11+ issue)
