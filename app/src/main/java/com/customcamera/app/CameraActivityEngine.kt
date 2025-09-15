@@ -300,13 +300,7 @@ class CameraActivityEngine : AppCompatActivity() {
     }
 
     private fun openSettings() {
-        try {
-            val intent = Intent(this, SettingsActivity::class.java)
-            startActivity(intent)
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to open settings", e)
-            Toast.makeText(this, "Settings not available", Toast.LENGTH_SHORT).show()
-        }
+        Toast.makeText(this, "Settings coming soon - Use camera controls for now", Toast.LENGTH_LONG).show()
     }
 
     private fun showAdvancedControls() {
