@@ -152,11 +152,11 @@ class CameraActivity : AppCompatActivity() {
     
     private fun selectCamera(): CameraSelector {
         val availableCameras = cameraProvider?.availableCameraInfos ?: emptyList()
-        
+
         Log.i(TAG, "=== CAMERA SELECTION DEBUG ===")
         Log.i(TAG, "Available cameras: ${availableCameras.size}")
         Log.i(TAG, "Requested camera index: $cameraIndex")
-        
+
         // Log details about each available camera
         availableCameras.forEachIndexed { index, cameraInfo ->
             val facing = when (cameraInfo.lensFacing) {
@@ -166,7 +166,7 @@ class CameraActivity : AppCompatActivity() {
             }
             Log.i(TAG, "Camera $index: $facing facing")
         }
-        
+
         return when {
             availableCameras.isEmpty() -> {
                 Log.e(TAG, "❌ No cameras available, using default back camera")
@@ -174,9 +174,16 @@ class CameraActivity : AppCompatActivity() {
             }
             cameraIndex in 0 until availableCameras.size -> {
                 Log.i(TAG, "✅ Using requested camera $cameraIndex (valid)")
-                val selector = createCameraSelectorForIndex(cameraIndex, availableCameras)
-                Log.i(TAG, "✅ Camera selector created for index $cameraIndex")
-                selector
+
+                // Alternative approach: Use lens facing if we know the pattern
+                val targetCamera = availableCameras[cameraIndex]
+                val lensFacing = targetCamera.lensFacing
+
+                Log.i(TAG, "📱 Creating selector for lens facing: $lensFacing")
+
+                // Force the specific camera by filtering to exact match
+                Log.i(TAG, "🔧 Forcing specific camera $cameraIndex")
+                createCameraSelectorForIndex(cameraIndex, availableCameras)
             }
             else -> {
                 Log.w(TAG, "⚠️ Camera $cameraIndex not available (only ${availableCameras.size} cameras), falling back to camera 0")
@@ -190,9 +197,25 @@ class CameraActivity : AppCompatActivity() {
     
     private fun createCameraSelectorForIndex(index: Int, cameras: List<androidx.camera.core.CameraInfo>): CameraSelector {
         val targetCamera = cameras[index]
+
+        Log.i(TAG, "🎯 Creating camera selector for index $index")
+        Log.i(TAG, "Target camera facing: ${when(targetCamera.lensFacing) {
+            CameraSelector.LENS_FACING_FRONT -> "Front"
+            CameraSelector.LENS_FACING_BACK -> "Back"
+            else -> "External"
+        }}")
+
         return CameraSelector.Builder()
             .addCameraFilter { cameraInfos ->
-                cameraInfos.filter { it == targetCamera }
+                Log.i(TAG, "🔍 Camera filter called with ${cameraInfos.size} cameras")
+                val filtered = cameraInfos.filter { it == targetCamera }
+                Log.i(TAG, "🔍 Filtered to ${filtered.size} cameras")
+                if (filtered.isEmpty()) {
+                    Log.e(TAG, "❌ Target camera not found in filter, using first available")
+                    return@addCameraFilter if (cameraInfos.isNotEmpty()) listOf(cameraInfos.first()) else emptyList()
+                }
+                Log.i(TAG, "✅ Target camera found in filter")
+                filtered
             }
             .build()
     }
