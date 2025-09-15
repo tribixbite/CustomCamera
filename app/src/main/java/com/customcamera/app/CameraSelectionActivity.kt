@@ -50,24 +50,25 @@ class CameraSelectionActivity : AppCompatActivity() {
         binding.continueButton.setOnClickListener {
             Log.i(TAG, "=== CONTINUE BUTTON CLICKED ===")
             Log.i(TAG, "Selected camera index: $selectedCameraIndex")
-            
-            val intent = Intent(this, CameraActivity::class.java)
+
+            // Launch the new engine-based camera activity
+            val intent = Intent(this, CameraActivityEngine::class.java)
             intent.putExtra(EXTRA_CAMERA_INDEX, selectedCameraIndex)
-            
-            Log.i(TAG, "Launching CameraActivity with camera index: $selectedCameraIndex")
+
+            Log.i(TAG, "Launching CameraActivityEngine with camera index: $selectedCameraIndex")
             Log.i(TAG, "Intent extra key: $EXTRA_CAMERA_INDEX")
-            
+
             startActivity(intent)
             finish()
         }
-        
+
         binding.backButton.setOnClickListener {
             finish()
         }
-        
+
         binding.skipButton.setOnClickListener {
             // Use first available camera or default to 0
-            val intent = Intent(this, CameraActivity::class.java)
+            val intent = Intent(this, CameraActivityEngine::class.java)
             intent.putExtra(EXTRA_CAMERA_INDEX, 0)
             startActivity(intent)
             finish()

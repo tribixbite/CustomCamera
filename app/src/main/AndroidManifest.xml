@@ -37,7 +37,12 @@
             android:name=".CameraActivity"
             android:exported="false"
             android:screenOrientation="portrait" />
-            
+
+        <activity
+            android:name=".CameraActivityEngine"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+
         <activity
             android:name=".CameraSelectionActivity"
             android:exported="false"
