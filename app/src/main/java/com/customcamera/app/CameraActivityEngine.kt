@@ -39,6 +39,7 @@ class CameraActivityEngine : AppCompatActivity() {
     private var activeRecording: Recording? = null
     private var isManualControlsVisible: Boolean = false
     private var manualControlsPanel: android.widget.LinearLayout? = null
+    private var isNightModeEnabled: Boolean = false
 
     // Plugins
     private lateinit var autoFocusPlugin: AutoFocusPlugin
@@ -116,6 +117,7 @@ class CameraActivityEngine : AppCompatActivity() {
     private fun setupUI() {
         binding.captureButton.setOnClickListener { capturePhoto() }
         binding.videoRecordButton.setOnClickListener { toggleVideoRecording() }
+        binding.nightModeButton.setOnClickListener { toggleNightMode() }
         binding.switchCameraButton.setOnClickListener { switchCamera() }
         binding.flashButton.setOnClickListener { toggleFlash() }
         binding.galleryButton.setOnClickListener { openGallery() }
@@ -405,6 +407,37 @@ class CameraActivityEngine : AppCompatActivity() {
         } catch (e: Exception) {
             Log.e(TAG, "Failed to open settings", e)
             Toast.makeText(this, "Settings error: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun toggleNightMode() {
+        isNightModeEnabled = !isNightModeEnabled
+
+        try {
+            // Get the NightModePlugin from the registered plugins
+            val nightModePlugin = cameraEngine.getPlugin("NightMode") as? NightModePlugin
+
+            if (nightModePlugin != null) {
+                if (isNightModeEnabled) {
+                    nightModePlugin.enableNightMode()
+                } else {
+                    nightModePlugin.disableNightMode()
+                }
+
+                // Update button appearance
+                binding.nightModeButton.alpha = if (isNightModeEnabled) 1.0f else 0.6f
+
+                Toast.makeText(this, "Night mode ${if (isNightModeEnabled) "enabled" else "disabled"}", Toast.LENGTH_SHORT).show()
+                Log.i(TAG, "Night mode ${if (isNightModeEnabled) "enabled" else "disabled"}")
+
+            } else {
+                Toast.makeText(this, "Night mode plugin not available", Toast.LENGTH_SHORT).show()
+                Log.w(TAG, "Night mode plugin not found")
+            }
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Error toggling night mode", e)
+            Toast.makeText(this, "Night mode error: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
 

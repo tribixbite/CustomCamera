@@ -169,6 +169,11 @@ class CameraEngine(
     fun getCurrentCameraSelector(): CameraSelector? = currentCameraSelector
 
     /**
+     * Get plugin by name
+     */
+    fun getPlugin(name: String): CameraPlugin? = pluginManager.getPlugin(name)
+
+    /**
      * Get specific use case instance
      */
     fun getPreview(): Preview? = preview
