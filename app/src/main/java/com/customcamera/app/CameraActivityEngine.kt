@@ -105,7 +105,7 @@ class CameraActivityEngine : AppCompatActivity() {
         binding.switchCameraButton.setOnClickListener { switchCamera() }
         binding.flashButton.setOnClickListener { toggleFlash() }
         binding.galleryButton.setOnClickListener { openGallery() }
-        binding.settingsButton.setOnClickListener { showAdvancedControls() }
+        binding.settingsButton.setOnClickListener { openSettings() }
 
         // Add double-tap for grid toggle
         var lastTapTime = 0L
@@ -296,6 +296,16 @@ class CameraActivityEngine : AppCompatActivity() {
             startActivity(intent)
         } catch (e: Exception) {
             Toast.makeText(this, "Gallery not available", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun openSettings() {
+        try {
+            val intent = Intent(this, SettingsActivity::class.java)
+            startActivity(intent)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to open settings", e)
+            Toast.makeText(this, "Settings not available", Toast.LENGTH_SHORT).show()
         }
     }
 

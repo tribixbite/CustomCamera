@@ -47,6 +47,12 @@
             android:name=".CameraSelectionActivity"
             android:exported="false"
             android:screenOrientation="portrait" />
+
+        <activity
+            android:name=".SettingsActivity"
+            android:exported="false"
+            android:parentActivityName=".CameraActivityEngine"
+            android:theme="@style/Theme.CustomCamera" />
     </application>
 
 </manifest>
