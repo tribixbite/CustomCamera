@@ -222,6 +222,31 @@ The current issue appears to be that the camera selector filter isn't properly c
 3. Use CameraCharacteristics for more direct camera control
 4. Implement camera testing during selection phase
 
+## Session Workflow
+
+### Before Each Session
+1. **Check Master Task List**: `cat memory/todo.md` - Review critical issues and priorities
+2. **Review Current Status**: Check git log and current app state
+3. **Focus on P0 Issues**: Always tackle critical blockers first
+
+### During Development
+1. **Update Progress**: Mark completed tasks in `memory/todo.md`
+2. **Document Findings**: Add new issues/tasks as discovered
+3. **Test Frequently**: Build, install, and test changes immediately
+
+### Session End
+1. **Update todo.md**: Mark progress and add new tasks
+2. **Commit Changes**: Descriptive commit messages
+3. **Update Documentation**: Refresh this CLAUDE.md if needed
+
+### Emergency Session Recovery
+If lost or confused, run:
+```bash
+cd ~/git/swype/CustomCamera
+cat CLAUDE.md && echo "====" && cat memory/todo.md | head -50
+```
+
 ---
 *Last Updated: 2025-09-14*
 *Next Session: Focus on camera ID selection fix in CameraActivity.kt*
+*Master Task List: memory/todo.md (ALWAYS CHECK FIRST)*
