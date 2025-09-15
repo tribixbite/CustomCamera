@@ -23,6 +23,7 @@ import kotlinx.coroutines.launch
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.math.pow
 
 /**
  * Enhanced CameraActivity that uses the CameraEngine and plugin system.
@@ -40,6 +41,9 @@ class CameraActivityEngine : AppCompatActivity() {
     private var isManualControlsVisible: Boolean = false
     private var manualControlsPanel: android.widget.LinearLayout? = null
     private var isNightModeEnabled: Boolean = false
+    private var isHistogramVisible: Boolean = false
+    private var histogramView: com.customcamera.app.analysis.HistogramView? = null
+    private var isBarcodeScanningEnabled: Boolean = false
 
     // Plugins
     private lateinit var autoFocusPlugin: AutoFocusPlugin
@@ -122,14 +126,28 @@ class CameraActivityEngine : AppCompatActivity() {
         binding.flashButton.setOnClickListener { toggleFlash() }
         binding.galleryButton.setOnClickListener { openGallery() }
         binding.settingsButton.setOnClickListener { toggleManualControls() }
+        binding.settingsButton.setOnLongClickListener {
+            toggleHistogram()
+            true
+        }
 
-        // Add double-tap for grid toggle
+        // Add gesture controls for features
         var lastTapTime = 0L
+        var tapCount = 0
         binding.previewView.setOnClickListener {
             val currentTime = System.currentTimeMillis()
             if (currentTime - lastTapTime < 300) {
-                // Double tap detected - toggle grid
-                toggleGrid()
+                tapCount++
+                if (tapCount == 1) {
+                    // Double tap - toggle grid
+                    toggleGrid()
+                } else if (tapCount == 2) {
+                    // Triple tap - toggle barcode scanning
+                    toggleBarcodeScanning()
+                    tapCount = 0
+                }
+            } else {
+                tapCount = 0
             }
             lastTapTime = currentTime
         }
@@ -441,6 +459,55 @@ class CameraActivityEngine : AppCompatActivity() {
         }
     }
 
+    private fun toggleHistogram() {
+        isHistogramVisible = !isHistogramVisible
+
+        try {
+            if (isHistogramVisible) {
+                // Create and show histogram display
+                if (histogramView == null) {
+                    histogramView = com.customcamera.app.analysis.HistogramView(this)
+
+                    // Add to camera layout
+                    val rootView = binding.root as android.widget.FrameLayout
+                    val layoutParams = android.widget.FrameLayout.LayoutParams(
+                        400, // Fixed width
+                        200  // Fixed height
+                    ).apply {
+                        gravity = android.view.Gravity.TOP or android.view.Gravity.START
+                        topMargin = 100
+                        leftMargin = 20
+                    }
+                    rootView.addView(histogramView, layoutParams)
+                }
+
+                histogramView?.visibility = android.view.View.VISIBLE
+
+                // Enable histogram plugin
+                val histogramPlugin = cameraEngine.getPlugin("Histogram") as? HistogramPlugin
+                histogramPlugin?.setHistogramEnabled(true)
+
+                Toast.makeText(this, "Histogram display enabled", Toast.LENGTH_SHORT).show()
+                Log.i(TAG, "Histogram display shown")
+
+            } else {
+                // Hide histogram display
+                histogramView?.visibility = android.view.View.GONE
+
+                // Disable histogram plugin
+                val histogramPlugin = cameraEngine.getPlugin("Histogram") as? HistogramPlugin
+                histogramPlugin?.setHistogramEnabled(false)
+
+                Toast.makeText(this, "Histogram display disabled", Toast.LENGTH_SHORT).show()
+                Log.i(TAG, "Histogram display hidden")
+            }
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Error toggling histogram", e)
+            Toast.makeText(this, "Histogram error: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     private fun toggleManualControls() {
         if (isManualControlsVisible) {
             hideManualControls()
@@ -494,6 +561,60 @@ class CameraActivityEngine : AppCompatActivity() {
                     })
                 }
                 manualControlsPanel!!.addView(exposureSeekBar)
+
+                // Add ISO control
+                val isoText = android.widget.TextView(this).apply {
+                    text = "ISO: Auto"
+                    setTextColor(android.graphics.Color.WHITE)
+                    setPadding(0, 16, 0, 0)
+                }
+                manualControlsPanel!!.addView(isoText)
+
+                val isoSeekBar = android.widget.SeekBar(this).apply {
+                    max = 100 // 0-100 represents ISO 50-6400 logarithmically
+                    progress = 20 // ISO 100
+                    setOnSeekBarChangeListener(object : android.widget.SeekBar.OnSeekBarChangeListener {
+                        override fun onProgressChanged(seekBar: android.widget.SeekBar?, progress: Int, fromUser: Boolean) {
+                            if (fromUser) {
+                                // Map 0-100 to ISO 50-6400 logarithmically
+                                val iso = (50 * pow(128.0, progress / 100.0)).toInt().coerceIn(50, 6400)
+                                isoText.text = "ISO: $iso"
+                                Log.d(TAG, "ISO adjusted to: $iso")
+                            }
+                        }
+                        override fun onStartTrackingTouch(seekBar: android.widget.SeekBar?) {}
+                        override fun onStopTrackingTouch(seekBar: android.widget.SeekBar?) {}
+                    })
+                }
+                manualControlsPanel!!.addView(isoSeekBar)
+
+                // Add white balance control
+                val wbText = android.widget.TextView(this).apply {
+                    text = "White Balance: Auto"
+                    setTextColor(android.graphics.Color.WHITE)
+                    setPadding(0, 16, 0, 0)
+                }
+                manualControlsPanel!!.addView(wbText)
+
+                val wbSpinner = android.widget.Spinner(this).apply {
+                    val wbOptions = arrayOf("Auto", "Daylight", "Cloudy", "Tungsten", "Fluorescent", "Flash")
+                    val adapter = android.widget.ArrayAdapter(
+                        this@CameraActivityEngine,
+                        android.R.layout.simple_spinner_item,
+                        wbOptions
+                    )
+                    adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+                    this.adapter = adapter
+
+                    onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
+                        override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: android.view.View?, position: Int, id: Long) {
+                            wbText.text = "White Balance: ${wbOptions[position]}"
+                            Log.d(TAG, "White balance set to: ${wbOptions[position]}")
+                        }
+                        override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
+                    }
+                }
+                manualControlsPanel!!.addView(wbSpinner)
 
                 // Add to camera layout
                 val rootView = binding.root as android.widget.FrameLayout
@@ -558,6 +679,42 @@ class CameraActivityEngine : AppCompatActivity() {
                 Log.e(TAG, "Error showing advanced controls", e)
                 Toast.makeText(this@CameraActivityEngine, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
             }
+        }
+    }
+
+    private fun toggleBarcodeScanning() {
+        isBarcodeScanningEnabled = !isBarcodeScanningEnabled
+
+        try {
+            val barcodePlugin = cameraEngine.getPlugin("Barcode") as? BarcodePlugin
+
+            if (barcodePlugin != null) {
+                barcodePlugin.setAutoScanEnabled(isBarcodeScanningEnabled)
+                Log.i(TAG, "Barcode scanning ${if (isBarcodeScanningEnabled) "enabled" else "disabled"}")
+
+                // Enable image analysis if needed
+                if (isBarcodeScanningEnabled) {
+                    val config = CameraConfig(
+                        cameraIndex = cameraIndex,
+                        enablePreview = true,
+                        enableImageCapture = true,
+                        enableVideoCapture = true,
+                        enableImageAnalysis = true
+                    )
+
+                    lifecycleScope.launch {
+                        cameraEngine.bindCamera(config)
+                    }
+                }
+
+                Toast.makeText(this, "Barcode scanning ${if (isBarcodeScanningEnabled) "enabled" else "disabled"}", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(this, "Barcode plugin not available", Toast.LENGTH_SHORT).show()
+            }
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Error toggling barcode scanning", e)
+            Toast.makeText(this, "Barcode scanning error: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
 
