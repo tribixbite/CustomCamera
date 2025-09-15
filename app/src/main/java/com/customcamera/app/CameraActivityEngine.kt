@@ -46,6 +46,7 @@ class CameraActivityEngine : AppCompatActivity() {
     private var histogramView: com.customcamera.app.analysis.HistogramView? = null
     private var isBarcodeScanningEnabled: Boolean = false
     private var isPiPEnabled: Boolean = false
+    private var loadingIndicator: android.widget.TextView? = null
 
     // Plugins
     private lateinit var autoFocusPlugin: AutoFocusPlugin
@@ -215,6 +216,9 @@ class CameraActivityEngine : AppCompatActivity() {
     private fun startCameraWithEngine() {
         Log.i(TAG, "Starting camera with engine...")
 
+        // Show loading indicator
+        showLoadingIndicator("Initializing camera...")
+
         lifecycleScope.launch {
             try {
                 // Initialize the engine
@@ -252,6 +256,9 @@ class CameraActivityEngine : AppCompatActivity() {
 
                 // Update flash button state
                 updateFlashButton()
+
+                // Hide loading indicator
+                hideLoadingIndicator()
 
                 Log.i(TAG, "✅ Camera started successfully with engine")
 
@@ -847,6 +854,43 @@ class CameraActivityEngine : AppCompatActivity() {
                 finish()
             }
         }
+    }
+
+    private fun showLoadingIndicator(message: String) {
+        try {
+            if (loadingIndicator == null) {
+                loadingIndicator = android.widget.TextView(this).apply {
+                    text = message
+                    textSize = 16f
+                    setTextColor(android.graphics.Color.WHITE)
+                    setBackgroundColor(android.graphics.Color.argb(200, 0, 0, 0))
+                    setPadding(24, 24, 24, 24)
+                    gravity = android.view.Gravity.CENTER
+                }
+
+                val rootView = binding.root as android.widget.FrameLayout
+                val layoutParams = android.widget.FrameLayout.LayoutParams(
+                    android.widget.FrameLayout.LayoutParams.WRAP_CONTENT,
+                    android.widget.FrameLayout.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    gravity = android.view.Gravity.CENTER
+                }
+                rootView.addView(loadingIndicator, layoutParams)
+            }
+
+            loadingIndicator?.text = message
+            loadingIndicator?.visibility = android.view.View.VISIBLE
+
+            Log.d(TAG, "Loading indicator shown: $message")
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Error showing loading indicator", e)
+        }
+    }
+
+    private fun hideLoadingIndicator() {
+        loadingIndicator?.visibility = android.view.View.GONE
+        Log.d(TAG, "Loading indicator hidden")
     }
 
     // Animation methods

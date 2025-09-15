@@ -133,30 +133,53 @@ class CameraSelectionActivity : AppCompatActivity() {
     
     private fun createCameraButton(index: Int, cameraInfo: androidx.camera.core.CameraInfo): android.widget.Button {
         val button = android.widget.Button(this)
-        
+
         val cameraType = when (cameraInfo.lensFacing) {
-            androidx.camera.core.CameraSelector.LENS_FACING_FRONT -> "Front"
-            androidx.camera.core.CameraSelector.LENS_FACING_BACK -> "Back" 
-            else -> "External"
+            androidx.camera.core.CameraSelector.LENS_FACING_FRONT -> "Front Camera"
+            androidx.camera.core.CameraSelector.LENS_FACING_BACK -> "Back Camera"
+            else -> "External Camera"
         }
-        
-        button.text = "📸 Camera $index\n($cameraType)"
-        button.textSize = 16f
-        
+
+        val cameraIcon = when (cameraInfo.lensFacing) {
+            androidx.camera.core.CameraSelector.LENS_FACING_FRONT -> "🤳"
+            androidx.camera.core.CameraSelector.LENS_FACING_BACK -> "📷"
+            else -> "📹"
+        }
+
+        val hasFlash = if (cameraInfo.hasFlashUnit()) " ⚡" else ""
+
+        button.text = "$cameraIcon Camera $index\n$cameraType$hasFlash\n${cameraInfo.sensorRotationDegrees}° rotation"
+        button.textSize = 14f
+        button.setPadding(24, 32, 24, 32)
+
         val params = android.widget.LinearLayout.LayoutParams(
             android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
             android.widget.LinearLayout.LayoutParams.WRAP_CONTENT
         )
-        params.setMargins(0, 16, 0, 16)
+        params.setMargins(8, 12, 8, 12)
         button.layoutParams = params
-        
+
+        // Enhanced click handling with animation
         button.setOnClickListener {
             Log.i(TAG, "Camera button clicked - selecting camera $index")
+
+            // Animate button selection
+            button.animate()
+                .scaleX(0.95f)
+                .scaleY(0.95f)
+                .setDuration(100)
+                .withEndAction {
+                    button.animate()
+                        .scaleX(1.0f)
+                        .scaleY(1.0f)
+                        .setDuration(100)
+                }
+
             selectedCameraIndex = index
             Log.i(TAG, "Selected camera index updated to: $selectedCameraIndex")
             updateButtonSelection()
         }
-        
+
         button.tag = index
         return button
     }
@@ -167,9 +190,29 @@ class CameraSelectionActivity : AppCompatActivity() {
             button?.let {
                 val index = it.tag as? Int
                 if (index == selectedCameraIndex) {
+                    // Selected camera - bright and elevated
                     it.setBackgroundColor(ContextCompat.getColor(this, R.color.md_theme_primary))
+                    it.elevation = 8f
+                    it.alpha = 1.0f
+
+                    // Animate selection
+                    it.animate()
+                        .scaleX(1.05f)
+                        .scaleY(1.05f)
+                        .setDuration(200)
+                        .start()
                 } else {
+                    // Unselected camera - dimmed
                     it.setBackgroundColor(ContextCompat.getColor(this, android.R.color.darker_gray))
+                    it.elevation = 2f
+                    it.alpha = 0.7f
+
+                    // Reset scale
+                    it.animate()
+                        .scaleX(1.0f)
+                        .scaleY(1.0f)
+                        .setDuration(200)
+                        .start()
                 }
             }
         }
