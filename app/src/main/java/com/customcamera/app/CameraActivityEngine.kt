@@ -332,44 +332,61 @@ class CameraActivityEngine : AppCompatActivity() {
     }
 
     private fun startVideoRecording() {
-        val videoCapture = cameraEngine.getVideoCapture() ?: return
+        val videoCapture = cameraEngine.getVideoCapture()
+
+        if (videoCapture == null) {
+            Log.e(TAG, "VideoCapture not available - camera may not be bound properly")
+            Toast.makeText(this, "Video recording not available for camera $cameraIndex", Toast.LENGTH_LONG).show()
+            return
+        }
 
         try {
+            Log.i(TAG, "Starting video recording with camera $cameraIndex")
+
             val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-            val videoFile = File(filesDir, "VIDEO_$timestamp.mp4")
+            val videoFile = File(filesDir, "VIDEO_CAMERA${cameraIndex}_$timestamp.mp4")
 
             val outputOptions = androidx.camera.video.FileOutputOptions.Builder(videoFile).build()
 
-            activeRecording = videoCapture.output
+            // Add recording metadata
+            val recording = videoCapture.output
                 .prepareRecording(this, outputOptions)
-                .start(ContextCompat.getMainExecutor(this)) { recordEvent ->
-                    when (recordEvent) {
-                        is androidx.camera.video.VideoRecordEvent.Start -> {
-                            isRecording = true
-                            updateVideoButton()
-                            Log.i(TAG, "Video recording started")
-                        }
-                        is androidx.camera.video.VideoRecordEvent.Finalize -> {
-                            isRecording = false
-                            activeRecording = null
-                            updateVideoButton()
 
-                            if (!recordEvent.hasError()) {
-                                Toast.makeText(this@CameraActivityEngine, "Video saved: ${videoFile.name}", Toast.LENGTH_SHORT).show()
-                                Log.i(TAG, "Video saved: ${videoFile.absolutePath}")
-                            } else {
-                                Log.e(TAG, "Video recording error: ${recordEvent.error}")
-                                Toast.makeText(this@CameraActivityEngine, "Video recording failed", Toast.LENGTH_SHORT).show()
-                            }
+            activeRecording = recording.start(ContextCompat.getMainExecutor(this)) { recordEvent ->
+                when (recordEvent) {
+                    is androidx.camera.video.VideoRecordEvent.Start -> {
+                        isRecording = true
+                        updateVideoButton()
+                        Log.i(TAG, "✅ Video recording started with camera $cameraIndex")
+                        Toast.makeText(this@CameraActivityEngine, "Recording started (Camera $cameraIndex)", Toast.LENGTH_SHORT).show()
+                    }
+                    is androidx.camera.video.VideoRecordEvent.Finalize -> {
+                        isRecording = false
+                        activeRecording = null
+                        updateVideoButton()
+
+                        if (!recordEvent.hasError()) {
+                            Toast.makeText(this@CameraActivityEngine, "Video saved: ${videoFile.name}", Toast.LENGTH_SHORT).show()
+                            Log.i(TAG, "✅ Video saved from camera $cameraIndex: ${videoFile.absolutePath}")
+                        } else {
+                            Log.e(TAG, "❌ Video recording error: ${recordEvent.error}")
+                            Toast.makeText(this@CameraActivityEngine, "Video recording failed: ${recordEvent.error}", Toast.LENGTH_LONG).show()
                         }
                     }
+                    is androidx.camera.video.VideoRecordEvent.Status -> {
+                        // Log recording status for debugging
+                        Log.d(TAG, "Video recording status: ${recordEvent.recordingStats.recordedDurationNanos / 1000000}ms")
+                    }
                 }
+            }
 
-            Log.i(TAG, "Video recording initiated")
+            Log.i(TAG, "Video recording initiated for camera $cameraIndex")
 
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to start video recording", e)
-            Toast.makeText(this, "Recording failed: ${e.message}", Toast.LENGTH_SHORT).show()
+            Log.e(TAG, "Failed to start video recording with camera $cameraIndex", e)
+            Toast.makeText(this, "Recording failed: ${e.message}", Toast.LENGTH_LONG).show()
+            isRecording = false
+            updateVideoButton()
         }
     }
 
@@ -387,6 +404,12 @@ class CameraActivityEngine : AppCompatActivity() {
     private fun switchCamera() {
         lifecycleScope.launch {
             try {
+                // Stop video recording if active during camera switch
+                if (isRecording) {
+                    Log.i(TAG, "Stopping video recording for camera switch")
+                    stopVideoRecording()
+                }
+
                 val availableCameras = cameraEngine.availableCameras.value
 
                 if (availableCameras.size > 1) {
@@ -394,12 +417,27 @@ class CameraActivityEngine : AppCompatActivity() {
                     cameraIndex = (cameraIndex + 1) % availableCameras.size
                     Log.i(TAG, "Switching to camera $cameraIndex with engine")
 
-                    // Switch camera using engine
-                    val result = cameraEngine.switchCamera(cameraIndex)
+                    // Switch camera using engine with video support
+                    val config = CameraConfig(
+                        cameraIndex = cameraIndex,
+                        enablePreview = true,
+                        enableImageCapture = true,
+                        enableVideoCapture = true,
+                        enableImageAnalysis = isBarcodeScanningEnabled
+                    )
+
+                    val result = cameraEngine.bindCamera(config)
                     if (result.isSuccess) {
+                        // Reinitialize Camera2 controllers for new camera
+                        initializeCamera2Controller()
+
+                        // Update preview connection
+                        val preview = cameraEngine.getPreview()
+                        preview?.setSurfaceProvider(binding.previewView.surfaceProvider)
+
                         updateFlashButton()
                         animateSwitchButton()
-                        Log.i(TAG, "✅ Camera switched successfully")
+                        Log.i(TAG, "✅ Camera switched successfully with video support")
                     } else {
                         Log.e(TAG, "❌ Camera switch failed: ${result.exceptionOrNull()?.message}")
                         Toast.makeText(this@CameraActivityEngine, "Failed to switch camera", Toast.LENGTH_SHORT).show()
