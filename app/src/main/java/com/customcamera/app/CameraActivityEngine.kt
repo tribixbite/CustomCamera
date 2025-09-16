@@ -48,6 +48,7 @@ class CameraActivityEngine : AppCompatActivity() {
     private var isPiPEnabled: Boolean = false
     private var loadingIndicator: android.widget.TextView? = null
     private var pipOverlayView: com.customcamera.app.pip.PiPOverlayView? = null
+    private var camera2ISOController: com.customcamera.app.camera2.Camera2ISOController? = null
     private var barcodeOverlayView: com.customcamera.app.barcode.BarcodeOverlayView? = null
     private var camera2Controller: com.customcamera.app.camera2.Camera2Controller? = null
     private var performanceMonitor: com.customcamera.app.monitoring.PerformanceMonitor? = null
@@ -553,6 +554,10 @@ class CameraActivityEngine : AppCompatActivity() {
                 val helper = com.customcamera.app.camera2.ManualControlHelper(this)
                 helper.initializeForCamera(cameraIndex.toString())
 
+                // Initialize Camera2 ISO controller
+                camera2ISOController = com.customcamera.app.camera2.Camera2ISOController(this)
+                camera2ISOController!!.initialize(cameraIndex.toString())
+
                 val titleView = android.widget.TextView(this).apply {
                     text = "Manual Controls"
                     textSize = 18f
@@ -571,9 +576,9 @@ class CameraActivityEngine : AppCompatActivity() {
                 }
                 manualControlsPanel!!.addView(capabilitiesView)
 
-                // Add exposure compensation control
+                // Add exposure compensation control with real camera connection
                 val exposureText = android.widget.TextView(this).apply {
-                    text = "Exposure Compensation: 0 EV"
+                    text = "Exposure: 0 EV (Real Camera Control)"
                     setTextColor(android.graphics.Color.WHITE)
                 }
                 manualControlsPanel!!.addView(exposureText)
@@ -585,10 +590,11 @@ class CameraActivityEngine : AppCompatActivity() {
                         override fun onProgressChanged(seekBar: android.widget.SeekBar?, progress: Int, fromUser: Boolean) {
                             if (fromUser) {
                                 val ev = progress - 6
-                                exposureText.text = "Exposure Compensation: ${if (ev >= 0) "+" else ""}$ev EV"
-                                // Apply exposure compensation
+                                exposureText.text = "Exposure: ${if (ev >= 0) "+" else ""}$ev EV (Camera2 API)"
+                                // Apply real exposure compensation
                                 lifecycleScope.launch {
-                                    exposureControlPlugin.setExposureCompensation(ev)
+                                    val result = exposureControlPlugin.setExposureCompensation(ev)
+                                    Log.d(TAG, "Exposure compensation result: $result")
                                 }
                             }
                         }
@@ -598,27 +604,41 @@ class CameraActivityEngine : AppCompatActivity() {
                 }
                 manualControlsPanel!!.addView(exposureSeekBar)
 
-                // Add ISO control
+                // Add ISO control with real camera ranges
+                val isoRange = helper.getISORange()
                 val isoText = android.widget.TextView(this).apply {
-                    text = "ISO: Auto"
+                    text = if (isoRange != null) {
+                        "ISO: Auto (${isoRange.lower}-${isoRange.upper})"
+                    } else {
+                        "ISO: Auto (Limited support)"
+                    }
                     setTextColor(android.graphics.Color.WHITE)
                     setPadding(0, 16, 0, 0)
                 }
                 manualControlsPanel!!.addView(isoText)
 
                 val isoSeekBar = android.widget.SeekBar(this).apply {
-                    max = 100 // 0-100 represents ISO 50-6400 logarithmically
-                    progress = 20 // ISO 100
+                    if (isoRange != null) {
+                        max = isoRange.upper - isoRange.lower
+                        progress = 100 - isoRange.lower // Default to ISO 100
+                    } else {
+                        max = 100
+                        progress = 20
+                    }
+
                     setOnSeekBarChangeListener(object : android.widget.SeekBar.OnSeekBarChangeListener {
                         override fun onProgressChanged(seekBar: android.widget.SeekBar?, progress: Int, fromUser: Boolean) {
                             if (fromUser) {
-                                // Map 0-100 to ISO 50-6400 logarithmically
-                                val iso = (50 * 128.0.pow(progress / 100.0)).toInt().coerceIn(50, 6400)
-                                isoText.text = "ISO: $iso"
+                                val iso = if (isoRange != null) {
+                                    (progress + isoRange.lower).coerceIn(isoRange.lower, isoRange.upper)
+                                } else {
+                                    (50 * 128.0.pow(progress / 100.0)).toInt().coerceIn(50, 6400)
+                                }
+                                isoText.text = "ISO: $iso ${if (isoRange != null) "(Hardware)" else "(Estimated)"}"
 
                                 // Apply real ISO control through Camera2
-                                camera2Controller?.setISO(iso)
-                                Log.d(TAG, "ISO adjusted to: $iso (Camera2 applied)")
+                                camera2ISOController?.setISO(iso)
+                                Log.d(TAG, "ISO adjusted to: $iso (Camera2 API called)")
                             }
                         }
                         override fun onStartTrackingTouch(seekBar: android.widget.SeekBar?) {}
