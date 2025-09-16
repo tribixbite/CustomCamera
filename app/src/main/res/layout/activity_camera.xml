@@ -28,7 +28,44 @@
             android:src="@drawable/ic_flash_off"
             android:scaleType="centerInside"
             android:padding="16dp"
-            android:contentDescription="@string/toggle_flash" />
+            android:contentDescription="@string/toggle_flash"
+            android:importantForAccessibility="yes" />
+
+        <ImageButton
+            android:id="@+id/nightModeButton"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_marginEnd="16dp"
+            android:background="@drawable/camera_control_background"
+            android:src="@drawable/ic_settings"
+            android:scaleType="centerInside"
+            android:padding="16dp"
+            android:alpha="0.6"
+            android:contentDescription="Night Mode"
+            android:importantForAccessibility="yes" />
+
+        <ImageButton
+            android:id="@+id/videoRecordButton"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_marginEnd="16dp"
+            android:background="@drawable/camera_control_background"
+            android:src="@drawable/ic_videocam"
+            android:scaleType="centerInside"
+            android:padding="16dp"
+            android:contentDescription="Record Video" />
+
+        <ImageButton
+            android:id="@+id/pipButton"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_marginEnd="16dp"
+            android:background="@drawable/camera_control_background"
+            android:src="@drawable/ic_pip"
+            android:scaleType="centerInside"
+            android:padding="16dp"
+            android:alpha="0.6"
+            android:contentDescription="Picture in Picture" />
 
         <ImageButton
             android:id="@+id/settingsButton"

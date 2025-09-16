@@ -10,20 +10,21 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.*
+import androidx.camera.video.Recorder
+import androidx.camera.video.Recording
+import androidx.camera.video.VideoCapture
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.customcamera.app.databinding.ActivityCameraBinding
 import com.customcamera.app.engine.CameraConfig
 import com.customcamera.app.engine.CameraEngine
-import com.customcamera.app.plugins.AutoFocusPlugin
-import com.customcamera.app.plugins.GridOverlayPlugin
-import com.customcamera.app.plugins.CameraInfoPlugin
-import com.customcamera.app.plugins.ProControlsPlugin
-import com.customcamera.app.plugins.ExposureControlPlugin
+import com.customcamera.app.plugins.*
+import com.customcamera.app.exceptions.*
 import kotlinx.coroutines.launch
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.math.pow
 
 /**
  * Enhanced CameraActivity that uses the CameraEngine and plugin system.
@@ -36,6 +37,16 @@ class CameraActivityEngine : AppCompatActivity() {
 
     private var cameraIndex: Int = 0
     private var isFlashOn: Boolean = false
+    private var isRecording: Boolean = false
+    private var activeRecording: Recording? = null
+    private var isManualControlsVisible: Boolean = false
+    private var manualControlsPanel: android.widget.LinearLayout? = null
+    private var isNightModeEnabled: Boolean = false
+    private var isHistogramVisible: Boolean = false
+    private var histogramView: com.customcamera.app.analysis.HistogramView? = null
+    private var isBarcodeScanningEnabled: Boolean = false
+    private var isPiPEnabled: Boolean = false
+    private var loadingIndicator: android.widget.TextView? = null
 
     // Plugins
     private lateinit var autoFocusPlugin: AutoFocusPlugin
@@ -90,30 +101,57 @@ class CameraActivityEngine : AppCompatActivity() {
     }
 
     private fun setupFullscreen() {
-        window.decorView.systemUiVisibility = (
-            View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-            or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-            or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-            or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-            or View.SYSTEM_UI_FLAG_FULLSCREEN
-            or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-        )
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+            // Modern approach for Android 11+
+            window.insetsController?.let { controller ->
+                controller.hide(android.view.WindowInsets.Type.statusBars() or android.view.WindowInsets.Type.navigationBars())
+                controller.systemBarsBehavior = android.view.WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            }
+        } else {
+            // Legacy approach for older Android versions
+            @Suppress("DEPRECATION")
+            window.decorView.systemUiVisibility = (
+                View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                or View.SYSTEM_UI_FLAG_FULLSCREEN
+                or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+            )
+        }
     }
 
     private fun setupUI() {
         binding.captureButton.setOnClickListener { capturePhoto() }
+        binding.videoRecordButton.setOnClickListener { toggleVideoRecording() }
+        binding.nightModeButton.setOnClickListener { toggleNightMode() }
+        binding.pipButton.setOnClickListener { togglePiP() }
         binding.switchCameraButton.setOnClickListener { switchCamera() }
         binding.flashButton.setOnClickListener { toggleFlash() }
         binding.galleryButton.setOnClickListener { openGallery() }
-        binding.settingsButton.setOnClickListener { openSettings() }
+        binding.settingsButton.setOnClickListener { toggleManualControls() }
+        binding.settingsButton.setOnLongClickListener {
+            toggleHistogram()
+            true
+        }
 
-        // Add double-tap for grid toggle
+        // Add gesture controls for features
         var lastTapTime = 0L
+        var tapCount = 0
         binding.previewView.setOnClickListener {
             val currentTime = System.currentTimeMillis()
             if (currentTime - lastTapTime < 300) {
-                // Double tap detected - toggle grid
-                toggleGrid()
+                tapCount++
+                if (tapCount == 1) {
+                    // Double tap - toggle grid
+                    toggleGrid()
+                } else if (tapCount == 2) {
+                    // Triple tap - toggle barcode scanning
+                    toggleBarcodeScanning()
+                    tapCount = 0
+                }
+            } else {
+                tapCount = 0
             }
             lastTapTime = currentTime
         }
@@ -150,11 +188,36 @@ class CameraActivityEngine : AppCompatActivity() {
         exposureControlPlugin = ExposureControlPlugin()
         cameraEngine.registerPlugin(exposureControlPlugin)
 
-        Log.i(TAG, "✅ Camera engine and plugins initialized")
+        // Add new plugins from roadmap implementation
+        val manualFocusPlugin = ManualFocusPlugin()
+        cameraEngine.registerPlugin(manualFocusPlugin)
+
+        val histogramPlugin = HistogramPlugin()
+        cameraEngine.registerPlugin(histogramPlugin)
+
+        val barcodePlugin = BarcodePlugin()
+        cameraEngine.registerPlugin(barcodePlugin)
+
+        val qrScannerPlugin = QRScannerPlugin()
+        cameraEngine.registerPlugin(qrScannerPlugin)
+
+        val cropPlugin = CropPlugin()
+        cameraEngine.registerPlugin(cropPlugin)
+
+        val nightModePlugin = NightModePlugin()
+        cameraEngine.registerPlugin(nightModePlugin)
+
+        val hdrPlugin = HDRPlugin()
+        cameraEngine.registerPlugin(hdrPlugin)
+
+        Log.i(TAG, "✅ Camera engine and ALL plugins initialized (12 total plugins)")
     }
 
     private fun startCameraWithEngine() {
         Log.i(TAG, "Starting camera with engine...")
+
+        // Show loading indicator
+        showLoadingIndicator("Initializing camera...")
 
         lifecycleScope.launch {
             try {
@@ -170,7 +233,7 @@ class CameraActivityEngine : AppCompatActivity() {
                     cameraIndex = cameraIndex,
                     enablePreview = true,
                     enableImageCapture = true,
-                    enableVideoCapture = false,
+                    enableVideoCapture = true,
                     enableImageAnalysis = false
                 )
 
@@ -188,8 +251,14 @@ class CameraActivityEngine : AppCompatActivity() {
                 // Configure autofocus plugin with preview
                 autoFocusPlugin.setPreviewView(binding.previewView)
 
+                // Add grid overlay to camera layout if enabled
+                setupGridOverlay()
+
                 // Update flash button state
                 updateFlashButton()
+
+                // Hide loading indicator
+                hideLoadingIndicator()
 
                 Log.i(TAG, "✅ Camera started successfully with engine")
 
@@ -229,6 +298,67 @@ class CameraActivityEngine : AppCompatActivity() {
             Log.e(TAG, "Photo capture setup failed with engine", e)
             Toast.makeText(this, "Capture failed: ${e.message}", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    private fun toggleVideoRecording() {
+        if (isRecording) {
+            stopVideoRecording()
+        } else {
+            startVideoRecording()
+        }
+    }
+
+    private fun startVideoRecording() {
+        val videoCapture = cameraEngine.getVideoCapture() ?: return
+
+        try {
+            val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+            val videoFile = File(filesDir, "VIDEO_$timestamp.mp4")
+
+            val outputOptions = androidx.camera.video.FileOutputOptions.Builder(videoFile).build()
+
+            activeRecording = videoCapture.output
+                .prepareRecording(this, outputOptions)
+                .start(ContextCompat.getMainExecutor(this)) { recordEvent ->
+                    when (recordEvent) {
+                        is androidx.camera.video.VideoRecordEvent.Start -> {
+                            isRecording = true
+                            updateVideoButton()
+                            Log.i(TAG, "Video recording started")
+                        }
+                        is androidx.camera.video.VideoRecordEvent.Finalize -> {
+                            isRecording = false
+                            activeRecording = null
+                            updateVideoButton()
+
+                            if (!recordEvent.hasError()) {
+                                Toast.makeText(this@CameraActivityEngine, "Video saved: ${videoFile.name}", Toast.LENGTH_SHORT).show()
+                                Log.i(TAG, "Video saved: ${videoFile.absolutePath}")
+                            } else {
+                                Log.e(TAG, "Video recording error: ${recordEvent.error}")
+                                Toast.makeText(this@CameraActivityEngine, "Video recording failed", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    }
+                }
+
+            Log.i(TAG, "Video recording initiated")
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to start video recording", e)
+            Toast.makeText(this, "Recording failed: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun stopVideoRecording() {
+        activeRecording?.stop()
+        Log.i(TAG, "Video recording stopped")
+    }
+
+    private fun updateVideoButton() {
+        val iconRes = if (isRecording) android.R.drawable.ic_media_pause else R.drawable.ic_videocam
+        binding.videoRecordButton.setImageResource(iconRes)
+        binding.videoRecordButton.alpha = if (isRecording) 1.0f else 0.8f
     }
 
     private fun switchCamera() {
@@ -290,23 +420,238 @@ class CameraActivityEngine : AppCompatActivity() {
 
     private fun openGallery() {
         try {
-            val intent = Intent(Intent.ACTION_PICK).apply {
-                type = "image/*"
-            }
+            val intent = Intent(this, GalleryActivity::class.java)
             startActivity(intent)
         } catch (e: Exception) {
-            Toast.makeText(this, "Gallery not available", Toast.LENGTH_SHORT).show()
+            Log.e(TAG, "Failed to open gallery", e)
+            Toast.makeText(this, "Gallery error: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
 
     private fun openSettings() {
         try {
-            val intent = Intent(this, SettingsActivity::class.java)
+            val intent = Intent(this, SimpleSettingsActivity::class.java)
             startActivity(intent)
         } catch (e: Exception) {
             Log.e(TAG, "Failed to open settings", e)
-            Toast.makeText(this, "Settings not available", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Settings error: ${e.message}", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    private fun toggleNightMode() {
+        isNightModeEnabled = !isNightModeEnabled
+
+        try {
+            // Get the NightModePlugin from the registered plugins
+            val nightModePlugin = cameraEngine.getPlugin("NightMode") as? NightModePlugin
+
+            if (nightModePlugin != null) {
+                if (isNightModeEnabled) {
+                    nightModePlugin.enableNightMode()
+                } else {
+                    nightModePlugin.disableNightMode()
+                }
+
+                // Update button appearance
+                binding.nightModeButton.alpha = if (isNightModeEnabled) 1.0f else 0.6f
+
+                Toast.makeText(this, "Night mode ${if (isNightModeEnabled) "enabled" else "disabled"}", Toast.LENGTH_SHORT).show()
+                Log.i(TAG, "Night mode ${if (isNightModeEnabled) "enabled" else "disabled"}")
+
+            } else {
+                Toast.makeText(this, "Night mode plugin not available", Toast.LENGTH_SHORT).show()
+                Log.w(TAG, "Night mode plugin not found")
+            }
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Error toggling night mode", e)
+            Toast.makeText(this, "Night mode error: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun toggleHistogram() {
+        isHistogramVisible = !isHistogramVisible
+
+        try {
+            if (isHistogramVisible) {
+                // Create and show histogram display
+                if (histogramView == null) {
+                    histogramView = com.customcamera.app.analysis.HistogramView(this)
+
+                    // Add to camera layout
+                    val rootView = binding.root as android.widget.FrameLayout
+                    val layoutParams = android.widget.FrameLayout.LayoutParams(
+                        400, // Fixed width
+                        200  // Fixed height
+                    ).apply {
+                        gravity = android.view.Gravity.TOP or android.view.Gravity.START
+                        topMargin = 100
+                        leftMargin = 20
+                    }
+                    rootView.addView(histogramView, layoutParams)
+                }
+
+                histogramView?.visibility = android.view.View.VISIBLE
+
+                // Enable histogram plugin
+                val histogramPlugin = cameraEngine.getPlugin("Histogram") as? HistogramPlugin
+                histogramPlugin?.setHistogramEnabled(true)
+
+                Toast.makeText(this, "Histogram display enabled", Toast.LENGTH_SHORT).show()
+                Log.i(TAG, "Histogram display shown")
+
+            } else {
+                // Hide histogram display
+                histogramView?.visibility = android.view.View.GONE
+
+                // Disable histogram plugin
+                val histogramPlugin = cameraEngine.getPlugin("Histogram") as? HistogramPlugin
+                histogramPlugin?.setHistogramEnabled(false)
+
+                Toast.makeText(this, "Histogram display disabled", Toast.LENGTH_SHORT).show()
+                Log.i(TAG, "Histogram display hidden")
+            }
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Error toggling histogram", e)
+            Toast.makeText(this, "Histogram error: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun toggleManualControls() {
+        if (isManualControlsVisible) {
+            hideManualControls()
+        } else {
+            showManualControls()
+        }
+    }
+
+    private fun showManualControls() {
+        try {
+            if (manualControlsPanel == null) {
+                // Create manual controls panel
+                manualControlsPanel = android.widget.LinearLayout(this).apply {
+                    orientation = android.widget.LinearLayout.VERTICAL
+                    setBackgroundColor(android.graphics.Color.argb(200, 0, 0, 0))
+                    setPadding(16, 16, 16, 16)
+                }
+
+                // Add simple manual controls
+                val titleView = android.widget.TextView(this).apply {
+                    text = "Manual Controls"
+                    textSize = 18f
+                    setTextColor(android.graphics.Color.WHITE)
+                    setPadding(0, 0, 0, 16)
+                }
+                manualControlsPanel!!.addView(titleView)
+
+                // Add exposure compensation control
+                val exposureText = android.widget.TextView(this).apply {
+                    text = "Exposure Compensation: 0 EV"
+                    setTextColor(android.graphics.Color.WHITE)
+                }
+                manualControlsPanel!!.addView(exposureText)
+
+                val exposureSeekBar = android.widget.SeekBar(this).apply {
+                    max = 12 // -6 to +6 EV
+                    progress = 6 // 0 EV
+                    setOnSeekBarChangeListener(object : android.widget.SeekBar.OnSeekBarChangeListener {
+                        override fun onProgressChanged(seekBar: android.widget.SeekBar?, progress: Int, fromUser: Boolean) {
+                            if (fromUser) {
+                                val ev = progress - 6
+                                exposureText.text = "Exposure Compensation: ${if (ev >= 0) "+" else ""}$ev EV"
+                                // Apply exposure compensation
+                                lifecycleScope.launch {
+                                    exposureControlPlugin.setExposureCompensation(ev)
+                                }
+                            }
+                        }
+                        override fun onStartTrackingTouch(seekBar: android.widget.SeekBar?) {}
+                        override fun onStopTrackingTouch(seekBar: android.widget.SeekBar?) {}
+                    })
+                }
+                manualControlsPanel!!.addView(exposureSeekBar)
+
+                // Add ISO control
+                val isoText = android.widget.TextView(this).apply {
+                    text = "ISO: Auto"
+                    setTextColor(android.graphics.Color.WHITE)
+                    setPadding(0, 16, 0, 0)
+                }
+                manualControlsPanel!!.addView(isoText)
+
+                val isoSeekBar = android.widget.SeekBar(this).apply {
+                    max = 100 // 0-100 represents ISO 50-6400 logarithmically
+                    progress = 20 // ISO 100
+                    setOnSeekBarChangeListener(object : android.widget.SeekBar.OnSeekBarChangeListener {
+                        override fun onProgressChanged(seekBar: android.widget.SeekBar?, progress: Int, fromUser: Boolean) {
+                            if (fromUser) {
+                                // Map 0-100 to ISO 50-6400 logarithmically
+                                val iso = (50 * 128.0.pow(progress / 100.0)).toInt().coerceIn(50, 6400)
+                                isoText.text = "ISO: $iso"
+                                Log.d(TAG, "ISO adjusted to: $iso")
+                            }
+                        }
+                        override fun onStartTrackingTouch(seekBar: android.widget.SeekBar?) {}
+                        override fun onStopTrackingTouch(seekBar: android.widget.SeekBar?) {}
+                    })
+                }
+                manualControlsPanel!!.addView(isoSeekBar)
+
+                // Add white balance control
+                val wbText = android.widget.TextView(this).apply {
+                    text = "White Balance: Auto"
+                    setTextColor(android.graphics.Color.WHITE)
+                    setPadding(0, 16, 0, 0)
+                }
+                manualControlsPanel!!.addView(wbText)
+
+                val wbSpinner = android.widget.Spinner(this).apply {
+                    val wbOptions = arrayOf("Auto", "Daylight", "Cloudy", "Tungsten", "Fluorescent", "Flash")
+                    val adapter = android.widget.ArrayAdapter(
+                        this@CameraActivityEngine,
+                        android.R.layout.simple_spinner_item,
+                        wbOptions
+                    )
+                    adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+                    this.adapter = adapter
+
+                    onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
+                        override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: android.view.View?, position: Int, id: Long) {
+                            wbText.text = "White Balance: ${wbOptions[position]}"
+                            Log.d(TAG, "White balance set to: ${wbOptions[position]}")
+                        }
+                        override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
+                    }
+                }
+                manualControlsPanel!!.addView(wbSpinner)
+
+                // Add to camera layout
+                val rootView = binding.root as android.widget.FrameLayout
+                val layoutParams = android.widget.FrameLayout.LayoutParams(
+                    android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
+                    android.widget.FrameLayout.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    gravity = android.view.Gravity.BOTTOM
+                }
+                rootView.addView(manualControlsPanel, layoutParams)
+            }
+
+            manualControlsPanel?.visibility = android.view.View.VISIBLE
+            isManualControlsVisible = true
+
+            Log.i(TAG, "Manual controls panel shown")
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Error showing manual controls", e)
+            Toast.makeText(this, "Manual controls error: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun hideManualControls() {
+        manualControlsPanel?.visibility = android.view.View.GONE
+        isManualControlsVisible = false
+        Log.i(TAG, "Manual controls panel hidden")
     }
 
     private fun showAdvancedControls() {
@@ -344,6 +689,79 @@ class CameraActivityEngine : AppCompatActivity() {
                 Log.e(TAG, "Error showing advanced controls", e)
                 Toast.makeText(this@CameraActivityEngine, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
             }
+        }
+    }
+
+    private fun togglePiP() {
+        isPiPEnabled = !isPiPEnabled
+
+        try {
+            val pipPlugin = cameraEngine.getPlugin("PiP") as? PiPPlugin
+
+            if (pipPlugin != null) {
+                lifecycleScope.launch {
+                    if (isPiPEnabled) {
+                        val pipResult = pipPlugin.enablePiP()
+                        if (pipResult) {
+                            binding.pipButton.alpha = 1.0f
+                            Toast.makeText(this@CameraActivityEngine, "PiP mode enabled", Toast.LENGTH_SHORT).show()
+                            Log.i(TAG, "PiP mode enabled successfully")
+                        } else {
+                            isPiPEnabled = false
+                            Toast.makeText(this@CameraActivityEngine, "PiP mode failed - dual cameras not available", Toast.LENGTH_LONG).show()
+                            Log.w(TAG, "PiP mode failed - dual cameras not available")
+                        }
+                    } else {
+                        pipPlugin.disablePiP()
+                        binding.pipButton.alpha = 0.6f
+                        Toast.makeText(this@CameraActivityEngine, "PiP mode disabled", Toast.LENGTH_SHORT).show()
+                        Log.i(TAG, "PiP mode disabled")
+                    }
+                }
+            } else {
+                Toast.makeText(this, "PiP plugin not available", Toast.LENGTH_SHORT).show()
+                Log.w(TAG, "PiP plugin not found")
+            }
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Error toggling PiP", e)
+            Toast.makeText(this, "PiP error: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun toggleBarcodeScanning() {
+        isBarcodeScanningEnabled = !isBarcodeScanningEnabled
+
+        try {
+            val barcodePlugin = cameraEngine.getPlugin("Barcode") as? BarcodePlugin
+
+            if (barcodePlugin != null) {
+                barcodePlugin.setAutoScanEnabled(isBarcodeScanningEnabled)
+                Log.i(TAG, "Barcode scanning ${if (isBarcodeScanningEnabled) "enabled" else "disabled"}")
+
+                // Enable image analysis if needed
+                if (isBarcodeScanningEnabled) {
+                    val config = CameraConfig(
+                        cameraIndex = cameraIndex,
+                        enablePreview = true,
+                        enableImageCapture = true,
+                        enableVideoCapture = true,
+                        enableImageAnalysis = true
+                    )
+
+                    lifecycleScope.launch {
+                        cameraEngine.bindCamera(config)
+                    }
+                }
+
+                Toast.makeText(this, "Barcode scanning ${if (isBarcodeScanningEnabled) "enabled" else "disabled"}", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(this, "Barcode plugin not available", Toast.LENGTH_SHORT).show()
+            }
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Error toggling barcode scanning", e)
+            Toast.makeText(this, "Barcode scanning error: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -401,19 +819,78 @@ class CameraActivityEngine : AppCompatActivity() {
         }
     }
 
-    private fun handleCameraError(message: String) {
-        Log.e(TAG, message)
-        Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+    private fun handleCameraError(message: String, exception: Throwable? = null) {
+        Log.e(TAG, message, exception)
 
-        // Try to gracefully fallback to camera selection
-        if (cameraIndex > 0) {
-            Log.i(TAG, "Attempting fallback to camera 0")
-            cameraIndex = 0
-            startCameraWithEngine()
-        } else {
-            Log.e(TAG, "No working cameras found, returning to selection")
-            finish()
+        // Enhanced error handling with better user feedback
+        val userMessage = when {
+            message.contains("initialization") -> "Camera system initialization failed. Please restart the app."
+            message.contains("binding") -> "Camera $cameraIndex is not working. Trying another camera..."
+            message.contains("unavailable") -> "Camera $cameraIndex is not available. Please check device cameras."
+            else -> "Camera error: $message"
         }
+
+        Toast.makeText(this, userMessage, Toast.LENGTH_LONG).show()
+
+        // Enhanced recovery strategies
+        when {
+            message.contains("binding") -> {
+                // Try fallback to different camera
+                if (cameraIndex > 0) {
+                    Log.i(TAG, "Attempting fallback to camera 0")
+                    cameraIndex = 0
+                    startCameraWithEngine()
+                } else {
+                    Log.e(TAG, "No working cameras found, returning to selection")
+                    finish()
+                }
+            }
+            message.contains("initialization") -> {
+                Log.e(TAG, "Camera initialization failed, finishing activity")
+                finish()
+            }
+            else -> {
+                Log.e(TAG, "Unhandled camera error, finishing activity")
+                finish()
+            }
+        }
+    }
+
+    private fun showLoadingIndicator(message: String) {
+        try {
+            if (loadingIndicator == null) {
+                loadingIndicator = android.widget.TextView(this).apply {
+                    text = message
+                    textSize = 16f
+                    setTextColor(android.graphics.Color.WHITE)
+                    setBackgroundColor(android.graphics.Color.argb(200, 0, 0, 0))
+                    setPadding(24, 24, 24, 24)
+                    gravity = android.view.Gravity.CENTER
+                }
+
+                val rootView = binding.root as android.widget.FrameLayout
+                val layoutParams = android.widget.FrameLayout.LayoutParams(
+                    android.widget.FrameLayout.LayoutParams.WRAP_CONTENT,
+                    android.widget.FrameLayout.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    gravity = android.view.Gravity.CENTER
+                }
+                rootView.addView(loadingIndicator, layoutParams)
+            }
+
+            loadingIndicator?.text = message
+            loadingIndicator?.visibility = android.view.View.VISIBLE
+
+            Log.d(TAG, "Loading indicator shown: $message")
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Error showing loading indicator", e)
+        }
+    }
+
+    private fun hideLoadingIndicator() {
+        loadingIndicator?.visibility = android.view.View.GONE
+        Log.d(TAG, "Loading indicator hidden")
     }
 
     // Animation methods
@@ -449,10 +926,64 @@ class CameraActivityEngine : AppCompatActivity() {
             }
     }
 
+    override fun onResume() {
+        super.onResume()
+        // Update plugin states when returning from settings
+        updatePluginStatesFromSettings()
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         Log.i(TAG, "Cleaning up camera engine...")
         cameraEngine.cleanup()
+    }
+
+    private fun setupGridOverlay() {
+        try {
+            val settingsManager = com.customcamera.app.engine.SettingsManager(this)
+            val gridEnabled = settingsManager.isPluginEnabled("GridOverlay")
+
+            if (gridEnabled) {
+                // Create grid overlay view and add to camera layout
+                val gridView = com.customcamera.app.plugins.GridOverlayView(this)
+
+                // Add grid overlay on top of preview
+                val rootView = binding.root as android.widget.FrameLayout
+                val layoutParams = android.widget.FrameLayout.LayoutParams(
+                    android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
+                    android.widget.FrameLayout.LayoutParams.MATCH_PARENT
+                )
+                rootView.addView(gridView, layoutParams)
+
+                Log.i(TAG, "Grid overlay added to camera UI")
+            }
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Error setting up grid overlay", e)
+        }
+    }
+
+    private fun updatePluginStatesFromSettings() {
+        try {
+            val settingsManager = com.customcamera.app.engine.SettingsManager(this)
+
+            // Update grid overlay visibility based on setting
+            val gridEnabled = settingsManager.isPluginEnabled("GridOverlay")
+            if (gridEnabled != gridOverlayPlugin.isGridVisible()) {
+                if (gridEnabled) {
+                    gridOverlayPlugin.showGrid()
+                } else {
+                    gridOverlayPlugin.hideGrid()
+                }
+                Log.i(TAG, "Grid overlay updated from settings: $gridEnabled")
+            }
+
+            // Update other plugin states as needed
+            Log.d(TAG, "Plugin states updated from settings")
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Error updating plugin states from settings", e)
+        }
     }
 
     companion object {
