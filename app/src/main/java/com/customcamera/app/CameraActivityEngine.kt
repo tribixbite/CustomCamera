@@ -54,6 +54,7 @@ class CameraActivityEngine : AppCompatActivity() {
     private var zoomController: com.customcamera.app.camera2.ZoomController? = null
     private var scaleGestureDetector: ScaleGestureDetector? = null
     private var zoomIndicator: android.widget.TextView? = null
+    private var shutterSpeedController: com.customcamera.app.camera2.ShutterSpeedController? = null
     private var lastTapTime = 0L
     private var tapCount = 0
     private var barcodeOverlayView: com.customcamera.app.barcode.BarcodeOverlayView? = null
@@ -568,6 +569,9 @@ class CameraActivityEngine : AppCompatActivity() {
                 zoomController = com.customcamera.app.camera2.ZoomController(this)
                 zoomController!!.initialize(cameraIndex.toString())
 
+                shutterSpeedController = com.customcamera.app.camera2.ShutterSpeedController(this)
+                shutterSpeedController!!.initialize(cameraIndex.toString())
+
                 // Setup pinch-to-zoom
                 setupPinchToZoom()
 
@@ -699,6 +703,45 @@ class CameraActivityEngine : AppCompatActivity() {
                     }
                 }
                 manualControlsPanel!!.addView(wbSpinner)
+
+                // Add shutter speed control with real Camera2 capabilities
+                val shutterText = android.widget.TextView(this).apply {
+                    val shutterSettings = shutterSpeedController?.getCurrentShutterSpeedSettings()
+                    text = "Shutter: ${shutterSettings?.get("currentDisplayText") ?: "1/60s"} (Camera2)"
+                    setTextColor(android.graphics.Color.WHITE)
+                    setPadding(0, 16, 0, 0)
+                }
+                manualControlsPanel!!.addView(shutterText)
+
+                val shutterSpinner = android.widget.Spinner(this).apply {
+                    val availableShutterSpeeds = shutterSpeedController?.getAvailableShutterSpeeds() ?: emptyList()
+                    val shutterOptions = if (availableShutterSpeeds.isNotEmpty()) {
+                        availableShutterSpeeds.map { it.first }.toTypedArray()
+                    } else {
+                        arrayOf("1/60s", "1/30s", "1/15s", "1/8s", "1/4s", "1/2s", "1s", "2s")
+                    }
+
+                    val adapter = android.widget.ArrayAdapter(
+                        this@CameraActivityEngine,
+                        android.R.layout.simple_spinner_item,
+                        shutterOptions
+                    )
+                    adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+                    this.adapter = adapter
+
+                    onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
+                        override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: android.view.View?, position: Int, id: Long) {
+                            val selectedShutter = shutterOptions[position]
+                            shutterText.text = "Shutter: $selectedShutter (Camera2)"
+
+                            // Apply real shutter speed through Camera2
+                            shutterSpeedController?.setShutterSpeedByName(selectedShutter)
+                            Log.d(TAG, "Shutter speed set to: $selectedShutter")
+                        }
+                        override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
+                    }
+                }
+                manualControlsPanel!!.addView(shutterSpinner)
 
                 // Add to camera layout
                 val rootView = binding.root as android.widget.FrameLayout
