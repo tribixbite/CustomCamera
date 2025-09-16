@@ -47,6 +47,7 @@ class CameraActivityEngine : AppCompatActivity() {
     private var isBarcodeScanningEnabled: Boolean = false
     private var isPiPEnabled: Boolean = false
     private var loadingIndicator: android.widget.TextView? = null
+    private var pipOverlayView: com.customcamera.app.pip.PiPOverlayView? = null
 
     // Plugins
     private lateinit var autoFocusPlugin: AutoFocusPlugin
@@ -699,24 +700,33 @@ class CameraActivityEngine : AppCompatActivity() {
             val pipPlugin = cameraEngine.getPlugin("PiP") as? PiPPlugin
 
             if (pipPlugin != null) {
-                lifecycleScope.launch {
-                    if (isPiPEnabled) {
-                        val pipResult = pipPlugin.enablePiP()
-                        if (pipResult) {
-                            binding.pipButton.alpha = 1.0f
-                            Toast.makeText(this@CameraActivityEngine, "PiP mode enabled", Toast.LENGTH_SHORT).show()
-                            Log.i(TAG, "PiP mode enabled successfully")
-                        } else {
-                            isPiPEnabled = false
-                            Toast.makeText(this@CameraActivityEngine, "PiP mode failed - dual cameras not available", Toast.LENGTH_LONG).show()
-                            Log.w(TAG, "PiP mode failed - dual cameras not available")
-                        }
-                    } else {
-                        pipPlugin.disablePiP()
-                        binding.pipButton.alpha = 0.6f
-                        Toast.makeText(this@CameraActivityEngine, "PiP mode disabled", Toast.LENGTH_SHORT).show()
-                        Log.i(TAG, "PiP mode disabled")
+                if (isPiPEnabled) {
+                    // Create PiP overlay
+                    if (pipOverlayView == null) {
+                        pipOverlayView = com.customcamera.app.pip.PiPOverlayView(this@CameraActivityEngine)
+
+                        // Add main preview (current camera)
+                        pipOverlayView!!.setMainPreview(binding.previewView)
+
+                        // Create small PiP preview for second camera
+                        val pipPreview = androidx.camera.view.PreviewView(this@CameraActivityEngine)
+                        pipOverlayView!!.setPiPPreview(pipPreview)
+
+                        // Add to layout
+                        val rootView = binding.root as android.widget.FrameLayout
+                        rootView.addView(pipOverlayView)
                     }
+
+                    pipOverlayView?.showPiP()
+                    binding.pipButton.alpha = 1.0f
+                    Toast.makeText(this@CameraActivityEngine, "PiP mode enabled", Toast.LENGTH_SHORT).show()
+                    Log.i(TAG, "PiP mode enabled with overlay")
+
+                } else {
+                    pipOverlayView?.hidePiP()
+                    binding.pipButton.alpha = 0.6f
+                    Toast.makeText(this@CameraActivityEngine, "PiP mode disabled", Toast.LENGTH_SHORT).show()
+                    Log.i(TAG, "PiP mode disabled")
                 }
             } else {
                 Toast.makeText(this, "PiP plugin not available", Toast.LENGTH_SHORT).show()

@@ -25,10 +25,14 @@ class SimpleSettingsActivity : AppCompatActivity() {
         // Create simple layout programmatically
         createSimpleLayout()
 
-        // Setup toolbar
-        supportActionBar?.apply {
-            setDisplayHomeAsUpEnabled(true)
-            title = "Camera Settings"
+        // Setup toolbar safely
+        try {
+            supportActionBar?.apply {
+                setDisplayHomeAsUpEnabled(true)
+                title = "Camera Settings"
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "Could not setup action bar", e)
         }
 
         // Initialize settings
@@ -45,8 +49,9 @@ class SimpleSettingsActivity : AppCompatActivity() {
     }
 
     private fun createSettingsUI() {
-        // Add title
-        addTitle("Camera Settings")
+        try {
+            // Add title
+            addTitle("Camera Settings")
 
         // Grid overlay setting
         addSwitchSetting(
@@ -120,6 +125,11 @@ class SimpleSettingsActivity : AppCompatActivity() {
         settingsContainer.addView(debugButton)
 
         Log.i(TAG, "Settings UI created")
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Error creating settings UI", e)
+            Toast.makeText(this, "Settings error: ${e.message}", Toast.LENGTH_LONG).show()
+        }
     }
 
     private fun addTitle(title: String) {

@@ -31,7 +31,8 @@ class GridOverlayPlugin : UIPlugin() {
         GOLDEN_RATIO,      // Golden ratio grid
         CENTER_CROSS,      // Simple center cross
         DIAGONAL_LINES,    // Diagonal composition lines
-        SQUARE_GRID        // 4x4 square grid
+        SQUARE_GRID,       // 4x4 square grid
+        NINE_GRID          // 9 tall 3 wide grid
     }
 
     override suspend fun initialize(context: CameraContext) {
@@ -284,6 +285,9 @@ class GridOverlayView(context: Context) : View(context) {
             GridOverlayPlugin.GridType.SQUARE_GRID -> {
                 drawSquareGrid(canvas, width, height)
             }
+            GridOverlayPlugin.GridType.NINE_GRID -> {
+                drawNineGrid(canvas, width, height)
+            }
         }
     }
 
@@ -339,6 +343,21 @@ class GridOverlayView(context: Context) : View(context) {
 
             // Horizontal lines
             val y = i * height / 4f
+            canvas.drawLine(0f, y, width, y, paint)
+        }
+    }
+
+    private fun drawNineGrid(canvas: Canvas, width: Float, height: Float) {
+        // 9 tall 3 wide grid
+        // 2 vertical lines (3 columns)
+        for (i in 1..2) {
+            val x = i * width / 3f
+            canvas.drawLine(x, 0f, x, height, paint)
+        }
+
+        // 8 horizontal lines (9 rows)
+        for (i in 1..8) {
+            val y = i * height / 9f
             canvas.drawLine(0f, y, width, y, paint)
         }
     }
