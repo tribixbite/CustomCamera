@@ -25,6 +25,8 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.pow
+import android.view.MotionEvent
+import android.view.ScaleGestureDetector
 
 /**
  * Enhanced CameraActivity that uses the CameraEngine and plugin system.
@@ -49,6 +51,11 @@ class CameraActivityEngine : AppCompatActivity() {
     private var loadingIndicator: android.widget.TextView? = null
     private var pipOverlayView: com.customcamera.app.pip.PiPOverlayView? = null
     private var camera2ISOController: com.customcamera.app.camera2.Camera2ISOController? = null
+    private var zoomController: com.customcamera.app.camera2.ZoomController? = null
+    private var scaleGestureDetector: ScaleGestureDetector? = null
+    private var zoomIndicator: android.widget.TextView? = null
+    private var lastTapTime = 0L
+    private var tapCount = 0
     private var barcodeOverlayView: com.customcamera.app.barcode.BarcodeOverlayView? = null
     private var camera2Controller: com.customcamera.app.camera2.Camera2Controller? = null
     private var performanceMonitor: com.customcamera.app.monitoring.PerformanceMonitor? = null
@@ -554,9 +561,15 @@ class CameraActivityEngine : AppCompatActivity() {
                 val helper = com.customcamera.app.camera2.ManualControlHelper(this)
                 helper.initializeForCamera(cameraIndex.toString())
 
-                // Initialize Camera2 ISO controller
+                // Initialize Camera2 controllers
                 camera2ISOController = com.customcamera.app.camera2.Camera2ISOController(this)
                 camera2ISOController!!.initialize(cameraIndex.toString())
+
+                zoomController = com.customcamera.app.camera2.ZoomController(this)
+                zoomController!!.initialize(cameraIndex.toString())
+
+                // Setup pinch-to-zoom
+                setupPinchToZoom()
 
                 val titleView = android.widget.TextView(this).apply {
                     text = "Manual Controls"
@@ -959,6 +972,132 @@ class CameraActivityEngine : AppCompatActivity() {
 
         } catch (e: Exception) {
             Log.e(TAG, "Error initializing Camera2 controller", e)
+        }
+    }
+
+    private fun setupPinchToZoom() {
+        try {
+            // Create scale gesture detector for pinch-to-zoom
+            scaleGestureDetector = ScaleGestureDetector(this, object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
+                override fun onScale(detector: ScaleGestureDetector): Boolean {
+                    val scaleFactor = detector.scaleFactor
+                    val camera = cameraEngine.getCurrentCamera()
+
+                    if (camera != null && zoomController != null) {
+                        val zoomApplied = zoomController!!.processPinchGesture(scaleFactor, camera)
+                        if (zoomApplied) {
+                            updateZoomIndicator()
+                        }
+                        return true
+                    }
+                    return false
+                }
+
+                override fun onScaleBegin(detector: ScaleGestureDetector): Boolean {
+                    showZoomIndicator()
+                    return true
+                }
+
+                override fun onScaleEnd(detector: ScaleGestureDetector) {
+                    hideZoomIndicatorAfterDelay()
+                }
+            })
+
+            // Add touch listener to preview view for pinch gestures
+            binding.previewView.setOnTouchListener { view, event ->
+                scaleGestureDetector?.onTouchEvent(event) ?: false
+
+                // Also handle tap gestures (existing functionality)
+                when (event.action) {
+                    MotionEvent.ACTION_DOWN -> {
+                        val currentTime = System.currentTimeMillis()
+                        if (currentTime - lastTapTime < 300) {
+                            tapCount++
+                            when (tapCount) {
+                                1 -> toggleGrid()
+                                2 -> {
+                                    toggleBarcodeScanning()
+                                    tapCount = 0
+                                }
+                                3 -> {
+                                    // Quadruple tap - show zoom info
+                                    showZoomInfo()
+                                    tapCount = 0
+                                }
+                            }
+                        } else {
+                            tapCount = 0
+                        }
+                        lastTapTime = currentTime
+                        true
+                    }
+                    else -> false
+                }
+            }
+
+            Log.i(TAG, "Pinch-to-zoom setup complete")
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Error setting up pinch-to-zoom", e)
+        }
+    }
+
+    private fun showZoomIndicator() {
+        try {
+            if (zoomIndicator == null) {
+                zoomIndicator = android.widget.TextView(this).apply {
+                    text = "1.0x"
+                    textSize = 18f
+                    setTextColor(android.graphics.Color.WHITE)
+                    setBackgroundColor(android.graphics.Color.argb(180, 0, 0, 0))
+                    setPadding(16, 8, 16, 8)
+                    gravity = android.view.Gravity.CENTER
+                }
+
+                val rootView = binding.root as android.widget.FrameLayout
+                val layoutParams = android.widget.FrameLayout.LayoutParams(
+                    android.widget.FrameLayout.LayoutParams.WRAP_CONTENT,
+                    android.widget.FrameLayout.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    gravity = android.view.Gravity.CENTER
+                }
+                rootView.addView(zoomIndicator, layoutParams)
+            }
+
+            zoomIndicator?.visibility = android.view.View.VISIBLE
+            updateZoomIndicator()
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Error showing zoom indicator", e)
+        }
+    }
+
+    private fun updateZoomIndicator() {
+        val zoomText = zoomController?.getZoomDisplayText() ?: "1.0x"
+        zoomIndicator?.text = zoomText
+    }
+
+    private fun hideZoomIndicatorAfterDelay() {
+        lifecycleScope.launch {
+            kotlinx.coroutines.delay(2000) // Hide after 2 seconds
+            zoomIndicator?.visibility = android.view.View.GONE
+        }
+    }
+
+    private fun showZoomInfo() {
+        try {
+            val zoomCapabilities = zoomController?.getZoomCapabilities()
+            val info = if (zoomCapabilities != null) {
+                "Zoom: ${zoomCapabilities["currentZoomRatio"]}x / ${zoomCapabilities["maxZoomRatio"]}x"
+            } else {
+                "Zoom info not available"
+            }
+
+            Toast.makeText(this, info, Toast.LENGTH_SHORT).show()
+            Log.i(TAG, "Zoom info: $zoomCapabilities")
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Error showing zoom info", e)
         }
     }
 
