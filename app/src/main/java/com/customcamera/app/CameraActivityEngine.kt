@@ -50,6 +50,7 @@ class CameraActivityEngine : AppCompatActivity() {
     private var pipOverlayView: com.customcamera.app.pip.PiPOverlayView? = null
     private var barcodeOverlayView: com.customcamera.app.barcode.BarcodeOverlayView? = null
     private var camera2Controller: com.customcamera.app.camera2.Camera2Controller? = null
+    private var performanceMonitor: com.customcamera.app.monitoring.PerformanceMonitor? = null
 
     // Plugins
     private lateinit var autoFocusPlugin: AutoFocusPlugin
@@ -256,6 +257,9 @@ class CameraActivityEngine : AppCompatActivity() {
 
                 // Initialize Camera2 controller for manual controls
                 initializeCamera2Controller()
+
+                // Initialize performance monitor
+                initializePerformanceMonitor()
 
                 // Add grid overlay to camera layout if enabled
                 setupGridOverlay()
@@ -545,14 +549,27 @@ class CameraActivityEngine : AppCompatActivity() {
                     setPadding(16, 16, 16, 16)
                 }
 
-                // Add simple manual controls
+                // Add manual controls with Camera2 capabilities
+                val helper = com.customcamera.app.camera2.ManualControlHelper(this)
+                helper.initializeForCamera(cameraIndex.toString())
+
                 val titleView = android.widget.TextView(this).apply {
                     text = "Manual Controls"
                     textSize = 18f
                     setTextColor(android.graphics.Color.WHITE)
-                    setPadding(0, 0, 0, 16)
+                    setPadding(0, 0, 0, 8)
                 }
                 manualControlsPanel!!.addView(titleView)
+
+                // Show camera capabilities
+                val capabilitiesView = android.widget.TextView(this).apply {
+                    val capabilities = helper.getManualControlCapabilities()
+                    text = "Camera Capabilities:\n${capabilities["isoRange"]}\nManual: ${capabilities["manualControlSupported"]}"
+                    textSize = 12f
+                    setTextColor(android.graphics.Color.LTGRAY)
+                    setPadding(0, 0, 0, 16)
+                }
+                manualControlsPanel!!.addView(capabilitiesView)
 
                 // Add exposure compensation control
                 val exposureText = android.widget.TextView(this).apply {
@@ -904,6 +921,27 @@ class CameraActivityEngine : AppCompatActivity() {
         }
     }
 
+    private fun initializeCamera2Controller() {
+        try {
+            val helper = com.customcamera.app.camera2.ManualControlHelper(this)
+            val success = helper.initializeForCamera(cameraIndex.toString())
+
+            if (success) {
+                val capabilities = helper.getManualControlCapabilities()
+                Log.i(TAG, "Camera2 manual control capabilities: $capabilities")
+
+                // Store for use in manual controls
+                // In production, this would enable real Camera2 API usage
+                Toast.makeText(this, "Manual controls: ${if (helper.isManualControlSupported()) "Available" else "Limited"}", Toast.LENGTH_SHORT).show()
+            } else {
+                Log.w(TAG, "Camera2 controller initialization failed")
+            }
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Error initializing Camera2 controller", e)
+        }
+    }
+
     private fun showLoadingIndicator(message: String) {
         try {
             if (loadingIndicator == null) {
@@ -990,30 +1028,24 @@ class CameraActivityEngine : AppCompatActivity() {
         }
     }
 
-    private fun initializeCamera2Controller() {
-        lifecycleScope.launch {
-            try {
-                camera2Controller = com.customcamera.app.camera2.Camera2Controller(
-                    this@CameraActivityEngine,
-                    com.customcamera.app.engine.CameraContext(
-                        context = this@CameraActivityEngine,
-                        cameraProvider = androidx.camera.lifecycle.ProcessCameraProvider.getInstance(this@CameraActivityEngine).get(),
-                        debugLogger = com.customcamera.app.engine.DebugLogger(),
-                        settingsManager = com.customcamera.app.engine.SettingsManager(this@CameraActivityEngine)
-                    )
-                )
 
-                val initResult = camera2Controller!!.initialize(cameraIndex.toString())
-                if (initResult) {
-                    Log.i(TAG, "Camera2 controller initialized for manual controls")
-                } else {
-                    camera2Controller = null
-                }
+    private fun initializePerformanceMonitor() {
+        try {
+            val cameraContext = com.customcamera.app.engine.CameraContext(
+                context = this,
+                cameraProvider = androidx.camera.lifecycle.ProcessCameraProvider.getInstance(this).get(),
+                debugLogger = com.customcamera.app.engine.DebugLogger(),
+                settingsManager = com.customcamera.app.engine.SettingsManager(this)
+            )
 
-            } catch (e: Exception) {
-                Log.e(TAG, "Error initializing Camera2 controller", e)
-                camera2Controller = null
-            }
+            performanceMonitor = com.customcamera.app.monitoring.PerformanceMonitor(this, cameraContext)
+            performanceMonitor!!.startFPSMonitoring()
+
+            Log.i(TAG, "Performance monitor initialized")
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Error initializing performance monitor", e)
+            performanceMonitor = null
         }
     }
 
