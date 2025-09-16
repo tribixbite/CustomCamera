@@ -48,6 +48,8 @@ class CameraActivityEngine : AppCompatActivity() {
     private var isPiPEnabled: Boolean = false
     private var loadingIndicator: android.widget.TextView? = null
     private var pipOverlayView: com.customcamera.app.pip.PiPOverlayView? = null
+    private var barcodeOverlayView: com.customcamera.app.barcode.BarcodeOverlayView? = null
+    private var camera2Controller: com.customcamera.app.camera2.Camera2Controller? = null
 
     // Plugins
     private lateinit var autoFocusPlugin: AutoFocusPlugin
@@ -252,6 +254,9 @@ class CameraActivityEngine : AppCompatActivity() {
                 // Configure autofocus plugin with preview
                 autoFocusPlugin.setPreviewView(binding.previewView)
 
+                // Initialize Camera2 controller for manual controls
+                initializeCamera2Controller()
+
                 // Add grid overlay to camera layout if enabled
                 setupGridOverlay()
 
@@ -276,6 +281,9 @@ class CameraActivityEngine : AppCompatActivity() {
         try {
             val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
             val photoFile = File(filesDir, "CAMERA_ENGINE_$timestamp.jpg")
+
+            // Capture metadata for this photo
+            val metadata = capturePhotoMetadata(timestamp)
 
             val outputFileOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
 
@@ -590,7 +598,10 @@ class CameraActivityEngine : AppCompatActivity() {
                                 // Map 0-100 to ISO 50-6400 logarithmically
                                 val iso = (50 * 128.0.pow(progress / 100.0)).toInt().coerceIn(50, 6400)
                                 isoText.text = "ISO: $iso"
-                                Log.d(TAG, "ISO adjusted to: $iso")
+
+                                // Apply real ISO control through Camera2
+                                camera2Controller?.setISO(iso)
+                                Log.d(TAG, "ISO adjusted to: $iso (Camera2 applied)")
                             }
                         }
                         override fun onStartTrackingTouch(seekBar: android.widget.SeekBar?) {}
@@ -620,7 +631,19 @@ class CameraActivityEngine : AppCompatActivity() {
                     onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
                         override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: android.view.View?, position: Int, id: Long) {
                             wbText.text = "White Balance: ${wbOptions[position]}"
-                            Log.d(TAG, "White balance set to: ${wbOptions[position]}")
+
+                            // Apply real white balance through Camera2
+                            val colorTemp = when (position) {
+                                0 -> 5500 // Auto/Daylight
+                                1 -> 5500 // Daylight
+                                2 -> 6500 // Cloudy
+                                3 -> 3200 // Tungsten
+                                4 -> 4000 // Fluorescent
+                                5 -> 5500 // Flash
+                                else -> 5500
+                            }
+                            camera2Controller?.setColorTemperature(colorTemp)
+                            Log.d(TAG, "White balance set to: ${wbOptions[position]} (${colorTemp}K Camera2 applied)")
                         }
                         override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
                     }
@@ -761,7 +784,22 @@ class CameraActivityEngine : AppCompatActivity() {
 
                     lifecycleScope.launch {
                         cameraEngine.bindCamera(config)
+
+                        // Add barcode overlay to UI
+                        if (barcodeOverlayView == null) {
+                            barcodeOverlayView = com.customcamera.app.barcode.BarcodeOverlayView(this@CameraActivityEngine)
+
+                            val rootView = binding.root as android.widget.FrameLayout
+                            val layoutParams = android.widget.FrameLayout.LayoutParams(
+                                android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
+                                android.widget.FrameLayout.LayoutParams.MATCH_PARENT
+                            )
+                            rootView.addView(barcodeOverlayView, layoutParams)
+                        }
+                        barcodeOverlayView?.setOverlayEnabled(true)
                     }
+                } else {
+                    barcodeOverlayView?.setOverlayEnabled(false)
                 }
 
                 Toast.makeText(this, "Barcode scanning ${if (isBarcodeScanningEnabled) "enabled" else "disabled"}", Toast.LENGTH_SHORT).show()
@@ -901,6 +939,82 @@ class CameraActivityEngine : AppCompatActivity() {
     private fun hideLoadingIndicator() {
         loadingIndicator?.visibility = android.view.View.GONE
         Log.d(TAG, "Loading indicator hidden")
+    }
+
+    private fun capturePhotoMetadata(timestamp: String): com.customcamera.app.gallery.PhotoMetadata {
+        return try {
+            // Get current camera settings
+            val camera = cameraEngine.getCurrentCamera()
+            val exposurePlugin = cameraEngine.getPlugin("ExposureControl") as? ExposureControlPlugin
+
+            val exposureSettings = com.customcamera.app.gallery.ExposureSettings(
+                iso = 100, // Default - Camera2 API needed for real ISO
+                exposureTime = "1/60s", // Default - Camera2 API needed for real shutter
+                exposureCompensation = exposurePlugin?.getCurrentEV() ?: 0f,
+                aperture = 1.8f, // Typical smartphone aperture
+                focalLength = 4.0f, // Typical smartphone focal length
+                whiteBalance = "Auto", // Default - Camera2 API needed for real WB
+                flashMode = if (isFlashOn) "On" else "Off",
+                focusMode = "Auto" // Default - focus plugin integration needed
+            )
+
+            com.customcamera.app.gallery.PhotoMetadata(
+                cameraId = cameraIndex.toString(),
+                timestamp = Date(),
+                location = null, // Location services not implemented
+                exposureSettings = exposureSettings,
+                imageSize = android.util.Size(1920, 1080), // Default - real capture size needed
+                cropArea = null, // Crop area tracking to be implemented
+                customData = mapOf(
+                    "nightMode" to isNightModeEnabled,
+                    "pipMode" to isPiPEnabled,
+                    "gridEnabled" to gridOverlayPlugin.isGridVisible(),
+                    "timestamp" to timestamp,
+                    "app" to "CustomCamera"
+                )
+            )
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Error capturing metadata", e)
+            // Return minimal metadata on error
+            com.customcamera.app.gallery.PhotoMetadata(
+                cameraId = cameraIndex.toString(),
+                timestamp = Date(),
+                exposureSettings = com.customcamera.app.gallery.ExposureSettings(
+                    iso = 100, exposureTime = "1/60s", exposureCompensation = 0f,
+                    aperture = 1.8f, focalLength = 4.0f, whiteBalance = "Auto",
+                    flashMode = "Off", focusMode = "Auto"
+                ),
+                imageSize = android.util.Size(1920, 1080)
+            )
+        }
+    }
+
+    private fun initializeCamera2Controller() {
+        lifecycleScope.launch {
+            try {
+                camera2Controller = com.customcamera.app.camera2.Camera2Controller(
+                    this@CameraActivityEngine,
+                    com.customcamera.app.engine.CameraContext(
+                        context = this@CameraActivityEngine,
+                        cameraProvider = androidx.camera.lifecycle.ProcessCameraProvider.getInstance(this@CameraActivityEngine).get(),
+                        debugLogger = com.customcamera.app.engine.DebugLogger(),
+                        settingsManager = com.customcamera.app.engine.SettingsManager(this@CameraActivityEngine)
+                    )
+                )
+
+                val initResult = camera2Controller!!.initialize(cameraIndex.toString())
+                if (initResult) {
+                    Log.i(TAG, "Camera2 controller initialized for manual controls")
+                } else {
+                    camera2Controller = null
+                }
+
+            } catch (e: Exception) {
+                Log.e(TAG, "Error initializing Camera2 controller", e)
+                camera2Controller = null
+            }
+        }
     }
 
     // Animation methods

@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.customcamera.app-mergeDebugResources-40:/values-xlarge-v4/values-xlarge-v4.xml",
+            "outputFile": "com.customcamera.app-mergeDebugResources-42:/values-xlarge-v4/values-xlarge-v4.xml",
             "map": [
                 {
                     "source": "/data/data/com.termux/files/home/.gradle/caches/transforms-4/99a2631ecc969582ca9814ebdd6c39a5/transformed/appcompat-1.6.1/res/values-xlarge-v4/values-xlarge-v4.xml",

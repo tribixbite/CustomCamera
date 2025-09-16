@@ -12,7 +12,11 @@
     <color name="md_theme_surface">#FF121212</color>
     <color name="transparent">#00000000</color>
     <color name="white">#FFFFFFFF</color>
-    <string name="app_name">Custom Camera</string>
+    <string name="about">About</string>
+    <string name="about_description">Professional plugin-based camera application with advanced manual controls, real-time processing, and modular architecture.</string>
+    <string name="about_title">About CustomCamera</string>
+    <string name="app_description">Professional Plugin-Based Camera App</string>
+    <string name="app_name">CustomCamera</string>
     <string name="back_button">Back</string>
     <string name="camera_permission_required">Camera permission is required</string>
     <string name="camera_selection_subtitle">Choose which camera to use for this session</string>
@@ -20,11 +24,21 @@
     <string name="camera_settings">Camera Settings</string>
     <string name="capture_photo">Capture Photo</string>
     <string name="continue_button">Continue</string>
+    <string name="debug_log">View Debug Log</string>
+    <string name="exit">Exit</string>
+    <string name="export_settings">Export Settings</string>
     <string name="no_cameras_available">No cameras available on this device</string>
     <string name="open_gallery">Open Gallery</string>
+    <string name="open_source">Open Source</string>
+    <string name="plugin_system">Plugin System</string>
+    <string name="quick_camera">Quick Camera</string>
+    <string name="reset_settings">Reset to Defaults</string>
+    <string name="select_camera">Select Camera</string>
+    <string name="settings">Settings</string>
     <string name="skip_button">Skip</string>
     <string name="switch_camera">Switch Camera</string>
     <string name="toggle_flash">Toggle Flash</string>
+    <string name="version_info">Version Info</string>
     <style name="Base.Theme.CustomCamera" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="colorPrimary">@color/md_theme_primary</item>
         <item name="colorOnPrimary">@color/md_theme_on_primary</item>

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.customcamera.app"
-    android:versionCode="1"
-    android:versionName="1.0" >
+    android:versionCode="10"
+    android:versionName="1.0.0-professional" >
 
     <uses-sdk
         android:minSdkVersion="24"
@@ -22,7 +22,10 @@
         android:name="com.customcamera.app.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
         android:protectionLevel="signature" />
 
-    <uses-permission android:name="com.customcamera.app.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
+    <uses-permission android:name="com.customcamera.app.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" /> <!-- Although the *SdkVersion is captured in gradle build files, this is required for non gradle builds -->
+    <!-- <uses-sdk android:minSdkVersion="14"/> -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
         android:allowBackup="true"
@@ -51,9 +54,33 @@
             android:exported="false"
             android:screenOrientation="portrait" />
         <activity
+            android:name="com.customcamera.app.CameraActivityEngine"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+        <activity
             android:name="com.customcamera.app.CameraSelectionActivity"
             android:exported="false"
             android:screenOrientation="portrait" />
+        <activity
+            android:name="com.customcamera.app.SettingsActivity"
+            android:exported="false"
+            android:parentActivityName="com.customcamera.app.CameraActivityEngine"
+            android:theme="@style/Theme.CustomCamera" />
+        <activity
+            android:name="com.customcamera.app.SimpleSettingsActivity"
+            android:exported="false"
+            android:parentActivityName="com.customcamera.app.CameraActivityEngine"
+            android:theme="@style/Theme.CustomCamera" />
+        <activity
+            android:name="com.customcamera.app.GalleryActivity"
+            android:exported="false"
+            android:parentActivityName="com.customcamera.app.CameraActivityEngine"
+            android:theme="@style/Theme.CustomCamera" />
+        <activity
+            android:name="com.customcamera.app.DebugActivity"
+            android:exported="false"
+            android:parentActivityName="com.customcamera.app.SimpleSettingsActivity"
+            android:theme="@style/Theme.CustomCamera" />
 
         <service
             android:name="androidx.camera.core.impl.MetadataHolderService"
@@ -63,6 +90,35 @@
                 android:name="androidx.camera.core.impl.MetadataHolderService.DEFAULT_CONFIG_PROVIDER"
                 android:value="androidx.camera.camera2.Camera2Config$DefaultProvider" />
         </service>
+        <service
+            android:name="com.google.mlkit.common.internal.MlKitComponentDiscoveryService"
+            android:directBootAware="true"
+            android:exported="false" >
+            <meta-data
+                android:name="com.google.firebase.components:com.google.mlkit.vision.barcode.internal.BarcodeRegistrar"
+                android:value="com.google.firebase.components.ComponentRegistrar" />
+            <meta-data
+                android:name="com.google.firebase.components:com.google.mlkit.vision.common.internal.VisionCommonRegistrar"
+                android:value="com.google.firebase.components.ComponentRegistrar" />
+            <meta-data
+                android:name="com.google.firebase.components:com.google.mlkit.common.internal.CommonComponentRegistrar"
+                android:value="com.google.firebase.components.ComponentRegistrar" />
+        </service>
+
+        <provider
+            android:name="com.google.mlkit.common.internal.MlKitInitProvider"
+            android:authorities="com.customcamera.app.mlkitinitprovider"
+            android:exported="false"
+            android:initOrder="99" />
+
+        <activity
+            android:name="com.google.android.gms.common.api.GoogleApiActivity"
+            android:exported="false"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+
+        <meta-data
+            android:name="com.google.android.gms.version"
+            android:value="@integer/google_play_services_version" />
 
         <provider
             android:name="androidx.startup.InitializationProvider"
@@ -98,6 +154,23 @@
                 <action android:name="androidx.profileinstaller.action.BENCHMARK_OPERATION" />
             </intent-filter>
         </receiver>
+
+        <service
+            android:name="com.google.android.datatransport.runtime.backends.TransportBackendDiscovery"
+            android:exported="false" >
+            <meta-data
+                android:name="backend:com.google.android.datatransport.cct.CctBackendFactory"
+                android:value="cct" />
+        </service>
+        <service
+            android:name="com.google.android.datatransport.runtime.scheduling.jobscheduling.JobInfoSchedulerService"
+            android:exported="false"
+            android:permission="android.permission.BIND_JOB_SERVICE" >
+        </service>
+
+        <receiver
+            android:name="com.google.android.datatransport.runtime.scheduling.jobscheduling.AlarmManagerSchedulerBroadcastReceiver"
+            android:exported="false" />
     </application>
 
 </manifest>

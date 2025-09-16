@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.customcamera.app-mergeDebugResources-40:/values-en-rXC/values-en-rXC.xml",
+            "outputFile": "com.customcamera.app-mergeDebugResources-42:/values-en-rXC/values-en-rXC.xml",
             "map": [
                 {
                     "source": "/data/data/com.termux/files/home/.gradle/caches/transforms-4/928de47e133b1ae84cdec1533ebaa58f/transformed/core-1.12.0/res/values-en-rXC/values-en-rXC.xml",

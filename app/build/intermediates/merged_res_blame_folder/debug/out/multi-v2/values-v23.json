@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.customcamera.app-mergeDebugResources-40:/values-v23/values-v23.xml",
+            "outputFile": "com.customcamera.app-mergeDebugResources-42:/values-v23/values-v23.xml",
             "map": [
                 {
                     "source": "/data/data/com.termux/files/home/.gradle/caches/transforms-4/802c3a0edd9e6b4594e0664e3967a831/transformed/cardview-1.0.0/res/values-v23/values-v23.xml",

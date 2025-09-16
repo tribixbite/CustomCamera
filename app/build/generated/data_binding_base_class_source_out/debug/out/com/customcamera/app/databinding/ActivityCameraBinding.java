@@ -30,6 +30,12 @@ public final class ActivityCameraBinding implements ViewBinding {
   public final ImageButton galleryButton;
 
   @NonNull
+  public final ImageButton nightModeButton;
+
+  @NonNull
+  public final ImageButton pipButton;
+
+  @NonNull
   public final PreviewView previewView;
 
   @NonNull
@@ -38,17 +44,24 @@ public final class ActivityCameraBinding implements ViewBinding {
   @NonNull
   public final ImageButton switchCameraButton;
 
+  @NonNull
+  public final ImageButton videoRecordButton;
+
   private ActivityCameraBinding(@NonNull FrameLayout rootView, @NonNull ImageButton captureButton,
       @NonNull ImageButton flashButton, @NonNull ImageButton galleryButton,
+      @NonNull ImageButton nightModeButton, @NonNull ImageButton pipButton,
       @NonNull PreviewView previewView, @NonNull ImageButton settingsButton,
-      @NonNull ImageButton switchCameraButton) {
+      @NonNull ImageButton switchCameraButton, @NonNull ImageButton videoRecordButton) {
     this.rootView = rootView;
     this.captureButton = captureButton;
     this.flashButton = flashButton;
     this.galleryButton = galleryButton;
+    this.nightModeButton = nightModeButton;
+    this.pipButton = pipButton;
     this.previewView = previewView;
     this.settingsButton = settingsButton;
     this.switchCameraButton = switchCameraButton;
+    this.videoRecordButton = videoRecordButton;
   }
 
   @Override
@@ -96,6 +109,18 @@ public final class ActivityCameraBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.nightModeButton;
+      ImageButton nightModeButton = ViewBindings.findChildViewById(rootView, id);
+      if (nightModeButton == null) {
+        break missingId;
+      }
+
+      id = R.id.pipButton;
+      ImageButton pipButton = ViewBindings.findChildViewById(rootView, id);
+      if (pipButton == null) {
+        break missingId;
+      }
+
       id = R.id.previewView;
       PreviewView previewView = ViewBindings.findChildViewById(rootView, id);
       if (previewView == null) {
@@ -114,8 +139,15 @@ public final class ActivityCameraBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.videoRecordButton;
+      ImageButton videoRecordButton = ViewBindings.findChildViewById(rootView, id);
+      if (videoRecordButton == null) {
+        break missingId;
+      }
+
       return new ActivityCameraBinding((FrameLayout) rootView, captureButton, flashButton,
-          galleryButton, previewView, settingsButton, switchCameraButton);
+          galleryButton, nightModeButton, pipButton, previewView, settingsButton,
+          switchCameraButton, videoRecordButton);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

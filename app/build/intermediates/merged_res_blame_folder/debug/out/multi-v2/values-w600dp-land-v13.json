@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.customcamera.app-mergeDebugResources-40:/values-w600dp-land-v13/values-w600dp-land-v13.xml",
+            "outputFile": "com.customcamera.app-mergeDebugResources-42:/values-w600dp-land-v13/values-w600dp-land-v13.xml",
             "map": [
                 {
                     "source": "/data/data/com.termux/files/home/.gradle/caches/transforms-4/a571be23fd8d4059f09460559514e692/transformed/material-1.10.0/res/values-w600dp-land-v13/values-w600dp-land-v13.xml",

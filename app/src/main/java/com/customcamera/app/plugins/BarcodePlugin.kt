@@ -5,9 +5,9 @@ import android.util.Log
 import android.view.View
 import androidx.camera.core.Camera
 import androidx.camera.core.ImageProxy
-// import com.google.mlkit.vision.barcode.BarcodeScanning
-// import com.google.mlkit.vision.barcode.common.Barcode
-// import com.google.mlkit.vision.common.InputImage
+import com.google.mlkit.vision.barcode.BarcodeScanning
+import com.google.mlkit.vision.barcode.common.Barcode
+import com.google.mlkit.vision.common.InputImage
 import com.customcamera.app.engine.CameraContext
 import com.customcamera.app.engine.plugins.ProcessingPlugin
 import com.customcamera.app.engine.plugins.ProcessingResult
@@ -27,7 +27,7 @@ class BarcodePlugin : ProcessingPlugin() {
 
     private var cameraContext: CameraContext? = null
     private var barcodeOverlay: BarcodeOverlayView? = null
-    // private val scanner = BarcodeScanning.getClient() // Disabled for faster builds
+    private val scanner = BarcodeScanning.getClient()
 
     // Scanning configuration
     private var isAutoScanEnabled: Boolean = true
@@ -246,18 +246,73 @@ class BarcodePlugin : ProcessingPlugin() {
     }
 
     private fun performRealBarcodeDetection(image: ImageProxy): List<DetectedBarcode> {
-        // Temporarily use simulation until ML Kit dependency is fully integrated
-        return if (System.currentTimeMillis() % 8000 < 1000) {
-            listOf(
-                DetectedBarcode(
-                    data = "https://github.com/tribixbite/CustomCamera",
-                    format = "QR_CODE",
-                    boundingBox = Rect(100, 100, 300, 300),
-                    cornerPoints = arrayOf(Point(100, 100), Point(300, 100), Point(300, 300), Point(100, 300))
-                )
-            )
-        } else {
+        return try {
+            val mediaImage = image.image ?: return emptyList()
+            val inputImage = InputImage.fromMediaImage(mediaImage, image.imageInfo.rotationDegrees)
+
+            // Store detected barcodes for this frame
+            val frameDetectedBarcodes = mutableListOf<DetectedBarcode>()
+
+            // Process with ML Kit scanner asynchronously
+            scanner.process(inputImage)
+                .addOnSuccessListener { mlkitBarcodes ->
+                    // Convert ML Kit barcodes to our format
+                    mlkitBarcodes.forEach { barcode ->
+                        val detectedBarcode = DetectedBarcode(
+                            data = barcode.rawValue ?: "",
+                            format = getBarcodeFormatName(barcode.format),
+                            boundingBox = barcode.boundingBox ?: Rect(),
+                            cornerPoints = barcode.cornerPoints?.map { Point(it.x, it.y) }?.toTypedArray() ?: emptyArray()
+                        )
+                        frameDetectedBarcodes.add(detectedBarcode)
+                    }
+
+                    // Update overlay with detected barcodes
+                    if (frameDetectedBarcodes.isNotEmpty()) {
+                        updateDetectedBarcodes(frameDetectedBarcodes)
+                        Log.i(TAG, "ML Kit detected ${frameDetectedBarcodes.size} barcodes")
+                    }
+                }
+                .addOnFailureListener { e ->
+                    Log.e(TAG, "ML Kit barcode detection failed", e)
+                }
+
+            // Return current frame detections (may be empty for async processing)
+            frameDetectedBarcodes
+
+        } catch (e: Exception) {
+            Log.e(TAG, "ML Kit barcode detection setup failed", e)
             emptyList()
+        }
+    }
+
+    private fun getBarcodeFormatName(format: Int): String {
+        return when (format) {
+            Barcode.FORMAT_QR_CODE -> "QR_CODE"
+            Barcode.FORMAT_CODE_128 -> "CODE_128"
+            Barcode.FORMAT_CODE_39 -> "CODE_39"
+            Barcode.FORMAT_EAN_13 -> "EAN_13"
+            Barcode.FORMAT_EAN_8 -> "EAN_8"
+            Barcode.FORMAT_UPC_A -> "UPC_A"
+            Barcode.FORMAT_UPC_E -> "UPC_E"
+            Barcode.FORMAT_DATA_MATRIX -> "DATA_MATRIX"
+            Barcode.FORMAT_PDF417 -> "PDF417"
+            else -> "UNKNOWN"
+        }
+    }
+
+    private fun updateDetectedBarcodes(barcodes: List<DetectedBarcode>) {
+        detectedBarcodes = barcodes
+        updateBarcodeOverlay()
+
+        // Add to history
+        barcodes.forEach { barcode ->
+            if (!scanningHistory.any { it.data == barcode.data }) {
+                scanningHistory.add(barcode)
+                if (scanningHistory.size > 50) {
+                    scanningHistory.removeAt(0)
+                }
+            }
         }
     }
 

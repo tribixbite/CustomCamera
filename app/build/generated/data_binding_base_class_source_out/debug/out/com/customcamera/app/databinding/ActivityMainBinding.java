@@ -6,6 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.viewbinding.ViewBinding;
@@ -20,16 +21,34 @@ public final class ActivityMainBinding implements ViewBinding {
   private final LinearLayout rootView;
 
   @NonNull
+  public final Button aboutButton;
+
+  @NonNull
   public final Button exitButton;
 
   @NonNull
   public final Button openCameraButton;
 
-  private ActivityMainBinding(@NonNull LinearLayout rootView, @NonNull Button exitButton,
-      @NonNull Button openCameraButton) {
+  @NonNull
+  public final Button quickCameraButton;
+
+  @NonNull
+  public final Button settingsButton;
+
+  @NonNull
+  public final TextView versionText;
+
+  private ActivityMainBinding(@NonNull LinearLayout rootView, @NonNull Button aboutButton,
+      @NonNull Button exitButton, @NonNull Button openCameraButton,
+      @NonNull Button quickCameraButton, @NonNull Button settingsButton,
+      @NonNull TextView versionText) {
     this.rootView = rootView;
+    this.aboutButton = aboutButton;
     this.exitButton = exitButton;
     this.openCameraButton = openCameraButton;
+    this.quickCameraButton = quickCameraButton;
+    this.settingsButton = settingsButton;
+    this.versionText = versionText;
   }
 
   @Override
@@ -59,6 +78,12 @@ public final class ActivityMainBinding implements ViewBinding {
     // This is done to optimize the compiled bytecode for size and performance.
     int id;
     missingId: {
+      id = R.id.aboutButton;
+      Button aboutButton = ViewBindings.findChildViewById(rootView, id);
+      if (aboutButton == null) {
+        break missingId;
+      }
+
       id = R.id.exitButton;
       Button exitButton = ViewBindings.findChildViewById(rootView, id);
       if (exitButton == null) {
@@ -71,7 +96,26 @@ public final class ActivityMainBinding implements ViewBinding {
         break missingId;
       }
 
-      return new ActivityMainBinding((LinearLayout) rootView, exitButton, openCameraButton);
+      id = R.id.quickCameraButton;
+      Button quickCameraButton = ViewBindings.findChildViewById(rootView, id);
+      if (quickCameraButton == null) {
+        break missingId;
+      }
+
+      id = R.id.settingsButton;
+      Button settingsButton = ViewBindings.findChildViewById(rootView, id);
+      if (settingsButton == null) {
+        break missingId;
+      }
+
+      id = R.id.versionText;
+      TextView versionText = ViewBindings.findChildViewById(rootView, id);
+      if (versionText == null) {
+        break missingId;
+      }
+
+      return new ActivityMainBinding((LinearLayout) rootView, aboutButton, exitButton,
+          openCameraButton, quickCameraButton, settingsButton, versionText);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));
