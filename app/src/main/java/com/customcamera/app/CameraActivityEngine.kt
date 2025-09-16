@@ -55,6 +55,7 @@ class CameraActivityEngine : AppCompatActivity() {
     private var scaleGestureDetector: ScaleGestureDetector? = null
     private var zoomIndicator: android.widget.TextView? = null
     private var shutterSpeedController: com.customcamera.app.camera2.ShutterSpeedController? = null
+    private var focusDistanceController: com.customcamera.app.camera2.FocusDistanceController? = null
     private var lastTapTime = 0L
     private var tapCount = 0
     private var barcodeOverlayView: com.customcamera.app.barcode.BarcodeOverlayView? = null
@@ -572,6 +573,9 @@ class CameraActivityEngine : AppCompatActivity() {
                 shutterSpeedController = com.customcamera.app.camera2.ShutterSpeedController(this)
                 shutterSpeedController!!.initialize(cameraIndex.toString())
 
+                focusDistanceController = com.customcamera.app.camera2.FocusDistanceController(this)
+                focusDistanceController!!.initialize(cameraIndex.toString())
+
                 // Setup pinch-to-zoom
                 setupPinchToZoom()
 
@@ -742,6 +746,55 @@ class CameraActivityEngine : AppCompatActivity() {
                     }
                 }
                 manualControlsPanel!!.addView(shutterSpinner)
+
+                // Add focus distance control with real Camera2 capabilities
+                val focusText = android.widget.TextView(this).apply {
+                    val focusSettings = focusDistanceController?.getCurrentFocusDistanceSettings()
+                    text = "Focus: ${focusSettings?.get("currentDisplayText") ?: "Auto"} (Camera2)"
+                    setTextColor(android.graphics.Color.WHITE)
+                    setPadding(0, 16, 0, 0)
+                }
+                manualControlsPanel!!.addView(focusText)
+
+                val focusSpinner = android.widget.Spinner(this).apply {
+                    val availableFocusPresets = focusDistanceController?.getAvailableFocusPresets() ?: emptyList()
+                    val focusOptions = if (availableFocusPresets.isNotEmpty()) {
+                        availableFocusPresets.map { it.first }.toTypedArray()
+                    } else {
+                        arrayOf("Auto", "Infinity", "Landscape", "Portrait", "Close", "Macro")
+                    }
+
+                    val adapter = android.widget.ArrayAdapter(
+                        this@CameraActivityEngine,
+                        android.R.layout.simple_spinner_item,
+                        focusOptions
+                    )
+                    adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+                    this.adapter = adapter
+
+                    onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
+                        override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: android.view.View?, position: Int, id: Long) {
+                            val selectedFocus = focusOptions[position]
+                            focusText.text = "Focus: $selectedFocus (Camera2)"
+
+                            // Apply real focus distance through Camera2
+                            focusDistanceController?.setFocusDistanceByPreset(selectedFocus)
+                            Log.d(TAG, "Focus distance set to: $selectedFocus")
+                        }
+                        override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
+                    }
+                }
+                manualControlsPanel!!.addView(focusSpinner)
+
+                // Add hyperfocal distance calculator
+                val hyperfocalText = android.widget.TextView(this).apply {
+                    val hyperfocal = focusDistanceController?.calculateHyperfocalDistance(4.0f, 1.8f) ?: "Unknown"
+                    text = "📏 $hyperfocal"
+                    textSize = 12f
+                    setTextColor(android.graphics.Color.LTGRAY)
+                    setPadding(0, 8, 0, 0)
+                }
+                manualControlsPanel!!.addView(hyperfocalText)
 
                 // Add to camera layout
                 val rootView = binding.root as android.widget.FrameLayout
