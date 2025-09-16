@@ -24,7 +24,7 @@ class GridOverlayPlugin : UIPlugin() {
     private var cameraContext: CameraContext? = null
     private var gridOverlayView: GridOverlayView? = null
     private var isOverlayVisible: Boolean = true
-    private var gridType: GridType = GridType.RULE_OF_THIRDS
+    private var gridType: GridType = GridType.NINE_GRID
 
     enum class GridType {
         RULE_OF_THIRDS,    // 3x3 grid for rule of thirds
