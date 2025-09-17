@@ -56,6 +56,8 @@ class CameraActivityEngine : AppCompatActivity() {
     private var zoomIndicator: android.widget.TextView? = null
     private var shutterSpeedController: com.customcamera.app.camera2.ShutterSpeedController? = null
     private var focusDistanceController: com.customcamera.app.camera2.FocusDistanceController? = null
+    private var focusPeakingOverlay: com.customcamera.app.focus.FocusPeakingOverlay? = null
+    private var isFocusPeakingEnabled: Boolean = false
     private var lastTapTime = 0L
     private var tapCount = 0
     private var barcodeOverlayView: com.customcamera.app.barcode.BarcodeOverlayView? = null
@@ -554,9 +556,12 @@ class CameraActivityEngine : AppCompatActivity() {
 
                 histogramView?.visibility = android.view.View.VISIBLE
 
-                // Enable histogram plugin
+                // Enable histogram plugin and connect to display
                 val histogramPlugin = cameraEngine.getPlugin("Histogram") as? HistogramPlugin
                 histogramPlugin?.setHistogramEnabled(true)
+
+                // Start real-time histogram updates
+                startHistogramUpdates()
 
                 Toast.makeText(this, "Histogram display enabled", Toast.LENGTH_SHORT).show()
                 Log.i(TAG, "Histogram display shown")
@@ -1158,6 +1163,11 @@ class CameraActivityEngine : AppCompatActivity() {
                                     showZoomInfo()
                                     tapCount = 0
                                 }
+                                4 -> {
+                                    // Five tap - toggle focus peaking
+                                    toggleFocusPeaking()
+                                    tapCount = 0
+                                }
                             }
                         } else {
                             tapCount = 0
@@ -1215,6 +1225,74 @@ class CameraActivityEngine : AppCompatActivity() {
         lifecycleScope.launch {
             kotlinx.coroutines.delay(2000) // Hide after 2 seconds
             zoomIndicator?.visibility = android.view.View.GONE
+        }
+    }
+
+    private fun startHistogramUpdates() {
+        lifecycleScope.launch {
+            while (isHistogramVisible) {
+                try {
+                    val histogramPlugin = cameraEngine.getPlugin("Histogram") as? HistogramPlugin
+                    val currentHistogram = histogramPlugin?.getCurrentHistogram()
+
+                    if (currentHistogram != null && histogramView != null) {
+                        histogramView!!.updateHistogram(currentHistogram)
+                    }
+
+                    kotlinx.coroutines.delay(200) // Update every 200ms
+
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error updating histogram", e)
+                    break
+                }
+            }
+        }
+    }
+
+    private fun toggleFocusPeaking() {
+        isFocusPeakingEnabled = !isFocusPeakingEnabled
+
+        try {
+            if (isFocusPeakingEnabled) {
+                // Create focus peaking overlay
+                if (focusPeakingOverlay == null) {
+                    focusPeakingOverlay = com.customcamera.app.focus.FocusPeakingOverlay(this)
+
+                    val rootView = binding.root as android.widget.FrameLayout
+                    val layoutParams = android.widget.FrameLayout.LayoutParams(
+                        android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
+                        android.widget.FrameLayout.LayoutParams.MATCH_PARENT
+                    )
+                    rootView.addView(focusPeakingOverlay, layoutParams)
+                }
+
+                focusPeakingOverlay?.setFocusPeakingEnabled(true)
+
+                // Enable image analysis for focus peaking
+                val config = CameraConfig(
+                    cameraIndex = cameraIndex,
+                    enablePreview = true,
+                    enableImageCapture = true,
+                    enableVideoCapture = true,
+                    enableImageAnalysis = true
+                )
+
+                lifecycleScope.launch {
+                    cameraEngine.bindCamera(config)
+                }
+
+                Toast.makeText(this, "Focus peaking enabled - highlights sharp areas in red", Toast.LENGTH_LONG).show()
+                Log.i(TAG, "Focus peaking enabled")
+
+            } else {
+                focusPeakingOverlay?.setFocusPeakingEnabled(false)
+                Toast.makeText(this, "Focus peaking disabled", Toast.LENGTH_SHORT).show()
+                Log.i(TAG, "Focus peaking disabled")
+            }
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Error toggling focus peaking", e)
+            Toast.makeText(this, "Focus peaking error: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
 
