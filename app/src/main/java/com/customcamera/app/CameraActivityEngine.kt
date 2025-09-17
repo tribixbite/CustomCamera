@@ -986,6 +986,9 @@ class CameraActivityEngine : AppCompatActivity() {
                             rootView.addView(barcodeOverlayView, layoutParams)
                         }
                         barcodeOverlayView?.setOverlayEnabled(true)
+
+                        // Start barcode detection updates from plugin
+                        startBarcodeDetectionUpdates()
                     }
                 } else {
                     barcodeOverlayView?.setOverlayEnabled(false)
@@ -1243,6 +1246,32 @@ class CameraActivityEngine : AppCompatActivity() {
 
                 } catch (e: Exception) {
                     Log.e(TAG, "Error updating histogram", e)
+                    break
+                }
+            }
+        }
+    }
+
+    private fun startBarcodeDetectionUpdates() {
+        lifecycleScope.launch {
+            while (isBarcodeScanningEnabled && barcodeOverlayView != null) {
+                try {
+                    val barcodePlugin = cameraEngine.getPlugin("Barcode") as? BarcodePlugin
+                    val detectionStats = barcodePlugin?.getDetectionStats()
+
+                    if (detectionStats != null) {
+                        val currentDetections = detectionStats["currentDetections"] as? Int ?: 0
+                        if (currentDetections > 0) {
+                            Log.d(TAG, "Barcode detections available: $currentDetections")
+                            // In a full implementation, you'd get the actual barcode data
+                            // and update the overlay with real bounding boxes
+                        }
+                    }
+
+                    kotlinx.coroutines.delay(500) // Check every 500ms
+
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error updating barcode detection", e)
                     break
                 }
             }
