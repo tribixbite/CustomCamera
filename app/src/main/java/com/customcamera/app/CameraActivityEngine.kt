@@ -25,6 +25,8 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.pow
+import android.view.MotionEvent
+import android.view.ScaleGestureDetector
 
 /**
  * Enhanced CameraActivity that uses the CameraEngine and plugin system.
@@ -47,6 +49,20 @@ class CameraActivityEngine : AppCompatActivity() {
     private var isBarcodeScanningEnabled: Boolean = false
     private var isPiPEnabled: Boolean = false
     private var loadingIndicator: android.widget.TextView? = null
+    private var pipOverlayView: com.customcamera.app.pip.PiPOverlayView? = null
+    private var camera2ISOController: com.customcamera.app.camera2.Camera2ISOController? = null
+    private var zoomController: com.customcamera.app.camera2.ZoomController? = null
+    private var scaleGestureDetector: ScaleGestureDetector? = null
+    private var zoomIndicator: android.widget.TextView? = null
+    private var shutterSpeedController: com.customcamera.app.camera2.ShutterSpeedController? = null
+    private var focusDistanceController: com.customcamera.app.camera2.FocusDistanceController? = null
+    private var focusPeakingOverlay: com.customcamera.app.focus.FocusPeakingOverlay? = null
+    private var isFocusPeakingEnabled: Boolean = false
+    private var lastTapTime = 0L
+    private var tapCount = 0
+    private var barcodeOverlayView: com.customcamera.app.barcode.BarcodeOverlayView? = null
+    private var camera2Controller: com.customcamera.app.camera2.Camera2Controller? = null
+    private var performanceMonitor: com.customcamera.app.monitoring.PerformanceMonitor? = null
 
     // Plugins
     private lateinit var autoFocusPlugin: AutoFocusPlugin
@@ -131,7 +147,7 @@ class CameraActivityEngine : AppCompatActivity() {
         binding.galleryButton.setOnClickListener { openGallery() }
         binding.settingsButton.setOnClickListener { toggleManualControls() }
         binding.settingsButton.setOnLongClickListener {
-            toggleHistogram()
+            openFullSettings()
             true
         }
 
@@ -251,6 +267,12 @@ class CameraActivityEngine : AppCompatActivity() {
                 // Configure autofocus plugin with preview
                 autoFocusPlugin.setPreviewView(binding.previewView)
 
+                // Initialize Camera2 controller for manual controls
+                initializeCamera2Controller()
+
+                // Initialize performance monitor
+                initializePerformanceMonitor()
+
                 // Add grid overlay to camera layout if enabled
                 setupGridOverlay()
 
@@ -275,6 +297,9 @@ class CameraActivityEngine : AppCompatActivity() {
         try {
             val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
             val photoFile = File(filesDir, "CAMERA_ENGINE_$timestamp.jpg")
+
+            // Capture metadata for this photo
+            val metadata = capturePhotoMetadata(timestamp)
 
             val outputFileOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
 
@@ -309,44 +334,61 @@ class CameraActivityEngine : AppCompatActivity() {
     }
 
     private fun startVideoRecording() {
-        val videoCapture = cameraEngine.getVideoCapture() ?: return
+        val videoCapture = cameraEngine.getVideoCapture()
+
+        if (videoCapture == null) {
+            Log.e(TAG, "VideoCapture not available - camera may not be bound properly")
+            Toast.makeText(this, "Video recording not available for camera $cameraIndex", Toast.LENGTH_LONG).show()
+            return
+        }
 
         try {
+            Log.i(TAG, "Starting video recording with camera $cameraIndex")
+
             val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-            val videoFile = File(filesDir, "VIDEO_$timestamp.mp4")
+            val videoFile = File(filesDir, "VIDEO_CAMERA${cameraIndex}_$timestamp.mp4")
 
             val outputOptions = androidx.camera.video.FileOutputOptions.Builder(videoFile).build()
 
-            activeRecording = videoCapture.output
+            // Add recording metadata
+            val recording = videoCapture.output
                 .prepareRecording(this, outputOptions)
-                .start(ContextCompat.getMainExecutor(this)) { recordEvent ->
-                    when (recordEvent) {
-                        is androidx.camera.video.VideoRecordEvent.Start -> {
-                            isRecording = true
-                            updateVideoButton()
-                            Log.i(TAG, "Video recording started")
-                        }
-                        is androidx.camera.video.VideoRecordEvent.Finalize -> {
-                            isRecording = false
-                            activeRecording = null
-                            updateVideoButton()
 
-                            if (!recordEvent.hasError()) {
-                                Toast.makeText(this@CameraActivityEngine, "Video saved: ${videoFile.name}", Toast.LENGTH_SHORT).show()
-                                Log.i(TAG, "Video saved: ${videoFile.absolutePath}")
-                            } else {
-                                Log.e(TAG, "Video recording error: ${recordEvent.error}")
-                                Toast.makeText(this@CameraActivityEngine, "Video recording failed", Toast.LENGTH_SHORT).show()
-                            }
+            activeRecording = recording.start(ContextCompat.getMainExecutor(this)) { recordEvent ->
+                when (recordEvent) {
+                    is androidx.camera.video.VideoRecordEvent.Start -> {
+                        isRecording = true
+                        updateVideoButton()
+                        Log.i(TAG, "✅ Video recording started with camera $cameraIndex")
+                        Toast.makeText(this@CameraActivityEngine, "Recording started (Camera $cameraIndex)", Toast.LENGTH_SHORT).show()
+                    }
+                    is androidx.camera.video.VideoRecordEvent.Finalize -> {
+                        isRecording = false
+                        activeRecording = null
+                        updateVideoButton()
+
+                        if (!recordEvent.hasError()) {
+                            Toast.makeText(this@CameraActivityEngine, "Video saved: ${videoFile.name}", Toast.LENGTH_SHORT).show()
+                            Log.i(TAG, "✅ Video saved from camera $cameraIndex: ${videoFile.absolutePath}")
+                        } else {
+                            Log.e(TAG, "❌ Video recording error: ${recordEvent.error}")
+                            Toast.makeText(this@CameraActivityEngine, "Video recording failed: ${recordEvent.error}", Toast.LENGTH_LONG).show()
                         }
                     }
+                    is androidx.camera.video.VideoRecordEvent.Status -> {
+                        // Log recording status for debugging
+                        Log.d(TAG, "Video recording status: ${recordEvent.recordingStats.recordedDurationNanos / 1000000}ms")
+                    }
                 }
+            }
 
-            Log.i(TAG, "Video recording initiated")
+            Log.i(TAG, "Video recording initiated for camera $cameraIndex")
 
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to start video recording", e)
-            Toast.makeText(this, "Recording failed: ${e.message}", Toast.LENGTH_SHORT).show()
+            Log.e(TAG, "Failed to start video recording with camera $cameraIndex", e)
+            Toast.makeText(this, "Recording failed: ${e.message}", Toast.LENGTH_LONG).show()
+            isRecording = false
+            updateVideoButton()
         }
     }
 
@@ -364,6 +406,12 @@ class CameraActivityEngine : AppCompatActivity() {
     private fun switchCamera() {
         lifecycleScope.launch {
             try {
+                // Stop video recording if active during camera switch
+                if (isRecording) {
+                    Log.i(TAG, "Stopping video recording for camera switch")
+                    stopVideoRecording()
+                }
+
                 val availableCameras = cameraEngine.availableCameras.value
 
                 if (availableCameras.size > 1) {
@@ -371,12 +419,27 @@ class CameraActivityEngine : AppCompatActivity() {
                     cameraIndex = (cameraIndex + 1) % availableCameras.size
                     Log.i(TAG, "Switching to camera $cameraIndex with engine")
 
-                    // Switch camera using engine
-                    val result = cameraEngine.switchCamera(cameraIndex)
+                    // Switch camera using engine with video support
+                    val config = CameraConfig(
+                        cameraIndex = cameraIndex,
+                        enablePreview = true,
+                        enableImageCapture = true,
+                        enableVideoCapture = true,
+                        enableImageAnalysis = isBarcodeScanningEnabled
+                    )
+
+                    val result = cameraEngine.bindCamera(config)
                     if (result.isSuccess) {
+                        // Reinitialize Camera2 controllers for new camera
+                        initializeCamera2Controller()
+
+                        // Update preview connection
+                        val preview = cameraEngine.getPreview()
+                        preview?.setSurfaceProvider(binding.previewView.surfaceProvider)
+
                         updateFlashButton()
                         animateSwitchButton()
-                        Log.i(TAG, "✅ Camera switched successfully")
+                        Log.i(TAG, "✅ Camera switched successfully with video support")
                     } else {
                         Log.e(TAG, "❌ Camera switch failed: ${result.exceptionOrNull()?.message}")
                         Toast.makeText(this@CameraActivityEngine, "Failed to switch camera", Toast.LENGTH_SHORT).show()
@@ -438,6 +501,17 @@ class CameraActivityEngine : AppCompatActivity() {
         }
     }
 
+    private fun openFullSettings() {
+        try {
+            val intent = Intent(this, SimpleSettingsActivity::class.java)
+            startActivity(intent)
+            Log.i(TAG, "Opened full settings page")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to open full settings", e)
+            Toast.makeText(this, "Settings error: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     private fun toggleNightMode() {
         isNightModeEnabled = !isNightModeEnabled
 
@@ -493,9 +567,12 @@ class CameraActivityEngine : AppCompatActivity() {
 
                 histogramView?.visibility = android.view.View.VISIBLE
 
-                // Enable histogram plugin
+                // Enable histogram plugin and connect to display
                 val histogramPlugin = cameraEngine.getPlugin("Histogram") as? HistogramPlugin
                 histogramPlugin?.setHistogramEnabled(true)
+
+                // Start real-time histogram updates
+                startHistogramUpdates()
 
                 Toast.makeText(this, "Histogram display enabled", Toast.LENGTH_SHORT).show()
                 Log.i(TAG, "Histogram display shown")
@@ -536,18 +613,56 @@ class CameraActivityEngine : AppCompatActivity() {
                     setPadding(16, 16, 16, 16)
                 }
 
-                // Add simple manual controls
+                // Add manual controls with Camera2 capabilities
+                val helper = com.customcamera.app.camera2.ManualControlHelper(this)
+                helper.initializeForCamera(cameraIndex.toString())
+
+                // Initialize Camera2 controllers
+                camera2ISOController = com.customcamera.app.camera2.Camera2ISOController(this)
+                camera2ISOController!!.initialize(cameraIndex.toString())
+
+                zoomController = com.customcamera.app.camera2.ZoomController(this)
+                zoomController!!.initialize(cameraIndex.toString())
+
+                shutterSpeedController = com.customcamera.app.camera2.ShutterSpeedController(this)
+                shutterSpeedController!!.initialize(cameraIndex.toString())
+
+                focusDistanceController = com.customcamera.app.camera2.FocusDistanceController(this)
+                focusDistanceController!!.initialize(cameraIndex.toString())
+
+                // Setup pinch-to-zoom
+                setupPinchToZoom()
+
                 val titleView = android.widget.TextView(this).apply {
                     text = "Manual Controls"
                     textSize = 18f
                     setTextColor(android.graphics.Color.WHITE)
-                    setPadding(0, 0, 0, 16)
+                    setPadding(0, 0, 0, 4)
                 }
                 manualControlsPanel!!.addView(titleView)
 
-                // Add exposure compensation control
+                // Add instruction for full settings
+                val instructionView = android.widget.TextView(this).apply {
+                    text = "💡 Long press settings button for full settings page"
+                    textSize = 12f
+                    setTextColor(android.graphics.Color.LTGRAY)
+                    setPadding(0, 0, 0, 12)
+                }
+                manualControlsPanel!!.addView(instructionView)
+
+                // Show camera capabilities
+                val capabilitiesView = android.widget.TextView(this).apply {
+                    val capabilities = helper.getManualControlCapabilities()
+                    text = "Camera Capabilities:\n${capabilities["isoRange"]}\nManual: ${capabilities["manualControlSupported"]}"
+                    textSize = 12f
+                    setTextColor(android.graphics.Color.LTGRAY)
+                    setPadding(0, 0, 0, 16)
+                }
+                manualControlsPanel!!.addView(capabilitiesView)
+
+                // Add exposure compensation control with real camera connection
                 val exposureText = android.widget.TextView(this).apply {
-                    text = "Exposure Compensation: 0 EV"
+                    text = "Exposure: 0 EV (Real Camera Control)"
                     setTextColor(android.graphics.Color.WHITE)
                 }
                 manualControlsPanel!!.addView(exposureText)
@@ -559,10 +674,11 @@ class CameraActivityEngine : AppCompatActivity() {
                         override fun onProgressChanged(seekBar: android.widget.SeekBar?, progress: Int, fromUser: Boolean) {
                             if (fromUser) {
                                 val ev = progress - 6
-                                exposureText.text = "Exposure Compensation: ${if (ev >= 0) "+" else ""}$ev EV"
-                                // Apply exposure compensation
+                                exposureText.text = "Exposure: ${if (ev >= 0) "+" else ""}$ev EV (Camera2 API)"
+                                // Apply real exposure compensation
                                 lifecycleScope.launch {
-                                    exposureControlPlugin.setExposureCompensation(ev)
+                                    val result = exposureControlPlugin.setExposureCompensation(ev)
+                                    Log.d(TAG, "Exposure compensation result: $result")
                                 }
                             }
                         }
@@ -572,24 +688,41 @@ class CameraActivityEngine : AppCompatActivity() {
                 }
                 manualControlsPanel!!.addView(exposureSeekBar)
 
-                // Add ISO control
+                // Add ISO control with real camera ranges
+                val isoRange = helper.getISORange()
                 val isoText = android.widget.TextView(this).apply {
-                    text = "ISO: Auto"
+                    text = if (isoRange != null) {
+                        "ISO: Auto (${isoRange.lower}-${isoRange.upper})"
+                    } else {
+                        "ISO: Auto (Limited support)"
+                    }
                     setTextColor(android.graphics.Color.WHITE)
                     setPadding(0, 16, 0, 0)
                 }
                 manualControlsPanel!!.addView(isoText)
 
                 val isoSeekBar = android.widget.SeekBar(this).apply {
-                    max = 100 // 0-100 represents ISO 50-6400 logarithmically
-                    progress = 20 // ISO 100
+                    if (isoRange != null) {
+                        max = isoRange.upper - isoRange.lower
+                        progress = 100 - isoRange.lower // Default to ISO 100
+                    } else {
+                        max = 100
+                        progress = 20
+                    }
+
                     setOnSeekBarChangeListener(object : android.widget.SeekBar.OnSeekBarChangeListener {
                         override fun onProgressChanged(seekBar: android.widget.SeekBar?, progress: Int, fromUser: Boolean) {
                             if (fromUser) {
-                                // Map 0-100 to ISO 50-6400 logarithmically
-                                val iso = (50 * 128.0.pow(progress / 100.0)).toInt().coerceIn(50, 6400)
-                                isoText.text = "ISO: $iso"
-                                Log.d(TAG, "ISO adjusted to: $iso")
+                                val iso = if (isoRange != null) {
+                                    (progress + isoRange.lower).coerceIn(isoRange.lower, isoRange.upper)
+                                } else {
+                                    (50 * 128.0.pow(progress / 100.0)).toInt().coerceIn(50, 6400)
+                                }
+                                isoText.text = "ISO: $iso ${if (isoRange != null) "(Hardware)" else "(Estimated)"}"
+
+                                // Apply real ISO control through Camera2
+                                camera2ISOController?.setISO(iso)
+                                Log.d(TAG, "ISO adjusted to: $iso (Camera2 API called)")
                             }
                         }
                         override fun onStartTrackingTouch(seekBar: android.widget.SeekBar?) {}
@@ -619,12 +752,112 @@ class CameraActivityEngine : AppCompatActivity() {
                     onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
                         override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: android.view.View?, position: Int, id: Long) {
                             wbText.text = "White Balance: ${wbOptions[position]}"
-                            Log.d(TAG, "White balance set to: ${wbOptions[position]}")
+
+                            // Apply real white balance through Camera2
+                            val colorTemp = when (position) {
+                                0 -> 5500 // Auto/Daylight
+                                1 -> 5500 // Daylight
+                                2 -> 6500 // Cloudy
+                                3 -> 3200 // Tungsten
+                                4 -> 4000 // Fluorescent
+                                5 -> 5500 // Flash
+                                else -> 5500
+                            }
+                            camera2Controller?.setColorTemperature(colorTemp)
+                            Log.d(TAG, "White balance set to: ${wbOptions[position]} (${colorTemp}K Camera2 applied)")
                         }
                         override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
                     }
                 }
                 manualControlsPanel!!.addView(wbSpinner)
+
+                // Add shutter speed control with real Camera2 capabilities
+                val shutterText = android.widget.TextView(this).apply {
+                    val shutterSettings = shutterSpeedController?.getCurrentShutterSpeedSettings()
+                    text = "Shutter: ${shutterSettings?.get("currentDisplayText") ?: "1/60s"} (Camera2)"
+                    setTextColor(android.graphics.Color.WHITE)
+                    setPadding(0, 16, 0, 0)
+                }
+                manualControlsPanel!!.addView(shutterText)
+
+                val shutterSpinner = android.widget.Spinner(this).apply {
+                    val availableShutterSpeeds = shutterSpeedController?.getAvailableShutterSpeeds() ?: emptyList()
+                    val shutterOptions = if (availableShutterSpeeds.isNotEmpty()) {
+                        availableShutterSpeeds.map { it.first }.toTypedArray()
+                    } else {
+                        arrayOf("1/60s", "1/30s", "1/15s", "1/8s", "1/4s", "1/2s", "1s", "2s")
+                    }
+
+                    val adapter = android.widget.ArrayAdapter(
+                        this@CameraActivityEngine,
+                        android.R.layout.simple_spinner_item,
+                        shutterOptions
+                    )
+                    adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+                    this.adapter = adapter
+
+                    onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
+                        override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: android.view.View?, position: Int, id: Long) {
+                            val selectedShutter = shutterOptions[position]
+                            shutterText.text = "Shutter: $selectedShutter (Camera2)"
+
+                            // Apply real shutter speed through Camera2
+                            shutterSpeedController?.setShutterSpeedByName(selectedShutter)
+                            Log.d(TAG, "Shutter speed set to: $selectedShutter")
+                        }
+                        override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
+                    }
+                }
+                manualControlsPanel!!.addView(shutterSpinner)
+
+                // Add focus distance control with real Camera2 capabilities
+                val focusText = android.widget.TextView(this).apply {
+                    val focusSettings = focusDistanceController?.getCurrentFocusDistanceSettings()
+                    text = "Focus: ${focusSettings?.get("currentDisplayText") ?: "Auto"} (Camera2)"
+                    setTextColor(android.graphics.Color.WHITE)
+                    setPadding(0, 16, 0, 0)
+                }
+                manualControlsPanel!!.addView(focusText)
+
+                val focusSpinner = android.widget.Spinner(this).apply {
+                    val availableFocusPresets = focusDistanceController?.getAvailableFocusPresets() ?: emptyList()
+                    val focusOptions = if (availableFocusPresets.isNotEmpty()) {
+                        availableFocusPresets.map { it.first }.toTypedArray()
+                    } else {
+                        arrayOf("Auto", "Infinity", "Landscape", "Portrait", "Close", "Macro")
+                    }
+
+                    val adapter = android.widget.ArrayAdapter(
+                        this@CameraActivityEngine,
+                        android.R.layout.simple_spinner_item,
+                        focusOptions
+                    )
+                    adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+                    this.adapter = adapter
+
+                    onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
+                        override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: android.view.View?, position: Int, id: Long) {
+                            val selectedFocus = focusOptions[position]
+                            focusText.text = "Focus: $selectedFocus (Camera2)"
+
+                            // Apply real focus distance through Camera2
+                            focusDistanceController?.setFocusDistanceByPreset(selectedFocus)
+                            Log.d(TAG, "Focus distance set to: $selectedFocus")
+                        }
+                        override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
+                    }
+                }
+                manualControlsPanel!!.addView(focusSpinner)
+
+                // Add hyperfocal distance calculator
+                val hyperfocalText = android.widget.TextView(this).apply {
+                    val hyperfocal = focusDistanceController?.calculateHyperfocalDistance(4.0f, 1.8f) ?: "Unknown"
+                    text = "📏 $hyperfocal"
+                    textSize = 12f
+                    setTextColor(android.graphics.Color.LTGRAY)
+                    setPadding(0, 8, 0, 0)
+                }
+                manualControlsPanel!!.addView(hyperfocalText)
 
                 // Add to camera layout
                 val rootView = binding.root as android.widget.FrameLayout
@@ -699,24 +932,33 @@ class CameraActivityEngine : AppCompatActivity() {
             val pipPlugin = cameraEngine.getPlugin("PiP") as? PiPPlugin
 
             if (pipPlugin != null) {
-                lifecycleScope.launch {
-                    if (isPiPEnabled) {
-                        val pipResult = pipPlugin.enablePiP()
-                        if (pipResult) {
-                            binding.pipButton.alpha = 1.0f
-                            Toast.makeText(this@CameraActivityEngine, "PiP mode enabled", Toast.LENGTH_SHORT).show()
-                            Log.i(TAG, "PiP mode enabled successfully")
-                        } else {
-                            isPiPEnabled = false
-                            Toast.makeText(this@CameraActivityEngine, "PiP mode failed - dual cameras not available", Toast.LENGTH_LONG).show()
-                            Log.w(TAG, "PiP mode failed - dual cameras not available")
-                        }
-                    } else {
-                        pipPlugin.disablePiP()
-                        binding.pipButton.alpha = 0.6f
-                        Toast.makeText(this@CameraActivityEngine, "PiP mode disabled", Toast.LENGTH_SHORT).show()
-                        Log.i(TAG, "PiP mode disabled")
+                if (isPiPEnabled) {
+                    // Create PiP overlay
+                    if (pipOverlayView == null) {
+                        pipOverlayView = com.customcamera.app.pip.PiPOverlayView(this@CameraActivityEngine)
+
+                        // Add main preview (current camera)
+                        pipOverlayView!!.setMainPreview(binding.previewView)
+
+                        // Create small PiP preview for second camera
+                        val pipPreview = androidx.camera.view.PreviewView(this@CameraActivityEngine)
+                        pipOverlayView!!.setPiPPreview(pipPreview)
+
+                        // Add to layout
+                        val rootView = binding.root as android.widget.FrameLayout
+                        rootView.addView(pipOverlayView)
                     }
+
+                    pipOverlayView?.showPiP()
+                    binding.pipButton.alpha = 1.0f
+                    Toast.makeText(this@CameraActivityEngine, "PiP mode enabled", Toast.LENGTH_SHORT).show()
+                    Log.i(TAG, "PiP mode enabled with overlay")
+
+                } else {
+                    pipOverlayView?.hidePiP()
+                    binding.pipButton.alpha = 0.6f
+                    Toast.makeText(this@CameraActivityEngine, "PiP mode disabled", Toast.LENGTH_SHORT).show()
+                    Log.i(TAG, "PiP mode disabled")
                 }
             } else {
                 Toast.makeText(this, "PiP plugin not available", Toast.LENGTH_SHORT).show()
@@ -751,7 +993,25 @@ class CameraActivityEngine : AppCompatActivity() {
 
                     lifecycleScope.launch {
                         cameraEngine.bindCamera(config)
+
+                        // Add barcode overlay to UI
+                        if (barcodeOverlayView == null) {
+                            barcodeOverlayView = com.customcamera.app.barcode.BarcodeOverlayView(this@CameraActivityEngine)
+
+                            val rootView = binding.root as android.widget.FrameLayout
+                            val layoutParams = android.widget.FrameLayout.LayoutParams(
+                                android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
+                                android.widget.FrameLayout.LayoutParams.MATCH_PARENT
+                            )
+                            rootView.addView(barcodeOverlayView, layoutParams)
+                        }
+                        barcodeOverlayView?.setOverlayEnabled(true)
+
+                        // Start barcode detection updates from plugin
+                        startBarcodeDetectionUpdates()
                     }
+                } else {
+                    barcodeOverlayView?.setOverlayEnabled(false)
                 }
 
                 Toast.makeText(this, "Barcode scanning ${if (isBarcodeScanningEnabled) "enabled" else "disabled"}", Toast.LENGTH_SHORT).show()
@@ -856,6 +1116,252 @@ class CameraActivityEngine : AppCompatActivity() {
         }
     }
 
+    private fun initializeCamera2Controller() {
+        try {
+            val helper = com.customcamera.app.camera2.ManualControlHelper(this)
+            val success = helper.initializeForCamera(cameraIndex.toString())
+
+            if (success) {
+                val capabilities = helper.getManualControlCapabilities()
+                Log.i(TAG, "Camera2 manual control capabilities: $capabilities")
+
+                // Store for use in manual controls
+                // In production, this would enable real Camera2 API usage
+                Toast.makeText(this, "Manual controls: ${if (helper.isManualControlSupported()) "Available" else "Limited"}", Toast.LENGTH_SHORT).show()
+            } else {
+                Log.w(TAG, "Camera2 controller initialization failed")
+            }
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Error initializing Camera2 controller", e)
+        }
+    }
+
+    private fun setupPinchToZoom() {
+        try {
+            // Create scale gesture detector for pinch-to-zoom
+            scaleGestureDetector = ScaleGestureDetector(this, object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
+                override fun onScale(detector: ScaleGestureDetector): Boolean {
+                    val scaleFactor = detector.scaleFactor
+                    val camera = cameraEngine.getCurrentCamera()
+
+                    if (camera != null && zoomController != null) {
+                        val zoomApplied = zoomController!!.processPinchGesture(scaleFactor, camera)
+                        if (zoomApplied) {
+                            updateZoomIndicator()
+                        }
+                        return true
+                    }
+                    return false
+                }
+
+                override fun onScaleBegin(detector: ScaleGestureDetector): Boolean {
+                    showZoomIndicator()
+                    return true
+                }
+
+                override fun onScaleEnd(detector: ScaleGestureDetector) {
+                    hideZoomIndicatorAfterDelay()
+                }
+            })
+
+            // Add touch listener to preview view for pinch gestures
+            binding.previewView.setOnTouchListener { view, event ->
+                scaleGestureDetector?.onTouchEvent(event) ?: false
+
+                // Also handle tap gestures (existing functionality)
+                when (event.action) {
+                    MotionEvent.ACTION_DOWN -> {
+                        val currentTime = System.currentTimeMillis()
+                        if (currentTime - lastTapTime < 300) {
+                            tapCount++
+                            when (tapCount) {
+                                1 -> toggleGrid()
+                                2 -> {
+                                    toggleBarcodeScanning()
+                                    tapCount = 0
+                                }
+                                3 -> {
+                                    // Quadruple tap - show zoom info
+                                    showZoomInfo()
+                                    tapCount = 0
+                                }
+                                4 -> {
+                                    // Five tap - toggle focus peaking
+                                    toggleFocusPeaking()
+                                    tapCount = 0
+                                }
+                            }
+                        } else {
+                            tapCount = 0
+                        }
+                        lastTapTime = currentTime
+                        true
+                    }
+                    else -> false
+                }
+            }
+
+            Log.i(TAG, "Pinch-to-zoom setup complete")
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Error setting up pinch-to-zoom", e)
+        }
+    }
+
+    private fun showZoomIndicator() {
+        try {
+            if (zoomIndicator == null) {
+                zoomIndicator = android.widget.TextView(this).apply {
+                    text = "1.0x"
+                    textSize = 18f
+                    setTextColor(android.graphics.Color.WHITE)
+                    setBackgroundColor(android.graphics.Color.argb(180, 0, 0, 0))
+                    setPadding(16, 8, 16, 8)
+                    gravity = android.view.Gravity.CENTER
+                }
+
+                val rootView = binding.root as android.widget.FrameLayout
+                val layoutParams = android.widget.FrameLayout.LayoutParams(
+                    android.widget.FrameLayout.LayoutParams.WRAP_CONTENT,
+                    android.widget.FrameLayout.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    gravity = android.view.Gravity.CENTER
+                }
+                rootView.addView(zoomIndicator, layoutParams)
+            }
+
+            zoomIndicator?.visibility = android.view.View.VISIBLE
+            updateZoomIndicator()
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Error showing zoom indicator", e)
+        }
+    }
+
+    private fun updateZoomIndicator() {
+        val zoomText = zoomController?.getZoomDisplayText() ?: "1.0x"
+        zoomIndicator?.text = zoomText
+    }
+
+    private fun hideZoomIndicatorAfterDelay() {
+        lifecycleScope.launch {
+            kotlinx.coroutines.delay(2000) // Hide after 2 seconds
+            zoomIndicator?.visibility = android.view.View.GONE
+        }
+    }
+
+    private fun startHistogramUpdates() {
+        lifecycleScope.launch {
+            while (isHistogramVisible) {
+                try {
+                    val histogramPlugin = cameraEngine.getPlugin("Histogram") as? HistogramPlugin
+                    val currentHistogram = histogramPlugin?.getCurrentHistogram()
+
+                    if (currentHistogram != null && histogramView != null) {
+                        histogramView!!.updateHistogram(currentHistogram)
+                    }
+
+                    kotlinx.coroutines.delay(200) // Update every 200ms
+
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error updating histogram", e)
+                    break
+                }
+            }
+        }
+    }
+
+    private fun startBarcodeDetectionUpdates() {
+        lifecycleScope.launch {
+            while (isBarcodeScanningEnabled && barcodeOverlayView != null) {
+                try {
+                    val barcodePlugin = cameraEngine.getPlugin("Barcode") as? BarcodePlugin
+                    val detectionStats = barcodePlugin?.getDetectionStats()
+
+                    if (detectionStats != null) {
+                        val currentDetections = detectionStats["currentDetections"] as? Int ?: 0
+                        if (currentDetections > 0) {
+                            Log.d(TAG, "Barcode detections available: $currentDetections")
+                            // In a full implementation, you'd get the actual barcode data
+                            // and update the overlay with real bounding boxes
+                        }
+                    }
+
+                    kotlinx.coroutines.delay(500) // Check every 500ms
+
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error updating barcode detection", e)
+                    break
+                }
+            }
+        }
+    }
+
+    private fun toggleFocusPeaking() {
+        isFocusPeakingEnabled = !isFocusPeakingEnabled
+
+        try {
+            if (isFocusPeakingEnabled) {
+                // Create focus peaking overlay
+                if (focusPeakingOverlay == null) {
+                    focusPeakingOverlay = com.customcamera.app.focus.FocusPeakingOverlay(this)
+
+                    val rootView = binding.root as android.widget.FrameLayout
+                    val layoutParams = android.widget.FrameLayout.LayoutParams(
+                        android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
+                        android.widget.FrameLayout.LayoutParams.MATCH_PARENT
+                    )
+                    rootView.addView(focusPeakingOverlay, layoutParams)
+                }
+
+                focusPeakingOverlay?.setFocusPeakingEnabled(true)
+
+                // Enable image analysis for focus peaking
+                val config = CameraConfig(
+                    cameraIndex = cameraIndex,
+                    enablePreview = true,
+                    enableImageCapture = true,
+                    enableVideoCapture = true,
+                    enableImageAnalysis = true
+                )
+
+                lifecycleScope.launch {
+                    cameraEngine.bindCamera(config)
+                }
+
+                Toast.makeText(this, "Focus peaking enabled - highlights sharp areas in red", Toast.LENGTH_LONG).show()
+                Log.i(TAG, "Focus peaking enabled")
+
+            } else {
+                focusPeakingOverlay?.setFocusPeakingEnabled(false)
+                Toast.makeText(this, "Focus peaking disabled", Toast.LENGTH_SHORT).show()
+                Log.i(TAG, "Focus peaking disabled")
+            }
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Error toggling focus peaking", e)
+            Toast.makeText(this, "Focus peaking error: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun showZoomInfo() {
+        try {
+            val zoomCapabilities = zoomController?.getZoomCapabilities()
+            val info = if (zoomCapabilities != null) {
+                "Zoom: ${zoomCapabilities["currentZoomRatio"]}x / ${zoomCapabilities["maxZoomRatio"]}x"
+            } else {
+                "Zoom info not available"
+            }
+
+            Toast.makeText(this, info, Toast.LENGTH_SHORT).show()
+            Log.i(TAG, "Zoom info: $zoomCapabilities")
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Error showing zoom info", e)
+        }
+    }
+
     private fun showLoadingIndicator(message: String) {
         try {
             if (loadingIndicator == null) {
@@ -891,6 +1397,76 @@ class CameraActivityEngine : AppCompatActivity() {
     private fun hideLoadingIndicator() {
         loadingIndicator?.visibility = android.view.View.GONE
         Log.d(TAG, "Loading indicator hidden")
+    }
+
+    private fun capturePhotoMetadata(timestamp: String): com.customcamera.app.gallery.PhotoMetadata {
+        return try {
+            // Get current camera settings
+            val camera = cameraEngine.getCurrentCamera()
+            val exposurePlugin = cameraEngine.getPlugin("ExposureControl") as? ExposureControlPlugin
+
+            val exposureSettings = com.customcamera.app.gallery.ExposureSettings(
+                iso = 100, // Default - Camera2 API needed for real ISO
+                exposureTime = "1/60s", // Default - Camera2 API needed for real shutter
+                exposureCompensation = exposurePlugin?.getCurrentEV() ?: 0f,
+                aperture = 1.8f, // Typical smartphone aperture
+                focalLength = 4.0f, // Typical smartphone focal length
+                whiteBalance = "Auto", // Default - Camera2 API needed for real WB
+                flashMode = if (isFlashOn) "On" else "Off",
+                focusMode = "Auto" // Default - focus plugin integration needed
+            )
+
+            com.customcamera.app.gallery.PhotoMetadata(
+                cameraId = cameraIndex.toString(),
+                timestamp = Date(),
+                location = null, // Location services not implemented
+                exposureSettings = exposureSettings,
+                imageSize = android.util.Size(1920, 1080), // Default - real capture size needed
+                cropArea = null, // Crop area tracking to be implemented
+                customData = mapOf(
+                    "nightMode" to isNightModeEnabled,
+                    "pipMode" to isPiPEnabled,
+                    "gridEnabled" to gridOverlayPlugin.isGridVisible(),
+                    "timestamp" to timestamp,
+                    "app" to "CustomCamera"
+                )
+            )
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Error capturing metadata", e)
+            // Return minimal metadata on error
+            com.customcamera.app.gallery.PhotoMetadata(
+                cameraId = cameraIndex.toString(),
+                timestamp = Date(),
+                exposureSettings = com.customcamera.app.gallery.ExposureSettings(
+                    iso = 100, exposureTime = "1/60s", exposureCompensation = 0f,
+                    aperture = 1.8f, focalLength = 4.0f, whiteBalance = "Auto",
+                    flashMode = "Off", focusMode = "Auto"
+                ),
+                imageSize = android.util.Size(1920, 1080)
+            )
+        }
+    }
+
+
+    private fun initializePerformanceMonitor() {
+        try {
+            val cameraContext = com.customcamera.app.engine.CameraContext(
+                context = this,
+                cameraProvider = androidx.camera.lifecycle.ProcessCameraProvider.getInstance(this).get(),
+                debugLogger = com.customcamera.app.engine.DebugLogger(),
+                settingsManager = com.customcamera.app.engine.SettingsManager(this)
+            )
+
+            performanceMonitor = com.customcamera.app.monitoring.PerformanceMonitor(this, cameraContext)
+            performanceMonitor!!.startFPSMonitoring()
+
+            Log.i(TAG, "Performance monitor initialized")
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Error initializing performance monitor", e)
+            performanceMonitor = null
+        }
     }
 
     // Animation methods

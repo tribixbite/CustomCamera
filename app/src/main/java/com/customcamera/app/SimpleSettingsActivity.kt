@@ -25,15 +25,26 @@ class SimpleSettingsActivity : AppCompatActivity() {
         // Create simple layout programmatically
         createSimpleLayout()
 
-        // Setup toolbar
-        supportActionBar?.apply {
-            setDisplayHomeAsUpEnabled(true)
-            title = "Camera Settings"
+        // Setup toolbar safely
+        try {
+            supportActionBar?.apply {
+                setDisplayHomeAsUpEnabled(true)
+                title = "Camera Settings"
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "Could not setup action bar", e)
         }
 
-        // Initialize settings
-        settingsManager = SettingsManager(this)
-        createSettingsUI()
+        // Initialize settings safely
+        try {
+            settingsManager = SettingsManager(this)
+            createSettingsUI()
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to initialize settings", e)
+
+            // Create fallback UI
+            createFallbackUI(e.message ?: "Unknown error")
+        }
     }
 
     private fun createSimpleLayout() {
@@ -45,17 +56,25 @@ class SimpleSettingsActivity : AppCompatActivity() {
     }
 
     private fun createSettingsUI() {
-        // Add title
-        addTitle("Camera Settings")
+        try {
+            // Add title
+            addTitle("Camera Settings")
 
         // Grid overlay setting
         addSwitchSetting(
-            "Grid Overlay",
-            "Show composition grid",
+            "Grid Overlay (9x3)",
+            "Show 9 tall x 3 wide composition grid",
             settingsManager.gridOverlay.value
         ) { enabled ->
             settingsManager.setGridOverlay(enabled)
-            Toast.makeText(this, "Grid overlay ${if (enabled) "enabled" else "disabled"}", Toast.LENGTH_SHORT).show()
+
+            // Immediately apply to camera interface
+            val intent = android.content.Intent("com.customcamera.GRID_TOGGLE")
+            intent.putExtra("enabled", enabled)
+            sendBroadcast(intent)
+
+            Toast.makeText(this, "Grid overlay ${if (enabled) "enabled" else "disabled"} - restart camera to apply", Toast.LENGTH_LONG).show()
+            Log.i(TAG, "Grid overlay setting changed: $enabled")
         }
 
         // Debug logging setting
@@ -68,20 +87,49 @@ class SimpleSettingsActivity : AppCompatActivity() {
             Toast.makeText(this, "Debug logging ${if (enabled) "enabled" else "disabled"}", Toast.LENGTH_SHORT).show()
         }
 
-        // Photo quality setting
-        addTitle("Photo Settings")
+        // Photo and video settings
+        addTitle("Photo & Video Settings")
+
+        addSwitchSetting(
+            "High Quality Photos",
+            "Use maximum photo quality (95%)",
+            settingsManager.photoQuality.value > 90
+        ) { enabled ->
+            val quality = if (enabled) 95 else 85
+            settingsManager.setPhotoQuality(quality)
+            Toast.makeText(this, "Photo quality set to $quality%", Toast.LENGTH_SHORT).show()
+        }
+
+        addSwitchSetting(
+            "Video Stabilization",
+            "Enable electronic image stabilization",
+            settingsManager.getVideoStabilization()
+        ) { enabled ->
+            settingsManager.setVideoStabilization(enabled)
+            Toast.makeText(this, "Video stabilization ${if (enabled) "enabled" else "disabled"}", Toast.LENGTH_SHORT).show()
+        }
+
         addInfoSetting("Photo Quality", "${settingsManager.photoQuality.value}%")
+        addInfoSetting("Video Quality", settingsManager.getVideoQuality())
 
         // Plugin controls
         addTitle("Plugin Controls")
 
         addSwitchSetting(
             "AutoFocus Plugin",
-            "Enable advanced focus controls",
+            "Enable tap-to-focus and continuous autofocus",
             settingsManager.isPluginEnabled("AutoFocus")
         ) { enabled ->
             settingsManager.setPluginEnabled("AutoFocus", enabled)
-            Toast.makeText(this, "AutoFocus plugin ${if (enabled) "enabled" else "disabled"}", Toast.LENGTH_SHORT).show()
+
+            // Send broadcast to camera interface
+            val intent = android.content.Intent("com.customcamera.PLUGIN_TOGGLE")
+            intent.putExtra("plugin", "AutoFocus")
+            intent.putExtra("enabled", enabled)
+            sendBroadcast(intent)
+
+            Toast.makeText(this, "AutoFocus plugin ${if (enabled) "enabled" else "disabled"} - restart camera to apply", Toast.LENGTH_LONG).show()
+            Log.i(TAG, "AutoFocus plugin setting changed: $enabled")
         }
 
         addSwitchSetting(
@@ -119,7 +167,34 @@ class SimpleSettingsActivity : AppCompatActivity() {
         }
         settingsContainer.addView(debugButton)
 
+        // Manual controls settings
+        addTitle("Manual Controls")
+
+        addSwitchSetting(
+            "Camera2 Manual Controls",
+            "Enable professional manual controls (ISO, shutter, focus)",
+            true // Always enabled since they're implemented
+        ) { enabled ->
+            Toast.makeText(this, "Manual controls are ${if (enabled) "available" else "disabled"} through settings button in camera", Toast.LENGTH_LONG).show()
+        }
+
+        addSwitchSetting(
+            "Pinch-to-Zoom",
+            "Enable pinch gesture zoom control",
+            true // Always enabled
+        ) { enabled ->
+            Toast.makeText(this, "Pinch-to-zoom is ${if (enabled) "available" else "disabled"} in camera preview", Toast.LENGTH_LONG).show()
+        }
+
+        addInfoSetting("Gesture Controls", "Double tap: Grid, Triple tap: Barcode, Pinch: Zoom")
+        addInfoSetting("Manual Panel", "Settings button → Manual controls")
+
         Log.i(TAG, "Settings UI created")
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Error creating settings UI", e)
+            Toast.makeText(this, "Settings error: ${e.message}", Toast.LENGTH_LONG).show()
+        }
     }
 
     private fun addTitle(title: String) {
@@ -194,6 +269,39 @@ class SimpleSettingsActivity : AppCompatActivity() {
         container.addView(titleView)
         container.addView(valueView)
         settingsContainer.addView(container)
+    }
+
+    private fun createFallbackUI(errorMessage: String) {
+        try {
+            addTitle("Settings Error")
+
+            val errorView = TextView(this).apply {
+                text = "Settings initialization failed:\n$errorMessage"
+                textSize = 14f
+                setTextColor(android.graphics.Color.RED)
+                setPadding(16, 16, 16, 16)
+            }
+            settingsContainer.addView(errorView)
+
+            addTitle("Basic Information")
+
+            addInfoSetting("App Version", "1.0.0-professional")
+            addInfoSetting("Build Status", "Debug")
+            addInfoSetting("Plugins", "12+ registered")
+
+            val refreshButton = android.widget.Button(this).apply {
+                text = "Retry Settings Initialization"
+                setOnClickListener {
+                    recreate() // Restart activity
+                }
+            }
+            settingsContainer.addView(refreshButton)
+
+            Log.i(TAG, "Fallback UI created due to settings error")
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to create fallback UI", e)
+        }
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {

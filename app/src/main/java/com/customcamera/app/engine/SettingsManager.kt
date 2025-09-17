@@ -16,7 +16,7 @@ class SettingsManager(context: Context) {
     private val prefs: SharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
     // State flows for reactive settings
-    private val _defaultCameraIndex = MutableStateFlow(getInt(KEY_DEFAULT_CAMERA_INDEX, 0))
+    private val _defaultCameraIndex = MutableStateFlow(getInt(KEY_DEFAULT_CAMERA_INDEX, 2))
     private val _photoQuality = MutableStateFlow(getInt(KEY_PHOTO_QUALITY, 95))
     private val _flashMode = MutableStateFlow(getString(KEY_FLASH_MODE, "auto"))
     private val _gridOverlay = MutableStateFlow(getBoolean(KEY_GRID_OVERLAY, false))
@@ -223,7 +223,7 @@ class SettingsManager(context: Context) {
     }
 
     private fun refreshStateFlows() {
-        _defaultCameraIndex.value = getInt(KEY_DEFAULT_CAMERA_INDEX, 0)
+        _defaultCameraIndex.value = getInt(KEY_DEFAULT_CAMERA_INDEX, 2)
         _photoQuality.value = getInt(KEY_PHOTO_QUALITY, 95)
         _flashMode.value = getString(KEY_FLASH_MODE, "auto")
         _gridOverlay.value = getBoolean(KEY_GRID_OVERLAY, false)
