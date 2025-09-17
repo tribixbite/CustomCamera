@@ -3,6 +3,39 @@ plugins {
     id 'org.jetbrains.kotlin.android'
 }
 
+// Auto-incrementing version system
+def getVersionCode() {
+    def versionFile = file("version.properties")
+    def versionProps = new Properties()
+
+    if (versionFile.exists()) {
+        versionFile.withInputStream { versionProps.load(it) }
+    }
+
+    def code = (versionProps['VERSION_CODE'] ?: '20').toInteger() + 1
+    versionProps['VERSION_CODE'] = code.toString()
+
+    versionFile.withOutputStream { versionProps.store(it, "Auto-generated version info") }
+
+    return code
+}
+
+def getVersionName() {
+    def versionFile = file("version.properties")
+    def versionProps = new Properties()
+
+    if (versionFile.exists()) {
+        versionFile.withInputStream { versionProps.load(it) }
+    }
+
+    def major = versionProps['VERSION_MAJOR'] ?: '2'
+    def minor = versionProps['VERSION_MINOR'] ?: '0'
+    def patch = versionProps['VERSION_PATCH'] ?: '0'
+    def code = versionProps['VERSION_CODE'] ?: '20'
+
+    return "${major}.${minor}.${patch}-build.${code}"
+}
+
 android {
     namespace 'com.customcamera.app'
     compileSdk 34
@@ -11,8 +44,8 @@ android {
         applicationId "com.customcamera.app"
         minSdk 24
         targetSdk 34
-        versionCode 10
-        versionName "1.0.0-professional"
+        versionCode 30
+        versionName "2.0.0-professional"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
