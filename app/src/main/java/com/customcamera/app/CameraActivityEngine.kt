@@ -147,7 +147,7 @@ class CameraActivityEngine : AppCompatActivity() {
         binding.galleryButton.setOnClickListener { openGallery() }
         binding.settingsButton.setOnClickListener { toggleManualControls() }
         binding.settingsButton.setOnLongClickListener {
-            toggleHistogram()
+            openFullSettings()
             true
         }
 
@@ -501,6 +501,17 @@ class CameraActivityEngine : AppCompatActivity() {
         }
     }
 
+    private fun openFullSettings() {
+        try {
+            val intent = Intent(this, SimpleSettingsActivity::class.java)
+            startActivity(intent)
+            Log.i(TAG, "Opened full settings page")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to open full settings", e)
+            Toast.makeText(this, "Settings error: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     private fun toggleNightMode() {
         isNightModeEnabled = !isNightModeEnabled
 
@@ -626,9 +637,18 @@ class CameraActivityEngine : AppCompatActivity() {
                     text = "Manual Controls"
                     textSize = 18f
                     setTextColor(android.graphics.Color.WHITE)
-                    setPadding(0, 0, 0, 8)
+                    setPadding(0, 0, 0, 4)
                 }
                 manualControlsPanel!!.addView(titleView)
+
+                // Add instruction for full settings
+                val instructionView = android.widget.TextView(this).apply {
+                    text = "💡 Long press settings button for full settings page"
+                    textSize = 12f
+                    setTextColor(android.graphics.Color.LTGRAY)
+                    setPadding(0, 0, 0, 12)
+                }
+                manualControlsPanel!!.addView(instructionView)
 
                 // Show camera capabilities
                 val capabilitiesView = android.widget.TextView(this).apply {
