@@ -1,16 +1,28 @@
 package com.customcamera.app
 
+import android.content.Context
+import android.graphics.Color
+import android.hardware.camera2.CameraAccessException
+import android.hardware.camera2.CameraCharacteristics
+import android.hardware.camera2.CameraManager
 import android.os.Bundle
 import android.util.Log
+import android.util.Size
 import android.view.MenuItem
+import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.camera.camera2.interop.Camera2CameraInfo
+import androidx.camera.core.CameraSelector
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.lifecycle.lifecycleScope
 import com.customcamera.app.engine.SettingsManager
 import com.customcamera.app.debug.CameraAPIMonitor
 import com.customcamera.app.debug.CameraResetManager
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
+import java.util.concurrent.TimeUnit
+import java.text.SimpleDateFormat
+import java.util.*
 
 /**
  * DebugActivity provides comprehensive debug interface
@@ -22,6 +34,11 @@ class DebugActivity : AppCompatActivity() {
     private lateinit var settingsManager: SettingsManager
     private lateinit var cameraAPIMonitor: CameraAPIMonitor
     private lateinit var cameraResetManager: CameraResetManager
+    private lateinit var cameraManager: CameraManager
+
+    private var realTimeMonitoringJob: Job? = null
+    private var cameraStatsTextView: TextView? = null
+    private var eventStreamTextView: TextView? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,6 +69,7 @@ class DebugActivity : AppCompatActivity() {
 
     private fun initializeDebugSystems() {
         settingsManager = SettingsManager(this)
+        cameraManager = getSystemService(Context.CAMERA_SERVICE) as CameraManager
 
         // Initialize debug systems (mock camera context for now)
         val mockContext = try {
@@ -388,7 +406,14 @@ class DebugActivity : AppCompatActivity() {
         }
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        realTimeMonitoringJob?.cancel()
+    }
+
     companion object {
         private const val TAG = "DebugActivity"
+        private const val CAMERA_TIMEOUT_MS = 10000L // 10 second timeout
+        private const val STATS_UPDATE_INTERVAL_MS = 2000L // 2 second updates
     }
 }
