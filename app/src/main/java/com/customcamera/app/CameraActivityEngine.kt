@@ -972,16 +972,16 @@ class CameraActivityEngine : AppCompatActivity() {
     }
 
     private fun toggleBarcodeScanning() {
-        isBarcodeScanningEnabled = !isBarcodeScanningEnabled
-
         try {
             val barcodePlugin = cameraEngine.getPlugin("Barcode") as? BarcodePlugin
 
             if (barcodePlugin != null) {
-                barcodePlugin.setAutoScanEnabled(isBarcodeScanningEnabled)
+                // Use the new toggle method from BarcodePlugin
+                isBarcodeScanningEnabled = barcodePlugin.toggleScanning()
+
                 Log.i(TAG, "Barcode scanning ${if (isBarcodeScanningEnabled) "enabled" else "disabled"}")
 
-                // Enable image analysis if needed
+                // Enable image analysis and UI if needed
                 if (isBarcodeScanningEnabled) {
                     val config = CameraConfig(
                         cameraIndex = cameraIndex,
@@ -992,7 +992,10 @@ class CameraActivityEngine : AppCompatActivity() {
                     )
 
                     lifecycleScope.launch {
-                        cameraEngine.bindCamera(config)
+                        val bindResult = cameraEngine.bindCamera(config)
+                        if (bindResult.isSuccess) {
+                            Log.i(TAG, "Image analysis enabled for barcode detection")
+                        }
 
                         // Add barcode overlay to UI
                         if (barcodeOverlayView == null) {
@@ -1004,6 +1007,9 @@ class CameraActivityEngine : AppCompatActivity() {
                                 android.widget.FrameLayout.LayoutParams.MATCH_PARENT
                             )
                             rootView.addView(barcodeOverlayView, layoutParams)
+
+                            // Connect overlay to barcode plugin
+                            barcodePlugin.setBarcodeOverlay(barcodeOverlayView!!)
                         }
                         barcodeOverlayView?.setOverlayEnabled(true)
 
@@ -1011,11 +1017,22 @@ class CameraActivityEngine : AppCompatActivity() {
                         startBarcodeDetectionUpdates()
                     }
                 } else {
+                    // Disable overlay and clear detections
                     barcodeOverlayView?.setOverlayEnabled(false)
+                    barcodeOverlayView?.let { overlay ->
+                        val rootView = binding.root as android.widget.FrameLayout
+                        rootView.removeView(overlay)
+                        barcodeOverlayView = null
+                    }
                 }
+
+                // Update settings
+                val settingsManager = com.customcamera.app.engine.SettingsManager(this)
+                settingsManager.setPluginEnabled("Barcode", isBarcodeScanningEnabled)
 
                 Toast.makeText(this, "Barcode scanning ${if (isBarcodeScanningEnabled) "enabled" else "disabled"}", Toast.LENGTH_SHORT).show()
             } else {
+                Log.w(TAG, "BarcodePlugin not found")
                 Toast.makeText(this, "Barcode plugin not available", Toast.LENGTH_SHORT).show()
             }
 
@@ -1554,6 +1571,11 @@ class CameraActivityEngine : AppCompatActivity() {
                 Log.i(TAG, "Grid overlay updated from settings: $gridEnabled")
             }
 
+            // Update barcode scanning state from settings
+            val barcodeEnabled = settingsManager.isPluginEnabled("Barcode")
+            val barcodePlugin = cameraEngine.getPlugin("Barcode") as? BarcodePlugin
+            barcodePlugin?.setScanning(barcodeEnabled)
+
             // Update other plugin states as needed
             Log.d(TAG, "Plugin states updated from settings")
 
@@ -1561,6 +1583,47 @@ class CameraActivityEngine : AppCompatActivity() {
             Log.e(TAG, "Error updating plugin states from settings", e)
         }
     }
+
+
+
+    private fun setupBarcodeOverlay() {
+        try {
+            if (barcodeOverlayView == null) {
+                barcodeOverlayView = com.customcamera.app.barcode.BarcodeOverlayView(this)
+
+                // Add barcode overlay on top of preview
+                val rootView = binding.root as android.widget.FrameLayout
+                val layoutParams = android.widget.FrameLayout.LayoutParams(
+                    android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
+                    android.widget.FrameLayout.LayoutParams.MATCH_PARENT
+                )
+                rootView.addView(barcodeOverlayView, layoutParams)
+
+                // Connect overlay to barcode plugin
+                val barcodePlugin = cameraEngine.getPlugin("Barcode") as? BarcodePlugin
+                barcodePlugin?.setBarcodeOverlay(barcodeOverlayView!!)
+
+                Log.i(TAG, "Barcode overlay added to camera UI")
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error setting up barcode overlay", e)
+        }
+    }
+
+    private fun clearBarcodeOverlay() {
+        try {
+            barcodeOverlayView?.let { overlay ->
+                val rootView = binding.root as android.widget.FrameLayout
+                rootView.removeView(overlay)
+                barcodeOverlayView = null
+                Log.i(TAG, "Barcode overlay removed from camera UI")
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error clearing barcode overlay", e)
+        }
+    }
+
+
 
     companion object {
         private const val TAG = "CameraActivityEngine"

@@ -349,6 +349,68 @@ class BarcodePlugin : ProcessingPlugin() {
         settings.setPluginSetting(name, "processingInterval", processingInterval.toString())
     }
 
+    /**
+     * Toggle barcode scanning on/off
+     */
+    fun toggleScanning(): Boolean {
+        isAutoScanEnabled = !isAutoScanEnabled
+        if (!isAutoScanEnabled) {
+            clearDetectedBarcodes()
+        }
+        saveSettings()
+
+        Log.i(TAG, "Barcode scanning ${if (isAutoScanEnabled) "enabled" else "disabled"}")
+
+        cameraContext?.debugLogger?.logPlugin(
+            name,
+            "scanning_toggled",
+            mapOf("enabled" to isAutoScanEnabled)
+        )
+
+        return isAutoScanEnabled
+    }
+
+    /**
+     * Enable/disable barcode scanning
+     */
+    fun setScanning(enabled: Boolean) {
+        if (isAutoScanEnabled != enabled) {
+            toggleScanning()
+        }
+    }
+
+    /**
+     * Check if barcode scanning is currently enabled
+     */
+    fun isScanningEnabled(): Boolean = isAutoScanEnabled
+
+    /**
+     * Toggle barcode highlighting on/off
+     */
+    fun toggleHighlighting(): Boolean {
+        highlightDetectedCodes = !highlightDetectedCodes
+        if (!highlightDetectedCodes) {
+            clearDetectedBarcodes()
+        }
+        saveSettings()
+
+        Log.i(TAG, "Barcode highlighting ${if (highlightDetectedCodes) "enabled" else "disabled"}")
+        return highlightDetectedCodes
+    }
+
+    /**
+     * Set the barcode overlay view for displaying detected barcodes
+     */
+    fun setBarcodeOverlay(overlayView: BarcodeOverlayView) {
+        this.barcodeOverlay = overlayView
+        Log.i(TAG, "Barcode overlay view set")
+    }
+
+    /**
+     * Get currently detected barcodes
+     */
+    fun getCurrentDetections(): List<DetectedBarcode> = detectedBarcodes
+
     companion object {
         private const val TAG = "BarcodePlugin"
     }

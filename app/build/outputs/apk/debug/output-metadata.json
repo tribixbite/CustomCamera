@@ -11,8 +11,8 @@
       "type": "SINGLE",
       "filters": [],
       "attributes": [],
-      "versionCode": 10,
-      "versionName": "1.0.0-professional",
+      "versionCode": 30,
+      "versionName": "2.0.0-professional",
       "outputFile": "app-debug.apk"
     }
   ],

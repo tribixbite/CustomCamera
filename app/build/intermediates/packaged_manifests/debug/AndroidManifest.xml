@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.customcamera.app"
-    android:versionCode="10"
-    android:versionName="1.0.0-professional" >
+    android:versionCode="30"
+    android:versionName="2.0.0-professional" >
 
     <uses-sdk
         android:minSdkVersion="24"
@@ -81,6 +81,17 @@
             android:exported="false"
             android:parentActivityName="com.customcamera.app.SimpleSettingsActivity"
             android:theme="@style/Theme.CustomCamera" />
+
+        <!-- FileProvider for sharing photos and videos -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="com.customcamera.app.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true" >
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
 
         <service
             android:name="androidx.camera.core.impl.MetadataHolderService"

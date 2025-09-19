@@ -1,9 +1,20 @@
 -- Merging decision tree log ---
+provider#androidx.core.content.FileProvider
+INJECTED from /data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:76:9-84:20
+	android:grantUriPermissions
+		ADDED from /data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:80:13-47
+	android:authorities
+		INJECTED from /data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml
+		ADDED from /data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:78:13-64
+	android:exported
+		ADDED from /data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:79:13-37
+	android:name
+		ADDED from /data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:77:13-62
 manifest
-ADDED from /data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:2:1-76:12
-INJECTED from /data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:2:1-76:12
-INJECTED from /data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:2:1-76:12
-INJECTED from /data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:2:1-76:12
+ADDED from /data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:2:1-88:12
+INJECTED from /data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:2:1-88:12
+INJECTED from /data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:2:1-88:12
+INJECTED from /data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:2:1-88:12
 MERGED from [androidx.databinding:viewbinding:8.0.2] /data/data/com.termux/files/home/.gradle/caches/transforms-4/42eed37373c63f1cec8a24c3803f0478/transformed/jetified-viewbinding-8.0.2/AndroidManifest.xml:2:1-7:12
 MERGED from [com.google.android.material:material:1.10.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/a571be23fd8d4059f09460559514e692/transformed/material-1.10.0/AndroidManifest.xml:17:1-24:12
 MERGED from [androidx.constraintlayout:constraintlayout:2.1.4] /data/data/com.termux/files/home/.gradle/caches/transforms-4/e136a45fffda0f3d734b8b51a074f3e3/transformed/constraintlayout-2.1.4/AndroidManifest.xml:2:1-11:12
@@ -73,22 +84,22 @@ MERGED from [androidx.localbroadcastmanager:localbroadcastmanager:1.0.0] /data/d
 MERGED from [androidx.print:print:1.0.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/ae67316f6153e04fbc631c4e263e2bd2/transformed/print-1.0.0/AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.annotation:annotation-experimental:1.3.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/996093c0ca7d48a6a449faae9a502175/transformed/jetified-annotation-experimental-1.3.1/AndroidManifest.xml:17:1-22:12
 MERGED from [com.google.android.odml:image:1.0.0-beta1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c312c9f99711a7bb6d8d14bf720ad9e3/transformed/jetified-image-1.0.0-beta1/AndroidManifest.xml:2:1-9:12
-INJECTED from /data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:2:1-76:12
-INJECTED from /data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:2:1-76:12
-INJECTED from /data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:2:1-76:12
+INJECTED from /data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:2:1-88:12
+INJECTED from /data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:2:1-88:12
+INJECTED from /data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:2:1-88:12
 	package
 		INJECTED from /data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml
-		ADDED from /data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:2:1-76:12
+		ADDED from /data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:2:1-88:12
 		INJECTED from /data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml
 	android:versionName
 		INJECTED from /data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml
-		ADDED from /data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:2:1-76:12
+		ADDED from /data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:2:1-88:12
 		INJECTED from /data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml
 	xmlns:tools
 		ADDED from /data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:3:5-51
 	android:versionCode
 		INJECTED from /data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml
-		ADDED from /data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:2:1-76:12
+		ADDED from /data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:2:1-88:12
 		INJECTED from /data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml
 	xmlns:android
 		ADDED from /data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:2:11-69
@@ -113,7 +124,7 @@ ADDED from /data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/
 	android:name
 		ADDED from /data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:12:9-57
 application
-ADDED from /data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:15:5-74:19
+ADDED from /data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:15:5-86:19
 MERGED from [com.google.android.material:material:1.10.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/a571be23fd8d4059f09460559514e692/transformed/material-1.10.0/AndroidManifest.xml:22:5-20
 MERGED from [com.google.android.material:material:1.10.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/a571be23fd8d4059f09460559514e692/transformed/material-1.10.0/AndroidManifest.xml:22:5-20
 MERGED from [androidx.constraintlayout:constraintlayout:2.1.4] /data/data/com.termux/files/home/.gradle/caches/transforms-4/e136a45fffda0f3d734b8b51a074f3e3/transformed/constraintlayout-2.1.4/AndroidManifest.xml:9:5-20
@@ -406,6 +417,12 @@ INJECTED from /data/data/com.termux/files/home/git/swype/CustomCamera/app/src/ma
 		INJECTED from /data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml
 		ADDED from /data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml
 		INJECTED from /data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml
+meta-data#android.support.FILE_PROVIDER_PATHS
+ADDED from /data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:81:13-83:54
+	android:resource
+		ADDED from /data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:83:17-51
+	android:name
+		ADDED from /data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:82:17-67
 service#androidx.camera.core.impl.MetadataHolderService
 ADDED from [androidx.camera:camera-camera2:1.3.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/1e0b4fc1804d07a5f414abc7ffc1306b/transformed/jetified-camera-camera2-1.3.1/AndroidManifest.xml:24:9-33:19
 MERGED from [androidx.camera:camera-core:1.3.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/504d89197f35b745f68d0b662fbdb2a2/transformed/jetified-camera-core-1.3.1/AndroidManifest.xml:29:9-33:78
