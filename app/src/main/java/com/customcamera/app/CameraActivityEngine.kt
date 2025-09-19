@@ -70,6 +70,7 @@ class CameraActivityEngine : AppCompatActivity() {
     private lateinit var cameraInfoPlugin: CameraInfoPlugin
     private lateinit var proControlsPlugin: ProControlsPlugin
     private lateinit var exposureControlPlugin: ExposureControlPlugin
+    private lateinit var dualCameraPiPPlugin: DualCameraPiPPlugin
 
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -226,7 +227,10 @@ class CameraActivityEngine : AppCompatActivity() {
         val hdrPlugin = HDRPlugin()
         cameraEngine.registerPlugin(hdrPlugin)
 
-        Log.i(TAG, "✅ Camera engine and ALL plugins initialized (12 total plugins)")
+        dualCameraPiPPlugin = DualCameraPiPPlugin()
+        cameraEngine.registerPlugin(dualCameraPiPPlugin)
+
+        Log.i(TAG, "✅ Camera engine and ALL plugins initialized (13 total plugins)")
     }
 
     private fun startCameraWithEngine() {
@@ -275,6 +279,9 @@ class CameraActivityEngine : AppCompatActivity() {
 
                 // Add grid overlay to camera layout if enabled
                 setupGridOverlay()
+
+                // Set up dual camera PiP system
+                setupDualCameraPiP()
 
                 // Update flash button state
                 updateFlashButton()
@@ -926,49 +933,8 @@ class CameraActivityEngine : AppCompatActivity() {
     }
 
     private fun togglePiP() {
-        isPiPEnabled = !isPiPEnabled
-
-        try {
-            val pipPlugin = cameraEngine.getPlugin("PiP") as? PiPPlugin
-
-            if (pipPlugin != null) {
-                if (isPiPEnabled) {
-                    // Create PiP overlay
-                    if (pipOverlayView == null) {
-                        pipOverlayView = com.customcamera.app.pip.PiPOverlayView(this@CameraActivityEngine)
-
-                        // Add main preview (current camera)
-                        pipOverlayView!!.setMainPreview(binding.previewView)
-
-                        // Create small PiP preview for second camera
-                        val pipPreview = androidx.camera.view.PreviewView(this@CameraActivityEngine)
-                        pipOverlayView!!.setPiPPreview(pipPreview)
-
-                        // Add to layout
-                        val rootView = binding.root as android.widget.FrameLayout
-                        rootView.addView(pipOverlayView)
-                    }
-
-                    pipOverlayView?.showPiP()
-                    binding.pipButton.alpha = 1.0f
-                    Toast.makeText(this@CameraActivityEngine, "PiP mode enabled", Toast.LENGTH_SHORT).show()
-                    Log.i(TAG, "PiP mode enabled with overlay")
-
-                } else {
-                    pipOverlayView?.hidePiP()
-                    binding.pipButton.alpha = 0.6f
-                    Toast.makeText(this@CameraActivityEngine, "PiP mode disabled", Toast.LENGTH_SHORT).show()
-                    Log.i(TAG, "PiP mode disabled")
-                }
-            } else {
-                Toast.makeText(this, "PiP plugin not available", Toast.LENGTH_SHORT).show()
-                Log.w(TAG, "PiP plugin not found")
-            }
-
-        } catch (e: Exception) {
-            Log.e(TAG, "Error toggling PiP", e)
-            Toast.makeText(this, "PiP error: ${e.message}", Toast.LENGTH_SHORT).show()
-        }
+        // Use the new dual camera PiP system
+        toggleDualCameraPiP()
     }
 
     private fun toggleBarcodeScanning() {
@@ -1623,7 +1589,81 @@ class CameraActivityEngine : AppCompatActivity() {
         }
     }
 
+    private fun setupDualCameraPiP() {
+        try {
+            // Set up main preview view for PiP plugin
+            dualCameraPiPPlugin.setupMainPreview(binding.previewView)
 
+            // Check if PiP should be enabled from settings
+            val settingsManager = com.customcamera.app.engine.SettingsManager(this)
+            val pipEnabled = settingsManager.isPluginEnabled("DualCameraPiP")
+
+            if (pipEnabled) {
+                dualCameraPiPPlugin.setPiPEnabled(true)
+            }
+
+            // Set up gesture detection for PiP toggle
+            setupPiPGestureDetection()
+
+            Log.i(TAG, "Dual camera PiP system set up successfully")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error setting up dual camera PiP", e)
+        }
+    }
+
+    private fun setupPiPGestureDetection() {
+        // Set up quadruple-tap gesture to toggle PiP (to avoid conflicts with existing gestures)
+        val gestureDetector = android.view.GestureDetector(this, object : android.view.GestureDetector.SimpleOnGestureListener() {
+            private var tapCount = 0
+            private var lastTapTime = 0L
+            private val multiTapTimeout = 500L // ms
+
+            override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
+                val currentTime = System.currentTimeMillis()
+
+                if (currentTime - lastTapTime > multiTapTimeout) {
+                    tapCount = 1
+                } else {
+                    tapCount++
+                }
+
+                lastTapTime = currentTime
+
+                // Check for quadruple tap
+                if (tapCount == 4) {
+                    toggleDualCameraPiP()
+                    tapCount = 0
+                    return true
+                }
+
+                return false
+            }
+        })
+
+        binding.previewView.setOnTouchListener { _, event ->
+            gestureDetector.onTouchEvent(event)
+            false // Allow other touch handling to continue
+        }
+    }
+
+    private fun toggleDualCameraPiP() {
+        try {
+            val wasEnabled = dualCameraPiPPlugin.togglePiP()
+
+            val message = if (wasEnabled) {
+                "Dual camera PiP enabled"
+            } else {
+                "Dual camera PiP disabled"
+            }
+
+            Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+            Log.i(TAG, message)
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Error toggling dual camera PiP", e)
+            Toast.makeText(this, "PiP toggle failed", Toast.LENGTH_SHORT).show()
+        }
+    }
 
     companion object {
         private const val TAG = "CameraActivityEngine"
