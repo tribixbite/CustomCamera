@@ -71,6 +71,7 @@ class CameraActivityEngine : AppCompatActivity() {
     private lateinit var proControlsPlugin: ProControlsPlugin
     private lateinit var exposureControlPlugin: ExposureControlPlugin
     private lateinit var dualCameraPiPPlugin: DualCameraPiPPlugin
+    private lateinit var advancedVideoRecordingPlugin: AdvancedVideoRecordingPlugin
 
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -230,7 +231,10 @@ class CameraActivityEngine : AppCompatActivity() {
         dualCameraPiPPlugin = DualCameraPiPPlugin()
         cameraEngine.registerPlugin(dualCameraPiPPlugin)
 
-        Log.i(TAG, "✅ Camera engine and ALL plugins initialized (13 total plugins)")
+        advancedVideoRecordingPlugin = AdvancedVideoRecordingPlugin()
+        cameraEngine.registerPlugin(advancedVideoRecordingPlugin)
+
+        Log.i(TAG, "✅ Camera engine and ALL plugins initialized (14 total plugins)")
     }
 
     private fun startCameraWithEngine() {
@@ -283,6 +287,9 @@ class CameraActivityEngine : AppCompatActivity() {
                 // Set up dual camera PiP system
                 setupDualCameraPiP()
 
+                // Set up advanced video recording
+                setupAdvancedVideoRecording()
+
                 // Update flash button state
                 updateFlashButton()
 
@@ -332,91 +339,14 @@ class CameraActivityEngine : AppCompatActivity() {
         }
     }
 
-    private fun toggleVideoRecording() {
-        if (isRecording) {
-            stopVideoRecording()
-        } else {
-            startVideoRecording()
-        }
-    }
-
-    private fun startVideoRecording() {
-        val videoCapture = cameraEngine.getVideoCapture()
-
-        if (videoCapture == null) {
-            Log.e(TAG, "VideoCapture not available - camera may not be bound properly")
-            Toast.makeText(this, "Video recording not available for camera $cameraIndex", Toast.LENGTH_LONG).show()
-            return
-        }
-
-        try {
-            Log.i(TAG, "Starting video recording with camera $cameraIndex")
-
-            val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-            val videoFile = File(filesDir, "VIDEO_CAMERA${cameraIndex}_$timestamp.mp4")
-
-            val outputOptions = androidx.camera.video.FileOutputOptions.Builder(videoFile).build()
-
-            // Add recording metadata
-            val recording = videoCapture.output
-                .prepareRecording(this, outputOptions)
-
-            activeRecording = recording.start(ContextCompat.getMainExecutor(this)) { recordEvent ->
-                when (recordEvent) {
-                    is androidx.camera.video.VideoRecordEvent.Start -> {
-                        isRecording = true
-                        updateVideoButton()
-                        Log.i(TAG, "✅ Video recording started with camera $cameraIndex")
-                        Toast.makeText(this@CameraActivityEngine, "Recording started (Camera $cameraIndex)", Toast.LENGTH_SHORT).show()
-                    }
-                    is androidx.camera.video.VideoRecordEvent.Finalize -> {
-                        isRecording = false
-                        activeRecording = null
-                        updateVideoButton()
-
-                        if (!recordEvent.hasError()) {
-                            Toast.makeText(this@CameraActivityEngine, "Video saved: ${videoFile.name}", Toast.LENGTH_SHORT).show()
-                            Log.i(TAG, "✅ Video saved from camera $cameraIndex: ${videoFile.absolutePath}")
-                        } else {
-                            Log.e(TAG, "❌ Video recording error: ${recordEvent.error}")
-                            Toast.makeText(this@CameraActivityEngine, "Video recording failed: ${recordEvent.error}", Toast.LENGTH_LONG).show()
-                        }
-                    }
-                    is androidx.camera.video.VideoRecordEvent.Status -> {
-                        // Log recording status for debugging
-                        Log.d(TAG, "Video recording status: ${recordEvent.recordingStats.recordedDurationNanos / 1000000}ms")
-                    }
-                }
-            }
-
-            Log.i(TAG, "Video recording initiated for camera $cameraIndex")
-
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to start video recording with camera $cameraIndex", e)
-            Toast.makeText(this, "Recording failed: ${e.message}", Toast.LENGTH_LONG).show()
-            isRecording = false
-            updateVideoButton()
-        }
-    }
-
-    private fun stopVideoRecording() {
-        activeRecording?.stop()
-        Log.i(TAG, "Video recording stopped")
-    }
-
-    private fun updateVideoButton() {
-        val iconRes = if (isRecording) android.R.drawable.ic_media_pause else R.drawable.ic_videocam
-        binding.videoRecordButton.setImageResource(iconRes)
-        binding.videoRecordButton.alpha = if (isRecording) 1.0f else 0.8f
-    }
 
     private fun switchCamera() {
         lifecycleScope.launch {
             try {
                 // Stop video recording if active during camera switch
-                if (isRecording) {
+                if (advancedVideoRecordingPlugin.isRecording.value) {
                     Log.i(TAG, "Stopping video recording for camera switch")
-                    stopVideoRecording()
+                    advancedVideoRecordingPlugin.stopRecording()
                 }
 
                 val availableCameras = cameraEngine.availableCameras.value
@@ -1636,6 +1566,13 @@ class CameraActivityEngine : AppCompatActivity() {
                     return true
                 }
 
+                // Check for quintuple tap
+                if (tapCount == 5) {
+                    toggleVideoRecording()
+                    tapCount = 0
+                    return true
+                }
+
                 return false
             }
         })
@@ -1662,6 +1599,45 @@ class CameraActivityEngine : AppCompatActivity() {
         } catch (e: Exception) {
             Log.e(TAG, "Error toggling dual camera PiP", e)
             Toast.makeText(this, "PiP toggle failed", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun setupAdvancedVideoRecording() {
+        try {
+            // Check if video recording should be enabled from settings
+            val settingsManager = com.customcamera.app.engine.SettingsManager(this)
+            val videoEnabled = settingsManager.isPluginEnabled("AdvancedVideoRecording")
+
+            // The video controls overlay is created automatically by the plugin's createUIView method
+            // and will be added to the camera layout by the plugin system
+
+            Log.i(TAG, "Advanced video recording system set up successfully")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error setting up advanced video recording", e)
+        }
+    }
+
+    private fun toggleVideoRecording() {
+        try {
+            val plugin = advancedVideoRecordingPlugin
+
+            if (plugin.isRecording.value) {
+                plugin.stopRecording()
+                Toast.makeText(this, "Video recording stopped", Toast.LENGTH_SHORT).show()
+            } else {
+                lifecycleScope.launch {
+                    val result = plugin.startRecording()
+                    if (result.isSuccess) {
+                        Toast.makeText(this@CameraActivityEngine, "Video recording started", Toast.LENGTH_SHORT).show()
+                    } else {
+                        Toast.makeText(this@CameraActivityEngine, "Failed to start recording", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Error toggling video recording", e)
+            Toast.makeText(this, "Video toggle failed", Toast.LENGTH_SHORT).show()
         }
     }
 
