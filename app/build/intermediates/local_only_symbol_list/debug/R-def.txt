@@ -45,6 +45,7 @@ drawable ic_videocam
 drawable ic_warning
 id aboutButton
 id backButton
+id barcodeToggleButton
 id cameraButtonsContainer
 id captureButton
 id continueButton
@@ -53,11 +54,14 @@ id exitButton
 id exportSettingsButton
 id flashButton
 id galleryButton
+id gridToggleButton
 id headerIcon
 id headerTitle
+id manualControlsToggleButton
 id nightModeButton
 id openCameraButton
 id pipButton
+id pluginControlsPanel
 id previewView
 id quickCameraButton
 id resetSettingsButton

@@ -6,6 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.camera.view.PreviewView;
@@ -21,6 +22,9 @@ public final class ActivityCameraBinding implements ViewBinding {
   private final FrameLayout rootView;
 
   @NonNull
+  public final ImageButton barcodeToggleButton;
+
+  @NonNull
   public final ImageButton captureButton;
 
   @NonNull
@@ -30,10 +34,19 @@ public final class ActivityCameraBinding implements ViewBinding {
   public final ImageButton galleryButton;
 
   @NonNull
+  public final ImageButton gridToggleButton;
+
+  @NonNull
+  public final ImageButton manualControlsToggleButton;
+
+  @NonNull
   public final ImageButton nightModeButton;
 
   @NonNull
   public final ImageButton pipButton;
+
+  @NonNull
+  public final LinearLayout pluginControlsPanel;
 
   @NonNull
   public final PreviewView previewView;
@@ -47,17 +60,24 @@ public final class ActivityCameraBinding implements ViewBinding {
   @NonNull
   public final ImageButton videoRecordButton;
 
-  private ActivityCameraBinding(@NonNull FrameLayout rootView, @NonNull ImageButton captureButton,
+  private ActivityCameraBinding(@NonNull FrameLayout rootView,
+      @NonNull ImageButton barcodeToggleButton, @NonNull ImageButton captureButton,
       @NonNull ImageButton flashButton, @NonNull ImageButton galleryButton,
+      @NonNull ImageButton gridToggleButton, @NonNull ImageButton manualControlsToggleButton,
       @NonNull ImageButton nightModeButton, @NonNull ImageButton pipButton,
-      @NonNull PreviewView previewView, @NonNull ImageButton settingsButton,
-      @NonNull ImageButton switchCameraButton, @NonNull ImageButton videoRecordButton) {
+      @NonNull LinearLayout pluginControlsPanel, @NonNull PreviewView previewView,
+      @NonNull ImageButton settingsButton, @NonNull ImageButton switchCameraButton,
+      @NonNull ImageButton videoRecordButton) {
     this.rootView = rootView;
+    this.barcodeToggleButton = barcodeToggleButton;
     this.captureButton = captureButton;
     this.flashButton = flashButton;
     this.galleryButton = galleryButton;
+    this.gridToggleButton = gridToggleButton;
+    this.manualControlsToggleButton = manualControlsToggleButton;
     this.nightModeButton = nightModeButton;
     this.pipButton = pipButton;
+    this.pluginControlsPanel = pluginControlsPanel;
     this.previewView = previewView;
     this.settingsButton = settingsButton;
     this.switchCameraButton = switchCameraButton;
@@ -91,6 +111,12 @@ public final class ActivityCameraBinding implements ViewBinding {
     // This is done to optimize the compiled bytecode for size and performance.
     int id;
     missingId: {
+      id = R.id.barcodeToggleButton;
+      ImageButton barcodeToggleButton = ViewBindings.findChildViewById(rootView, id);
+      if (barcodeToggleButton == null) {
+        break missingId;
+      }
+
       id = R.id.captureButton;
       ImageButton captureButton = ViewBindings.findChildViewById(rootView, id);
       if (captureButton == null) {
@@ -109,6 +135,18 @@ public final class ActivityCameraBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.gridToggleButton;
+      ImageButton gridToggleButton = ViewBindings.findChildViewById(rootView, id);
+      if (gridToggleButton == null) {
+        break missingId;
+      }
+
+      id = R.id.manualControlsToggleButton;
+      ImageButton manualControlsToggleButton = ViewBindings.findChildViewById(rootView, id);
+      if (manualControlsToggleButton == null) {
+        break missingId;
+      }
+
       id = R.id.nightModeButton;
       ImageButton nightModeButton = ViewBindings.findChildViewById(rootView, id);
       if (nightModeButton == null) {
@@ -118,6 +156,12 @@ public final class ActivityCameraBinding implements ViewBinding {
       id = R.id.pipButton;
       ImageButton pipButton = ViewBindings.findChildViewById(rootView, id);
       if (pipButton == null) {
+        break missingId;
+      }
+
+      id = R.id.pluginControlsPanel;
+      LinearLayout pluginControlsPanel = ViewBindings.findChildViewById(rootView, id);
+      if (pluginControlsPanel == null) {
         break missingId;
       }
 
@@ -145,9 +189,10 @@ public final class ActivityCameraBinding implements ViewBinding {
         break missingId;
       }
 
-      return new ActivityCameraBinding((FrameLayout) rootView, captureButton, flashButton,
-          galleryButton, nightModeButton, pipButton, previewView, settingsButton,
-          switchCameraButton, videoRecordButton);
+      return new ActivityCameraBinding((FrameLayout) rootView, barcodeToggleButton, captureButton,
+          flashButton, galleryButton, gridToggleButton, manualControlsToggleButton, nightModeButton,
+          pipButton, pluginControlsPanel, previewView, settingsButton, switchCameraButton,
+          videoRecordButton);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

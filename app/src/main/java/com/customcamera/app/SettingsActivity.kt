@@ -281,10 +281,40 @@ class SettingsActivity : AppCompatActivity() {
             )
         )
 
-        // Plugin Management Section
+        // Plugin Browser & Management Section
         settingsSections.add(
             SettingsSection(
-                title = "Plugin Management",
+                title = "Plugin Browser & Import",
+                icon = R.drawable.ic_extension,
+                settings = listOf(
+                    SettingsItem.Button(
+                        key = "browse_plugins",
+                        title = "Browse Available Plugins",
+                        description = "View and install plugins from the plugin store"
+                    ),
+                    SettingsItem.Button(
+                        key = "import_plugin",
+                        title = "Import Plugin",
+                        description = "Import plugin from file (.apk or .jar)"
+                    ),
+                    SettingsItem.Button(
+                        key = "export_plugins",
+                        title = "Export Plugin Configuration",
+                        description = "Export current plugin settings and list"
+                    ),
+                    SettingsItem.Button(
+                        key = "manage_plugins",
+                        title = "Manage Installed Plugins",
+                        description = "View, update, or remove installed plugins"
+                    )
+                )
+            )
+        )
+
+        // Plugin Control Section
+        settingsSections.add(
+            SettingsSection(
+                title = "Plugin Control",
                 icon = R.drawable.ic_settings,
                 settings = listOf(
                     SettingsItem.Switch(
@@ -392,7 +422,21 @@ class SettingsActivity : AppCompatActivity() {
                 settingsManager.setRawCapture(value as Boolean)
             }
 
-            // Plugin Management
+            // Plugin Browser & Management
+            "browse_plugins" -> {
+                launchPluginBrowser()
+            }
+            "import_plugin" -> {
+                launchPluginImporter()
+            }
+            "export_plugins" -> {
+                exportPluginConfiguration()
+            }
+            "manage_plugins" -> {
+                launchPluginManager()
+            }
+
+            // Plugin Control
             "plugin_autofocus" -> {
                 settingsManager.setPluginEnabled("AutoFocus", value as Boolean)
             }
@@ -518,6 +562,193 @@ class SettingsActivity : AppCompatActivity() {
             createSettingsSections()
             settingsAdapter.updateSections(settingsSections)
         }
+    }
+
+    private fun launchPluginBrowser() {
+        lifecycleScope.launch {
+            try {
+                // Create a simple plugin browser with mock data
+                val availablePlugins = listOf(
+                    "Pro Focus Plugin v2.1" to "Advanced autofocus with AI tracking",
+                    "HDR+ Plugin v1.5" to "Multi-frame HDR processing",
+                    "Night Vision Plugin v1.3" to "Enhanced low-light photography",
+                    "Portrait Mode Plugin v2.0" to "AI-powered background blur",
+                    "Timelapse Pro Plugin v1.7" to "Advanced timelapse features",
+                    "ML Enhance Plugin v1.2" to "Machine learning image enhancement"
+                )
+
+                val pluginNames = availablePlugins.map { "${it.first}\n${it.second}" }.toTypedArray()
+
+                val builder = androidx.appcompat.app.AlertDialog.Builder(this@SettingsActivity)
+                builder.setTitle("Available Plugins")
+                builder.setItems(pluginNames) { _, which ->
+                    val selectedPlugin = availablePlugins[which]
+                    android.widget.Toast.makeText(
+                        this@SettingsActivity,
+                        "Selected: ${selectedPlugin.first}",
+                        android.widget.Toast.LENGTH_SHORT
+                    ).show()
+                    // In a real implementation, this would download and install the plugin
+                    debugLogger.logInfo("Plugin browser: selected ${selectedPlugin.first}", emptyMap(), "Settings")
+                }
+                builder.setNegativeButton("Close", null)
+                builder.show()
+
+                Log.i(TAG, "Plugin browser opened")
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to open plugin browser", e)
+                android.widget.Toast.makeText(this@SettingsActivity, "Plugin browser error: ${e.message}", android.widget.Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    private fun launchPluginImporter() {
+        lifecycleScope.launch {
+            try {
+                // Create file picker for plugin import
+                val intent = android.content.Intent(android.content.Intent.ACTION_GET_CONTENT).apply {
+                    type = "*/*"
+                    addCategory(android.content.Intent.CATEGORY_OPENABLE)
+                    putExtra(android.content.Intent.EXTRA_MIME_TYPES, arrayOf("application/vnd.android.package-archive", "application/java-archive"))
+                }
+
+                try {
+                    startActivity(android.content.Intent.createChooser(intent, "Select Plugin File"))
+                    android.widget.Toast.makeText(this@SettingsActivity, "Select .apk or .jar plugin file", android.widget.Toast.LENGTH_LONG).show()
+                } catch (e: Exception) {
+                    // Fallback: Show manual instruction
+                    val builder = androidx.appcompat.app.AlertDialog.Builder(this@SettingsActivity)
+                    builder.setTitle("Import Plugin")
+                    builder.setMessage("To import a plugin:\n\n1. Place plugin file (.apk or .jar) in Downloads folder\n2. Plugins will be scanned automatically\n3. Enable in Plugin Control section\n\nSupported formats:\n• .apk (Android Plugin)\n• .jar (Java Plugin)")
+                    builder.setPositiveButton("OK", null)
+                    builder.show()
+                }
+
+                debugLogger.logInfo("Plugin importer opened", emptyMap(), "Settings")
+                Log.i(TAG, "Plugin importer launched")
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to launch plugin importer", e)
+                android.widget.Toast.makeText(this@SettingsActivity, "Import error: ${e.message}", android.widget.Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    private fun exportPluginConfiguration() {
+        lifecycleScope.launch {
+            try {
+                // Export current plugin configuration
+                val enabledPlugins = listOf("AutoFocus", "GridOverlay", "CameraInfo", "ProControls", "ExposureControl")
+                    .filter { settingsManager.isPluginEnabled(it) }
+
+                val configData = """
+                    === CustomCamera Plugin Configuration ===
+                    Export Date: ${java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault()).format(java.util.Date())}
+
+                    Enabled Plugins (${enabledPlugins.size}):
+                    ${enabledPlugins.joinToString("\n") { "• $it" }}
+
+                    Plugin Settings:
+                    ${enabledPlugins.joinToString("\n") { plugin ->
+                        "[$plugin] - Status: Enabled"
+                    }}
+
+                    === End Configuration ===
+                """.trimIndent()
+
+                Log.i(TAG, "Plugin configuration exported:\n$configData")
+
+                val builder = androidx.appcompat.app.AlertDialog.Builder(this@SettingsActivity)
+                builder.setTitle("Plugin Configuration Exported")
+                builder.setMessage("Configuration saved to log. In a full implementation, this would be saved to external storage or shared.")
+                builder.setPositiveButton("OK", null)
+                builder.show()
+
+                android.widget.Toast.makeText(this@SettingsActivity, "Configuration exported to log", android.widget.Toast.LENGTH_LONG).show()
+                debugLogger.logInfo("Plugin configuration exported", mapOf("enabledCount" to enabledPlugins.size), "Settings")
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to export plugin configuration", e)
+                android.widget.Toast.makeText(this@SettingsActivity, "Export failed: ${e.message}", android.widget.Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    private fun launchPluginManager() {
+        lifecycleScope.launch {
+            try {
+                // Create plugin management interface
+                val installedPlugins = listOf(
+                    "AutoFocus" to "Built-in autofocus controls",
+                    "GridOverlay" to "Composition grid overlay",
+                    "CameraInfo" to "Real-time camera information",
+                    "ProControls" to "Manual camera controls",
+                    "ExposureControl" to "Advanced exposure management",
+                    "BarcodeScanning" to "ML Kit barcode detection"
+                )
+
+                val pluginList = installedPlugins.map { plugin ->
+                    val isEnabled = settingsManager.isPluginEnabled(plugin.first)
+                    val status = if (isEnabled) "✅ ENABLED" else "❌ DISABLED"
+                    "${plugin.first}\n${plugin.second}\n$status"
+                }.toTypedArray()
+
+                val builder = androidx.appcompat.app.AlertDialog.Builder(this@SettingsActivity)
+                builder.setTitle("Manage Installed Plugins")
+                builder.setItems(pluginList) { _, which ->
+                    val selectedPlugin = installedPlugins[which]
+                    manageIndividualPlugin(selectedPlugin.first, selectedPlugin.second)
+                }
+                builder.setNegativeButton("Close", null)
+                builder.show()
+
+                debugLogger.logInfo("Plugin manager opened", mapOf("installedCount" to installedPlugins.size), "Settings")
+                Log.i(TAG, "Plugin manager launched")
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to launch plugin manager", e)
+                android.widget.Toast.makeText(this@SettingsActivity, "Manager error: ${e.message}", android.widget.Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    private fun manageIndividualPlugin(pluginName: String, description: String) {
+        val isEnabled = settingsManager.isPluginEnabled(pluginName)
+        val builder = androidx.appcompat.app.AlertDialog.Builder(this)
+
+        builder.setTitle("Manage: $pluginName")
+        builder.setMessage("$description\n\nStatus: ${if (isEnabled) "Enabled" else "Disabled"}")
+
+        builder.setPositiveButton(if (isEnabled) "Disable" else "Enable") { _, _ ->
+            settingsManager.setPluginEnabled(pluginName, !isEnabled)
+            android.widget.Toast.makeText(this, "$pluginName ${if (!isEnabled) "enabled" else "disabled"}", android.widget.Toast.LENGTH_SHORT).show()
+
+            // Refresh the settings UI
+            createSettingsSections()
+            settingsAdapter.updateSections(settingsSections)
+        }
+
+        builder.setNeutralButton("Plugin Info") { _, _ ->
+            showPluginInfo(pluginName)
+        }
+
+        builder.setNegativeButton("Cancel", null)
+        builder.show()
+    }
+
+    private fun showPluginInfo(pluginName: String) {
+        val pluginInfo = when (pluginName) {
+            "AutoFocus" -> "Version: 1.0\nDeveloper: CustomCamera Team\nFeatures: Touch-to-focus, continuous AF, face tracking"
+            "GridOverlay" -> "Version: 1.0\nDeveloper: CustomCamera Team\nFeatures: Rule of thirds, golden ratio, custom grids"
+            "CameraInfo" -> "Version: 1.0\nDeveloper: CustomCamera Team\nFeatures: Real-time stats, exposure info, frame analysis"
+            "ProControls" -> "Version: 1.0\nDeveloper: CustomCamera Team\nFeatures: Manual ISO, shutter speed, focus distance"
+            "ExposureControl" -> "Version: 1.0\nDeveloper: CustomCamera Team\nFeatures: Exposure compensation, metering modes"
+            "BarcodeScanning" -> "Version: 1.0\nDeveloper: CustomCamera Team\nFeatures: QR codes, barcodes, real-time detection"
+            else -> "Version: Unknown\nDeveloper: Unknown\nNo additional information available"
+        }
+
+        val builder = androidx.appcompat.app.AlertDialog.Builder(this)
+        builder.setTitle("Plugin Information")
+        builder.setMessage("$pluginName\n\n$pluginInfo")
+        builder.setPositiveButton("OK", null)
+        builder.show()
     }
 
     companion object {

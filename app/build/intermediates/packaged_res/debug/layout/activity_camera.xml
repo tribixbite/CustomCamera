@@ -79,6 +79,54 @@
 
     </LinearLayout>
 
+    <!-- Plugin Controls Panel (right side) -->
+    <LinearLayout
+        android:id="@+id/pluginControlsPanel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical|end"
+        android:layout_marginEnd="16dp"
+        android:orientation="vertical"
+        android:visibility="visible">
+
+        <ImageButton
+            android:id="@+id/gridToggleButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginBottom="12dp"
+            android:background="@drawable/camera_control_background"
+            android:src="@drawable/ic_extension"
+            android:scaleType="centerInside"
+            android:padding="12dp"
+            android:alpha="0.7"
+            android:contentDescription="Toggle Grid Overlay" />
+
+        <ImageButton
+            android:id="@+id/barcodeToggleButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginBottom="12dp"
+            android:background="@drawable/camera_control_background"
+            android:src="@drawable/ic_focus"
+            android:scaleType="centerInside"
+            android:padding="12dp"
+            android:alpha="0.7"
+            android:contentDescription="Toggle Barcode Scanning" />
+
+        <ImageButton
+            android:id="@+id/manualControlsToggleButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginBottom="12dp"
+            android:background="@drawable/camera_control_background"
+            android:src="@drawable/ic_settings"
+            android:scaleType="centerInside"
+            android:padding="12dp"
+            android:alpha="0.7"
+            android:contentDescription="Toggle Manual Controls" />
+
+    </LinearLayout>
+
     <!-- Bottom Controls (SOTA Modern Design) -->
     <LinearLayout
         android:layout_width="match_parent"

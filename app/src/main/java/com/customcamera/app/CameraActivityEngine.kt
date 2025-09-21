@@ -153,6 +153,11 @@ class CameraActivityEngine : AppCompatActivity() {
             true
         }
 
+        // Wire up new plugin control buttons
+        binding.gridToggleButton.setOnClickListener { toggleGrid() }
+        binding.barcodeToggleButton.setOnClickListener { toggleBarcodeScanning() }
+        binding.manualControlsToggleButton.setOnClickListener { toggleManualControls() }
+
         // Add gesture controls for features
         var lastTapTime = 0L
         var tapCount = 0

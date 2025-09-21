@@ -4,8 +4,8 @@
         "source": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-main-46:/drawable/ic_loading_spinner.xml"
     },
     {
-        "merged": "com.customcamera.app-merged_res-44:/drawable_ic_critical_error.xml.flat",
-        "source": "com.customcamera.app-main-46:/drawable/ic_critical_error.xml"
+        "merged": "com.customcamera.app-merged_res-44:/layout_activity_camera.xml.flat",
+        "source": "com.customcamera.app-main-46:/layout/activity_camera.xml"
     },
     {
         "merged": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-merged_res-44:/xml_data_extraction_rules.xml.flat",
