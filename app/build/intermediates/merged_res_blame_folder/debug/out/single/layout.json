@@ -1,50 +1,46 @@
 [
     {
+        "merged": "com.customcamera.app-mergeDebugResources-43:/layout/item_settings_text_input.xml",
+        "source": "com.customcamera.app-main-46:/layout/item_settings_text_input.xml"
+    },
+    {
+        "merged": "com.customcamera.app-mergeDebugResources-43:/layout/activity_camera_selection.xml",
+        "source": "com.customcamera.app-main-46:/layout/activity_camera_selection.xml"
+    },
+    {
         "merged": "com.customcamera.app-mergeDebugResources-43:/layout/activity_camera.xml",
         "source": "com.customcamera.app-main-46:/layout/activity_camera.xml"
     },
     {
-        "merged": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-mergeDebugResources-43:/layout/activity_main.xml",
-        "source": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-main-46:/layout/activity_main.xml"
+        "merged": "com.customcamera.app-mergeDebugResources-43:/layout/item_settings_button.xml",
+        "source": "com.customcamera.app-main-46:/layout/item_settings_button.xml"
     },
     {
-        "merged": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-mergeDebugResources-43:/layout/item_settings_header.xml",
-        "source": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-main-46:/layout/item_settings_header.xml"
+        "merged": "com.customcamera.app-mergeDebugResources-43:/layout/activity_settings.xml",
+        "source": "com.customcamera.app-main-46:/layout/activity_settings.xml"
     },
     {
-        "merged": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-mergeDebugResources-43:/layout/activity_camera.xml",
-        "source": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-main-46:/layout/activity_camera.xml"
+        "merged": "com.customcamera.app-mergeDebugResources-43:/layout/item_settings_dropdown.xml",
+        "source": "com.customcamera.app-main-46:/layout/item_settings_dropdown.xml"
     },
     {
-        "merged": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-mergeDebugResources-43:/layout/item_settings_button.xml",
-        "source": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-main-46:/layout/item_settings_button.xml"
+        "merged": "com.customcamera.app-mergeDebugResources-43:/layout/item_settings_slider.xml",
+        "source": "com.customcamera.app-main-46:/layout/item_settings_slider.xml"
     },
     {
-        "merged": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-mergeDebugResources-43:/layout/item_settings_info.xml",
-        "source": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-main-46:/layout/item_settings_info.xml"
+        "merged": "com.customcamera.app-mergeDebugResources-43:/layout/activity_main.xml",
+        "source": "com.customcamera.app-main-46:/layout/activity_main.xml"
     },
     {
-        "merged": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-mergeDebugResources-43:/layout/item_settings_slider.xml",
-        "source": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-main-46:/layout/item_settings_slider.xml"
+        "merged": "com.customcamera.app-mergeDebugResources-43:/layout/item_settings_switch.xml",
+        "source": "com.customcamera.app-main-46:/layout/item_settings_switch.xml"
     },
     {
-        "merged": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-mergeDebugResources-43:/layout/activity_settings.xml",
-        "source": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-main-46:/layout/activity_settings.xml"
+        "merged": "com.customcamera.app-mergeDebugResources-43:/layout/item_settings_header.xml",
+        "source": "com.customcamera.app-main-46:/layout/item_settings_header.xml"
     },
     {
-        "merged": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-mergeDebugResources-43:/layout/item_settings_dropdown.xml",
-        "source": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-main-46:/layout/item_settings_dropdown.xml"
-    },
-    {
-        "merged": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-mergeDebugResources-43:/layout/item_settings_switch.xml",
-        "source": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-main-46:/layout/item_settings_switch.xml"
-    },
-    {
-        "merged": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-mergeDebugResources-43:/layout/activity_camera_selection.xml",
-        "source": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-main-46:/layout/activity_camera_selection.xml"
-    },
-    {
-        "merged": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-mergeDebugResources-43:/layout/item_settings_text_input.xml",
-        "source": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-main-46:/layout/item_settings_text_input.xml"
+        "merged": "com.customcamera.app-mergeDebugResources-43:/layout/item_settings_info.xml",
+        "source": "com.customcamera.app-main-46:/layout/item_settings_info.xml"
     }
 ]
