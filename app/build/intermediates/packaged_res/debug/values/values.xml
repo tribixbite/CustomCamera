@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="black">#FF000000</color>
+    <color name="button_disabled">#40FFFFFF</color>
+    <color name="button_focused">#0FFFFFFF</color>
+    <color name="button_pressed">#1AFFFFFF</color>
     <color name="camera_button_bg">#CC000000</color>
     <color name="camera_button_stroke">#FFFFFFFF</color>
     <color name="camera_overlay">#80000000</color>
@@ -14,7 +17,17 @@
     <color name="md_theme_on_surface">#FFFFFFFF</color>
     <color name="md_theme_primary">#FFBB86FC</color>
     <color name="md_theme_surface">#FF121212</color>
+    <color name="on_primary">#FFFFFF</color>
+    <color name="on_primary_container">#21005D</color>
+    <color name="on_surface">#E6E1E5</color>
+    <color name="on_surface_variant">#CAC4D0</color>
+    <color name="outline">#938F99</color>
+    <color name="outline_variant">#49454F</color>
+    <color name="primary">#6750A4</color>
+    <color name="primary_container">#EADDFF</color>
+    <color name="primary_variant">#7F39FB</color>
     <color name="success_color">#4CAF50</color>
+    <color name="surface_variant">#49454F</color>
     <color name="transparent">#00000000</color>
     <color name="warning_color">#FF9800</color>
     <color name="white">#FFFFFFFF</color>

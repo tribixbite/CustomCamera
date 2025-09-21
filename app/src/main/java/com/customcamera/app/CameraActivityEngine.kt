@@ -27,6 +27,13 @@ import java.util.*
 import kotlin.math.pow
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
+import android.animation.AnimatorInflater
+import android.view.animation.AnimationUtils
+import android.animation.ObjectAnimator
+import android.animation.AnimatorSet
+import android.view.HapticFeedbackConstants
+import android.view.ViewGroup
+import com.customcamera.app.ui.LoadingIndicatorManager
 
 /**
  * Enhanced CameraActivity that uses the CameraEngine and plugin system.
@@ -74,6 +81,9 @@ class CameraActivityEngine : AppCompatActivity() {
     private lateinit var dualCameraPiPPlugin: DualCameraPiPPlugin
     private lateinit var advancedVideoRecordingPlugin: AdvancedVideoRecordingPlugin
 
+    // UI Enhancement Components
+    private lateinit var loadingIndicatorManager: LoadingIndicatorManager
+
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
@@ -106,6 +116,9 @@ class CameraActivityEngine : AppCompatActivity() {
         // Get camera index from intent
         cameraIndex = intent.getIntExtra(CameraSelectionActivity.EXTRA_CAMERA_INDEX, 0)
         Log.i(TAG, "Using camera index: $cameraIndex")
+
+        // Initialize UI enhancement components
+        loadingIndicatorManager = LoadingIndicatorManager(this)
 
         // Initialize camera engine and plugins
         initializeCameraEngine()
@@ -141,23 +154,29 @@ class CameraActivityEngine : AppCompatActivity() {
     }
 
     private fun setupUI() {
-        binding.captureButton.setOnClickListener { capturePhoto() }
-        binding.videoRecordButton.setOnClickListener { toggleVideoRecording() }
-        binding.nightModeButton.setOnClickListener { toggleNightMode() }
-        binding.pipButton.setOnClickListener { togglePiP() }
-        binding.switchCameraButton.setOnClickListener { switchCamera() }
-        binding.flashButton.setOnClickListener { toggleFlash() }
-        binding.galleryButton.setOnClickListener { openGallery() }
-        binding.settingsButton.setOnClickListener { toggleManualControls() }
+        // Enhanced button setup with animations and feedback
+        setupEnhancedButton(binding.captureButton, true) { capturePhoto() }
+        setupEnhancedButton(binding.videoRecordButton) { toggleVideoRecording() }
+        setupEnhancedButton(binding.nightModeButton) { toggleNightMode() }
+        setupEnhancedButton(binding.pipButton) { togglePiP() }
+        setupEnhancedButton(binding.switchCameraButton) { switchCamera() }
+        setupEnhancedButton(binding.flashButton) { toggleFlash() }
+        setupEnhancedButton(binding.galleryButton) { openGallery() }
+        setupEnhancedButton(binding.settingsButton) { toggleManualControls() }
+
+        // Long press for full settings
         binding.settingsButton.setOnLongClickListener {
+            // Enhanced feedback for long press
+            performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+            animateButtonLongPress(binding.settingsButton)
             openFullSettings()
             true
         }
 
-        // Wire up new plugin control buttons
-        binding.gridToggleButton.setOnClickListener { toggleGrid() }
-        binding.barcodeToggleButton.setOnClickListener { toggleBarcodeScanning() }
-        binding.manualControlsToggleButton.setOnClickListener { toggleManualControls() }
+        // Wire up new plugin control buttons with enhanced feedback
+        setupEnhancedButton(binding.gridToggleButton) { toggleGrid() }
+        setupEnhancedButton(binding.barcodeToggleButton) { toggleBarcodeScanning() }
+        setupEnhancedButton(binding.manualControlsToggleButton) { toggleManualControls() }
 
         // Add gesture controls for features
         var lastTapTime = 0L
@@ -249,8 +268,12 @@ class CameraActivityEngine : AppCompatActivity() {
     private fun startCameraWithEngine() {
         Log.i(TAG, "Starting camera with engine...")
 
-        // Show loading indicator
-        showLoadingIndicator("Initializing camera...")
+        // Show enhanced loading indicator
+        loadingIndicatorManager.showLoading(
+            binding.root as ViewGroup,
+            LoadingIndicatorManager.LoadingType.CAMERA_INIT,
+            autoDismiss = 3000L
+        )
 
         lifecycleScope.launch {
             try {
@@ -302,13 +325,14 @@ class CameraActivityEngine : AppCompatActivity() {
                 // Update flash button state
                 updateFlashButton()
 
-                // Hide loading indicator
-                hideLoadingIndicator()
+                // Hide enhanced loading indicator
+                loadingIndicatorManager.hideLoading()
 
                 Log.i(TAG, "✅ Camera started successfully with engine")
 
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to start camera with engine", e)
+                loadingIndicatorManager.hideLoading()
                 handleCameraError("Camera startup failed: ${e.message}")
             }
         }
@@ -316,6 +340,13 @@ class CameraActivityEngine : AppCompatActivity() {
 
     private fun capturePhoto() {
         val imageCapture = cameraEngine.getImageCapture() ?: return
+
+        // Show photo capture loading
+        loadingIndicatorManager.showLoading(
+            binding.root as ViewGroup,
+            LoadingIndicatorManager.LoadingType.PHOTO_CAPTURE,
+            autoDismiss = 2000L
+        )
 
         try {
             val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
@@ -331,12 +362,14 @@ class CameraActivityEngine : AppCompatActivity() {
                 ContextCompat.getMainExecutor(this),
                 object : ImageCapture.OnImageSavedCallback {
                     override fun onImageSaved(output: ImageCapture.OutputFileResults) {
+                        loadingIndicatorManager.hideLoading()
                         Toast.makeText(this@CameraActivityEngine, "Photo saved: ${photoFile.name}", Toast.LENGTH_SHORT).show()
                         Log.i(TAG, "Photo saved with engine: ${photoFile.absolutePath}")
                         animateCaptureButton()
                     }
 
                     override fun onError(exception: ImageCaptureException) {
+                        loadingIndicatorManager.hideLoading()
                         Log.e(TAG, "Photo capture failed with engine", exception)
                         Toast.makeText(this@CameraActivityEngine, "Photo capture failed", Toast.LENGTH_SHORT).show()
                     }
@@ -1684,6 +1717,121 @@ class CameraActivityEngine : AppCompatActivity() {
         } catch (e: Exception) {
             Log.e(TAG, "Error toggling video recording", e)
             Toast.makeText(this, "Video toggle failed", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    /**
+     * Enhanced Button Animation and Feedback System
+     */
+    private fun setupEnhancedButton(button: View, isCaptureButton: Boolean = false, action: () -> Unit) {
+        button.setOnClickListener {
+            // Haptic feedback for button press
+            performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+
+            // Animate button press
+            if (isCaptureButton) {
+                animateCaptureButton(button)
+            } else {
+                animateStandardButton(button)
+            }
+
+            // Execute the action
+            action()
+        }
+    }
+
+    private fun animateStandardButton(button: View) {
+        val scaleDown = ObjectAnimator.ofFloat(button, "scaleX", 1f, 0.95f).apply {
+            duration = 75
+        }
+        val scaleDownY = ObjectAnimator.ofFloat(button, "scaleY", 1f, 0.95f).apply {
+            duration = 75
+        }
+        val scaleUp = ObjectAnimator.ofFloat(button, "scaleX", 0.95f, 1f).apply {
+            duration = 150
+            startDelay = 75
+        }
+        val scaleUpY = ObjectAnimator.ofFloat(button, "scaleY", 0.95f, 1f).apply {
+            duration = 150
+            startDelay = 75
+        }
+
+        val alphaDown = ObjectAnimator.ofFloat(button, "alpha", 1f, 0.8f).apply {
+            duration = 75
+        }
+        val alphaUp = ObjectAnimator.ofFloat(button, "alpha", 0.8f, 1f).apply {
+            duration = 150
+            startDelay = 75
+        }
+
+        AnimatorSet().apply {
+            playTogether(scaleDown, scaleDownY, scaleUp, scaleUpY, alphaDown, alphaUp)
+            start()
+        }
+    }
+
+    private fun animateCaptureButton(button: View) {
+        val scaleDown = ObjectAnimator.ofFloat(button, "scaleX", 1f, 0.9f).apply {
+            duration = 100
+        }
+        val scaleDownY = ObjectAnimator.ofFloat(button, "scaleY", 1f, 0.9f).apply {
+            duration = 100
+        }
+        val scaleUp = ObjectAnimator.ofFloat(button, "scaleX", 0.9f, 1.05f).apply {
+            duration = 150
+            startDelay = 100
+        }
+        val scaleUpY = ObjectAnimator.ofFloat(button, "scaleY", 0.9f, 1.05f).apply {
+            duration = 150
+            startDelay = 100
+        }
+        val scaleNormal = ObjectAnimator.ofFloat(button, "scaleX", 1.05f, 1f).apply {
+            duration = 100
+            startDelay = 250
+        }
+        val scaleNormalY = ObjectAnimator.ofFloat(button, "scaleY", 1.05f, 1f).apply {
+            duration = 100
+            startDelay = 250
+        }
+
+        val rotate = ObjectAnimator.ofFloat(button, "rotation", 0f, 5f, -5f, 0f).apply {
+            duration = 350
+        }
+
+        AnimatorSet().apply {
+            playTogether(scaleDown, scaleDownY, scaleUp, scaleUpY, scaleNormal, scaleNormalY, rotate)
+            start()
+        }
+    }
+
+    private fun animateButtonLongPress(button: View) {
+        val pulse = ObjectAnimator.ofFloat(button, "scaleX", 1f, 1.1f, 1f).apply {
+            duration = 300
+        }
+        val pulseY = ObjectAnimator.ofFloat(button, "scaleY", 1f, 1.1f, 1f).apply {
+            duration = 300
+        }
+        val rotate = ObjectAnimator.ofFloat(button, "rotation", 0f, 10f, 0f).apply {
+            duration = 300
+        }
+
+        AnimatorSet().apply {
+            playTogether(pulse, pulseY, rotate)
+            start()
+        }
+    }
+
+    /**
+     * Enhanced haptic feedback system
+     */
+    private fun performHapticFeedback(feedbackType: Int) {
+        try {
+            window.decorView.performHapticFeedback(
+                feedbackType,
+                HapticFeedbackConstants.FLAG_IGNORE_VIEW_SETTING
+            )
+        } catch (e: Exception) {
+            Log.w(TAG, "Haptic feedback not available", e)
         }
     }
 

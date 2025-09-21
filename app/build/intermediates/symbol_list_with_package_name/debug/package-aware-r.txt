@@ -49,6 +49,8 @@ anim mtrl_bottom_sheet_slide_out
 anim mtrl_card_lowers_interpolator
 anim slide_in_right
 anim slide_out_left
+animator button_press_scale
+animator capture_button_press
 animator design_appbar_state_list_animator
 animator design_fab_hide_motion_spec
 animator design_fab_show_motion_spec
@@ -1374,8 +1376,11 @@ color bright_foreground_inverse_material_dark
 color bright_foreground_inverse_material_light
 color bright_foreground_material_dark
 color bright_foreground_material_light
+color button_disabled
+color button_focused
 color button_material_dark
 color button_material_light
+color button_pressed
 color call_notification_answer_color
 color call_notification_decline_color
 color camera_button_bg
@@ -2080,6 +2085,14 @@ color mtrl_textinput_focused_box_stroke_color
 color mtrl_textinput_hovered_box_stroke_color
 color notification_action_color_filter
 color notification_icon_bg_color
+color on_primary
+color on_primary_container
+color on_surface
+color on_surface_variant
+color outline
+color outline_variant
+color primary
+color primary_container
 color primary_dark_material_dark
 color primary_dark_material_light
 color primary_material_dark
@@ -2088,6 +2101,7 @@ color primary_text_default_material_dark
 color primary_text_default_material_light
 color primary_text_disabled_material_dark
 color primary_text_disabled_material_light
+color primary_variant
 color ripple_material_dark
 color ripple_material_light
 color secondary_text_default_material_dark
@@ -2095,6 +2109,7 @@ color secondary_text_default_material_light
 color secondary_text_disabled_material_dark
 color secondary_text_disabled_material_light
 color success_color
+color surface_variant
 color switch_thumb_disabled_material_dark
 color switch_thumb_disabled_material_light
 color switch_thumb_material_dark
@@ -3016,6 +3031,8 @@ drawable design_ic_visibility
 drawable design_ic_visibility_off
 drawable design_password_eye
 drawable design_snackbar_background
+drawable enhanced_button_background
+drawable enhanced_capture_button
 drawable googleg_disabled_color_18
 drawable googleg_standard_color_18
 drawable ic_arrow_back_black_24
@@ -3053,6 +3070,7 @@ drawable ic_settings
 drawable ic_switch_camera
 drawable ic_videocam
 drawable ic_warning
+drawable loading_background
 drawable m3_appbar_background
 drawable m3_avd_hide_password
 drawable m3_avd_show_password
@@ -3238,6 +3256,9 @@ id callMeasure
 id cameraButtonsContainer
 id cancel_button
 id captureButton
+id captureProgressBar
+id captureProgressSubtext
+id captureProgressText
 id carryVelocity
 id center
 id centerCrop
@@ -3392,6 +3413,8 @@ id line3
 id linear
 id listMode
 id list_item
+id loadingSubtext
+id loadingText
 id m3_side_sheet
 id manualControlsToggleButton
 id marquee
@@ -3512,11 +3535,15 @@ id position
 id postLayout
 id pressed
 id previewView
+id progressSpinner
 id progress_circular
 id progress_horizontal
 id quickCameraButton
 id radio
 id ratio
+id recordingProgressBar
+id recordingProgressContainer
+id recordingTimeText
 id rectangles
 id report_drawn
 id resetSettingsButton
@@ -3793,6 +3820,7 @@ layout activity_camera
 layout activity_camera_selection
 layout activity_main
 layout activity_settings
+layout capture_progress_overlay
 layout custom_dialog
 layout design_bottom_navigation_item
 layout design_bottom_sheet_dialog
@@ -3818,6 +3846,7 @@ layout item_settings_info
 layout item_settings_slider
 layout item_settings_switch
 layout item_settings_text_input
+layout loading_indicator
 layout m3_alert_dialog
 layout m3_alert_dialog_actions
 layout m3_alert_dialog_title
