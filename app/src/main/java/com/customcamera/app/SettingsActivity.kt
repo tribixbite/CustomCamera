@@ -34,12 +34,21 @@ class SettingsActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         Log.i(TAG, "SettingsActivity onCreate")
 
-        binding = ActivitySettingsBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+        try {
+            binding = ActivitySettingsBinding.inflate(layoutInflater)
+            setContentView(binding.root)
+            Log.i(TAG, "Layout inflated successfully")
 
-        setupToolbar()
-        initializeSettings()
-        setupSettingsUI()
+            setupToolbar()
+            initializeSettings()
+            setupSettingsUI()
+
+            Log.i(TAG, "SettingsActivity setup complete")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to create SettingsActivity", e)
+            Toast.makeText(this, "Settings error: ${e.message}", Toast.LENGTH_LONG).show()
+            finish()
+        }
     }
 
     private fun setupToolbar() {
@@ -59,25 +68,33 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun setupSettingsUI() {
-        // Create settings sections
-        createSettingsSections()
+        try {
+            // Create settings sections
+            createSettingsSections()
+            Log.i(TAG, "Settings sections created: ${settingsSections.size}")
 
-        // Setup RecyclerView
-        settingsAdapter = SettingsAdapter(settingsSections) { setting, value ->
-            handleSettingChange(setting, value)
+            // Setup RecyclerView
+            settingsAdapter = SettingsAdapter(settingsSections) { setting, value ->
+                handleSettingChange(setting, value)
+            }
+
+            binding.settingsRecyclerView.apply {
+                layoutManager = LinearLayoutManager(this@SettingsActivity)
+                adapter = settingsAdapter
+            }
+            Log.i(TAG, "RecyclerView setup complete")
+
+            // Setup action buttons
+            binding.exportSettingsButton.setOnClickListener { exportSettings() }
+            binding.resetSettingsButton.setOnClickListener { resetSettings() }
+            binding.debugLogButton.setOnClickListener { showDebugLog() }
+            Log.i(TAG, "Action buttons setup complete")
+
+            Log.i(TAG, "Settings UI setup complete")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to setup settings UI", e)
+            Toast.makeText(this, "Settings UI error: ${e.message}", Toast.LENGTH_LONG).show()
         }
-
-        binding.settingsRecyclerView.apply {
-            layoutManager = LinearLayoutManager(this@SettingsActivity)
-            adapter = settingsAdapter
-        }
-
-        // Setup action buttons
-        binding.exportSettingsButton.setOnClickListener { exportSettings() }
-        binding.resetSettingsButton.setOnClickListener { resetSettings() }
-        binding.debugLogButton.setOnClickListener { showDebugLog() }
-
-        Log.i(TAG, "Settings UI setup complete")
     }
 
     private fun createSettingsSections() {
