@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.customcamera.app"
-    android:versionCode="30"
-    android:versionName="2.0.0-professional" >
+    package="com.customcamera.app" >
 
     <uses-sdk
         android:minSdkVersion="24"

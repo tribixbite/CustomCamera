@@ -122,12 +122,37 @@ if [ ! -f "./gradlew" ]; then
     exit 1
 fi
 
-# Step 2: Clean build if requested
+# Step 2: Update version and clean if requested
+echo "Step 2: Updating version numbers..."
+
+# Increment patch version for this build
+VERSION_FILE="app/version.properties"
+if [ -f "$VERSION_FILE" ]; then
+    # Read current version
+    CURRENT_PATCH=$(grep "VERSION_PATCH=" "$VERSION_FILE" | cut -d'=' -f2)
+    NEW_PATCH=$((CURRENT_PATCH + 1))
+
+    # Update patch version
+    sed -i "s/VERSION_PATCH=.*/VERSION_PATCH=$NEW_PATCH/" "$VERSION_FILE"
+
+    # Show version info
+    MAJOR=$(grep "VERSION_MAJOR=" "$VERSION_FILE" | cut -d'=' -f2)
+    MINOR=$(grep "VERSION_MINOR=" "$VERSION_FILE" | cut -d'=' -f2)
+    CODE=$(grep "VERSION_CODE=" "$VERSION_FILE" | cut -d'=' -f2)
+    echo "📱 Version: $MAJOR.$MINOR.$NEW_PATCH-build.$CODE"
+else
+    echo "⚠️  version.properties not found, creating default..."
+    echo "VERSION_MAJOR=2" > "$VERSION_FILE"
+    echo "VERSION_MINOR=0" >> "$VERSION_FILE"
+    echo "VERSION_PATCH=1" >> "$VERSION_FILE"
+    echo "VERSION_CODE=1" >> "$VERSION_FILE"
+fi
+
 if [ "$CLEAN_BUILD" = "clean" ]; then
-    echo "Step 2: Cleaning previous build..."
+    echo "Cleaning previous build..."
     ./gradlew clean
 else
-    echo "Step 2: Skipping clean (use 'clean' argument to force clean build)"
+    echo "Skipping clean (use 'clean' argument to force clean build)"
 fi
 
 # Step 3: Build the APK
