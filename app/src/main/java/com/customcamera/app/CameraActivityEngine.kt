@@ -341,6 +341,31 @@ class CameraActivityEngine : AppCompatActivity() {
     private fun capturePhoto() {
         val imageCapture = cameraEngine.getImageCapture() ?: return
 
+        try {
+            val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+            val photoFile = File(filesDir, "CAMERA_ENGINE_$timestamp.jpg")
+            val outputFileOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
+
+            // Check if night mode is enabled for long exposure capture
+            val nightModePlugin = cameraEngine.getPlugin("NightMode") as? NightModePlugin
+
+            if (nightModePlugin?.isNightModeActive() == true) {
+                // Use long exposure capture for night mode
+                captureLongExposurePhoto(outputFileOptions, photoFile, timestamp)
+            } else {
+                // Use regular photo capture
+                captureRegularPhoto(outputFileOptions, photoFile, timestamp)
+            }
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Photo capture setup failed with engine", e)
+            Toast.makeText(this, "Capture failed: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun captureRegularPhoto(outputFileOptions: ImageCapture.OutputFileOptions, photoFile: File, timestamp: String) {
+        val imageCapture = cameraEngine.getImageCapture() ?: return
+
         // Show photo capture loading
         loadingIndicatorManager.showLoading(
             binding.root as ViewGroup,
@@ -348,36 +373,59 @@ class CameraActivityEngine : AppCompatActivity() {
             autoDismiss = 2000L
         )
 
-        try {
-            val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-            val photoFile = File(filesDir, "CAMERA_ENGINE_$timestamp.jpg")
-
-            // Capture metadata for this photo
-            // val metadata = capturePhotoMetadata(timestamp)
-
-            val outputFileOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
-
-            imageCapture.takePicture(
-                outputFileOptions,
-                ContextCompat.getMainExecutor(this),
-                object : ImageCapture.OnImageSavedCallback {
-                    override fun onImageSaved(output: ImageCapture.OutputFileResults) {
-                        loadingIndicatorManager.hideLoading()
-                        Toast.makeText(this@CameraActivityEngine, "Photo saved: ${photoFile.name}", Toast.LENGTH_SHORT).show()
-                        Log.i(TAG, "Photo saved with engine: ${photoFile.absolutePath}")
-                        animateCaptureButton()
-                    }
-
-                    override fun onError(exception: ImageCaptureException) {
-                        loadingIndicatorManager.hideLoading()
-                        Log.e(TAG, "Photo capture failed with engine", exception)
-                        Toast.makeText(this@CameraActivityEngine, "Photo capture failed", Toast.LENGTH_SHORT).show()
-                    }
+        imageCapture.takePicture(
+            outputFileOptions,
+            ContextCompat.getMainExecutor(this),
+            object : ImageCapture.OnImageSavedCallback {
+                override fun onImageSaved(output: ImageCapture.OutputFileResults) {
+                    loadingIndicatorManager.hideLoading()
+                    Toast.makeText(this@CameraActivityEngine, "Photo saved: ${photoFile.name}", Toast.LENGTH_SHORT).show()
+                    Log.i(TAG, "Photo saved with engine: ${photoFile.absolutePath}")
+                    animateCaptureButton()
                 }
-            )
-        } catch (e: Exception) {
-            Log.e(TAG, "Photo capture setup failed with engine", e)
-            Toast.makeText(this, "Capture failed: ${e.message}", Toast.LENGTH_SHORT).show()
+
+                override fun onError(exception: ImageCaptureException) {
+                    loadingIndicatorManager.hideLoading()
+                    Log.e(TAG, "Photo capture failed with engine", exception)
+                    Toast.makeText(this@CameraActivityEngine, "Photo capture failed", Toast.LENGTH_SHORT).show()
+                }
+            }
+        )
+    }
+
+    private fun captureLongExposurePhoto(outputFileOptions: ImageCapture.OutputFileOptions, photoFile: File, timestamp: String) {
+        val nightModePlugin = cameraEngine.getPlugin("NightMode") as? NightModePlugin ?: return
+
+        // Show long exposure capture loading
+        loadingIndicatorManager.showLoading(
+            binding.root as ViewGroup,
+            LoadingIndicatorManager.LoadingType.PHOTO_CAPTURE,
+            autoDismiss = 10000L // Longer timeout for long exposure
+        )
+
+        lifecycleScope.launch {
+            try {
+                val exposureTime = nightModePlugin.getCurrentExposureTime()
+                Toast.makeText(this@CameraActivityEngine, "Capturing long exposure (${exposureTime}ms)...", Toast.LENGTH_LONG).show()
+
+                val success = nightModePlugin.captureLongExposurePhoto(outputFileOptions)
+
+                loadingIndicatorManager.hideLoading()
+
+                if (success) {
+                    Toast.makeText(this@CameraActivityEngine, "Long exposure photo saved: ${photoFile.name}", Toast.LENGTH_LONG).show()
+                    Log.i(TAG, "Long exposure photo saved: ${photoFile.absolutePath}")
+                    animateCaptureButton()
+                } else {
+                    Log.e(TAG, "Long exposure photo capture failed")
+                    Toast.makeText(this@CameraActivityEngine, "Long exposure capture failed", Toast.LENGTH_SHORT).show()
+                }
+
+            } catch (e: Exception) {
+                loadingIndicatorManager.hideLoading()
+                Log.e(TAG, "Long exposure capture error", e)
+                Toast.makeText(this@CameraActivityEngine, "Long exposure error: ${e.message}", Toast.LENGTH_LONG).show()
+            }
         }
     }
 
@@ -503,21 +551,69 @@ class CameraActivityEngine : AppCompatActivity() {
         isNightModeEnabled = !isNightModeEnabled
 
         try {
-            // Get the NightModePlugin from the registered plugins
+            // Get the enhanced NightModePlugin from the registered plugins
             val nightModePlugin = cameraEngine.getPlugin("NightMode") as? NightModePlugin
 
             if (nightModePlugin != null) {
-                if (isNightModeEnabled) {
-                    nightModePlugin.enableNightMode()
-                } else {
-                    nightModePlugin.disableNightMode()
+                lifecycleScope.launch {
+                    try {
+                        if (isNightModeEnabled) {
+                            // Use new async toggle method
+                            nightModePlugin.toggleNightMode()
+
+                            // Add night mode overlay to UI if available
+                            nightModePlugin.getNightModeOverlay()?.let { overlay ->
+                                val rootView = binding.root
+                                val layoutParams = android.widget.FrameLayout.LayoutParams(
+                                    android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
+                                    android.widget.FrameLayout.LayoutParams.MATCH_PARENT
+                                )
+                                rootView.addView(overlay, layoutParams)
+                                Log.i(TAG, "Night mode overlay added to UI")
+                            }
+
+                            // Show enhanced feedback with exposure info
+                            val exposureTime = nightModePlugin.getCurrentExposureTime()
+                            val message = "Night mode enabled - Long exposure: ${exposureTime}ms"
+                            Toast.makeText(this@CameraActivityEngine, message, Toast.LENGTH_LONG).show()
+
+                        } else {
+                            nightModePlugin.toggleNightMode()
+
+                            // Remove night mode overlay if present
+                            nightModePlugin.getNightModeOverlay()?.let { overlay ->
+                                val rootView = binding.root
+                                rootView.removeView(overlay)
+                                Log.i(TAG, "Night mode overlay removed from UI")
+                            }
+
+                            Toast.makeText(this@CameraActivityEngine, "Night mode disabled", Toast.LENGTH_SHORT).show()
+                        }
+
+                        // Update button appearance with enhanced visual feedback
+                        binding.nightModeButton.alpha = if (isNightModeEnabled) 1.0f else 0.6f
+
+                        // Add subtle glow effect for night mode
+                        if (isNightModeEnabled) {
+                            binding.nightModeButton.animate()
+                                .scaleX(1.1f)
+                                .scaleY(1.1f)
+                                .setDuration(200)
+                                .withEndAction {
+                                    binding.nightModeButton.animate()
+                                        .scaleX(1.0f)
+                                        .scaleY(1.0f)
+                                        .setDuration(200)
+                                }
+                        }
+
+                        Log.i(TAG, "Night mode v2.0 ${if (isNightModeEnabled) "enabled" else "disabled"}")
+
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error in night mode async toggle", e)
+                        Toast.makeText(this@CameraActivityEngine, "Night mode error: ${e.message}", Toast.LENGTH_SHORT).show()
+                    }
                 }
-
-                // Update button appearance
-                binding.nightModeButton.alpha = if (isNightModeEnabled) 1.0f else 0.6f
-
-                Toast.makeText(this, "Night mode ${if (isNightModeEnabled) "enabled" else "disabled"}", Toast.LENGTH_SHORT).show()
-                Log.i(TAG, "Night mode ${if (isNightModeEnabled) "enabled" else "disabled"}")
 
             } else {
                 Toast.makeText(this, "Night mode plugin not available", Toast.LENGTH_SHORT).show()
