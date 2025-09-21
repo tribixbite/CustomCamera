@@ -33,7 +33,12 @@ class LoadingIndicatorManager(private val context: Context) {
         FOCUS_PROCESSING,
         HDR_PROCESSING,
         NIGHT_MODE,
-        BARCODE_SCAN
+        BARCODE_SCAN,
+        LONG_EXPOSURE,
+        PIP_SWITCHING,
+        CROP_PROCESSING,
+        UI_ENHANCEMENT,
+        PERFORMANCE_OPTIMIZATION
     }
 
     /**
@@ -205,6 +210,11 @@ class LoadingIndicatorManager(private val context: Context) {
             LoadingType.HDR_PROCESSING -> "HDR Processing"
             LoadingType.NIGHT_MODE -> "Night Mode"
             LoadingType.BARCODE_SCAN -> "Scanning"
+            LoadingType.LONG_EXPOSURE -> "Long Exposure"
+            LoadingType.PIP_SWITCHING -> "Switching Camera"
+            LoadingType.CROP_PROCESSING -> "Processing Crop"
+            LoadingType.UI_ENHANCEMENT -> "Enhancing UI"
+            LoadingType.PERFORMANCE_OPTIMIZATION -> "Optimizing"
         }
 
     private val LoadingType.subtitle: String
@@ -219,5 +229,10 @@ class LoadingIndicatorManager(private val context: Context) {
             LoadingType.HDR_PROCESSING -> "Combining exposures"
             LoadingType.NIGHT_MODE -> "Enhancing low-light image"
             LoadingType.BARCODE_SCAN -> "Detecting barcodes"
+            LoadingType.LONG_EXPOSURE -> "Capturing with extended exposure"
+            LoadingType.PIP_SWITCHING -> "Changing camera source"
+            LoadingType.CROP_PROCESSING -> "Applying crop settings"
+            LoadingType.UI_ENHANCEMENT -> "Improving user interface"
+            LoadingType.PERFORMANCE_OPTIMIZATION -> "Boosting performance"
         }
 }
