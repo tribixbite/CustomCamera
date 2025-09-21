@@ -12,6 +12,10 @@ import com.customcamera.app.databinding.ActivityMainBinding
 import com.customcamera.app.engine.DebugLogger
 import com.customcamera.app.engine.SettingsManager
 import kotlinx.coroutines.launch
+import com.customcamera.app.utils.AnimationUtils
+import com.customcamera.app.utils.AccessibilityUtils
+import androidx.core.view.ViewCompat
+import android.widget.TextView
 
 /**
  * Enhanced MainActivity providing professional app launch experience
@@ -36,17 +40,23 @@ class MainActivity : AppCompatActivity() {
 
         setupUI()
         setupClickListeners()
+        setupAccessibility()
         displayAppInfo()
 
         Log.i(TAG, "MainActivity setup complete")
     }
 
     private fun setupUI() {
-        // Set up fullscreen for modern app experience
-        window.decorView.systemUiVisibility = (
-            View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-            or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-        )
+        // Set up fullscreen for modern app experience using WindowInsetsController
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+            window.setDecorFitsSystemWindows(false)
+        } else {
+            @Suppress("DEPRECATION")
+            window.decorView.systemUiVisibility = (
+                View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+            )
+        }
 
         // Add app version to UI
         try {
@@ -62,34 +72,63 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupClickListeners() {
         // Primary camera button - go directly to camera selection
-        binding.openCameraButton.setOnClickListener {
-            Log.i(TAG, "Open Camera button clicked")
-            launchCameraSelection()
+        binding.openCameraButton.setOnClickListener { view ->
+            AnimationUtils.animateButtonPress(view) {
+                Log.i(TAG, "Open Camera button clicked")
+                launchCameraSelection()
+            }
         }
 
         // Quick camera button - skip selection, use default camera
-        binding.quickCameraButton.setOnClickListener {
-            Log.i(TAG, "Quick Camera button clicked")
-            launchCameraDirectly()
+        binding.quickCameraButton.setOnClickListener { view ->
+            AnimationUtils.animateButtonPress(view) {
+                Log.i(TAG, "Quick Camera button clicked")
+                launchCameraDirectly()
+            }
         }
 
         // Settings button
-        binding.settingsButton.setOnClickListener {
-            Log.i(TAG, "Settings button clicked")
-            launchSettings()
+        binding.settingsButton.setOnClickListener { view ->
+            AnimationUtils.animateButtonPress(view) {
+                Log.i(TAG, "Settings button clicked")
+                launchSettings()
+            }
         }
 
         // About button
-        binding.aboutButton.setOnClickListener {
-            Log.i(TAG, "About button clicked")
-            showAboutInfo()
+        binding.aboutButton.setOnClickListener { view ->
+            AnimationUtils.animateButtonPress(view) {
+                Log.i(TAG, "About button clicked")
+                showAboutInfo()
+            }
         }
 
         // Exit button
-        binding.exitButton.setOnClickListener {
-            Log.i(TAG, "Exit button clicked")
-            finish()
+        binding.exitButton.setOnClickListener { view ->
+            AnimationUtils.animateButtonPress(view) {
+                Log.i(TAG, "Exit button clicked")
+                finish()
+            }
         }
+    }
+
+    private fun setupAccessibility() {
+        // Set up navigation accessibility
+        AccessibilityUtils.setupNavigationAccessibility(binding.openCameraButton, "Camera Selection")
+        AccessibilityUtils.setupNavigationAccessibility(binding.quickCameraButton, "Quick Camera")
+        AccessibilityUtils.setupNavigationAccessibility(binding.settingsButton, "Settings")
+        AccessibilityUtils.setupNavigationAccessibility(binding.aboutButton, "About Information")
+
+        // Set up button hints - using content description since setAccessibilityHint not available
+        binding.openCameraButton.contentDescription = "Open Camera - Opens camera selection screen to choose between available cameras"
+        binding.quickCameraButton.contentDescription = "Quick Camera - Launches camera directly with default settings"
+        binding.settingsButton.contentDescription = "Settings - Opens camera settings and configuration"
+        binding.aboutButton.contentDescription = "About - Shows app information and current settings"
+        binding.exitButton.contentDescription = "Exit - Closes the app"
+
+        // Set up version text as informational
+        binding.versionText.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES
+        binding.versionText.contentDescription = "App version information"
     }
 
     private fun launchCameraSelection() {
@@ -131,8 +170,17 @@ class MainActivity : AppCompatActivity() {
             startActivity(intent)
             debugLogger.logInfo("Launched settings", mapOf("source" to "main_activity"))
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to launch settings", e)
-            Toast.makeText(this, "Settings not available", Toast.LENGTH_SHORT).show()
+            Log.e(TAG, "Failed to launch SettingsActivity", e)
+            // Fallback to simple settings
+            try {
+                val fallbackIntent = Intent(this, SimpleSettingsActivity::class.java)
+                startActivity(fallbackIntent)
+                Log.i(TAG, "Opened fallback simple settings from MainActivity")
+                debugLogger.logInfo("Launched fallback settings", mapOf("source" to "main_activity_fallback"))
+            } catch (e2: Exception) {
+                Log.e(TAG, "Even fallback settings failed from MainActivity", e2)
+                Toast.makeText(this, "Settings unavailable: ${e.message}", Toast.LENGTH_LONG).show()
+            }
         }
     }
 
