@@ -65,6 +65,9 @@ class DualCameraPiPPlugin : UIPlugin() {
 
         loadSettings(context)
 
+        // Auto-select appropriate PiP camera if default doesn't exist
+        validateAndFixCameraIndices()
+
         context.debugLogger.logPlugin(
             name,
             "initialized",
@@ -417,6 +420,48 @@ class DualCameraPiPPlugin : UIPlugin() {
         settings.setPluginSetting(name, "autoSwap", autoSwapOnSwitch.toString())
         settings.setPluginSetting(name, "opacity", pipOpacity.toString())
         settings.setPluginSetting(name, "snapToCorners", snapToCorners.toString())
+    }
+
+    /**
+     * Validate camera indices and fix them if invalid
+     */
+    private fun validateAndFixCameraIndices() {
+        val cameraEngine = cameraContext?.cameraEngine
+        if (cameraEngine == null) {
+            Log.w(TAG, "CameraEngine not available for camera validation")
+            return
+        }
+
+        val availableCameras = cameraEngine.availableCameras.value
+        val cameraCount = availableCameras.size
+
+        Log.i(TAG, "Validating camera indices. Available cameras: $cameraCount")
+
+        // If we don't have at least 2 cameras, PiP won't work
+        if (cameraCount < 2) {
+            Log.w(TAG, "Not enough cameras for PiP (need 2, found $cameraCount)")
+            _isPiPEnabled.value = false
+            return
+        }
+
+        // Validate main camera index
+        if (_mainCamera.value >= cameraCount || _mainCamera.value < 0) {
+            Log.w(TAG, "Invalid main camera index ${_mainCamera.value}, resetting to 0")
+            _mainCamera.value = 0
+        }
+
+        // Validate PiP camera index
+        if (_pipCamera.value >= cameraCount || _pipCamera.value < 0 || _pipCamera.value == _mainCamera.value) {
+            // Find the first available camera that's different from main
+            val newPipCamera = (0 until cameraCount).firstOrNull { it != _mainCamera.value } ?: 1
+            Log.w(TAG, "Invalid PiP camera index ${_pipCamera.value}, setting to $newPipCamera")
+            _pipCamera.value = newPipCamera
+        }
+
+        Log.i(TAG, "Camera validation complete: main=${_mainCamera.value}, pip=${_pipCamera.value}")
+
+        // Save the corrected values
+        cameraContext?.let { saveSettings() }
     }
 
     companion object {
