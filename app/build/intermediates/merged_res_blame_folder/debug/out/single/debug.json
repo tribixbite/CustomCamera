@@ -1,9 +1,5 @@
 [
     {
-        "merged": "com.customcamera.app-merged_res-44:/layout_loading_indicator.xml.flat",
-        "source": "com.customcamera.app-main-46:/layout/loading_indicator.xml"
-    },
-    {
         "merged": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-merged_res-44:/drawable_ic_loading_spinner.xml.flat",
         "source": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-main-46:/drawable/ic_loading_spinner.xml"
     },
@@ -20,6 +16,10 @@
         "source": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-main-46:/drawable/ic_info.xml"
     },
     {
+        "merged": "com.customcamera.app-merged_res-44:/drawable_ic_night_mode.xml.flat",
+        "source": "com.customcamera.app-main-46:/drawable/ic_night_mode.xml"
+    },
+    {
         "merged": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-merged_res-44:/layout_activity_camera.xml.flat",
         "source": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-main-46:/layout/activity_camera.xml"
     },
@@ -34,6 +34,14 @@
     {
         "merged": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-merged_res-44:/drawable_ic_flash_on.xml.flat",
         "source": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-main-46:/drawable/ic_flash_on.xml"
+    },
+    {
+        "merged": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-merged_res-44:/drawable_enhanced_capture_button.xml.flat",
+        "source": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-main-46:/drawable/enhanced_capture_button.xml"
+    },
+    {
+        "merged": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-merged_res-44:/drawable_loading_background.xml.flat",
+        "source": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-main-46:/drawable/loading_background.xml"
     },
     {
         "merged": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-merged_res-44:/drawable_ic_flash_off.xml.flat",
@@ -60,16 +68,16 @@
         "source": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-main-46:/drawable/ic_refresh.xml"
     },
     {
-        "merged": "com.customcamera.app-merged_res-44:/drawable_enhanced_button_background.xml.flat",
-        "source": "com.customcamera.app-main-46:/drawable/enhanced_button_background.xml"
-    },
-    {
         "merged": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-merged_res-44:/layout_activity_settings.xml.flat",
         "source": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-main-46:/layout/activity_settings.xml"
     },
     {
         "merged": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-merged_res-44:/anim_button_press.xml.flat",
         "source": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-main-46:/anim/button_press.xml"
+    },
+    {
+        "merged": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-merged_res-44:/drawable_enhanced_button_background.xml.flat",
+        "source": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-main-46:/drawable/enhanced_button_background.xml"
     },
     {
         "merged": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-merged_res-44:/drawable_ic_export.xml.flat",
@@ -80,8 +88,12 @@
         "source": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-main-46:/anim/slide_out_left.xml"
     },
     {
-        "merged": "com.customcamera.app-merged_res-44:/animator_button_press_scale.xml.flat",
-        "source": "com.customcamera.app-main-46:/animator/button_press_scale.xml"
+        "merged": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-merged_res-44:/layout_capture_progress_overlay.xml.flat",
+        "source": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-main-46:/layout/capture_progress_overlay.xml"
+    },
+    {
+        "merged": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-merged_res-44:/animator_capture_button_press.xml.flat",
+        "source": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-main-46:/animator/capture_button_press.xml"
     },
     {
         "merged": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-merged_res-44:/layout_item_settings_info.xml.flat",
@@ -96,6 +108,10 @@
         "source": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-main-46:/layout/item_settings_switch.xml"
     },
     {
+        "merged": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-merged_res-44:/animator_button_press_scale.xml.flat",
+        "source": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-main-46:/animator/button_press_scale.xml"
+    },
+    {
         "merged": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-merged_res-44:/layout_item_settings_header.xml.flat",
         "source": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-main-46:/layout/item_settings_header.xml"
     },
@@ -106,10 +122,6 @@
     {
         "merged": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-merged_res-44:/mipmap-hdpi_ic_launcher_round.xml.flat",
         "source": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-main-46:/mipmap-hdpi/ic_launcher_round.xml"
-    },
-    {
-        "merged": "com.customcamera.app-merged_res-44:/layout_capture_progress_overlay.xml.flat",
-        "source": "com.customcamera.app-main-46:/layout/capture_progress_overlay.xml"
     },
     {
         "merged": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-merged_res-44:/drawable_camera_control_background.xml.flat",
@@ -134,10 +146,6 @@
     {
         "merged": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-merged_res-44:/drawable_ic_extension.xml.flat",
         "source": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-main-46:/drawable/ic_extension.xml"
-    },
-    {
-        "merged": "com.customcamera.app-merged_res-44:/drawable_enhanced_capture_button.xml.flat",
-        "source": "com.customcamera.app-main-46:/drawable/enhanced_capture_button.xml"
     },
     {
         "merged": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-merged_res-44:/anim_button_release.xml.flat",
@@ -172,12 +180,12 @@
         "source": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-main-46:/layout/activity_main.xml"
     },
     {
-        "merged": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-merged_res-44:/drawable_ic_critical_error.xml.flat",
-        "source": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-main-46:/drawable/ic_critical_error.xml"
+        "merged": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-merged_res-44:/layout_loading_indicator.xml.flat",
+        "source": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-main-46:/layout/loading_indicator.xml"
     },
     {
-        "merged": "com.customcamera.app-merged_res-44:/animator_capture_button_press.xml.flat",
-        "source": "com.customcamera.app-main-46:/animator/capture_button_press.xml"
+        "merged": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-merged_res-44:/drawable_ic_critical_error.xml.flat",
+        "source": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-main-46:/drawable/ic_critical_error.xml"
     },
     {
         "merged": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-merged_res-44:/layout_item_settings_dropdown.xml.flat",
@@ -186,10 +194,6 @@
     {
         "merged": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-merged_res-44:/anim_slide_in_right.xml.flat",
         "source": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-main-46:/anim/slide_in_right.xml"
-    },
-    {
-        "merged": "com.customcamera.app-merged_res-44:/drawable_loading_background.xml.flat",
-        "source": "com.customcamera.app-main-46:/drawable/loading_background.xml"
     },
     {
         "merged": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-merged_res-44:/mipmap-hdpi_ic_launcher.xml.flat",

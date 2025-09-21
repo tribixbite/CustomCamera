@@ -4,10 +4,6 @@
         "source": "com.customcamera.app-main-46:/layout/activity_camera.xml"
     },
     {
-        "merged": "com.customcamera.app-mergeDebugResources-43:/layout/loading_indicator.xml",
-        "source": "com.customcamera.app-main-46:/layout/loading_indicator.xml"
-    },
-    {
         "merged": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-mergeDebugResources-43:/layout/activity_main.xml",
         "source": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-main-46:/layout/activity_main.xml"
     },
@@ -20,12 +16,12 @@
         "source": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-main-46:/layout/activity_camera.xml"
     },
     {
-        "merged": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-mergeDebugResources-43:/layout/item_settings_button.xml",
-        "source": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-main-46:/layout/item_settings_button.xml"
-    },
-    {
         "merged": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-mergeDebugResources-43:/layout/item_settings_info.xml",
         "source": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-main-46:/layout/item_settings_info.xml"
+    },
+    {
+        "merged": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-mergeDebugResources-43:/layout/item_settings_button.xml",
+        "source": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-main-46:/layout/item_settings_button.xml"
     },
     {
         "merged": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-mergeDebugResources-43:/layout/item_settings_slider.xml",
@@ -40,8 +36,8 @@
         "source": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-main-46:/layout/item_settings_dropdown.xml"
     },
     {
-        "merged": "com.customcamera.app-mergeDebugResources-43:/layout/capture_progress_overlay.xml",
-        "source": "com.customcamera.app-main-46:/layout/capture_progress_overlay.xml"
+        "merged": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-mergeDebugResources-43:/layout/loading_indicator.xml",
+        "source": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-main-46:/layout/loading_indicator.xml"
     },
     {
         "merged": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-mergeDebugResources-43:/layout/item_settings_switch.xml",
@@ -50,6 +46,10 @@
     {
         "merged": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-mergeDebugResources-43:/layout/activity_camera_selection.xml",
         "source": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-main-46:/layout/activity_camera_selection.xml"
+    },
+    {
+        "merged": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-mergeDebugResources-43:/layout/capture_progress_overlay.xml",
+        "source": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-main-46:/layout/capture_progress_overlay.xml"
     },
     {
         "merged": "/data/data/com.termux/files/home/.gradle/daemon/8.6/com.customcamera.app-mergeDebugResources-43:/layout/item_settings_text_input.xml",

@@ -3063,6 +3063,7 @@ drawable ic_mtrl_checked_circle
 drawable ic_mtrl_chip_checked_black
 drawable ic_mtrl_chip_checked_circle
 drawable ic_mtrl_chip_close_circle
+drawable ic_night_mode
 drawable ic_pip
 drawable ic_refresh
 drawable ic_search_black_24

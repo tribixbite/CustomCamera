@@ -66,7 +66,8 @@ class CameraEngine(
                 context = context,
                 cameraProvider = cameraProvider!!,
                 debugLogger = DebugLogger(),
-                settingsManager = SettingsManager(context)
+                settingsManager = SettingsManager(context),
+                cameraEngine = this
             )
             pluginManager.initialize(cameraContext)
 

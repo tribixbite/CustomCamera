@@ -1699,24 +1699,31 @@ class CameraActivityEngine : AppCompatActivity() {
     private fun toggleVideoRecording() {
         try {
             val plugin = advancedVideoRecordingPlugin
+            Log.i(TAG, "Toggling video recording, current state: ${plugin.isRecording.value}")
 
             if (plugin.isRecording.value) {
                 plugin.stopRecording()
                 Toast.makeText(this, "Video recording stopped", Toast.LENGTH_SHORT).show()
             } else {
+                // Check if video capture is available from engine
+                val videoCapture = cameraEngine.getVideoCapture()
+                Log.i(TAG, "Video capture from engine: $videoCapture")
+
                 lifecycleScope.launch {
                     val result = plugin.startRecording()
                     if (result.isSuccess) {
                         Toast.makeText(this@CameraActivityEngine, "Video recording started", Toast.LENGTH_SHORT).show()
                     } else {
-                        Toast.makeText(this@CameraActivityEngine, "Failed to start recording", Toast.LENGTH_SHORT).show()
+                        val error = result.exceptionOrNull()
+                        Log.e(TAG, "Video recording failed", error)
+                        Toast.makeText(this@CameraActivityEngine, "Failed to start recording: ${error?.message}", Toast.LENGTH_LONG).show()
                     }
                 }
             }
 
         } catch (e: Exception) {
             Log.e(TAG, "Error toggling video recording", e)
-            Toast.makeText(this, "Video toggle failed", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Video toggle failed: ${e.message}", Toast.LENGTH_LONG).show()
         }
     }
 

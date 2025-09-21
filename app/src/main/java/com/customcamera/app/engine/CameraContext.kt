@@ -11,5 +11,6 @@ data class CameraContext(
     val context: Context,
     val cameraProvider: ProcessCameraProvider,
     val debugLogger: DebugLogger,
-    val settingsManager: SettingsManager
+    val settingsManager: SettingsManager,
+    val cameraEngine: CameraEngine? = null
 )

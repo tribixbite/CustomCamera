@@ -54,6 +54,7 @@ drawable ic_focus
 drawable ic_gallery
 drawable ic_info
 drawable ic_loading_spinner
+drawable ic_night_mode
 drawable ic_pip
 drawable ic_refresh
 drawable ic_settings

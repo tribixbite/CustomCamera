@@ -1,0 +1,21 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="?attr/colorOnSurface">
+
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M12.08,2.17C11.17,2.06 10.23,2.06 9.32,2.17C7.91,2.35 6.59,2.93 5.47,3.83C5.47,3.83 7.89,5.06 10.5,8.5C13.11,11.94 14.34,14.36 14.34,14.36C15.24,13.24 15.82,11.92 16,10.51C16.11,9.6 16.11,8.66 16,7.75C15.58,4.32 13.51,2.59 12.08,2.17Z"/>
+
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M3.83,18.53C2.93,17.41 2.35,16.09 2.17,14.68C2.06,13.77 2.06,12.83 2.17,11.92C2.59,8.49 4.32,6.42 5.75,5.99C5.75,5.99 5.06,7.89 8.5,10.5C11.94,13.11 14.36,14.34 14.36,14.34C13.24,15.24 11.92,15.82 10.51,16C9.6,16.11 8.66,16.11 7.75,16C6.34,15.82 5.02,15.24 3.9,14.34C3.9,14.34 3.83,18.53 3.83,18.53Z"/>
+
+    <!-- Crescent moon shape -->
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M21,12.79A9,9 0,1 1,11.21 3,7 7,0 0,0 21,12.79Z"/>
+
+</vector>

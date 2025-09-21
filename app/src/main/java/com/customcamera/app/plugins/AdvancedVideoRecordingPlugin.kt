@@ -118,8 +118,9 @@ class AdvancedVideoRecordingPlugin : UIPlugin() {
         }
 
         return try {
-            val videoCapture = this.videoCapture ?: return Result.failure(
-                IllegalStateException("Video capture not initialized")
+            // Get VideoCapture from camera engine instead of plugin's own instance
+            val videoCapture = cameraContext?.cameraEngine?.getVideoCapture() ?: return Result.failure(
+                IllegalStateException("Video capture not available from camera engine")
             )
 
             val outputFile = createVideoFile()
