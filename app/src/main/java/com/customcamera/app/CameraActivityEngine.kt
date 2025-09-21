@@ -313,7 +313,7 @@ class CameraActivityEngine : AppCompatActivity() {
             val photoFile = File(filesDir, "CAMERA_ENGINE_$timestamp.jpg")
 
             // Capture metadata for this photo
-            val metadata = capturePhotoMetadata(timestamp)
+            // val metadata = capturePhotoMetadata(timestamp)
 
             val outputFileOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
 
@@ -440,12 +440,20 @@ class CameraActivityEngine : AppCompatActivity() {
 
     private fun openFullSettings() {
         try {
-            val intent = Intent(this, SimpleSettingsActivity::class.java)
+            val intent = Intent(this, SettingsActivity::class.java)
             startActivity(intent)
             Log.i(TAG, "Opened full settings page")
         } catch (e: Exception) {
             Log.e(TAG, "Failed to open full settings", e)
-            Toast.makeText(this, "Settings error: ${e.message}", Toast.LENGTH_SHORT).show()
+            // Fallback to simple settings
+            try {
+                val fallbackIntent = Intent(this, SimpleSettingsActivity::class.java)
+                startActivity(fallbackIntent)
+                Log.i(TAG, "Opened fallback simple settings")
+            } catch (e2: Exception) {
+                Log.e(TAG, "Even fallback settings failed", e2)
+                Toast.makeText(this, "Settings error: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
@@ -490,7 +498,7 @@ class CameraActivityEngine : AppCompatActivity() {
                     histogramView = com.customcamera.app.analysis.HistogramView(this)
 
                     // Add to camera layout
-                    val rootView = binding.root as android.widget.FrameLayout
+                    val rootView = binding.root
                     val layoutParams = android.widget.FrameLayout.LayoutParams(
                         400, // Fixed width
                         200  // Fixed height
@@ -797,7 +805,7 @@ class CameraActivityEngine : AppCompatActivity() {
                 manualControlsPanel!!.addView(hyperfocalText)
 
                 // Add to camera layout
-                val rootView = binding.root as android.widget.FrameLayout
+                val rootView = binding.root
                 val layoutParams = android.widget.FrameLayout.LayoutParams(
                     android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
                     android.widget.FrameLayout.LayoutParams.WRAP_CONTENT
@@ -897,7 +905,7 @@ class CameraActivityEngine : AppCompatActivity() {
                         if (barcodeOverlayView == null) {
                             barcodeOverlayView = com.customcamera.app.barcode.BarcodeOverlayView(this@CameraActivityEngine)
 
-                            val rootView = binding.root as android.widget.FrameLayout
+                            val rootView = binding.root
                             val layoutParams = android.widget.FrameLayout.LayoutParams(
                                 android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
                                 android.widget.FrameLayout.LayoutParams.MATCH_PARENT
@@ -916,7 +924,7 @@ class CameraActivityEngine : AppCompatActivity() {
                     // Disable overlay and clear detections
                     barcodeOverlayView?.setOverlayEnabled(false)
                     barcodeOverlayView?.let { overlay ->
-                        val rootView = binding.root as android.widget.FrameLayout
+                        val rootView = binding.root
                         rootView.removeView(overlay)
                         barcodeOverlayView = null
                     }
@@ -1056,7 +1064,8 @@ class CameraActivityEngine : AppCompatActivity() {
             scaleGestureDetector = ScaleGestureDetector(this, object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
                 override fun onScale(detector: ScaleGestureDetector): Boolean {
                     val scaleFactor = detector.scaleFactor
-                    val camera = cameraEngine.getCurrentCamera()
+                    // Get current camera for video recording
+            val camera = cameraEngine.getCurrentCamera()
 
                     if (camera != null && zoomController != null) {
                         val zoomApplied = zoomController!!.processPinchGesture(scaleFactor, camera)
@@ -1079,7 +1088,7 @@ class CameraActivityEngine : AppCompatActivity() {
             })
 
             // Add touch listener to preview view for pinch gestures
-            binding.previewView.setOnTouchListener { view, event ->
+            binding.previewView.setOnTouchListener { _, event ->
                 scaleGestureDetector?.onTouchEvent(event) ?: false
 
                 // Also handle tap gestures (existing functionality)
@@ -1134,7 +1143,7 @@ class CameraActivityEngine : AppCompatActivity() {
                     gravity = android.view.Gravity.CENTER
                 }
 
-                val rootView = binding.root as android.widget.FrameLayout
+                val rootView = binding.root
                 val layoutParams = android.widget.FrameLayout.LayoutParams(
                     android.widget.FrameLayout.LayoutParams.WRAP_CONTENT,
                     android.widget.FrameLayout.LayoutParams.WRAP_CONTENT
@@ -1220,7 +1229,7 @@ class CameraActivityEngine : AppCompatActivity() {
                 if (focusPeakingOverlay == null) {
                     focusPeakingOverlay = com.customcamera.app.focus.FocusPeakingOverlay(this)
 
-                    val rootView = binding.root as android.widget.FrameLayout
+                    val rootView = binding.root
                     val layoutParams = android.widget.FrameLayout.LayoutParams(
                         android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
                         android.widget.FrameLayout.LayoutParams.MATCH_PARENT
@@ -1287,7 +1296,7 @@ class CameraActivityEngine : AppCompatActivity() {
                     gravity = android.view.Gravity.CENTER
                 }
 
-                val rootView = binding.root as android.widget.FrameLayout
+                val rootView = binding.root
                 val layoutParams = android.widget.FrameLayout.LayoutParams(
                     android.widget.FrameLayout.LayoutParams.WRAP_CONTENT,
                     android.widget.FrameLayout.LayoutParams.WRAP_CONTENT
@@ -1315,7 +1324,8 @@ class CameraActivityEngine : AppCompatActivity() {
     private fun capturePhotoMetadata(timestamp: String): com.customcamera.app.gallery.PhotoMetadata {
         return try {
             // Get current camera settings
-            val camera = cameraEngine.getCurrentCamera()
+            // Get current camera for video recording
+            // val camera = cameraEngine.getCurrentCamera()
             val exposurePlugin = cameraEngine.getPlugin("ExposureControl") as? ExposureControlPlugin
 
             val exposureSettings = com.customcamera.app.gallery.ExposureSettings(
@@ -1437,7 +1447,7 @@ class CameraActivityEngine : AppCompatActivity() {
                 val gridView = com.customcamera.app.plugins.GridOverlayView(this)
 
                 // Add grid overlay on top of preview
-                val rootView = binding.root as android.widget.FrameLayout
+                val rootView = binding.root
                 val layoutParams = android.widget.FrameLayout.LayoutParams(
                     android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
                     android.widget.FrameLayout.LayoutParams.MATCH_PARENT
@@ -1488,7 +1498,7 @@ class CameraActivityEngine : AppCompatActivity() {
                 barcodeOverlayView = com.customcamera.app.barcode.BarcodeOverlayView(this)
 
                 // Add barcode overlay on top of preview
-                val rootView = binding.root as android.widget.FrameLayout
+                val rootView = binding.root
                 val layoutParams = android.widget.FrameLayout.LayoutParams(
                     android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
                     android.widget.FrameLayout.LayoutParams.MATCH_PARENT
@@ -1509,7 +1519,7 @@ class CameraActivityEngine : AppCompatActivity() {
     private fun clearBarcodeOverlay() {
         try {
             barcodeOverlayView?.let { overlay ->
-                val rootView = binding.root as android.widget.FrameLayout
+                val rootView = binding.root
                 rootView.removeView(overlay)
                 barcodeOverlayView = null
                 Log.i(TAG, "Barcode overlay removed from camera UI")
@@ -1606,7 +1616,8 @@ class CameraActivityEngine : AppCompatActivity() {
         try {
             // Check if video recording should be enabled from settings
             val settingsManager = com.customcamera.app.engine.SettingsManager(this)
-            val videoEnabled = settingsManager.isPluginEnabled("AdvancedVideoRecording")
+            // Check if video recording is enabled in settings
+            // val videoEnabled = settingsManager.isPluginEnabled("AdvancedVideoRecording")
 
             // The video controls overlay is created automatically by the plugin's createUIView method
             // and will be added to the camera layout by the plugin system
