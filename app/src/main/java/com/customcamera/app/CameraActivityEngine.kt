@@ -70,6 +70,7 @@ class CameraActivityEngine : AppCompatActivity() {
     private lateinit var cameraInfoPlugin: CameraInfoPlugin
     private lateinit var proControlsPlugin: ProControlsPlugin
     private lateinit var exposureControlPlugin: ExposureControlPlugin
+    private lateinit var cropPlugin: CropPlugin
     private lateinit var dualCameraPiPPlugin: DualCameraPiPPlugin
     private lateinit var advancedVideoRecordingPlugin: AdvancedVideoRecordingPlugin
 
@@ -171,7 +172,10 @@ class CameraActivityEngine : AppCompatActivity() {
                 } else if (tapCount == 2) {
                     // Triple tap - toggle barcode scanning
                     toggleBarcodeScanning()
-                    tapCount = 0
+                } else if (tapCount == 3) {
+                    // Quadruple tap - toggle crop mode
+                    toggleCrop()
+                    tapCount = 0 // Reset after quadruple tap
                 }
             } else {
                 tapCount = 0
@@ -224,7 +228,7 @@ class CameraActivityEngine : AppCompatActivity() {
         val qrScannerPlugin = QRScannerPlugin()
         cameraEngine.registerPlugin(qrScannerPlugin)
 
-        val cropPlugin = CropPlugin()
+        cropPlugin = CropPlugin()
         cameraEngine.registerPlugin(cropPlugin)
 
         val nightModePlugin = NightModePlugin()
@@ -965,6 +969,32 @@ class CameraActivityEngine : AppCompatActivity() {
             } catch (e: Exception) {
                 Log.e(TAG, "Error toggling grid", e)
             }
+        }
+    }
+
+    private fun toggleCrop() {
+        try {
+            // Toggle crop mode
+            if (cropPlugin.isEnabled) {
+                cropPlugin.disableCrop()
+                Toast.makeText(
+                    this,
+                    "Crop mode disabled",
+                    Toast.LENGTH_SHORT
+                ).show()
+                Log.i(TAG, "Crop mode disabled")
+            } else {
+                cropPlugin.enableCrop()
+                Toast.makeText(
+                    this,
+                    "Crop mode enabled - drag to adjust crop area",
+                    Toast.LENGTH_LONG
+                ).show()
+                Log.i(TAG, "Crop mode enabled")
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error toggling crop", e)
+            Toast.makeText(this, "Crop toggle failed", Toast.LENGTH_SHORT).show()
         }
     }
 
