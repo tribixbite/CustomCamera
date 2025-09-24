@@ -487,7 +487,7 @@ class SensorFusionManager(
         }
     }
 
-    private fun calculateStabilization(): StabilizationData {
+    fun calculateStabilization(): StabilizationData {
         // Calculate stabilization parameters from motion data
         if (motionDataBuffer.isEmpty()) {
             return StabilizationData(
