@@ -367,6 +367,136 @@ class SettingsActivity : AppCompatActivity() {
                 )
             )
         )
+
+        // Pixel Camera App Settings Section
+        settingsSections.add(
+            SettingsSection(
+                title = "Pixel Camera Style",
+                icon = R.drawable.ic_camera,
+                settings = listOf(
+                    SettingsItem.Switch(
+                        key = "pixel_ui_style",
+                        title = "Pixel UI Style",
+                        description = "Use Google Pixel camera interface design",
+                        isChecked = settingsManager.getPluginSetting("PixelCamera", "enablePixelUI", "false").toBoolean()
+                    ),
+                    SettingsItem.Switch(
+                        key = "pixel_computational_photography",
+                        title = "Computational Photography",
+                        description = "Enable Pixel-style HDR+ and Night Sight features",
+                        isChecked = settingsManager.getPluginSetting("PixelCamera", "enableComputationalPhoto", "false").toBoolean()
+                    ),
+                    SettingsItem.Switch(
+                        key = "pixel_portrait_mode",
+                        title = "Pixel Portrait Mode",
+                        description = "Advanced depth-based background blur like Pixel cameras",
+                        isChecked = settingsManager.getPluginSetting("PixelCamera", "enablePortraitMode", "false").toBoolean()
+                    ),
+                    SettingsItem.Switch(
+                        key = "pixel_night_sight",
+                        title = "Night Sight",
+                        description = "Pixel-style low-light photography enhancement",
+                        isChecked = settingsManager.getPluginSetting("PixelCamera", "enableNightSight", "false").toBoolean()
+                    ),
+                    SettingsItem.Switch(
+                        key = "pixel_motion_photos",
+                        title = "Motion Photos",
+                        description = "Capture short videos with still photos (Live Photos)",
+                        isChecked = settingsManager.getPluginSetting("PixelCamera", "enableMotionPhotos", "false").toBoolean()
+                    ),
+                    SettingsItem.Switch(
+                        key = "pixel_top_shot",
+                        title = "Top Shot",
+                        description = "AI-powered best shot selection from multiple frames",
+                        isChecked = settingsManager.getPluginSetting("PixelCamera", "enableTopShot", "false").toBoolean()
+                    ),
+                    SettingsItem.Dropdown(
+                        key = "pixel_photo_format",
+                        title = "Photo Format",
+                        description = "Default photo storage format",
+                        options = listOf(
+                            "JPEG" to "jpeg",
+                            "HEIF" to "heif",
+                            "RAW + JPEG" to "raw_jpeg"
+                        ),
+                        currentValue = settingsManager.getPluginSetting("PixelCamera", "photoFormat", "jpeg")
+                    )
+                )
+            )
+        )
+
+        // Samsung Camera App Settings Section
+        settingsSections.add(
+            SettingsSection(
+                title = "Samsung Camera Style",
+                icon = R.drawable.ic_camera,
+                settings = listOf(
+                    SettingsItem.Switch(
+                        key = "samsung_ui_style",
+                        title = "Samsung One UI Style",
+                        description = "Use Samsung Galaxy camera interface design",
+                        isChecked = settingsManager.getPluginSetting("SamsungCamera", "enableSamsungUI", "false").toBoolean()
+                    ),
+                    SettingsItem.Switch(
+                        key = "samsung_single_take",
+                        title = "Single Take",
+                        description = "Capture multiple photos and videos with AI selection",
+                        isChecked = settingsManager.getPluginSetting("SamsungCamera", "enableSingleTake", "false").toBoolean()
+                    ),
+                    SettingsItem.Switch(
+                        key = "samsung_scene_optimizer",
+                        title = "Scene Optimizer",
+                        description = "AI-powered scene detection and optimization",
+                        isChecked = settingsManager.getPluginSetting("SamsungCamera", "enableSceneOptimizer", "false").toBoolean()
+                    ),
+                    SettingsItem.Switch(
+                        key = "samsung_super_resolution",
+                        title = "Super Resolution",
+                        description = "AI upscaling for enhanced image quality",
+                        isChecked = settingsManager.getPluginSetting("SamsungCamera", "enableSuperResolution", "false").toBoolean()
+                    ),
+                    SettingsItem.Switch(
+                        key = "samsung_pro_mode",
+                        title = "Pro Mode",
+                        description = "Professional manual controls with histogram",
+                        isChecked = settingsManager.getPluginSetting("SamsungCamera", "enableProMode", "false").toBoolean()
+                    ),
+                    SettingsItem.Switch(
+                        key = "samsung_director_view",
+                        title = "Director's View",
+                        description = "Multi-camera recording with dual preview",
+                        isChecked = settingsManager.getPluginSetting("SamsungCamera", "enableDirectorView", "false").toBoolean()
+                    ),
+                    SettingsItem.Switch(
+                        key = "samsung_food_mode",
+                        title = "Food Mode",
+                        description = "Specialized food photography with color enhancement",
+                        isChecked = settingsManager.getPluginSetting("SamsungCamera", "enableFoodMode", "false").toBoolean()
+                    ),
+                    SettingsItem.Dropdown(
+                        key = "samsung_shooting_methods",
+                        title = "Shooting Methods",
+                        description = "Alternative capture methods",
+                        options = listOf(
+                            "Tap Shutter" to "tap",
+                            "Palm Gesture" to "palm",
+                            "Voice Commands" to "voice",
+                            "Volume Keys" to "volume",
+                            "Floating Shutter" to "floating"
+                        ),
+                        currentValue = settingsManager.getPluginSetting("SamsungCamera", "shootingMethod", "tap")
+                    ),
+                    SettingsItem.Slider(
+                        key = "samsung_beauty_level",
+                        title = "Beauty Level",
+                        description = "Face beautification intensity (0-10)",
+                        min = 0,
+                        max = 10,
+                        currentValue = settingsManager.getPluginSetting("SamsungCamera", "beautyLevel", "0").toInt()
+                    )
+                )
+            )
+        )
     }
 
     private fun handleSettingChange(setting: SettingsItem, value: Any) {
@@ -468,6 +598,58 @@ class SettingsActivity : AppCompatActivity() {
             }
             "plugin_exposurecontrol" -> {
                 settingsManager.setPluginEnabled("ExposureControl", value as Boolean)
+            }
+
+            // Pixel Camera Settings
+            "pixel_ui_style" -> {
+                settingsManager.setPluginSetting("PixelCamera", "enablePixelUI", value.toString())
+            }
+            "pixel_computational_photography" -> {
+                settingsManager.setPluginSetting("PixelCamera", "enableComputationalPhoto", value.toString())
+            }
+            "pixel_portrait_mode" -> {
+                settingsManager.setPluginSetting("PixelCamera", "enablePortraitMode", value.toString())
+            }
+            "pixel_night_sight" -> {
+                settingsManager.setPluginSetting("PixelCamera", "enableNightSight", value.toString())
+            }
+            "pixel_motion_photos" -> {
+                settingsManager.setPluginSetting("PixelCamera", "enableMotionPhotos", value.toString())
+            }
+            "pixel_top_shot" -> {
+                settingsManager.setPluginSetting("PixelCamera", "enableTopShot", value.toString())
+            }
+            "pixel_photo_format" -> {
+                settingsManager.setPluginSetting("PixelCamera", "photoFormat", value as String)
+            }
+
+            // Samsung Camera Settings
+            "samsung_ui_style" -> {
+                settingsManager.setPluginSetting("SamsungCamera", "enableSamsungUI", value.toString())
+            }
+            "samsung_single_take" -> {
+                settingsManager.setPluginSetting("SamsungCamera", "enableSingleTake", value.toString())
+            }
+            "samsung_scene_optimizer" -> {
+                settingsManager.setPluginSetting("SamsungCamera", "enableSceneOptimizer", value.toString())
+            }
+            "samsung_super_resolution" -> {
+                settingsManager.setPluginSetting("SamsungCamera", "enableSuperResolution", value.toString())
+            }
+            "samsung_pro_mode" -> {
+                settingsManager.setPluginSetting("SamsungCamera", "enableProMode", value.toString())
+            }
+            "samsung_director_view" -> {
+                settingsManager.setPluginSetting("SamsungCamera", "enableDirectorView", value.toString())
+            }
+            "samsung_food_mode" -> {
+                settingsManager.setPluginSetting("SamsungCamera", "enableFoodMode", value.toString())
+            }
+            "samsung_shooting_methods" -> {
+                settingsManager.setPluginSetting("SamsungCamera", "shootingMethod", value as String)
+            }
+            "samsung_beauty_level" -> {
+                settingsManager.setPluginSetting("SamsungCamera", "beautyLevel", value.toString())
             }
 
             else -> {
