@@ -178,28 +178,48 @@ class CameraActivityEngine : AppCompatActivity() {
         setupEnhancedButton(binding.barcodeToggleButton) { toggleBarcodeScanning() }
         setupEnhancedButton(binding.manualControlsToggleButton) { toggleManualControls() }
 
-        // Add gesture controls for features
+        // Add gesture controls for features including AI
         var lastTapTime = 0L
         var tapCount = 0
         binding.previewView.setOnClickListener {
             val currentTime = System.currentTimeMillis()
             if (currentTime - lastTapTime < 300) {
                 tapCount++
-                if (tapCount == 1) {
-                    // Double tap - toggle grid
-                    toggleGrid()
-                } else if (tapCount == 2) {
-                    // Triple tap - toggle barcode scanning
-                    toggleBarcodeScanning()
-                } else if (tapCount == 3) {
-                    // Quadruple tap - toggle crop mode
-                    toggleCrop()
-                    tapCount = 0 // Reset after quadruple tap
+                when (tapCount) {
+                    1 -> {
+                        // Double tap - toggle grid
+                        toggleGrid()
+                    }
+                    2 -> {
+                        // Triple tap - toggle barcode scanning
+                        toggleBarcodeScanning()
+                    }
+                    3 -> {
+                        // Quadruple tap - toggle crop mode
+                        toggleCrop()
+                    }
+                    4 -> {
+                        // Five-tap - toggle smart scene detection
+                        toggleSmartSceneDetection()
+                    }
+                    5 -> {
+                        // Six-tap - toggle object detection
+                        toggleObjectDetection()
+                        tapCount = 0 // Reset after six-tap
+                    }
+                    else -> tapCount = 0
                 }
             } else {
                 tapCount = 0
             }
             lastTapTime = currentTime
+        }
+
+        // Long press for AI features status
+        binding.previewView.setOnLongClickListener {
+            performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+            showAIFeaturesStatus()
+            true
         }
 
         Log.i(TAG, "✅ UI setup complete with advanced controls")
@@ -246,6 +266,19 @@ class CameraActivityEngine : AppCompatActivity() {
 
         val qrScannerPlugin = QRScannerPlugin()
         cameraEngine.registerPlugin(qrScannerPlugin)
+
+        // Add Phase 8G AI-Powered Camera Features
+        val smartScenePlugin = SmartScenePlugin()
+        cameraEngine.registerPlugin(smartScenePlugin)
+
+        val objectDetectionPlugin = ObjectDetectionPlugin()
+        cameraEngine.registerPlugin(objectDetectionPlugin)
+
+        val smartAdjustmentsPlugin = SmartAdjustmentsPlugin()
+        cameraEngine.registerPlugin(smartAdjustmentsPlugin)
+
+        val motionDetectionPlugin = MotionDetectionPlugin()
+        cameraEngine.registerPlugin(motionDetectionPlugin)
 
         cropPlugin = CropPlugin()
         cameraEngine.registerPlugin(cropPlugin)
@@ -1935,6 +1968,247 @@ class CameraActivityEngine : AppCompatActivity() {
             )
         } catch (e: Exception) {
             Log.w(TAG, "Haptic feedback not available", e)
+        }
+    }
+
+    // ========== AI-POWERED CAMERA FEATURES (Phase 8G) ==========
+
+    /**
+     * Toggle smart scene detection
+     */
+    private fun toggleSmartSceneDetection() {
+        try {
+            val smartScenePlugin = cameraEngine.getPlugin("SmartScene") as? SmartScenePlugin
+            if (smartScenePlugin != null) {
+                val currentState = smartScenePlugin.getCurrentSceneInfo()["detectionEnabled"] as? Boolean ?: false
+                smartScenePlugin.setSceneDetectionEnabled(!currentState)
+
+                val message = if (!currentState) "Smart scene detection enabled" else "Smart scene detection disabled"
+                Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+                Log.i(TAG, message)
+
+                // Haptic feedback
+                performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+            } else {
+                Toast.makeText(this, "Smart scene detection not available", Toast.LENGTH_SHORT).show()
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error toggling smart scene detection", e)
+            Toast.makeText(this, "Smart scene detection error: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    /**
+     * Toggle object detection
+     */
+    private fun toggleObjectDetection() {
+        try {
+            val objectDetectionPlugin = cameraEngine.getPlugin("ObjectDetection") as? ObjectDetectionPlugin
+            if (objectDetectionPlugin != null) {
+                val isEnabled = objectDetectionPlugin.toggleObjectDetection()
+
+                val message = if (isEnabled) "Object detection enabled" else "Object detection disabled"
+                Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+                Log.i(TAG, message)
+
+                // Haptic feedback
+                performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+            } else {
+                Toast.makeText(this, "Object detection not available", Toast.LENGTH_SHORT).show()
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error toggling object detection", e)
+            Toast.makeText(this, "Object detection error: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    /**
+     * Toggle smart camera adjustments
+     */
+    private fun toggleSmartAdjustments() {
+        try {
+            val smartAdjustmentsPlugin = cameraEngine.getPlugin("SmartAdjustments") as? SmartAdjustmentsPlugin
+            if (smartAdjustmentsPlugin != null) {
+                val currentSettings = smartAdjustmentsPlugin.getCurrentSettings()
+                val isEnabled = currentSettings["smartAdjustmentsEnabled"] as? Boolean ?: false
+                smartAdjustmentsPlugin.setSmartAdjustmentsEnabled(!isEnabled)
+
+                val message = if (!isEnabled) "Smart adjustments enabled" else "Smart adjustments disabled"
+                Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+                Log.i(TAG, message)
+
+                // Haptic feedback
+                performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+            } else {
+                Toast.makeText(this, "Smart adjustments not available", Toast.LENGTH_SHORT).show()
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error toggling smart adjustments", e)
+            Toast.makeText(this, "Smart adjustments error: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    /**
+     * Toggle motion detection and smart capture
+     */
+    private fun toggleMotionDetection() {
+        try {
+            val motionDetectionPlugin = cameraEngine.getPlugin("MotionDetection") as? MotionDetectionPlugin
+            if (motionDetectionPlugin != null) {
+                val motionStats = motionDetectionPlugin.getMotionStats()
+                val isEnabled = motionStats["motionDetectionEnabled"] as? Boolean ?: false
+                motionDetectionPlugin.setMotionDetectionEnabled(!isEnabled)
+
+                val message = if (!isEnabled) "Motion detection enabled" else "Motion detection disabled"
+                Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+                Log.i(TAG, message)
+
+                // Haptic feedback
+                performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+            } else {
+                Toast.makeText(this, "Motion detection not available", Toast.LENGTH_SHORT).show()
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error toggling motion detection", e)
+            Toast.makeText(this, "Motion detection error: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    /**
+     * Show AI features status
+     */
+    private fun showAIFeaturesStatus() {
+        try {
+            val statusBuilder = StringBuilder("AI Features Status:\n\n")
+
+            // Smart Scene Detection
+            val smartScenePlugin = cameraEngine.getPlugin("SmartScene") as? SmartScenePlugin
+            if (smartScenePlugin != null) {
+                val sceneInfo = smartScenePlugin.getCurrentSceneInfo()
+                val isEnabled = sceneInfo["detectionEnabled"] as? Boolean ?: false
+                val currentScene = sceneInfo["currentScene"] as? String ?: "Unknown"
+                val confidence = sceneInfo["confidence"] as? Float ?: 0.0f
+                statusBuilder.append("🎬 Scene Detection: ${if (isEnabled) "ON" else "OFF"}\n")
+                statusBuilder.append("   Current Scene: $currentScene (${String.format("%.1f", confidence * 100)}%)\n\n")
+            }
+
+            // Object Detection
+            val objectDetectionPlugin = cameraEngine.getPlugin("ObjectDetection") as? ObjectDetectionPlugin
+            if (objectDetectionPlugin != null) {
+                val detectionStats = objectDetectionPlugin.getDetectionStats()
+                val isEnabled = detectionStats["objectDetectionEnabled"] as? Boolean ?: false
+                val currentDetections = detectionStats["currentDetections"] as? Int ?: 0
+                statusBuilder.append("📦 Object Detection: ${if (isEnabled) "ON" else "OFF"}\n")
+                statusBuilder.append("   Objects Detected: $currentDetections\n\n")
+            }
+
+            // Smart Adjustments
+            val smartAdjustmentsPlugin = cameraEngine.getPlugin("SmartAdjustments") as? SmartAdjustmentsPlugin
+            if (smartAdjustmentsPlugin != null) {
+                val settings = smartAdjustmentsPlugin.getCurrentSettings()
+                val isEnabled = settings["smartAdjustmentsEnabled"] as? Boolean ?: false
+                val exposureLevel = settings["exposureLevel"] as? Float ?: 0.0f
+                val whiteBalanceTemp = settings["whiteBalanceTemp"] as? Int ?: 5500
+                statusBuilder.append("⚙️ Smart Adjustments: ${if (isEnabled) "ON" else "OFF"}\n")
+                statusBuilder.append("   Exposure: ${String.format("%.1f", exposureLevel)} EV\n")
+                statusBuilder.append("   White Balance: ${whiteBalanceTemp}K\n\n")
+            }
+
+            // Motion Detection
+            val motionDetectionPlugin = cameraEngine.getPlugin("MotionDetection") as? MotionDetectionPlugin
+            if (motionDetectionPlugin != null) {
+                val motionStats = motionDetectionPlugin.getMotionStats()
+                val isEnabled = motionStats["motionDetectionEnabled"] as? Boolean ?: false
+                val motionLevel = motionStats["currentMotionLevel"] as? Float ?: 0.0f
+                val isStill = motionStats["isSubjectStill"] as? Boolean ?: false
+                statusBuilder.append("🏃 Motion Detection: ${if (isEnabled) "ON" else "OFF"}\n")
+                statusBuilder.append("   Motion Level: ${String.format("%.2f", motionLevel)}\n")
+                statusBuilder.append("   Subject: ${if (isStill) "Still" else "Moving"}\n")
+            }
+
+            // Show status dialog
+            val statusText = statusBuilder.toString()
+            android.app.AlertDialog.Builder(this)
+                .setTitle("AI Features Status")
+                .setMessage(statusText)
+                .setPositiveButton("OK", null)
+                .setNeutralButton("Toggle All") { _, _ ->
+                    toggleAllAIFeatures()
+                }
+                .show()
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Error showing AI features status", e)
+            Toast.makeText(this, "AI features status error: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    /**
+     * Toggle all AI features at once
+     */
+    private fun toggleAllAIFeatures() {
+        lifecycleScope.launch {
+            try {
+                // Check if any AI feature is enabled
+                val smartScenePlugin = cameraEngine.getPlugin("SmartScene") as? SmartScenePlugin
+                val objectDetectionPlugin = cameraEngine.getPlugin("ObjectDetection") as? ObjectDetectionPlugin
+                val smartAdjustmentsPlugin = cameraEngine.getPlugin("SmartAdjustments") as? SmartAdjustmentsPlugin
+                val motionDetectionPlugin = cameraEngine.getPlugin("MotionDetection") as? MotionDetectionPlugin
+
+                val anyEnabled = listOf(
+                    smartScenePlugin?.getCurrentSceneInfo()?.get("detectionEnabled") as? Boolean ?: false,
+                    objectDetectionPlugin?.getDetectionStats()?.get("objectDetectionEnabled") as? Boolean ?: false,
+                    smartAdjustmentsPlugin?.getCurrentSettings()?.get("smartAdjustmentsEnabled") as? Boolean ?: false,
+                    motionDetectionPlugin?.getMotionStats()?.get("motionDetectionEnabled") as? Boolean ?: false
+                ).any { it }
+
+                val newState = !anyEnabled
+
+                // Toggle all AI features to the new state
+                smartScenePlugin?.setSceneDetectionEnabled(newState)
+                objectDetectionPlugin?.setObjectDetectionEnabled(newState)
+                smartAdjustmentsPlugin?.setSmartAdjustmentsEnabled(newState)
+                motionDetectionPlugin?.setMotionDetectionEnabled(newState)
+
+                val message = if (newState) "All AI features enabled" else "All AI features disabled"
+                Toast.makeText(this@CameraActivityEngine, message, Toast.LENGTH_LONG).show()
+                Log.i(TAG, message)
+
+                // Enhanced haptic feedback for bulk operation
+                performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+
+            } catch (e: Exception) {
+                Log.e(TAG, "Error toggling all AI features", e)
+                Toast.makeText(this@CameraActivityEngine, "AI features toggle error: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    /**
+     * Apply scene-specific smart adjustments
+     */
+    private fun applySceneOptimizations() {
+        try {
+            val smartScenePlugin = cameraEngine.getPlugin("SmartScene") as? SmartScenePlugin
+            val smartAdjustmentsPlugin = cameraEngine.getPlugin("SmartAdjustments") as? SmartAdjustmentsPlugin
+
+            if (smartScenePlugin != null && smartAdjustmentsPlugin != null) {
+                val sceneInfo = smartScenePlugin.getCurrentSceneInfo()
+                val currentScene = sceneInfo["currentScene"] as? String ?: "UNKNOWN"
+
+                // Apply scene-specific adjustments
+                smartAdjustmentsPlugin.applySceneProfile(currentScene)
+
+                Toast.makeText(this, "Applied optimizations for $currentScene scene", Toast.LENGTH_SHORT).show()
+                Log.i(TAG, "Applied scene optimizations: $currentScene")
+
+                performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+            } else {
+                Toast.makeText(this, "Scene optimization not available", Toast.LENGTH_SHORT).show()
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error applying scene optimizations", e)
+            Toast.makeText(this, "Scene optimization error: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
 
