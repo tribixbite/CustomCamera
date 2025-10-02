@@ -81,13 +81,13 @@ class CameraActivityEngine : AppCompatActivity() {
     private lateinit var dualCameraPiPPlugin: DualCameraPiPPlugin
     private lateinit var advancedVideoRecordingPlugin: AdvancedVideoRecordingPlugin
 
-    // Professional control plugins
-    private lateinit var isoPlugin: AdvancedISOControlPlugin
-    private lateinit var shutterPlugin: ProfessionalShutterControlPlugin
-    private lateinit var aperturePlugin: ManualApertureControlPlugin
-    private lateinit var whiteBalancePlugin: AdvancedWhiteBalancePlugin
-    private lateinit var focusPlugin: ManualFocusControlPlugin
-    private lateinit var bracketingPlugin: ExposureBracketingPlugin
+    // Professional control plugins (temporarily disabled - API migration needed)
+    // private lateinit var isoPlugin: AdvancedISOControlPlugin
+    // private lateinit var shutterPlugin: ProfessionalShutterControlPlugin
+    // private lateinit var aperturePlugin: ManualApertureControlPlugin
+    // private lateinit var whiteBalancePlugin: AdvancedWhiteBalancePlugin
+    // private lateinit var focusPlugin: ManualFocusControlPlugin
+    // private lateinit var bracketingPlugin: ExposureBracketingPlugin
 
     // UI Enhancement Components
     private lateinit var loadingIndicatorManager: LoadingIndicatorManager
@@ -170,7 +170,7 @@ class CameraActivityEngine : AppCompatActivity() {
         setupEnhancedButton(binding.switchCameraButton) { switchCamera() }
         setupEnhancedButton(binding.flashButton) { toggleFlash() }
         setupEnhancedButton(binding.galleryButton) { openGallery() }
-        setupEnhancedButton(binding.settingsButton) { toggleManualControls() }
+        setupEnhancedButton(binding.settingsButton) { toggleManualControlsPanel() }
 
         // Long press for full settings
         binding.settingsButton.setOnLongClickListener {
@@ -184,7 +184,7 @@ class CameraActivityEngine : AppCompatActivity() {
         // Wire up new plugin control buttons with enhanced feedback
         setupEnhancedButton(binding.gridToggleButton) { toggleGrid() }
         setupEnhancedButton(binding.barcodeToggleButton) { toggleBarcodeScanning() }
-        setupEnhancedButton(binding.manualControlsToggleButton) { toggleManualControls() }
+        setupEnhancedButton(binding.manualControlsToggleButton) { toggleManualControlsPanel() }
 
         // Add gesture controls for features including AI
         var lastTapTime = 0L
@@ -303,26 +303,27 @@ class CameraActivityEngine : AppCompatActivity() {
         advancedVideoRecordingPlugin = AdvancedVideoRecordingPlugin()
         cameraEngine.registerPlugin(advancedVideoRecordingPlugin)
 
-        // Add Phase 8H Professional Manual Controls
-        isoPlugin = AdvancedISOControlPlugin()
-        cameraEngine.registerPlugin(isoPlugin)
+        // TODO: Add Phase 8H Professional Manual Controls (temporarily disabled due to API migration)
+        // These plugins need to be migrated from old CameraManager API to new CameraContext API
+        // isoPlugin = AdvancedISOControlPlugin()
+        // cameraEngine.registerPlugin(isoPlugin)
 
-        shutterPlugin = ProfessionalShutterControlPlugin()
-        cameraEngine.registerPlugin(shutterPlugin)
+        // shutterPlugin = ProfessionalShutterControlPlugin()
+        // cameraEngine.registerPlugin(shutterPlugin)
 
-        aperturePlugin = ManualApertureControlPlugin()
-        cameraEngine.registerPlugin(aperturePlugin)
+        // aperturePlugin = ManualApertureControlPlugin()
+        // cameraEngine.registerPlugin(aperturePlugin)
 
-        whiteBalancePlugin = AdvancedWhiteBalancePlugin()
-        cameraEngine.registerPlugin(whiteBalancePlugin)
+        // whiteBalancePlugin = AdvancedWhiteBalancePlugin()
+        // cameraEngine.registerPlugin(whiteBalancePlugin)
 
-        focusPlugin = ManualFocusControlPlugin()
-        cameraEngine.registerPlugin(focusPlugin)
+        // focusPlugin = ManualFocusControlPlugin()
+        // cameraEngine.registerPlugin(focusPlugin)
 
-        bracketingPlugin = ExposureBracketingPlugin()
-        cameraEngine.registerPlugin(bracketingPlugin)
+        // bracketingPlugin = ExposureBracketingPlugin()
+        // cameraEngine.registerPlugin(bracketingPlugin)
 
-        Log.i(TAG, "✅ Camera engine and ALL plugins initialized (20 total plugins)")
+        Log.i(TAG, "✅ Camera engine and plugins initialized (14 core plugins, 6 professional plugins temporarily disabled)")
     }
 
     private fun startCameraWithEngine() {
@@ -738,7 +739,7 @@ class CameraActivityEngine : AppCompatActivity() {
         }
     }
 
-    private fun toggleManualControls() {
+    private fun toggleManualControlsPanel() {
         if (isManualControlsVisible) {
             hideManualControls()
         } else {
@@ -2244,7 +2245,12 @@ class CameraActivityEngine : AppCompatActivity() {
      */
     private fun toggleManualControls() {
         try {
-            // Create and show professional controls dialog
+            // TODO: Re-enable professional controls after plugin API migration
+            Toast.makeText(this, "Professional controls temporarily unavailable - under development", Toast.LENGTH_LONG).show()
+            Log.i(TAG, "Professional controls requested but disabled (API migration in progress)")
+
+            // Original code (temporarily disabled):
+            /*
             val dialog = com.customcamera.app.ui.ProfessionalControlsDialog(
                 this,
                 isoPlugin,
@@ -2254,15 +2260,13 @@ class CameraActivityEngine : AppCompatActivity() {
                 focusPlugin,
                 bracketingPlugin
             )
-
             dialog.show()
             performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
-
             Toast.makeText(this, "Professional controls opened", Toast.LENGTH_SHORT).show()
-            Log.i(TAG, "Professional controls dialog opened")
+            */
 
         } catch (e: Exception) {
-            Log.e(TAG, "Error opening manual controls", e)
+            Log.e(TAG, "Error with manual controls", e)
             Toast.makeText(this, "Manual controls error: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
