@@ -1,16 +1,17 @@
 #!/data/data/com.termux/files/usr/bin/bash
 
 # CustomCamera Build and Install Script for Termux
-# Builds the app and intelligently connects via ADB wireless
+# Builds the app with automatic version increment and multi-tier installation
 # Usage: ./build-and-install.sh [clean]
 
 set -e
 
 BUILD_TYPE="debug"
 CLEAN_BUILD="${1:-}"
+PACKAGE_NAME="com.customcamera.app"
 
 echo "=== CustomCamera Build and Install Tool ==="
-echo "Building $BUILD_TYPE APK with smart ADB connection"
+echo "Building $BUILD_TYPE APK with multi-tier auto-install"
 echo
 
 # Function to test if ADB is working
@@ -181,85 +182,190 @@ fi
 echo "✅ APK found: $APK_PATH"
 ls -lh "$APK_PATH"
 
-# Step 5: Smart ADB connection and installation
-echo "Step 5: Installing APK via ADB..."
+# Step 5: Multi-tier installation methods
+echo "Step 5: Installing APK (multi-tier auto-install)..."
+echo
 
-# Quick test - if ADB already has connected devices, use directly
-if test_adb_connection; then
-    echo "📱 ADB device already connected, installing directly..."
+APK_SIZE=$(ls -lh "$APK_PATH" | awk '{print $5}')
+echo "✅ APK ready: $APK_SIZE"
+echo
 
-    # Get package name and uninstall old version
-    PACKAGE="com.customcamera.app"
-    echo "   Uninstalling old version of $PACKAGE..."
-    adb uninstall "$PACKAGE" 2>/dev/null || true
+# Installation success flag
+INSTALLED=false
 
-    echo "   Installing new APK..."
-    if adb install -r "$APK_PATH"; then
+# Method 1: termux-open (Android Package Installer) - Most reliable
+echo "Method 1: Android Package Installer (termux-open)..."
+if command -v termux-open &>/dev/null; then
+    echo "  Opening package installer..."
+    if termux-open "$APK_PATH" 2>/dev/null; then
+        echo "  ✅ Package installer opened!"
         echo
-        echo "✅ APK INSTALLED SUCCESSFULLY!"
-        echo "CustomCamera has been installed on your device."
-        echo
-        echo "📱 To launch: Find 'Custom Camera' in your app drawer"
+        echo "📱 Complete installation in Android UI:"
+        echo "  1. Tap 'Install' button"
+        echo "  2. Wait for installation"
+        echo "  3. Grant camera permissions when prompted"
+        echo "  4. Launch 'Custom Camera' from app drawer"
+        INSTALLED=true
     else
-        echo "❌ Installation failed"
-        exit 1
+        echo "  ⚠️  termux-open failed, trying next method..."
     fi
 else
-    echo "🔍 No ADB device connected, attempting wireless connection..."
+    echo "  ⚠️  termux-open not available (install termux-api)"
+fi
+echo
 
-    if connect_adb_wireless; then
-        echo "🔗 Connected to device at $ADB_DEVICE"
-        echo
+# Exit if already installed
+if [ "$INSTALLED" = true ]; then
+    # Still try to copy to backup locations for easy updates
+    echo "📦 Creating backup copies..."
+    mkdir -p /sdcard/CustomCamera 2>/dev/null && cp "$APK_PATH" /sdcard/CustomCamera/latest-debug.apk 2>/dev/null && echo "  ✓ /sdcard/CustomCamera/latest-debug.apk"
+    exit 0
+fi
 
-        # Show brief device info
-        MODEL=$(adb shell getprop ro.product.model 2>/dev/null | tr -d '\r')
-        ANDROID=$(adb shell getprop ro.build.version.release 2>/dev/null | tr -d '\r')
-        echo "📱 Device: $MODEL (Android $ANDROID)"
-        echo
+# Method 2: ADB (local or wireless)
+echo "Method 2: ADB Installation..."
+if command -v adb &>/dev/null; then
+    # Quick test - if ADB already has connected devices
+    if test_adb_connection; then
+        echo "  📱 ADB device already connected"
+        echo "  Uninstalling old version..."
+        adb uninstall "$PACKAGE_NAME" 2>/dev/null || true
 
-        # Get package name and uninstall old version
-        PACKAGE="com.customcamera.app"
-        echo "📦 Installing APK..."
-        echo "   Package: $PACKAGE"
-        echo "   Uninstalling old version..."
-        adb uninstall "$PACKAGE" 2>/dev/null || true
-
-        echo "   Installing new version..."
+        echo "  Installing new APK..."
         if adb install -r "$APK_PATH"; then
             echo
-            echo "✅ APK INSTALLED SUCCESSFULLY!"
-            echo "CustomCamera has been installed on your device."
+            echo "✅ APK INSTALLED SUCCESSFULLY via ADB!"
+            echo "CustomCamera is now on your device."
             echo
             echo "📱 To launch: Find 'Custom Camera' in your app drawer"
-            echo "💡 Grant camera permissions when prompted"
+            INSTALLED=true
         else
-            echo "❌ Installation failed"
-            exit 1
+            echo "  ⚠️  ADB install failed"
         fi
     else
-        echo
-        echo "❌ Could not establish ADB connection"
-        echo
-        echo "💡 Manual installation options:"
-        echo "   1. Enable Developer Options on target device"
-        echo "   2. Enable 'Wireless debugging' or 'ADB over network'"
-        echo "   3. Note the IP and port, then run:"
-        echo "      adb connect <device_ip>:<port>"
-        echo "      adb install -r $APK_PATH"
-        echo
-        echo "   OR copy APK to device:"
-        echo "   4. Use file manager to install: $APK_PATH"
+        echo "  🔍 No ADB device connected, trying wireless..."
+        if connect_adb_wireless; then
+            echo "  🔗 Connected to $ADB_DEVICE"
 
-        # Try termux-open as fallback
+            # Get device info
+            MODEL=$(adb shell getprop ro.product.model 2>/dev/null | tr -d '\r')
+            ANDROID=$(adb shell getprop ro.build.version.release 2>/dev/null | tr -d '\r')
+            echo "  📱 Device: $MODEL (Android $ANDROID)"
+
+            echo "  Uninstalling old version..."
+            adb uninstall "$PACKAGE_NAME" 2>/dev/null || true
+
+            echo "  Installing new APK..."
+            if adb install -r "$APK_PATH"; then
+                echo
+                echo "✅ APK INSTALLED SUCCESSFULLY via ADB Wireless!"
+                echo "CustomCamera is now on your device."
+                echo
+                echo "📱 To launch: Find 'Custom Camera' in your app drawer"
+                INSTALLED=true
+            else
+                echo "  ⚠️  ADB wireless install failed"
+            fi
+        else
+            echo "  ⚠️  Could not connect via ADB wireless"
+        fi
+    fi
+else
+    echo "  ⚠️  ADB not installed (install: pkg install android-tools)"
+fi
+echo
+
+# Exit if installed via ADB
+if [ "$INSTALLED" = true ]; then
+    exit 0
+fi
+
+# Method 3: Copy to /sdcard/Download for manual install
+echo "Method 3: Copy to /sdcard/Download..."
+DOWNLOAD_PATH="/sdcard/Download/customcamera-debug.apk"
+if cp "$APK_PATH" "$DOWNLOAD_PATH" 2>/dev/null; then
+    echo "  ✅ APK copied to: $DOWNLOAD_PATH"
+    echo
+    echo "📱 Manual installation:"
+    echo "  1. Open your file manager"
+    echo "  2. Go to Downloads folder"
+    echo "  3. Tap 'customcamera-debug.apk'"
+    echo "  4. Tap 'Install'"
+
+    # Try to open file manager
+    if command -v termux-open &>/dev/null; then
+        echo
+        echo "  Opening file manager..."
+        termux-open "$DOWNLOAD_PATH" 2>/dev/null && INSTALLED=true
+    fi
+else
+    echo "  ⚠️  Cannot write to /sdcard/Download (storage permission needed)"
+fi
+echo
+
+# Exit if opened via file manager
+if [ "$INSTALLED" = true ]; then
+    exit 0
+fi
+
+# Method 4: Copy to Termux storage
+echo "Method 4: Copy to Termux storage..."
+TERMUX_STORAGE="$HOME/storage/downloads/customcamera-debug.apk"
+
+# Setup storage access if needed
+if [ ! -d "$HOME/storage" ]; then
+    echo "  Setting up Termux storage access..."
+    termux-setup-storage 2>/dev/null || true
+    sleep 2
+fi
+
+if [ -d "$HOME/storage/downloads" ]; then
+    if cp "$APK_PATH" "$TERMUX_STORAGE" 2>/dev/null; then
+        echo "  ✅ APK copied to: ~/storage/downloads/"
+        echo
+        echo "📱 Manual installation:"
+        echo "  1. Open Downloads in file manager"
+        echo "  2. Tap 'customcamera-debug.apk'"
+        echo "  3. Install the app"
+
         if command -v termux-open &>/dev/null; then
             echo
-            echo "🔧 Attempting to open APK with system installer..."
-            termux-open "$APK_PATH" 2>/dev/null || echo "   (termux-open failed)"
+            echo "  Opening Downloads..."
+            termux-open "$TERMUX_STORAGE" 2>/dev/null && INSTALLED=true
         fi
-
-        exit 1
+    else
+        echo "  ⚠️  Failed to copy to Termux storage"
     fi
+else
+    echo "  ⚠️  Termux storage not accessible"
+    echo "  Run: termux-setup-storage"
 fi
+echo
+
+# Exit if opened
+if [ "$INSTALLED" = true ]; then
+    exit 0
+fi
+
+# All methods failed - show manual instructions
+echo "========================================="
+echo "❌ Automatic installation failed"
+echo "========================================="
+echo
+echo "Manual installation required:"
+echo
+echo "1. Via Termux:"
+echo "   termux-open $APK_PATH"
+echo
+echo "2. Via ADB from PC:"
+echo "   adb connect <device_ip>:<port>"
+echo "   adb install -r $APK_PATH"
+echo
+echo "3. Copy manually:"
+echo "   The APK is at: $APK_PATH"
+echo "   Copy to /sdcard and install via file manager"
+echo
+exit 1
 
 echo
 echo "=== BUILD AND INSTALL COMPLETE ==="
