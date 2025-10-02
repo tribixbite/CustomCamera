@@ -19,7 +19,7 @@ import kotlin.math.sqrt
  * Professional aperture control plugin for devices with variable aperture support
  * Provides precise f-stop control with depth of field calculations
  */
-class ManualApertureControlPlugin : ControlPlugin() {
+class ManualApertureControlPlugin : com.customcamera.app.engine.plugins.ControlPlugin() {
     override val name: String = "ManualApertureControl"
 
     private val coroutineScope = CoroutineScope(Dispatchers.Main)

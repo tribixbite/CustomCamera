@@ -81,6 +81,14 @@ class CameraActivityEngine : AppCompatActivity() {
     private lateinit var dualCameraPiPPlugin: DualCameraPiPPlugin
     private lateinit var advancedVideoRecordingPlugin: AdvancedVideoRecordingPlugin
 
+    // Professional control plugins
+    private lateinit var isoPlugin: AdvancedISOControlPlugin
+    private lateinit var shutterPlugin: ProfessionalShutterControlPlugin
+    private lateinit var aperturePlugin: ManualApertureControlPlugin
+    private lateinit var whiteBalancePlugin: AdvancedWhiteBalancePlugin
+    private lateinit var focusPlugin: ManualFocusControlPlugin
+    private lateinit var bracketingPlugin: ExposureBracketingPlugin
+
     // UI Enhancement Components
     private lateinit var loadingIndicatorManager: LoadingIndicatorManager
 
@@ -295,7 +303,26 @@ class CameraActivityEngine : AppCompatActivity() {
         advancedVideoRecordingPlugin = AdvancedVideoRecordingPlugin()
         cameraEngine.registerPlugin(advancedVideoRecordingPlugin)
 
-        Log.i(TAG, "✅ Camera engine and ALL plugins initialized (14 total plugins)")
+        // Add Phase 8H Professional Manual Controls
+        isoPlugin = AdvancedISOControlPlugin()
+        cameraEngine.registerPlugin(isoPlugin)
+
+        shutterPlugin = ProfessionalShutterControlPlugin()
+        cameraEngine.registerPlugin(shutterPlugin)
+
+        aperturePlugin = ManualApertureControlPlugin()
+        cameraEngine.registerPlugin(aperturePlugin)
+
+        whiteBalancePlugin = AdvancedWhiteBalancePlugin()
+        cameraEngine.registerPlugin(whiteBalancePlugin)
+
+        focusPlugin = ManualFocusControlPlugin()
+        cameraEngine.registerPlugin(focusPlugin)
+
+        bracketingPlugin = ExposureBracketingPlugin()
+        cameraEngine.registerPlugin(bracketingPlugin)
+
+        Log.i(TAG, "✅ Camera engine and ALL plugins initialized (20 total plugins)")
     }
 
     private fun startCameraWithEngine() {
@@ -2209,6 +2236,34 @@ class CameraActivityEngine : AppCompatActivity() {
         } catch (e: Exception) {
             Log.e(TAG, "Error applying scene optimizations", e)
             Toast.makeText(this, "Scene optimization error: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    /**
+     * Toggle professional manual controls dialog
+     */
+    private fun toggleManualControls() {
+        try {
+            // Create and show professional controls dialog
+            val dialog = com.customcamera.app.ui.ProfessionalControlsDialog(
+                this,
+                isoPlugin,
+                shutterPlugin,
+                aperturePlugin,
+                whiteBalancePlugin,
+                focusPlugin,
+                bracketingPlugin
+            )
+
+            dialog.show()
+            performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+
+            Toast.makeText(this, "Professional controls opened", Toast.LENGTH_SHORT).show()
+            Log.i(TAG, "Professional controls dialog opened")
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Error opening manual controls", e)
+            Toast.makeText(this, "Manual controls error: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
 

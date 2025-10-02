@@ -19,7 +19,7 @@ import kotlin.math.roundToInt
  * Advanced white balance control plugin with color temperature precision
  * Provides manual white balance control with real-time color temperature adjustment
  */
-class AdvancedWhiteBalancePlugin : ControlPlugin() {
+class AdvancedWhiteBalancePlugin : com.customcamera.app.engine.plugins.ControlPlugin() {
     override val name: String = "AdvancedWhiteBalance"
 
     private val coroutineScope = CoroutineScope(Dispatchers.Main)

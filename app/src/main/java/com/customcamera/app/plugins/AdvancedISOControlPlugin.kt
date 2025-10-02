@@ -16,7 +16,7 @@ import kotlin.math.*
  * AdvancedISOControlPlugin provides professional-grade ISO sensitivity control
  * with precise adjustment, noise prediction, and performance optimization.
  */
-class AdvancedISOControlPlugin : ControlPlugin() {
+class AdvancedISOControlPlugin : com.customcamera.app.engine.plugins.ControlPlugin() {
 
     override val name: String = "AdvancedISOControl"
     override val version: String = "1.0.0"

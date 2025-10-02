@@ -15,7 +15,7 @@ import kotlin.math.*
  * ProfessionalShutterControlPlugin provides comprehensive shutter speed control
  * with precise timing, bulb mode, and motion blur analysis.
  */
-class ProfessionalShutterControlPlugin : ControlPlugin() {
+class ProfessionalShutterControlPlugin : com.customcamera.app.engine.plugins.ControlPlugin() {
 
     override val name: String = "ProfessionalShutterControl"
     override val version: String = "1.0.0"

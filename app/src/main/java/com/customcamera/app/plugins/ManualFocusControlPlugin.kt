@@ -19,7 +19,7 @@ import kotlin.math.sqrt
  * Manual focus control plugin with hyperfocal distance calculator
  * Provides precise manual focus control with depth of field calculations
  */
-class ManualFocusControlPlugin : ControlPlugin() {
+class ManualFocusControlPlugin : com.customcamera.app.engine.plugins.ControlPlugin() {
     override val name: String = "ManualFocusControl"
 
     private val coroutineScope = CoroutineScope(Dispatchers.Main)
