@@ -68,7 +68,8 @@ connect_adb_wireless() {
     if command -v nmap &>/dev/null; then
         echo "   Quick scanning high ports..."
         # Scan in reverse order - newer ADB tends to use higher ports
-        SCANNED_PORTS=$(nmap -p 45000-50000,40000-44999,35000-39999,30000-34999 --open -T4 --host-timeout 2s "$HOST" 2>/dev/null | \
+        # Use timeout to prevent hanging
+        SCANNED_PORTS=$(timeout 10 nmap -p 45000-50000,40000-44999,35000-39999,30000-34999 --open -T4 --host-timeout 2s "$HOST" 2>/dev/null | \
             grep "^[0-9]" | grep "/tcp open" | cut -d'/' -f1 | sort -nr | head -10)
 
         if [ -n "$SCANNED_PORTS" ]; then
@@ -113,14 +114,15 @@ connect_adb_wireless() {
 # Step 1: Check prerequisites
 echo "Step 1: Checking prerequisites..."
 
-if ! command -v adb &>/dev/null; then
-    echo "❌ ADB not found. Install with: pkg install android-tools"
-    exit 1
-fi
-
 if [ ! -f "./gradlew" ]; then
     echo "❌ gradlew not found. Make sure you're in the project root directory."
     exit 1
+fi
+
+# ADB is optional - will try other installation methods if not available
+if ! command -v adb &>/dev/null; then
+    echo "ℹ️  ADB not found (install with: pkg install android-tools)"
+    echo "   Will use alternative installation methods"
 fi
 
 # Step 2: Update version and clean if requested
@@ -197,7 +199,8 @@ INSTALLED=false
 echo "Method 1: Android Package Installer (termux-open)..."
 if command -v termux-open &>/dev/null; then
     echo "  Opening package installer..."
-    if termux-open "$APK_PATH" 2>/dev/null; then
+    # Use timeout to prevent hanging - termux-open should return quickly
+    if timeout 5 termux-open "$APK_PATH" 2>/dev/null; then
         echo "  ✅ Package installer opened!"
         echo
         echo "📱 Complete installation in Android UI:"
@@ -207,7 +210,7 @@ if command -v termux-open &>/dev/null; then
         echo "  4. Launch 'Custom Camera' from app drawer"
         INSTALLED=true
     else
-        echo "  ⚠️  termux-open failed, trying next method..."
+        echo "  ⚠️  termux-open timed out or failed, trying next method..."
     fi
 else
     echo "  ⚠️  termux-open not available (install termux-api)"
@@ -296,7 +299,7 @@ if cp "$APK_PATH" "$DOWNLOAD_PATH" 2>/dev/null; then
     if command -v termux-open &>/dev/null; then
         echo
         echo "  Opening file manager..."
-        termux-open "$DOWNLOAD_PATH" 2>/dev/null && INSTALLED=true
+        timeout 5 termux-open "$DOWNLOAD_PATH" 2>/dev/null && INSTALLED=true
     fi
 else
     echo "  ⚠️  Cannot write to /sdcard/Download (storage permission needed)"
@@ -315,8 +318,8 @@ TERMUX_STORAGE="$HOME/storage/downloads/customcamera-debug.apk"
 # Setup storage access if needed
 if [ ! -d "$HOME/storage" ]; then
     echo "  Setting up Termux storage access..."
-    termux-setup-storage 2>/dev/null || true
-    sleep 2
+    timeout 10 termux-setup-storage 2>/dev/null || true
+    sleep 1
 fi
 
 if [ -d "$HOME/storage/downloads" ]; then
@@ -331,7 +334,7 @@ if [ -d "$HOME/storage/downloads" ]; then
         if command -v termux-open &>/dev/null; then
             echo
             echo "  Opening Downloads..."
-            termux-open "$TERMUX_STORAGE" 2>/dev/null && INSTALLED=true
+            timeout 5 termux-open "$TERMUX_STORAGE" 2>/dev/null && INSTALLED=true
         fi
     else
         echo "  ⚠️  Failed to copy to Termux storage"
