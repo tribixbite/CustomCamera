@@ -499,54 +499,73 @@ class SettingsActivity : AppCompatActivity() {
         )
 
         // About Section with Version Info
-        val packageInfo = packageManager.getPackageInfo(packageName, 0)
-        val versionName = packageInfo.versionName
-        val versionCode = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
-            packageInfo.longVersionCode.toString()
-        } else {
-            @Suppress("DEPRECATION")
-            packageInfo.versionCode.toString()
-        }
-        val installTime = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm", java.util.Locale.getDefault())
-            .format(java.util.Date(packageInfo.lastUpdateTime))
+        try {
+            val packageInfo = packageManager.getPackageInfo(packageName, 0)
+            val versionName = packageInfo.versionName ?: "Unknown"
+            val versionCode = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+                packageInfo.longVersionCode.toString()
+            } else {
+                @Suppress("DEPRECATION")
+                packageInfo.versionCode.toString()
+            }
+            val installTime = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm", java.util.Locale.getDefault())
+                .format(java.util.Date(packageInfo.lastUpdateTime))
 
-        settingsSections.add(
-            SettingsSection(
-                title = "About CustomCamera",
-                icon = R.drawable.ic_info,
-                settings = listOf(
-                    SettingsItem.Info(
-                        key = "app_version",
-                        title = "Version",
-                        description = "Current app version",
-                        value = versionName
-                    ),
-                    SettingsItem.Info(
-                        key = "app_build",
-                        title = "Build Code",
-                        description = "Internal build number",
-                        value = versionCode
-                    ),
-                    SettingsItem.Info(
-                        key = "app_updated",
-                        title = "Last Updated",
-                        description = "Installation/update date",
-                        value = installTime
-                    ),
-                    SettingsItem.Info(
-                        key = "app_package",
-                        title = "Package Name",
-                        description = "Android package identifier",
-                        value = packageName
-                    ),
-                    SettingsItem.Button(
-                        key = "check_updates",
-                        title = "Check for Updates",
-                        description = "Check GitHub for latest version"
+            settingsSections.add(
+                SettingsSection(
+                    title = "About CustomCamera",
+                    icon = R.drawable.ic_info,
+                    settings = listOf(
+                        SettingsItem.Info(
+                            key = "app_version",
+                            title = "Version",
+                            description = "Current app version",
+                            value = versionName
+                        ),
+                        SettingsItem.Info(
+                            key = "app_build",
+                            title = "Build Code",
+                            description = "Internal build number",
+                            value = versionCode
+                        ),
+                        SettingsItem.Info(
+                            key = "app_updated",
+                            title = "Last Updated",
+                            description = "Installation/update date",
+                            value = installTime
+                        ),
+                        SettingsItem.Info(
+                            key = "app_package",
+                            title = "Package Name",
+                            description = "Android package identifier",
+                            value = packageName
+                        ),
+                        SettingsItem.Button(
+                            key = "check_updates",
+                            title = "Check for Updates",
+                            description = "Check GitHub for latest version"
+                        )
                     )
                 )
             )
-        )
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting package info", e)
+            // Add minimal about section on error
+            settingsSections.add(
+                SettingsSection(
+                    title = "About CustomCamera",
+                    icon = R.drawable.ic_info,
+                    settings = listOf(
+                        SettingsItem.Info(
+                            key = "app_error",
+                            title = "Error",
+                            description = "Could not load version info",
+                            value = "Check logs"
+                        )
+                    )
+                )
+            )
+        }
     }
 
     private fun handleSettingChange(setting: SettingsItem, value: Any) {

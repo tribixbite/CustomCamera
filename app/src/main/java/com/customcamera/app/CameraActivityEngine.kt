@@ -21,6 +21,7 @@ import com.customcamera.app.engine.CameraEngine
 import com.customcamera.app.plugins.*
 import com.customcamera.app.exceptions.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
@@ -1084,7 +1085,13 @@ class CameraActivityEngine : AppCompatActivity() {
 
                 Log.i(TAG, "Barcode scanning ${if (isBarcodeScanningEnabled) "enabled" else "disabled"}")
 
-                // Enable image analysis and UI if needed
+                Toast.makeText(
+                    this,
+                    "Barcode ${if (isBarcodeScanningEnabled) "enabled" else "disabled"}",
+                    Toast.LENGTH_SHORT
+                ).show()
+
+                // Enable image analysis and UI if needed (run in background to avoid freezing)
                 if (isBarcodeScanningEnabled) {
                     val config = CameraConfig(
                         cameraIndex = cameraIndex,
@@ -1094,7 +1101,8 @@ class CameraActivityEngine : AppCompatActivity() {
                         enableImageAnalysis = true
                     )
 
-                    lifecycleScope.launch {
+                    // Run camera rebind in background coroutine to avoid UI freeze
+                    lifecycleScope.launch(Dispatchers.IO) {
                         val bindResult = cameraEngine.bindCamera(config)
                         if (bindResult.isSuccess) {
                             Log.i(TAG, "Image analysis enabled for barcode detection")
@@ -1146,19 +1154,24 @@ class CameraActivityEngine : AppCompatActivity() {
     }
 
     private fun toggleGrid() {
-        lifecycleScope.launch {
-            try {
-                gridOverlayPlugin.toggleGrid()
-                val isVisible = gridOverlayPlugin.isGridVisible()
-                Toast.makeText(
-                    this@CameraActivityEngine,
-                    "Grid ${if (isVisible) "shown" else "hidden"}",
-                    Toast.LENGTH_SHORT
-                ).show()
-                Log.i(TAG, "Grid toggled: $isVisible")
-            } catch (e: Exception) {
-                Log.e(TAG, "Error toggling grid", e)
+        try {
+            gridOverlayPlugin.toggleGrid()
+            val isVisible = gridOverlayPlugin.isGridVisible()
+
+            // Force UI refresh by requesting overlay redraw
+            binding.root.post {
+                binding.root.invalidate()
             }
+
+            Toast.makeText(
+                this@CameraActivityEngine,
+                "Grid ${if (isVisible) "shown" else "hidden"}",
+                Toast.LENGTH_SHORT
+            ).show()
+            Log.i(TAG, "Grid toggled: $isVisible")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error toggling grid", e)
+            Toast.makeText(this, "Grid toggle error: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
 
