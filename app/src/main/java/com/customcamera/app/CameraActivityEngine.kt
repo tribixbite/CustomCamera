@@ -277,7 +277,7 @@ class CameraActivityEngine : AppCompatActivity() {
         val qrScannerPlugin = QRScannerPlugin()
         cameraEngine.registerPlugin(qrScannerPlugin)
 
-        // Add Phase 8G AI-Powered Camera Features
+        // ✅ Phase 8G AI-Powered Camera Features COMPLETE
         val smartScenePlugin = SmartScenePlugin()
         cameraEngine.registerPlugin(smartScenePlugin)
 
@@ -286,6 +286,8 @@ class CameraActivityEngine : AppCompatActivity() {
 
         val smartAdjustmentsPlugin = SmartAdjustmentsPlugin()
         cameraEngine.registerPlugin(smartAdjustmentsPlugin)
+        // AI Features: Five-tap for scene detection, six-tap for object detection
+        // See toggleSmartSceneDetection() and toggleObjectDetection() for implementation
 
         val motionDetectionPlugin = MotionDetectionPlugin()
         cameraEngine.registerPlugin(motionDetectionPlugin)
@@ -318,7 +320,7 @@ class CameraActivityEngine : AppCompatActivity() {
         // Note: 6 plugin files in ../disabled_plugins/ are not needed as we have
         // direct Camera2 integration providing all professional control features
 
-        Log.i(TAG, "✅ Camera engine and plugins initialized (14 core plugins + Phase 8H manual controls active)")
+        Log.i(TAG, "✅ Camera engine and plugins initialized (14 core plugins, Phase 8G AI features, Phase 8H manual controls - ALL PHASE 8 COMPLETE)")
     }
 
     private fun startCameraWithEngine() {
