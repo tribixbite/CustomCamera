@@ -22,6 +22,7 @@ import com.customcamera.app.plugins.*
 import com.customcamera.app.exceptions.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
@@ -46,16 +47,16 @@ class CameraActivityEngine : AppCompatActivity() {
     private lateinit var cameraEngine: CameraEngine
 
     private var cameraIndex: Int = 0
-    private var isFlashOn: Boolean = false
-    private var isRecording: Boolean = false
+    @Volatile private var isFlashOn: Boolean = false
+    @Volatile private var isRecording: Boolean = false
     private var activeRecording: Recording? = null
-    private var isManualControlsVisible: Boolean = false
+    @Volatile private var isManualControlsVisible: Boolean = false
     private var manualControlsPanel: android.widget.LinearLayout? = null
-    private var isNightModeEnabled: Boolean = false
-    private var isHistogramVisible: Boolean = false
+    @Volatile private var isNightModeEnabled: Boolean = false
+    @Volatile private var isHistogramVisible: Boolean = false
     private var histogramView: com.customcamera.app.analysis.HistogramView? = null
-    private var isBarcodeScanningEnabled: Boolean = false
-    private var isPiPEnabled: Boolean = false
+    @Volatile private var isBarcodeScanningEnabled: Boolean = false
+    @Volatile private var isPiPEnabled: Boolean = false
     private var loadingIndicator: android.widget.TextView? = null
     private var pipOverlayView: com.customcamera.app.pip.PiPOverlayView? = null
     private var camera2ISOController: com.customcamera.app.camera2.Camera2ISOController? = null
@@ -65,7 +66,7 @@ class CameraActivityEngine : AppCompatActivity() {
     private var shutterSpeedController: com.customcamera.app.camera2.ShutterSpeedController? = null
     private var focusDistanceController: com.customcamera.app.camera2.FocusDistanceController? = null
     private var focusPeakingOverlay: com.customcamera.app.focus.FocusPeakingOverlay? = null
-    private var isFocusPeakingEnabled: Boolean = false
+    @Volatile private var isFocusPeakingEnabled: Boolean = false
     private var lastTapTime = 0L
     private var tapCount = 0
     private var barcodeOverlayView: com.customcamera.app.barcode.BarcodeOverlayView? = null
@@ -752,28 +753,33 @@ class CameraActivityEngine : AppCompatActivity() {
         try {
             if (manualControlsPanel == null) {
                 // Create manual controls panel
-                manualControlsPanel = android.widget.LinearLayout(this).apply {
+                val panel = android.widget.LinearLayout(this).apply {
                     orientation = android.widget.LinearLayout.VERTICAL
                     setBackgroundColor(android.graphics.Color.argb(200, 0, 0, 0))
                     setPadding(16, 16, 16, 16)
                 }
+                manualControlsPanel = panel
 
                 // Add manual controls with Camera2 capabilities
                 val helper = com.customcamera.app.camera2.ManualControlHelper(this)
                 helper.initializeForCamera(cameraIndex.toString())
 
                 // Initialize Camera2 controllers
-                camera2ISOController = com.customcamera.app.camera2.Camera2ISOController(this)
-                camera2ISOController!!.initialize(cameraIndex.toString())
+                camera2ISOController = com.customcamera.app.camera2.Camera2ISOController(this).apply {
+                    initialize(cameraIndex.toString())
+                }
 
-                zoomController = com.customcamera.app.camera2.ZoomController(this)
-                zoomController!!.initialize(cameraIndex.toString())
+                zoomController = com.customcamera.app.camera2.ZoomController(this).apply {
+                    initialize(cameraIndex.toString())
+                }
 
-                shutterSpeedController = com.customcamera.app.camera2.ShutterSpeedController(this)
-                shutterSpeedController!!.initialize(cameraIndex.toString())
+                shutterSpeedController = com.customcamera.app.camera2.ShutterSpeedController(this).apply {
+                    initialize(cameraIndex.toString())
+                }
 
-                focusDistanceController = com.customcamera.app.camera2.FocusDistanceController(this)
-                focusDistanceController!!.initialize(cameraIndex.toString())
+                focusDistanceController = com.customcamera.app.camera2.FocusDistanceController(this).apply {
+                    initialize(cameraIndex.toString())
+                }
 
                 // Setup pinch-to-zoom
                 setupPinchToZoom()
@@ -784,7 +790,7 @@ class CameraActivityEngine : AppCompatActivity() {
                     setTextColor(android.graphics.Color.WHITE)
                     setPadding(0, 0, 0, 4)
                 }
-                manualControlsPanel!!.addView(titleView)
+                panel.addView(titleView)
 
                 // Add instruction for full settings
                 val instructionView = android.widget.TextView(this).apply {
@@ -793,7 +799,7 @@ class CameraActivityEngine : AppCompatActivity() {
                     setTextColor(android.graphics.Color.LTGRAY)
                     setPadding(0, 0, 0, 12)
                 }
-                manualControlsPanel!!.addView(instructionView)
+                panel.addView(instructionView)
 
                 // Show camera capabilities
                 val capabilitiesView = android.widget.TextView(this).apply {
@@ -803,14 +809,14 @@ class CameraActivityEngine : AppCompatActivity() {
                     setTextColor(android.graphics.Color.LTGRAY)
                     setPadding(0, 0, 0, 16)
                 }
-                manualControlsPanel!!.addView(capabilitiesView)
+                panel.addView(capabilitiesView)
 
                 // Add exposure compensation control with real camera connection
                 val exposureText = android.widget.TextView(this).apply {
                     text = "Exposure: 0 EV (Real Camera Control)"
                     setTextColor(android.graphics.Color.WHITE)
                 }
-                manualControlsPanel!!.addView(exposureText)
+                panel.addView(exposureText)
 
                 val exposureSeekBar = android.widget.SeekBar(this).apply {
                     max = 12 // -6 to +6 EV
@@ -831,7 +837,7 @@ class CameraActivityEngine : AppCompatActivity() {
                         override fun onStopTrackingTouch(seekBar: android.widget.SeekBar?) {}
                     })
                 }
-                manualControlsPanel!!.addView(exposureSeekBar)
+                panel.addView(exposureSeekBar)
 
                 // Add ISO control with real camera ranges
                 val isoRange = helper.getISORange()
@@ -844,7 +850,7 @@ class CameraActivityEngine : AppCompatActivity() {
                     setTextColor(android.graphics.Color.WHITE)
                     setPadding(0, 16, 0, 0)
                 }
-                manualControlsPanel!!.addView(isoText)
+                panel.addView(isoText)
 
                 val isoSeekBar = android.widget.SeekBar(this).apply {
                     if (isoRange != null) {
@@ -874,7 +880,7 @@ class CameraActivityEngine : AppCompatActivity() {
                         override fun onStopTrackingTouch(seekBar: android.widget.SeekBar?) {}
                     })
                 }
-                manualControlsPanel!!.addView(isoSeekBar)
+                panel.addView(isoSeekBar)
 
                 // Add white balance control
                 val wbText = android.widget.TextView(this).apply {
@@ -882,7 +888,7 @@ class CameraActivityEngine : AppCompatActivity() {
                     setTextColor(android.graphics.Color.WHITE)
                     setPadding(0, 16, 0, 0)
                 }
-                manualControlsPanel!!.addView(wbText)
+                panel.addView(wbText)
 
                 val wbSpinner = android.widget.Spinner(this).apply {
                     val wbOptions = arrayOf("Auto", "Daylight", "Cloudy", "Tungsten", "Fluorescent", "Flash")
@@ -914,7 +920,7 @@ class CameraActivityEngine : AppCompatActivity() {
                         override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
                     }
                 }
-                manualControlsPanel!!.addView(wbSpinner)
+                panel.addView(wbSpinner)
 
                 // Add shutter speed control with real Camera2 capabilities
                 val shutterText = android.widget.TextView(this).apply {
@@ -923,7 +929,7 @@ class CameraActivityEngine : AppCompatActivity() {
                     setTextColor(android.graphics.Color.WHITE)
                     setPadding(0, 16, 0, 0)
                 }
-                manualControlsPanel!!.addView(shutterText)
+                panel.addView(shutterText)
 
                 val shutterSpinner = android.widget.Spinner(this).apply {
                     val availableShutterSpeeds = shutterSpeedController?.getAvailableShutterSpeeds() ?: emptyList()
@@ -953,7 +959,7 @@ class CameraActivityEngine : AppCompatActivity() {
                         override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
                     }
                 }
-                manualControlsPanel!!.addView(shutterSpinner)
+                panel.addView(shutterSpinner)
 
                 // Add focus distance control with real Camera2 capabilities
                 val focusText = android.widget.TextView(this).apply {
@@ -962,7 +968,7 @@ class CameraActivityEngine : AppCompatActivity() {
                     setTextColor(android.graphics.Color.WHITE)
                     setPadding(0, 16, 0, 0)
                 }
-                manualControlsPanel!!.addView(focusText)
+                panel.addView(focusText)
 
                 val focusSpinner = android.widget.Spinner(this).apply {
                     val availableFocusPresets = focusDistanceController?.getAvailableFocusPresets() ?: emptyList()
@@ -992,7 +998,7 @@ class CameraActivityEngine : AppCompatActivity() {
                         override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
                     }
                 }
-                manualControlsPanel!!.addView(focusSpinner)
+                panel.addView(focusSpinner)
 
                 // Add hyperfocal distance calculator
                 val hyperfocalText = android.widget.TextView(this).apply {
@@ -1002,7 +1008,7 @@ class CameraActivityEngine : AppCompatActivity() {
                     setTextColor(android.graphics.Color.LTGRAY)
                     setPadding(0, 8, 0, 0)
                 }
-                manualControlsPanel!!.addView(hyperfocalText)
+                panel.addView(hyperfocalText)
 
                 // Add to camera layout
                 val rootView = binding.root
@@ -1108,24 +1114,28 @@ class CameraActivityEngine : AppCompatActivity() {
                             Log.i(TAG, "Image analysis enabled for barcode detection")
                         }
 
-                        // Add barcode overlay to UI
-                        if (barcodeOverlayView == null) {
-                            barcodeOverlayView = com.customcamera.app.barcode.BarcodeOverlayView(this@CameraActivityEngine)
+                        // Switch to Main thread for UI operations
+                        withContext(Dispatchers.Main) {
+                            // Add barcode overlay to UI
+                            if (barcodeOverlayView == null) {
+                                val overlay = com.customcamera.app.barcode.BarcodeOverlayView(this@CameraActivityEngine)
+                                barcodeOverlayView = overlay
 
-                            val rootView = binding.root
-                            val layoutParams = android.widget.FrameLayout.LayoutParams(
-                                android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
-                                android.widget.FrameLayout.LayoutParams.MATCH_PARENT
-                            )
-                            rootView.addView(barcodeOverlayView, layoutParams)
+                                val rootView = binding.root
+                                val layoutParams = android.widget.FrameLayout.LayoutParams(
+                                    android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
+                                    android.widget.FrameLayout.LayoutParams.MATCH_PARENT
+                                )
+                                rootView.addView(overlay, layoutParams)
 
-                            // Connect overlay to barcode plugin
-                            barcodePlugin.setBarcodeOverlay(barcodeOverlayView!!)
+                                // Connect overlay to barcode plugin
+                                barcodePlugin.setBarcodeOverlay(overlay)
+                            }
+                            barcodeOverlayView?.setOverlayEnabled(true)
+
+                            // Start barcode detection updates from plugin
+                            startBarcodeDetectionUpdates()
                         }
-                        barcodeOverlayView?.setOverlayEnabled(true)
-
-                        // Start barcode detection updates from plugin
-                        startBarcodeDetectionUpdates()
                     }
                 } else {
                     // Disable overlay and clear detections
@@ -1155,6 +1165,12 @@ class CameraActivityEngine : AppCompatActivity() {
 
     private fun toggleGrid() {
         try {
+            if (!::gridOverlayPlugin.isInitialized) {
+                Log.e(TAG, "Grid plugin not initialized")
+                Toast.makeText(this, "Camera not ready", Toast.LENGTH_SHORT).show()
+                return
+            }
+
             gridOverlayPlugin.toggleGrid()
             val isVisible = gridOverlayPlugin.isGridVisible()
 
@@ -1177,6 +1193,12 @@ class CameraActivityEngine : AppCompatActivity() {
 
     private fun toggleCrop() {
         try {
+            if (!::cropPlugin.isInitialized) {
+                Log.e(TAG, "Crop plugin not initialized")
+                Toast.makeText(this, "Camera not ready", Toast.LENGTH_SHORT).show()
+                return
+            }
+
             // Toggle crop mode
             if (cropPlugin.isEnabled) {
                 cropPlugin.disableCrop()
@@ -1305,8 +1327,8 @@ class CameraActivityEngine : AppCompatActivity() {
                     // Get current camera for video recording
             val camera = cameraEngine.getCurrentCamera()
 
-                    if (camera != null && zoomController != null) {
-                        val zoomApplied = zoomController!!.processPinchGesture(scaleFactor, camera)
+                    if (camera != null) {
+                        val zoomApplied = zoomController?.processPinchGesture(scaleFactor, camera) ?: false
                         if (zoomApplied) {
                             updateZoomIndicator()
                         }
@@ -1672,6 +1694,41 @@ class CameraActivityEngine : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         Log.i(TAG, "Cleaning up camera engine...")
+
+        // Remove dynamically added views to prevent memory leaks
+        barcodeOverlayView?.let {
+            binding.root.removeView(it)
+            barcodeOverlayView = null
+        }
+
+        manualControlsPanel?.let {
+            binding.root.removeView(it)
+            manualControlsPanel = null
+        }
+
+        focusPeakingOverlay?.let {
+            binding.root.removeView(it)
+            focusPeakingOverlay = null
+        }
+
+        histogramView?.let {
+            binding.root.removeView(it)
+            histogramView = null
+        }
+
+        pipOverlayView?.let {
+            binding.root.removeView(it)
+            pipOverlayView = null
+        }
+
+        // Cleanup controllers
+        camera2ISOController = null
+        zoomController = null
+        shutterSpeedController = null
+        focusDistanceController = null
+        camera2Controller = null
+        performanceMonitor = null
+
         cameraEngine.cleanup()
     }
 
