@@ -307,6 +307,12 @@ class CameraActivityEngine : AppCompatActivity() {
         advancedVideoRecordingPlugin = AdvancedVideoRecordingPlugin()
         cameraEngine.registerPlugin(advancedVideoRecordingPlugin)
 
+        // ✅ Phase 9A RAW Capture & Advanced Image Processing
+        val rawCapturePlugin = RAWCapturePlugin()
+        cameraEngine.registerPlugin(rawCapturePlugin)
+        // RAW/DNG capture with dual RAW+JPEG mode support
+        // See toggleRawCapture() for implementation
+
         // ✅ Phase 8H Professional Manual Controls COMPLETE
         // Professional manual controls implemented via Camera2 API integration:
         // - ISO Control (Camera2ISOController in showManualControls())
@@ -733,6 +739,45 @@ class CameraActivityEngine : AppCompatActivity() {
         } catch (e: Exception) {
             Log.e(TAG, "Error toggling histogram", e)
             Toast.makeText(this, "Histogram error: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    /**
+     * Toggle RAW/DNG capture mode (Phase 9A)
+     */
+    private fun toggleRawCapture() {
+        try {
+            val rawPlugin = cameraEngine.getPlugin("RAWCapture") as? RAWCapturePlugin
+
+            if (rawPlugin != null) {
+                val isEnabled = rawPlugin.toggleRawCapture()
+
+                if (isEnabled) {
+                    if (rawPlugin.isRawSupported()) {
+                        val maxSize = rawPlugin.getMaxRawSize()
+                        val message = "RAW capture enabled - DNG format${maxSize?.let { "\n${it.width}x${it.height}" } ?: ""}"
+                        Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+                        Log.i(TAG, "RAW/DNG capture enabled: $maxSize")
+                    } else {
+                        Toast.makeText(this, "RAW capture not supported by this camera", Toast.LENGTH_LONG).show()
+                        Log.w(TAG, "RAW capture not supported")
+                    }
+                } else {
+                    Toast.makeText(this, "RAW capture disabled - Using JPEG only", Toast.LENGTH_SHORT).show()
+                    Log.i(TAG, "RAW capture disabled")
+                }
+
+                // Provide haptic feedback
+                performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+
+            } else {
+                Toast.makeText(this, "RAW capture plugin not available", Toast.LENGTH_SHORT).show()
+                Log.w(TAG, "RAW capture plugin not found")
+            }
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Error toggling RAW capture", e)
+            Toast.makeText(this, "RAW capture error: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
 
