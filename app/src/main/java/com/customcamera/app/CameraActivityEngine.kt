@@ -2305,36 +2305,10 @@ class CameraActivityEngine : AppCompatActivity() {
         }
     }
 
-    /**
-     * Toggle professional manual controls dialog
-     */
-    private fun toggleManualControls() {
-        try {
-            // TODO: Re-enable professional controls after plugin API migration
-            Toast.makeText(this, "Professional controls temporarily unavailable - under development", Toast.LENGTH_LONG).show()
-            Log.i(TAG, "Professional controls requested but disabled (API migration in progress)")
-
-            // Original code (temporarily disabled):
-            /*
-            val dialog = com.customcamera.app.ui.ProfessionalControlsDialog(
-                this,
-                isoPlugin,
-                shutterPlugin,
-                aperturePlugin,
-                whiteBalancePlugin,
-                focusPlugin,
-                bracketingPlugin
-            )
-            dialog.show()
-            performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
-            Toast.makeText(this, "Professional controls opened", Toast.LENGTH_SHORT).show()
-            */
-
-        } catch (e: Exception) {
-            Log.e(TAG, "Error with manual controls", e)
-            Toast.makeText(this, "Manual controls error: ${e.message}", Toast.LENGTH_SHORT).show()
-        }
-    }
+    // NOTE: Professional manual controls are implemented via toggleManualControlsPanel()
+    // which calls showManualControls() at line 752. The controls include:
+    // - ISO, Shutter Speed, Focus Distance, White Balance, Exposure Compensation
+    // See showManualControls() for the complete Camera2 API integration
 
     companion object {
         private const val TAG = "CameraActivityEngine"
