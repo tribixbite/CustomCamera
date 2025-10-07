@@ -208,43 +208,55 @@ class PluginManager {
 
     /**
      * Process a frame through all enabled processing plugins
+     *
+     * IMPORTANT: Processes plugins sequentially in a single coroutine to prevent
+     * resource exhaustion from spawning unlimited concurrent jobs (60+ per second at 60 FPS).
      */
     fun processFrame(image: ImageProxy) {
-        if (processingPlugins.isEmpty()) return
+        if (processingPlugins.isEmpty()) {
+            image.close() // IMPORTANT: Close image if not processed
+            return
+        }
 
         totalFramesProcessed++
         val frameStartTime = System.currentTimeMillis()
 
-        // Process frame through all enabled processing plugins
-        processingPlugins.forEach { plugin ->
-            if (plugin.isEnabled) {
-                pluginScope.launch {
-                    val pluginStartTime = System.currentTimeMillis()
-                    try {
-                        val result = plugin.processFrame(image)
-                        val processingTime = System.currentTimeMillis() - pluginStartTime
+        // Launch a single coroutine to process all plugins sequentially
+        pluginScope.launch {
+            try {
+                // Process plugins sequentially to respect priority and prevent resource exhaustion
+                processingPlugins.forEach { plugin ->
+                    if (plugin.isEnabled) {
+                        val pluginStartTime = System.currentTimeMillis()
+                        try {
+                            val result = plugin.processFrame(image)
+                            val processingTime = System.currentTimeMillis() - pluginStartTime
 
-                        // Track performance
-                        frameProcessingTimes[plugin.name]?.let { times ->
-                            times.add(processingTime)
-                            // Keep only last 100 measurements for performance
-                            if (times.size > 100) {
-                                times.removeFirst()
+                            // Track performance
+                            frameProcessingTimes[plugin.name]?.let { times ->
+                                times.add(processingTime)
+                                // Keep only last 100 measurements for performance
+                                if (times.size > 100) {
+                                    times.removeFirst()
+                                }
                             }
+
+                            Log.d(TAG, "Plugin '${plugin.name}' processed frame in ${processingTime}ms: $result")
+
+                        } catch (e: Exception) {
+                            Log.e(TAG, "❌ Plugin '${plugin.name}' failed to process frame", e)
                         }
-
-                        Log.d(TAG, "Plugin '${plugin.name}' processed frame in ${processingTime}ms: $result")
-
-                    } catch (e: Exception) {
-                        Log.e(TAG, "❌ Plugin '${plugin.name}' failed to process frame", e)
                     }
                 }
+            } finally {
+                // Ensure the ImageProxy is closed after all plugins have processed it
+                image.close()
             }
-        }
 
-        val totalFrameTime = System.currentTimeMillis() - frameStartTime
-        if (totalFrameTime > 33) { // Warn if frame processing takes longer than ~30fps
-            Log.w(TAG, "Frame processing took ${totalFrameTime}ms (may impact performance)")
+            val totalFrameTime = System.currentTimeMillis() - frameStartTime
+            if (totalFrameTime > 33) { // Warn if frame processing takes longer than ~30fps
+                Log.w(TAG, "Frame processing took ${totalFrameTime}ms (may impact performance)")
+            }
         }
     }
 

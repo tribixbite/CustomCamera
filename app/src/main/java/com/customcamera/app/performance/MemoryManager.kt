@@ -26,10 +26,12 @@ class MemoryManager(
 
     /**
      * Optimize camera preview memory usage
+     *
+     * IMPORTANT: Removed explicit System.gc() calls - Android's runtime
+     * manages garbage collection better than manual invocation.
      */
     fun optimizePreviewMemory() {
         try {
-            // Force garbage collection if memory is low
             val runtime = Runtime.getRuntime()
             val usedMemory = runtime.totalMemory() - runtime.freeMemory()
             val maxMemory = runtime.maxMemory()
@@ -38,13 +40,11 @@ class MemoryManager(
             if (memoryUsagePercent > 80f) {
                 Log.w(TAG, "High memory usage: ${String.format("%.1f", memoryUsagePercent)}%")
 
-                // Clear image proxy cache
+                // Clear image proxy cache to release references
                 clearImageProxyCache()
 
-                // Force garbage collection
-                System.gc()
-
-                Log.i(TAG, "Memory optimization performed")
+                // Trust Android's GC to collect when appropriate
+                Log.i(TAG, "Memory optimization performed (cache cleared)")
             }
 
         } catch (e: Exception) {
@@ -76,24 +76,32 @@ class MemoryManager(
 
     /**
      * Background thread optimization for image analysis
+     *
+     * IMPORTANT: This is a suspend function that should be launched from a
+     * lifecycle-aware scope (e.g., lifecycleScope in Activity) to ensure
+     * proper cancellation when the component is destroyed.
+     *
+     * Usage: lifecycleScope.launch { memoryManager.optimizeBackgroundProcessing() }
      */
-    fun optimizeBackgroundProcessing(cameraContext: CameraContext) {
-        CoroutineScope(Dispatchers.Default).launch {
-            try {
-                // Monitor memory usage periodically
-                while (true) {
-                    val currentTime = System.currentTimeMillis()
-                    if (currentTime - lastMemoryCheck > memoryCheckInterval) {
-                        checkMemoryUsage()
-                        lastMemoryCheck = currentTime
-                    }
-
-                    kotlinx.coroutines.delay(1000)
+    suspend fun optimizeBackgroundProcessing() {
+        try {
+            // Monitor memory usage periodically
+            // This loop will be cancelled when the calling scope is cancelled
+            while (true) {
+                val currentTime = System.currentTimeMillis()
+                if (currentTime - lastMemoryCheck > memoryCheckInterval) {
+                    checkMemoryUsage()
+                    lastMemoryCheck = currentTime
                 }
 
-            } catch (e: Exception) {
-                Log.e(TAG, "Error in background processing optimization", e)
+                kotlinx.coroutines.delay(1000)
             }
+
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            Log.i(TAG, "Background processing optimization cancelled")
+            throw e // Re-throw to properly handle cancellation
+        } catch (e: Exception) {
+            Log.e(TAG, "Error in background processing optimization", e)
         }
     }
 
@@ -119,10 +127,11 @@ class MemoryManager(
 
     /**
      * Clear cached resources
+     *
+     * IMPORTANT: Removed explicit System.gc() call - trust Android's runtime
      */
     fun clearCache() {
         clearImageProxyCache()
-        System.gc()
         Log.i(TAG, "Memory cache cleared")
     }
 

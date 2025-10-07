@@ -14,6 +14,9 @@ import com.customcamera.app.engine.plugins.ProcessingResult
 import com.customcamera.app.engine.plugins.ProcessingMetadata
 import com.customcamera.app.barcode.BarcodeOverlayView
 import com.customcamera.app.barcode.DetectedBarcode
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 
 /**
  * BarcodePlugin provides ML Kit barcode scanning functionality
@@ -245,40 +248,50 @@ class BarcodePlugin : ProcessingPlugin() {
         // In production: scanner?.close()
     }
 
-    private fun performRealBarcodeDetection(image: ImageProxy): List<DetectedBarcode> {
+    /**
+     * Perform ML Kit barcode detection with proper async-to-suspend conversion.
+     *
+     * IMPORTANT: Uses suspendCancellableCoroutine to await ML Kit results
+     * instead of returning immediately with empty list.
+     */
+    private suspend fun performRealBarcodeDetection(image: ImageProxy): List<DetectedBarcode> {
         return try {
             val mediaImage = image.image ?: return emptyList()
             val inputImage = InputImage.fromMediaImage(mediaImage, image.imageInfo.rotationDegrees)
 
-            // Store detected barcodes for this frame
-            val frameDetectedBarcodes = mutableListOf<DetectedBarcode>()
-
-            // Process with ML Kit scanner asynchronously
-            scanner.process(inputImage)
-                .addOnSuccessListener { mlkitBarcodes ->
-                    // Convert ML Kit barcodes to our format
-                    mlkitBarcodes.forEach { barcode ->
-                        val detectedBarcode = DetectedBarcode(
-                            data = barcode.rawValue ?: "",
-                            format = getBarcodeFormatName(barcode.format),
-                            boundingBox = barcode.boundingBox ?: Rect(),
-                            cornerPoints = barcode.cornerPoints?.map { Point(it.x, it.y) }?.toTypedArray() ?: emptyArray()
-                        )
-                        frameDetectedBarcodes.add(detectedBarcode)
+            // Await ML Kit barcode detection results using suspendCancellableCoroutine
+            val mlkitBarcodes = suspendCancellableCoroutine<List<Barcode>> { continuation ->
+                scanner.process(inputImage)
+                    .addOnSuccessListener { barcodes: List<Barcode> ->
+                        if (continuation.isActive) {
+                            continuation.resume(barcodes)
+                        }
                     }
-
-                    // Update overlay with detected barcodes
-                    if (frameDetectedBarcodes.isNotEmpty()) {
-                        updateDetectedBarcodes(frameDetectedBarcodes)
-                        Log.i(TAG, "ML Kit detected ${frameDetectedBarcodes.size} barcodes")
+                    .addOnFailureListener { e: Exception ->
+                        Log.e(TAG, "ML Kit barcode detection failed", e)
+                        if (continuation.isActive) {
+                            continuation.resume(emptyList<Barcode>())
+                        }
                     }
-                }
-                .addOnFailureListener { e ->
-                    Log.e(TAG, "ML Kit barcode detection failed", e)
-                }
+            }
 
-            // Return current frame detections (may be empty for async processing)
-            frameDetectedBarcodes
+            // Convert ML Kit barcodes to our format
+            val detectedBarcodes = mlkitBarcodes.map { barcode: Barcode ->
+                DetectedBarcode(
+                    data = barcode.rawValue ?: "",
+                    format = getBarcodeFormatName(barcode.format),
+                    boundingBox = barcode.boundingBox ?: Rect(),
+                    cornerPoints = barcode.cornerPoints?.map { point -> Point(point.x, point.y) }?.toTypedArray() ?: emptyArray()
+                )
+            }
+
+            // Update overlay with detected barcodes
+            if (detectedBarcodes.isNotEmpty()) {
+                updateDetectedBarcodes(detectedBarcodes)
+                Log.i(TAG, "ML Kit detected ${detectedBarcodes.size} barcodes")
+            }
+
+            detectedBarcodes
 
         } catch (e: Exception) {
             Log.e(TAG, "ML Kit barcode detection setup failed", e)
