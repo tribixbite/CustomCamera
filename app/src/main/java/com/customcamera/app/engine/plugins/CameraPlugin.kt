@@ -134,6 +134,17 @@ abstract class UIPlugin : CameraPlugin() {
     abstract fun createUIView(context: CameraContext): android.view.View?
 
     /**
+     * Called when the UI view is being removed or destroyed
+     * Plugins should release any references to the view here to prevent memory leaks
+     *
+     * IMPORTANT: This prevents IllegalStateException when createUIView is called
+     * multiple times and prevents memory leaks from retained view references
+     */
+    open fun destroyUIView() {
+        // Default implementation - override in subclasses to release view references
+    }
+
+    /**
      * Update UI based on camera state changes
      */
     open fun updateUI(camera: Camera) {

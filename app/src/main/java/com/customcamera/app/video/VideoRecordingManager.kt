@@ -1,6 +1,7 @@
 package com.customcamera.app.video
 
 import android.content.Context
+import android.media.MediaMetadataRetriever
 import android.os.Environment
 import android.util.Log
 import androidx.camera.video.FileOutputOptions
@@ -180,10 +181,29 @@ class VideoRecordingManager(private val context: Context) {
         }
     }
 
+    /**
+     * Get video duration in milliseconds using MediaMetadataRetriever
+     */
     private fun getVideoDuration(file: File): Long {
-        // In a real implementation, this would use MediaMetadataRetriever
-        // to get the actual video duration. For now, return 0.
-        return 0L
+        if (!file.exists()) {
+            return 0L
+        }
+
+        val retriever = MediaMetadataRetriever()
+        return try {
+            retriever.setDataSource(file.absolutePath)
+            val durationStr = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+            durationStr?.toLongOrNull() ?: 0L
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to extract video duration from ${file.name}", e)
+            0L
+        } finally {
+            try {
+                retriever.release()
+            } catch (e: Exception) {
+                Log.w(TAG, "Failed to release MediaMetadataRetriever", e)
+            }
+        }
     }
 
     companion object {

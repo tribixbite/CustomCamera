@@ -7,6 +7,7 @@ import android.view.MenuItem
 import android.widget.GridView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.exifinterface.media.ExifInterface
 import androidx.lifecycle.lifecycleScope
 import com.customcamera.app.gallery.GalleryAdapter
 import com.customcamera.app.gallery.MediaItem
@@ -149,44 +150,83 @@ class GalleryActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Extract photo details from EXIF metadata
+     */
     private fun extractPhotoDetails(mediaItem: MediaItem): String {
         return try {
             val dateFormat = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault())
+
+            // Read EXIF metadata from the photo file
+            val exif = ExifInterface(mediaItem.file.absolutePath)
+
+            // Extract EXIF data
+            val make = exif.getAttribute(ExifInterface.TAG_MAKE) ?: "Unknown"
+            val model = exif.getAttribute(ExifInterface.TAG_MODEL) ?: "Unknown"
+            val iso = exif.getAttribute(ExifInterface.TAG_PHOTOGRAPHIC_SENSITIVITY) ?: "Auto"
+            val exposureTime = exif.getAttribute(ExifInterface.TAG_EXPOSURE_TIME) ?: "Auto"
+            val fNumber = exif.getAttribute(ExifInterface.TAG_F_NUMBER) ?: "Unknown"
+            val focalLength = exif.getAttribute(ExifInterface.TAG_FOCAL_LENGTH) ?: "Unknown"
+            val whiteBalance = when (exif.getAttributeInt(ExifInterface.TAG_WHITE_BALANCE, -1).toShort()) {
+                ExifInterface.WHITE_BALANCE_AUTO -> "Auto"
+                ExifInterface.WHITE_BALANCE_MANUAL -> "Manual"
+                else -> "Unknown"
+            }
+            val flash = when (exif.getAttributeInt(ExifInterface.TAG_FLASH, -1).toShort()) {
+                ExifInterface.FLAG_FLASH_FIRED -> "Fired"
+                ExifInterface.FLAG_FLASH_NO_FLASH_FUNCTION -> "No Flash"
+                else -> "Off"
+            }
+            val imageWidth = exif.getAttributeInt(ExifInterface.TAG_IMAGE_WIDTH, 0)
+            val imageHeight = exif.getAttributeInt(ExifInterface.TAG_IMAGE_LENGTH, 0)
+            val orientation = when (exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)) {
+                ExifInterface.ORIENTATION_ROTATE_90 -> "90°"
+                ExifInterface.ORIENTATION_ROTATE_180 -> "180°"
+                ExifInterface.ORIENTATION_ROTATE_270 -> "270°"
+                else -> "Normal"
+            }
 
             """
                 📁 File Information:
                 Name: ${mediaItem.name}
                 Size: ${mediaItem.sizeFormatted}
                 Date: ${dateFormat.format(java.util.Date(mediaItem.timestamp))}
+                Resolution: ${imageWidth}x${imageHeight}
+                Orientation: $orientation
 
-                📸 Capture Information:
-                Camera: CustomCamera Engine
-                Format: JPEG
-                App Version: Professional Plugin System
+                📸 Camera Information:
+                Make: $make
+                Model: $model
 
                 🎛️ Camera Settings:
-                ISO: Auto (estimated 100-400)
-                Exposure: Auto compensation
-                White Balance: Auto
-                Flash: ${if (mediaItem.name.contains("NIGHT")) "Auto" else "Off"}
-                Focus: Tap-to-focus enabled
+                ISO: $iso
+                Exposure Time: $exposureTime
+                F-Number: f/$fNumber
+                Focal Length: $focalLength
+                White Balance: $whiteBalance
+                Flash: $flash
 
-                🔌 Plugin System:
-                Active Plugins: 12+ professional plugins
-                Manual Controls: Available
-                Real-time Analysis: Enabled
-                Performance Monitoring: Active
-
-                📊 Technical Details:
-                Processing Pipeline: Multi-stage
-                Quality Enhancement: Plugin-based
-                Memory Optimization: Active
-                Error Handling: Comprehensive
+                🔌 CustomCamera System:
+                Engine: Professional Plugin Architecture
+                Format: JPEG
+                Processing: Multi-stage pipeline
+                Quality: Plugin-enhanced
             """.trimIndent()
 
         } catch (e: Exception) {
             Log.e(TAG, "Error extracting photo details", e)
-            "Error extracting photo information"
+
+            // Fallback to basic file info if EXIF reading fails
+            val dateFormat = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault())
+            """
+                📁 File Information:
+                Name: ${mediaItem.name}
+                Size: ${mediaItem.sizeFormatted}
+                Date: ${dateFormat.format(java.util.Date(mediaItem.timestamp))}
+
+                ⚠️ Unable to read EXIF metadata
+                Error: ${e.message}
+            """.trimIndent()
         }
     }
 

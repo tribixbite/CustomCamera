@@ -95,22 +95,44 @@
 
 ## 🎯 RECOMMENDED TASK ORDER
 
-### Phase 1: Critical Bug Fixes (This Session)
+### ✅ Phase 1: Critical Bug Fixes (COMPLETED - commits 2a2804b, 0fb0049)
 1. ✅ **Fix ClassNotFoundException crashes** (DONE - commit 2a2804b)
 2. ✅ **Fix Settings activity reference** (DONE - commit 2a2804b)
-3. ⏭️ **Fix frame processing performance** (PluginManager.kt) - NEXT
-4. ⏭️ **Fix barcode detection async bug** (BarcodePlugin.kt) - NEXT
-5. ⏭️ **Fix memory manager issues** (remove GC calls, fix coroutine leak)
+3. ✅ **Fix frame processing performance** (DONE - commit 0fb0049)
+4. ✅ **Fix barcode detection async bug** (DONE - commit 0fb0049)
+5. ✅ **Fix memory manager issues** (DONE - commit 0fb0049)
 
-### Phase 2: Architectural Integration (Next Session)
-6. ⏭️ **Major: Integrate CameraEngine with CameraActivity** (Large effort - 8+ hours)
-   - This is the MOST IMPORTANT architectural fix
-   - All 18+ plugins are currently unused dead code
-   - Options: (A) Refactor CameraActivity to use CameraEngine, OR (B) Create CameraActivityEngine and migrate
+### 🔄 Phase 1B: Medium Priority Fixes (THIS SESSION)
+6. ❌ **Fix plugin UI view lifecycle leaks** (GridOverlayPlugin, CropPlugin)
+   - Add destroyUIView() method to UIPlugin interface
+   - Prevent IllegalStateException and memory leaks
+   - Effort: Small (1-2 hours)
 
-### Phase 3: Polish & Cleanup (Future Session)
-7. Medium-priority fixes (plugin UI lifecycle, settings reactivity)
-8. Low-priority fixes (video duration, EXIF data, deprecated APIs)
+7. ❌ **Fix settings broadcast fragility** (SimpleSettingsActivity.kt:72)
+   - Replace sendBroadcast() with StateFlow reactivity
+   - SettingsManager already has StateFlow infrastructure
+   - Effort: Medium (2-3 hours)
+
+8. ❌ **Fix video duration calculation** (VideoRecordingManager.kt:183-187)
+   - Implement using MediaMetadataRetriever
+   - Currently returns 0 for all videos
+   - Effort: Small (30 minutes)
+
+9. ❌ **Fix photo metadata display** (GalleryActivity.kt:152-186)
+   - Replace mocked data with real EXIF reading
+   - Use ExifInterface to read actual metadata
+   - Effort: Small (1 hour)
+
+10. ❌ **Fix deprecated SystemUI API** (CameraActivity.kt:75-82)
+    - Replace systemUiVisibility with WindowInsetsController
+    - Android 11+ compatibility
+    - Effort: Small (30 minutes)
+
+### ⏭️ Phase 2: Architectural Integration (FUTURE SESSION - 8+ hours)
+11. ⏭️ **Major: Integrate CameraEngine with CameraActivity**
+    - This is the MOST IMPORTANT architectural fix
+    - All 18+ plugins are currently unused dead code
+    - Options: (A) Refactor CameraActivity to use CameraEngine, OR (B) Create CameraActivityEngine and migrate
 
 ## ✅ COMPLETED CRITICAL ISSUES
 

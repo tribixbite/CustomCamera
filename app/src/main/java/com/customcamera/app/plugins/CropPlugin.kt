@@ -79,7 +79,18 @@ class CropPlugin : UIPlugin() {
             return null
         }
 
-        return createCropOverlay()
+        // Only create new view if we don't already have one
+        if (cropOverlayView == null) {
+            Log.i(TAG, "Creating crop overlay view")
+            createCropOverlay()
+        }
+
+        return cropOverlayView
+    }
+
+    override fun destroyUIView() {
+        Log.i(TAG, "Destroying crop overlay view")
+        cropOverlayView = null
     }
 
     override fun updateUI(camera: Camera) {

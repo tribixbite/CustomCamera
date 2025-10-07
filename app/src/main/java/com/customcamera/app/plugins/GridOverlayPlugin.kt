@@ -79,14 +79,22 @@ class GridOverlayPlugin : UIPlugin() {
             return null
         }
 
-        Log.i(TAG, "Creating grid overlay view")
+        // Only create new view if we don't already have one
+        if (gridOverlayView == null) {
+            Log.i(TAG, "Creating grid overlay view")
 
-        gridOverlayView = GridOverlayView(context.context).apply {
-            setGridType(gridType)
-            setGridEnabled(isOverlayVisible)
+            gridOverlayView = GridOverlayView(context.context).apply {
+                setGridType(gridType)
+                setGridEnabled(isOverlayVisible)
+            }
         }
 
         return gridOverlayView
+    }
+
+    override fun destroyUIView() {
+        Log.i(TAG, "Destroying grid overlay view")
+        gridOverlayView = null
     }
 
     override fun updateUI(camera: Camera) {
