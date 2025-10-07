@@ -1,5 +1,117 @@
 # CustomCamera - Master Task List & Implementation Plan
 
+## 🚨 CODE REVIEW FINDINGS (2025-10-06) - CRITICAL ISSUES IDENTIFIED
+
+### ✅ FIXED: Critical Crash Bugs (Commit 2a2804b)
+**Status**: RESOLVED ✅ (2025-10-06)
+
+#### ✅ Fixed Issue 1: ClassNotFoundException Crashes
+- **Problem**: App referenced non-existent `CameraActivityEngine` class
+- **Locations**: MainActivity.kt:150, CameraSelectionActivity.kt:55,72
+- **Impact**: App crashed immediately when trying to launch camera
+- **Fix**: Changed all references to existing `CameraActivity::class.java`
+- **Status**: FIXED AND COMMITTED ✅
+
+#### ✅ Fixed Issue 2: Settings Activity Reference
+- **Problem**: MainActivity tried to launch non-existent `SettingsActivity`
+- **Location**: MainActivity.kt:169
+- **Impact**: Settings launch always failed, used fallback unnecessarily
+- **Fix**: Removed fallback logic, directly use `SimpleSettingsActivity`
+- **Status**: FIXED AND COMMITTED ✅
+
+### 🔴 REMAINING CRITICAL ISSUES - HIGH PRIORITY
+
+#### ❌ Issue 3: Plugin System Not Integrated (ARCHITECTURE FLAW)
+- **Problem**: CameraActivity uses direct CameraX APIs, never instantiates CameraEngine
+- **Location**: CameraActivity.kt:102-151
+- **Impact**: ALL 18+ plugins (Grid, Barcode, Crop, Manual Controls, etc.) are DEAD CODE
+- **Evidence**: Plugin architecture exists but is completely disconnected from main UI
+- **Priority**: P0 - Critical architectural disconnect
+- **Fix Required**: Refactor CameraActivity to use CameraEngine OR create new engine-based activity
+- **Effort**: Large (8-16 hours) - requires significant refactoring
+
+#### ❌ Issue 4: Frame Processing Performance Bomb
+- **Problem**: PluginManager spawns unlimited concurrent coroutines (60+ per second at 60 FPS)
+- **Location**: PluginManager.kt:212-249
+- **Impact**: Resource exhaustion, potential app freeze or crash under heavy load
+- **Priority**: P1 - High performance risk
+- **Fix**: Sequential plugin processing in single coroutine per frame
+- **Effort**: Medium (2-4 hours)
+
+#### ❌ Issue 5: Barcode Detection Broken
+- **Problem**: ML Kit async callback returns before detection completes, results lost
+- **Location**: BarcodePlugin.kt:257
+- **Impact**: Barcode scanning doesn't work correctly
+- **Priority**: P1 - Feature broken
+- **Fix**: Wrap with `suspendCancellableCoroutine` to make properly suspendable
+- **Effort**: Medium (2-3 hours)
+
+### 🟡 MEDIUM PRIORITY ISSUES
+
+#### ❌ Issue 6: Memory Manager Coroutine Leak
+- **Problem**: `while(true)` loop with no cancellation mechanism
+- **Location**: MemoryManager.kt:80-98
+- **Impact**: Coroutine runs forever, drains battery
+- **Fix**: Launch from lifecycle-aware scope or add cancellation
+- **Effort**: Small (1 hour)
+
+#### ❌ Issue 7: Explicit GC Anti-Pattern
+- **Problem**: Calling `System.gc()` explicitly
+- **Location**: MemoryManager.kt:45, 125
+- **Impact**: May cause stuttering, doesn't guarantee collection
+- **Fix**: Remove explicit GC calls, trust Android's memory management
+- **Effort**: Trivial (15 minutes)
+
+#### ❌ Issue 8: Plugin UI View Lifecycle Leaks
+- **Problem**: `createUIView()` can be called multiple times without cleanup
+- **Location**: GridOverlayPlugin.kt:77-90, CropPlugin.kt:77-83
+- **Impact**: Memory leaks, potential IllegalStateException
+- **Fix**: Add `destroyUIView()` method to UIPlugin interface
+- **Effort**: Small (1-2 hours)
+
+#### ❌ Issue 9: Settings Broadcast Fragility
+- **Problem**: Using `sendBroadcast()` for settings changes
+- **Location**: SimpleSettingsActivity.kt:72
+- **Impact**: Not type-safe, changes may not apply
+- **Fix**: Convert to StateFlow-based reactivity (SettingsManager already has StateFlow!)
+- **Effort**: Medium (2-3 hours)
+
+### 🟢 LOW PRIORITY ISSUES
+
+#### ❌ Issue 10: Video Duration Not Implemented
+- **Location**: VideoRecordingManager.kt:183-187
+- **Fix**: Use `MediaMetadataRetriever`
+- **Effort**: Small (30 minutes)
+
+#### ❌ Issue 11: Photo Metadata Mocked
+- **Location**: GalleryActivity.kt:152-186
+- **Fix**: Use `ExifInterface` to read real EXIF data
+- **Effort**: Small (1 hour)
+
+#### ❌ Issue 12: Deprecated SystemUI
+- **Location**: CameraActivity.kt:75-82
+- **Fix**: Use `WindowInsetsController` for Android 11+
+- **Effort**: Small (30 minutes)
+
+## 🎯 RECOMMENDED TASK ORDER
+
+### Phase 1: Critical Bug Fixes (This Session)
+1. ✅ **Fix ClassNotFoundException crashes** (DONE - commit 2a2804b)
+2. ✅ **Fix Settings activity reference** (DONE - commit 2a2804b)
+3. ⏭️ **Fix frame processing performance** (PluginManager.kt) - NEXT
+4. ⏭️ **Fix barcode detection async bug** (BarcodePlugin.kt) - NEXT
+5. ⏭️ **Fix memory manager issues** (remove GC calls, fix coroutine leak)
+
+### Phase 2: Architectural Integration (Next Session)
+6. ⏭️ **Major: Integrate CameraEngine with CameraActivity** (Large effort - 8+ hours)
+   - This is the MOST IMPORTANT architectural fix
+   - All 18+ plugins are currently unused dead code
+   - Options: (A) Refactor CameraActivity to use CameraEngine, OR (B) Create CameraActivityEngine and migrate
+
+### Phase 3: Polish & Cleanup (Future Session)
+7. Medium-priority fixes (plugin UI lifecycle, settings reactivity)
+8. Low-priority fixes (video duration, EXIF data, deprecated APIs)
+
 ## ✅ COMPLETED CRITICAL ISSUES
 
 ### ✅ P0: Camera ID Selection Working Correctly
