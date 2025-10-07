@@ -147,7 +147,7 @@ class MainActivity : AppCompatActivity() {
             // Use default camera from settings
             val defaultCameraIndex = settingsManager.defaultCameraIndex.value
 
-            val intent = Intent(this, CameraActivityEngine::class.java)
+            val intent = Intent(this, CameraActivity::class.java)
             intent.putExtra(CameraSelectionActivity.EXTRA_CAMERA_INDEX, defaultCameraIndex)
             startActivity(intent)
 
@@ -166,21 +166,12 @@ class MainActivity : AppCompatActivity() {
 
     private fun launchSettings() {
         try {
-            val intent = Intent(this, SettingsActivity::class.java)
+            val intent = Intent(this, SimpleSettingsActivity::class.java)
             startActivity(intent)
             debugLogger.logInfo("Launched settings", mapOf("source" to "main_activity"))
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to launch SettingsActivity", e)
-            // Fallback to simple settings
-            try {
-                val fallbackIntent = Intent(this, SimpleSettingsActivity::class.java)
-                startActivity(fallbackIntent)
-                Log.i(TAG, "Opened fallback simple settings from MainActivity")
-                debugLogger.logInfo("Launched fallback settings", mapOf("source" to "main_activity_fallback"))
-            } catch (e2: Exception) {
-                Log.e(TAG, "Even fallback settings failed from MainActivity", e2)
-                Toast.makeText(this, "Settings unavailable: ${e.message}", Toast.LENGTH_LONG).show()
-            }
+            Log.e(TAG, "Failed to launch SimpleSettingsActivity", e)
+            Toast.makeText(this, "Settings unavailable: ${e.message}", Toast.LENGTH_LONG).show()
         }
     }
 
