@@ -102,31 +102,31 @@
 4. ✅ **Fix barcode detection async bug** (DONE - commit 0fb0049)
 5. ✅ **Fix memory manager issues** (DONE - commit 0fb0049)
 
-### 🔄 Phase 1B: Medium Priority Fixes (THIS SESSION)
-6. ❌ **Fix plugin UI view lifecycle leaks** (GridOverlayPlugin, CropPlugin)
-   - Add destroyUIView() method to UIPlugin interface
-   - Prevent IllegalStateException and memory leaks
-   - Effort: Small (1-2 hours)
+### ✅ Phase 1B: Medium Priority Fixes (COMPLETED - commit 06c297b)
+6. ✅ **Fix plugin UI view lifecycle leaks** (DONE - commit 06c297b)
+   - Added destroyUIView() method to UIPlugin base class
+   - Implemented in GridOverlayPlugin and CropPlugin
+   - Prevents IllegalStateException and memory leaks
 
-7. ❌ **Fix settings broadcast fragility** (SimpleSettingsActivity.kt:72)
+7. ⏭️ **Fix settings broadcast fragility** (DEFERRED - Low priority)
    - Replace sendBroadcast() with StateFlow reactivity
    - SettingsManager already has StateFlow infrastructure
    - Effort: Medium (2-3 hours)
 
-8. ❌ **Fix video duration calculation** (VideoRecordingManager.kt:183-187)
-   - Implement using MediaMetadataRetriever
-   - Currently returns 0 for all videos
-   - Effort: Small (30 minutes)
+8. ✅ **Fix video duration calculation** (DONE - commit 06c297b)
+   - Implemented MediaMetadataRetriever in VideoRecordingManager
+   - Extracts real video duration from metadata
+   - Proper resource cleanup
 
-9. ❌ **Fix photo metadata display** (GalleryActivity.kt:152-186)
-   - Replace mocked data with real EXIF reading
-   - Use ExifInterface to read actual metadata
-   - Effort: Small (1 hour)
+9. ✅ **Fix photo metadata display** (DONE - commit 06c297b)
+   - Implemented ExifInterface in GalleryActivity
+   - Reads real EXIF data (ISO, exposure, focal length, etc.)
+   - Comprehensive error handling with fallback
 
-10. ❌ **Fix deprecated SystemUI API** (CameraActivity.kt:75-82)
-    - Replace systemUiVisibility with WindowInsetsController
-    - Android 11+ compatibility
-    - Effort: Small (30 minutes)
+10. ✅ **Fix deprecated SystemUI API** (DONE - commit 06c297b)
+    - Replaced systemUiVisibility with WindowInsetsController
+    - Android 11+ (API 30+) compatibility
+    - Legacy fallback for older devices
 
 ### ⏭️ Phase 2: Architectural Integration (FUTURE SESSION - 8+ hours)
 11. ⏭️ **Major: Integrate CameraEngine with CameraActivity**
