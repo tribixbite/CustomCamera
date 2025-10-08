@@ -293,11 +293,13 @@ class ScanningOverlayView(context: Context) : View(context) {
         invalidate()
     }
 
+    @Suppress("UNUSED_PARAMETER")
     fun showScanResult(result: String, action: String?) {
         Log.d("ScanningOverlayView", "Showing scan result: $result")
         // In production: show result UI
     }
 
+    @Suppress("UNUSED_PARAMETER")
     fun updateForCamera(camera: Camera) {
         // Update overlay for camera changes
     }

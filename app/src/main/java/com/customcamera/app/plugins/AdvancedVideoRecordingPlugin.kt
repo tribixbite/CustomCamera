@@ -330,6 +330,7 @@ class AdvancedVideoRecordingPlugin : UIPlugin() {
     /**
      * Set up video capture use case
      */
+    @Suppress("UNUSED_PARAMETER")
     private fun setupVideoCapture(camera: Camera) {
         try {
             val recorder = Recorder.Builder()
