@@ -66,15 +66,11 @@ class SimpleSettingsActivity : AppCompatActivity() {
             "Show 9 tall x 3 wide composition grid",
             settingsManager.gridOverlay.value
         ) { enabled ->
+            // Update StateFlow - plugins will reactively observe the change
             settingsManager.setGridOverlay(enabled)
 
-            // Immediately apply to camera interface
-            val intent = android.content.Intent("com.customcamera.GRID_TOGGLE")
-            intent.putExtra("enabled", enabled)
-            sendBroadcast(intent)
-
             Toast.makeText(this, "Grid overlay ${if (enabled) "enabled" else "disabled"} - restart camera to apply", Toast.LENGTH_LONG).show()
-            Log.i(TAG, "Grid overlay setting changed: $enabled")
+            Log.i(TAG, "Grid overlay setting changed via StateFlow: $enabled")
         }
 
         // Debug logging setting

@@ -51,11 +51,11 @@ class CameraSelectionActivity : AppCompatActivity() {
             Log.i(TAG, "=== CONTINUE BUTTON CLICKED ===")
             Log.i(TAG, "Selected camera index: $selectedCameraIndex")
 
-            // Launch the camera activity
-            val intent = Intent(this, CameraActivity::class.java)
+            // Launch the camera activity with full plugin system
+            val intent = Intent(this, CameraActivityEngine::class.java)
             intent.putExtra(EXTRA_CAMERA_INDEX, selectedCameraIndex)
 
-            Log.i(TAG, "Launching CameraActivity with camera index: $selectedCameraIndex")
+            Log.i(TAG, "Launching CameraActivityEngine (full plugin system) with camera index: $selectedCameraIndex")
             Log.i(TAG, "Intent extra key: $EXTRA_CAMERA_INDEX")
 
             startActivity(intent)
@@ -69,7 +69,7 @@ class CameraSelectionActivity : AppCompatActivity() {
         binding.skipButton.setOnClickListener {
             // Use camera 2 if available, otherwise camera 0
             val defaultCameraIndex = if (availableCameras.size > 2) 2 else 0
-            val intent = Intent(this, CameraActivity::class.java)
+            val intent = Intent(this, CameraActivityEngine::class.java)
             intent.putExtra(EXTRA_CAMERA_INDEX, defaultCameraIndex)
             Log.i(TAG, "Skip button: using camera $defaultCameraIndex (default: camera 2)")
             startActivity(intent)

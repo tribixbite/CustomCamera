@@ -147,7 +147,7 @@ class MainActivity : AppCompatActivity() {
             // Use default camera from settings
             val defaultCameraIndex = settingsManager.defaultCameraIndex.value
 
-            val intent = Intent(this, CameraActivity::class.java)
+            val intent = Intent(this, CameraActivityEngine::class.java)
             intent.putExtra(CameraSelectionActivity.EXTRA_CAMERA_INDEX, defaultCameraIndex)
             startActivity(intent)
 
