@@ -174,6 +174,8 @@ class CameraEngine(
      */
     fun getPlugin(name: String): CameraPlugin? = pluginManager.getPlugin(name)
 
+    fun getProvider(): ProcessCameraProvider? = cameraProvider
+
     /**
      * Get specific use case instance
      */

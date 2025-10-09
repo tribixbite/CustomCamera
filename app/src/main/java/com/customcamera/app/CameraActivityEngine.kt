@@ -18,6 +18,9 @@ import androidx.lifecycle.lifecycleScope
 import com.customcamera.app.databinding.ActivityCameraBinding
 import com.customcamera.app.engine.CameraConfig
 import com.customcamera.app.engine.CameraEngine
+import com.customcamera.app.engine.CameraContext
+import com.customcamera.app.engine.DebugLogger
+import com.customcamera.app.engine.SettingsManager
 import com.customcamera.app.plugins.*
 import com.customcamera.app.exceptions.*
 import kotlinx.coroutines.launch
@@ -377,8 +380,8 @@ class CameraActivityEngine : AppCompatActivity() {
                 // Initialize performance monitor
                 initializePerformanceMonitor()
 
-                // Add grid overlay to camera layout if enabled
-                setupGridOverlay()
+                // Setup plugin UI overlays (grid, crop, barcode, etc.)
+                setupPluginUIOverlays()
 
                 // Set up dual camera PiP system
                 setupDualCameraPiP()
@@ -1214,9 +1217,10 @@ class CameraActivityEngine : AppCompatActivity() {
             gridOverlayPlugin.toggleGrid()
             val isVisible = gridOverlayPlugin.isGridVisible()
 
-            // Force UI refresh by requesting overlay redraw
-            binding.root.post {
-                binding.root.invalidate()
+            // Refresh plugin UI overlays
+            lifecycleScope.launch {
+                binding.pluginOverlayContainer.removeAllViews()
+                setupPluginUIOverlays()
             }
 
             Toast.makeText(
@@ -1242,6 +1246,13 @@ class CameraActivityEngine : AppCompatActivity() {
             // Toggle crop mode
             if (cropPlugin.isEnabled) {
                 cropPlugin.disableCrop()
+
+                // Refresh plugin UI overlays
+                lifecycleScope.launch {
+                    binding.pluginOverlayContainer.removeAllViews()
+                    setupPluginUIOverlays()
+                }
+
                 Toast.makeText(
                     this,
                     "Crop mode disabled",
@@ -1772,29 +1783,50 @@ class CameraActivityEngine : AppCompatActivity() {
         cameraEngine.cleanup()
     }
 
-    private fun setupGridOverlay() {
+    /**
+     * Setup plugin UI overlays by creating their views and adding to container
+     */
+    private fun setupPluginUIOverlays() {
         try {
-            val settingsManager = com.customcamera.app.engine.SettingsManager(this)
-            val gridEnabled = settingsManager.isPluginEnabled("GridOverlay")
+            val cameraContext = CameraContext(
+                context = this,
+                cameraProvider = cameraEngine.getProvider() ?: return,
+                debugLogger = DebugLogger(),
+                settingsManager = SettingsManager(this),
+                cameraEngine = cameraEngine
+            )
 
-            if (gridEnabled) {
-                // Create grid overlay view and add to camera layout
-                val gridView = com.customcamera.app.plugins.GridOverlayView(this)
+            // Get the plugin overlay container
+            val overlayContainer = binding.pluginOverlayContainer
 
-                // Add grid overlay on top of preview
-                val rootView = binding.root
-                val layoutParams = android.widget.FrameLayout.LayoutParams(
-                    android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
-                    android.widget.FrameLayout.LayoutParams.MATCH_PARENT
-                )
-                rootView.addView(gridView, layoutParams)
-
-                Log.i(TAG, "Grid overlay added to camera UI")
+            // Create and add grid overlay UI
+            val gridView: View? = gridOverlayPlugin.createUIView(cameraContext)
+            if (gridView != null) {
+                overlayContainer.addView(gridView)
+                Log.i(TAG, "Added grid overlay to UI container")
             }
 
+            // Create and add crop overlay UI
+            val cropView: View? = cropPlugin.createUIView(cameraContext)
+            if (cropView != null) {
+                overlayContainer.addView(cropView)
+                Log.i(TAG, "Added crop overlay to UI container")
+            }
+
+            // Barcode is ProcessingPlugin, not UIPlugin - doesn't have visual overlay
+            // The barcode scanning results are shown via Toast messages
+
+            Log.i(TAG, "✅ Plugin UI overlays setup complete")
+
         } catch (e: Exception) {
-            Log.e(TAG, "Error setting up grid overlay", e)
+            Log.e(TAG, "Error setting up plugin UI overlays", e)
+            Toast.makeText(this, "Plugin UI setup error: ${e.message}", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    private fun setupGridOverlay() {
+        // Legacy function - replaced by setupPluginUIOverlays()
+        // Keeping for compatibility but no longer used
     }
 
     private fun updatePluginStatesFromSettings() {

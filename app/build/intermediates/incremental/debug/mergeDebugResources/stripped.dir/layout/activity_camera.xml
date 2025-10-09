@@ -10,6 +10,12 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
+    <!-- Plugin Overlay Container (for grid, crop, barcode overlays) -->
+    <FrameLayout
+        android:id="@+id/pluginOverlayContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
     <!-- Top Controls (Samsung/Google Style) -->
     <LinearLayout
         android:layout_width="match_parent"

@@ -86,6 +86,7 @@ id nightModeButton
 id openCameraButton
 id pipButton
 id pluginControlsPanel
+id pluginOverlayContainer
 id previewView
 id progressSpinner
 id quickCameraButton

@@ -3532,6 +3532,7 @@ id performance
 id pin
 id pipButton
 id pluginControlsPanel
+id pluginOverlayContainer
 id position
 id postLayout
 id pressed

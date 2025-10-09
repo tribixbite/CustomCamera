@@ -48,11 +48,18 @@ class SimpleSettingsActivity : AppCompatActivity() {
     }
 
     private fun createSimpleLayout() {
+        // Create scrollable container
+        val scrollView = android.widget.ScrollView(this).apply {
+            isFillViewport = true
+        }
+
         settingsContainer = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(32, 32, 32, 32)
         }
-        setContentView(settingsContainer)
+
+        scrollView.addView(settingsContainer)
+        setContentView(scrollView)
     }
 
     private fun createSettingsUI() {
