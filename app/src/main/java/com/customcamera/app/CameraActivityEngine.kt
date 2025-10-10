@@ -175,16 +175,7 @@ class CameraActivityEngine : AppCompatActivity() {
         setupEnhancedButton(binding.switchCameraButton) { switchCamera() }
         setupEnhancedButton(binding.flashButton) { toggleFlash() }
         setupEnhancedButton(binding.galleryButton) { openGallery() }
-        setupEnhancedButton(binding.settingsButton) { toggleManualControlsPanel() }
-
-        // Long press for full settings
-        binding.settingsButton.setOnLongClickListener {
-            // Enhanced feedback for long press
-            performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
-            animateButtonLongPress(binding.settingsButton)
-            openFullSettings()
-            true
-        }
+        setupEnhancedButton(binding.settingsButton) { openFullSettings() }
 
         // Wire up new plugin control buttons with enhanced feedback
         setupEnhancedButton(binding.gridToggleButton) { toggleGrid() }
