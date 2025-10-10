@@ -588,20 +588,12 @@ class CameraActivityEngine : AppCompatActivity() {
 
     private fun openFullSettings() {
         try {
-            val intent = Intent(this, SettingsActivity::class.java)
+            val intent = Intent(this, SimpleSettingsActivity::class.java)
             startActivity(intent)
-            Log.i(TAG, "Opened full settings page")
+            Log.i(TAG, "Opened settings page")
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to open full settings", e)
-            // Fallback to simple settings
-            try {
-                val fallbackIntent = Intent(this, SimpleSettingsActivity::class.java)
-                startActivity(fallbackIntent)
-                Log.i(TAG, "Opened fallback simple settings")
-            } catch (e2: Exception) {
-                Log.e(TAG, "Even fallback settings failed", e2)
-                Toast.makeText(this, "Settings error: ${e.message}", Toast.LENGTH_SHORT).show()
-            }
+            Log.e(TAG, "Failed to open settings", e)
+            Toast.makeText(this, "Settings error: ${e.message}", Toast.LENGTH_LONG).show()
         }
     }
 
