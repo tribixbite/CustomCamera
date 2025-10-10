@@ -198,12 +198,23 @@ class DebugActivity : AppCompatActivity() {
 
     private fun addAPILogSection() {
         val logText = TextView(this).apply {
-            text = "API call log will be displayed here"
+            text = buildString {
+                appendLine("📋 Camera API Call Log")
+                appendLine()
+                appendLine("ℹ️ Note: API call tracking is currently not instrumented")
+                appendLine("in the main camera activities.")
+                appendLine()
+                appendLine("To enable API call logging:")
+                appendLine("• Add CameraAPIMonitor calls to CameraActivityEngine")
+                appendLine("• Log camera binding, control, and capture operations")
+                appendLine("• Monitor frame processing pipeline")
+                appendLine()
+                appendLine("Current status: Monitoring system ready, awaiting instrumentation")
+            }
             textSize = 12f
             setPadding(8, 8, 8, 8)
             setTextColor(android.graphics.Color.BLACK)
             setBackgroundColor(android.graphics.Color.LTGRAY)
-            maxLines = 10
         }
         debugContainer.addView(logText)
 
@@ -212,15 +223,40 @@ class DebugActivity : AppCompatActivity() {
             setOnClickListener {
                 try {
                     val logData = if (::cameraAPIMonitor.isInitialized) {
-                        cameraAPIMonitor.generateDebugReport()
+                        val report = cameraAPIMonitor.generateDebugReport()
+                        val stats = cameraAPIMonitor.getAPICallStats()
+
+                        if ((stats["totalCalls"] as? Int) ?: 0 > 0) {
+                            report
+                        } else {
+                            buildString {
+                                appendLine("=== Camera API Monitor Debug Report ===")
+                                appendLine("Generated: ${SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(Date())}")
+                                appendLine()
+                                appendLine("ℹ️ No API calls have been tracked yet")
+                                appendLine()
+                                appendLine("The API monitoring system is initialized but requires")
+                                appendLine("instrumentation in camera activities to track calls.")
+                                appendLine()
+                                appendLine("📌 To populate this log:")
+                                appendLine("1. Add CameraAPIMonitor instance to CameraActivityEngine")
+                                appendLine("2. Call monitor methods during camera operations:")
+                                appendLine("   - logCameraBinding() when binding cameras")
+                                appendLine("   - logCameraControl() for zoom, focus, exposure")
+                                appendLine("   - logCameraProviderCall() for provider operations")
+                                appendLine("   - trackFrameProcessing() during capture")
+                                appendLine()
+                                appendLine("Monitor Status: ✅ Ready, awaiting instrumentation")
+                            }
+                        }
                     } else {
-                        "Camera API Monitor not initialized"
+                        "⚠️ Camera API Monitor not initialized"
                     }
                     logText.text = logData
                     Log.i(TAG, "API Log:\n$logData")
                 } catch (e: Exception) {
                     Log.e(TAG, "Error viewing API log", e)
-                    logText.text = "Error: ${e.message}"
+                    logText.text = "❌ Error: ${e.message}"
                 }
             }
         }
@@ -271,23 +307,97 @@ class DebugActivity : AppCompatActivity() {
         try {
             val cameraProvider = ProcessCameraProvider.getInstance(this).get()
             val cameras = cameraProvider.availableCameraInfos
+            val cameraIds = cameraManager.cameraIdList
 
             val info = buildString {
+                appendLine("=== Camera System Overview ===")
                 appendLine("Available Cameras: ${cameras.size}")
+                appendLine("Default Camera Index: ${settingsManager.defaultCameraIndex.value}")
+                appendLine("Debug Logging: ${settingsManager.debugLogging.value}")
+                appendLine()
+
                 cameras.forEachIndexed { index, cameraInfo ->
                     val facing = when (cameraInfo.lensFacing) {
                         androidx.camera.core.CameraSelector.LENS_FACING_FRONT -> "Front"
                         androidx.camera.core.CameraSelector.LENS_FACING_BACK -> "Back"
                         else -> "External"
                     }
-                    appendLine("Camera $index: $facing facing, Flash: ${cameraInfo.hasFlashUnit()}")
+
+                    appendLine("--- Camera $index ($facing) ---")
+                    appendLine("Flash: ${cameraInfo.hasFlashUnit()}")
+                    appendLine("Sensor Rotation: ${cameraInfo.sensorRotationDegrees}°")
+
+                    // Get Camera2 characteristics for detailed info
+                    try {
+                        if (index < cameraIds.size) {
+                            val characteristics = cameraManager.getCameraCharacteristics(cameraIds[index])
+
+                            // Sensor info
+                            val sensorSize = characteristics.get(CameraCharacteristics.SENSOR_INFO_PHYSICAL_SIZE)
+                            if (sensorSize != null) {
+                                appendLine("Sensor Size: ${String.format("%.2f", sensorSize.width)}mm × ${String.format("%.2f", sensorSize.height)}mm")
+                            }
+
+                            val activeArraySize = characteristics.get(CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE)
+                            if (activeArraySize != null) {
+                                appendLine("Sensor Resolution: ${activeArraySize.width()} × ${activeArraySize.height()}")
+                            }
+
+                            // Focal length
+                            val focalLengths = characteristics.get(CameraCharacteristics.LENS_INFO_AVAILABLE_FOCAL_LENGTHS)
+                            if (focalLengths != null && focalLengths.isNotEmpty()) {
+                                appendLine("Focal Length: ${focalLengths.joinToString(", ")}mm")
+                            }
+
+                            // ISO range
+                            val isoRange = characteristics.get(CameraCharacteristics.SENSOR_INFO_SENSITIVITY_RANGE)
+                            if (isoRange != null) {
+                                appendLine("ISO Range: ${isoRange.lower} - ${isoRange.upper}")
+                            }
+
+                            // Exposure time range
+                            val exposureRange = characteristics.get(CameraCharacteristics.SENSOR_INFO_EXPOSURE_TIME_RANGE)
+                            if (exposureRange != null) {
+                                val minMs = exposureRange.lower / 1_000_000.0
+                                val maxMs = exposureRange.upper / 1_000_000.0
+                                appendLine("Exposure: ${String.format("%.3f", minMs)}ms - ${String.format("%.1f", maxMs)}ms")
+                            }
+
+                            // Hardware level
+                            val hardwareLevel = characteristics.get(CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL)
+                            val levelName = when (hardwareLevel) {
+                                CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_LEGACY -> "Legacy"
+                                CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_LIMITED -> "Limited"
+                                CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_FULL -> "Full"
+                                CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_3 -> "Level 3"
+                                CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_EXTERNAL -> "External"
+                                else -> "Unknown"
+                            }
+                            appendLine("Hardware Level: $levelName")
+
+                            // Focus modes
+                            val focusModes = characteristics.get(CameraCharacteristics.CONTROL_AF_AVAILABLE_MODES)
+                            if (focusModes != null && focusModes.isNotEmpty()) {
+                                appendLine("Focus Modes: ${focusModes.size} available")
+                            }
+
+                            // Max zoom
+                            val maxZoom = characteristics.get(CameraCharacteristics.SCALER_AVAILABLE_MAX_DIGITAL_ZOOM)
+                            if (maxZoom != null) {
+                                appendLine("Max Digital Zoom: ${String.format("%.1f", maxZoom)}x")
+                            }
+                        }
+                    } catch (e: CameraAccessException) {
+                        appendLine("(Unable to access detailed Camera2 characteristics)")
+                        Log.w(TAG, "Error accessing Camera2 characteristics for camera $index", e)
+                    }
+
+                    appendLine()
                 }
-                appendLine("Default Camera: ${settingsManager.defaultCameraIndex.value}")
-                appendLine("Debug Logging: ${settingsManager.debugLogging.value}")
             }
 
             infoText.text = info
-            Log.i(TAG, "Camera info refreshed")
+            Log.i(TAG, "Camera info refreshed with detailed characteristics")
 
         } catch (e: Exception) {
             Log.e(TAG, "Error refreshing camera info", e)
@@ -376,13 +486,25 @@ class DebugActivity : AppCompatActivity() {
         try {
             Toast.makeText(this, "Resetting camera system...", Toast.LENGTH_SHORT).show()
 
-            // Simple reset operation
-            Toast.makeText(this, "Camera system reset initiated", Toast.LENGTH_LONG).show()
-            Log.i(TAG, "Camera system reset initiated")
+            if (::cameraResetManager.isInitialized) {
+                // Reinitialize the entire camera provider
+                val success = cameraResetManager.reinitializeCameraProvider()
+
+                if (success) {
+                    Toast.makeText(this, "✅ Camera system reset complete", Toast.LENGTH_LONG).show()
+                    Log.i(TAG, "Camera system reset successful")
+                } else {
+                    Toast.makeText(this, "⚠️ Camera reset completed with warnings", Toast.LENGTH_LONG).show()
+                    Log.w(TAG, "Camera system reset had issues")
+                }
+            } else {
+                Toast.makeText(this, "⚠️ Reset manager not available", Toast.LENGTH_SHORT).show()
+                Log.w(TAG, "CameraResetManager not initialized")
+            }
 
         } catch (e: Exception) {
             Log.e(TAG, "Error resetting camera system", e)
-            Toast.makeText(this, "Reset failed: ${e.message}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "❌ Reset failed: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -390,13 +512,25 @@ class DebugActivity : AppCompatActivity() {
         try {
             Toast.makeText(this, "Flushing camera queue...", Toast.LENGTH_SHORT).show()
 
-            // Simple flush operation
-            Toast.makeText(this, "Camera queue flush initiated", Toast.LENGTH_LONG).show()
-            Log.i(TAG, "Camera queue flush initiated")
+            if (::cameraResetManager.isInitialized) {
+                // Unbind all cameras and run garbage collection
+                val success = cameraResetManager.flushCameraQueue()
+
+                if (success) {
+                    Toast.makeText(this, "✅ Camera queue flushed successfully", Toast.LENGTH_LONG).show()
+                    Log.i(TAG, "Camera queue flush successful")
+                } else {
+                    Toast.makeText(this, "⚠️ Flush completed with warnings", Toast.LENGTH_LONG).show()
+                    Log.w(TAG, "Camera queue flush had issues")
+                }
+            } else {
+                Toast.makeText(this, "⚠️ Reset manager not available", Toast.LENGTH_SHORT).show()
+                Log.w(TAG, "CameraResetManager not initialized")
+            }
 
         } catch (e: Exception) {
             Log.e(TAG, "Error flushing camera queue", e)
-            Toast.makeText(this, "Flush failed: ${e.message}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "❌ Flush failed: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
 
