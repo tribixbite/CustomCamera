@@ -73,10 +73,10 @@ class SimpleSettingsActivity : AppCompatActivity() {
             "Show 9 tall x 3 wide composition grid",
             settingsManager.gridOverlay.value
         ) { enabled ->
-            // Update StateFlow - plugins will reactively observe the change
+            // Update StateFlow - GridOverlayPlugin reads from this centralized state
             settingsManager.setGridOverlay(enabled)
 
-            Toast.makeText(this, "Grid overlay ${if (enabled) "enabled" else "disabled"} - restart camera to apply", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, "Grid overlay ${if (enabled) "enabled" else "disabled"}", Toast.LENGTH_SHORT).show()
             Log.i(TAG, "Grid overlay setting changed via StateFlow: $enabled")
         }
 

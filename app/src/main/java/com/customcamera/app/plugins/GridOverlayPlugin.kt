@@ -23,7 +23,7 @@ class GridOverlayPlugin : UIPlugin() {
 
     private var cameraContext: CameraContext? = null
     private var gridOverlayView: GridOverlayView? = null
-    private var isOverlayVisible: Boolean = true
+    // Grid visibility is now managed by SettingsManager.gridOverlay StateFlow
     private var gridType: GridType = GridType.NINE_GRID
 
     enum class GridType {
@@ -39,7 +39,7 @@ class GridOverlayPlugin : UIPlugin() {
         this.cameraContext = context
         Log.i(TAG, "GridOverlayPlugin initialized")
 
-        // Load settings from settings manager
+        // Load grid type from settings manager (visibility managed by SettingsManager StateFlow)
         loadSettings(context)
 
         // Log current grid configuration
@@ -48,7 +48,7 @@ class GridOverlayPlugin : UIPlugin() {
             "initialized",
             mapOf(
                 "gridType" to gridType.name,
-                "isVisible" to isOverlayVisible
+                "isVisible" to context.settingsManager.gridOverlay.value
             )
         )
     }
@@ -64,7 +64,7 @@ class GridOverlayPlugin : UIPlugin() {
             "camera_ready",
             mapOf(
                 "gridEnabled" to isEnabled,
-                "gridVisible" to isOverlayVisible
+                "gridVisible" to (cameraContext?.settingsManager?.gridOverlay?.value ?: false)
             )
         )
     }
@@ -75,7 +75,9 @@ class GridOverlayPlugin : UIPlugin() {
     }
 
     override fun createUIView(context: CameraContext): View? {
-        if (!isEnabled || !isOverlayVisible) {
+        val isVisible = context.settingsManager.gridOverlay.value
+
+        if (!isEnabled || !isVisible) {
             return null
         }
 
@@ -85,7 +87,7 @@ class GridOverlayPlugin : UIPlugin() {
 
             gridOverlayView = GridOverlayView(context.context).apply {
                 setGridType(gridType)
-                setGridEnabled(isOverlayVisible)
+                setGridEnabled(isVisible)
             }
         }
 
@@ -124,12 +126,13 @@ class GridOverlayPlugin : UIPlugin() {
 
     /**
      * Show the grid overlay
+     * Updates centralized SettingsManager state
      */
     fun showGrid() {
-        if (!isOverlayVisible) {
-            isOverlayVisible = true
+        val currentState = cameraContext?.settingsManager?.gridOverlay?.value ?: false
+        if (!currentState) {
+            cameraContext?.settingsManager?.setGridOverlay(true)
             gridOverlayView?.setGridEnabled(true)
-            saveVisibilityState()
             Log.i(TAG, "Grid overlay shown")
 
             cameraContext?.debugLogger?.logPlugin(
@@ -142,12 +145,13 @@ class GridOverlayPlugin : UIPlugin() {
 
     /**
      * Hide the grid overlay
+     * Updates centralized SettingsManager state
      */
     fun hideGrid() {
-        if (isOverlayVisible) {
-            isOverlayVisible = false
+        val currentState = cameraContext?.settingsManager?.gridOverlay?.value ?: false
+        if (currentState) {
+            cameraContext?.settingsManager?.setGridOverlay(false)
             gridOverlayView?.setGridEnabled(false)
-            saveVisibilityState()
             Log.i(TAG, "Grid overlay hidden")
 
             cameraContext?.debugLogger?.logPlugin(
@@ -160,9 +164,11 @@ class GridOverlayPlugin : UIPlugin() {
 
     /**
      * Toggle grid visibility
+     * Updates centralized SettingsManager state
      */
     fun toggleGrid() {
-        if (isOverlayVisible) {
+        val currentState = cameraContext?.settingsManager?.gridOverlay?.value ?: false
+        if (currentState) {
             hideGrid()
         } else {
             showGrid()
@@ -194,8 +200,9 @@ class GridOverlayPlugin : UIPlugin() {
 
     /**
      * Check if grid is currently visible
+     * Reads from centralized SettingsManager state
      */
-    fun isGridVisible(): Boolean = isOverlayVisible
+    fun isGridVisible(): Boolean = cameraContext?.settingsManager?.gridOverlay?.value ?: false
 
     override fun cleanup() {
         Log.i(TAG, "Cleaning up GridOverlayPlugin")
@@ -208,7 +215,7 @@ class GridOverlayPlugin : UIPlugin() {
         val settings = context.settingsManager
 
         try {
-            // Load grid type
+            // Load grid type (visibility managed by SettingsManager.gridOverlay StateFlow)
             val typeString = settings.getPluginSetting(name, "gridType", GridType.RULE_OF_THIRDS.name)
             gridType = GridType.valueOf(typeString)
         } catch (e: Exception) {
@@ -216,24 +223,11 @@ class GridOverlayPlugin : UIPlugin() {
             gridType = GridType.RULE_OF_THIRDS
         }
 
-        // Load visibility setting
-        try {
-            val visibilityString = settings.getPluginSetting(name, "isVisible", "true")
-            isOverlayVisible = visibilityString.toBoolean()
-        } catch (e: Exception) {
-            Log.w(TAG, "Failed to load visibility setting, using default", e)
-            isOverlayVisible = true
-        }
-
-        Log.i(TAG, "Loaded settings: type=$gridType, visible=$isOverlayVisible")
+        Log.i(TAG, "Loaded settings: type=$gridType, visible=${settings.gridOverlay.value}")
     }
 
     private fun saveGridType() {
         cameraContext?.settingsManager?.setPluginSetting(name, "gridType", gridType.name)
-    }
-
-    private fun saveVisibilityState() {
-        cameraContext?.settingsManager?.setPluginSetting(name, "isVisible", isOverlayVisible.toString())
     }
 
     companion object {

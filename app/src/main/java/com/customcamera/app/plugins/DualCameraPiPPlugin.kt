@@ -276,11 +276,19 @@ class DualCameraPiPPlugin : UIPlugin() {
      */
     private fun enablePiPMode() {
         if (mainPreviewView == null) {
-            Log.w(TAG, "Cannot enable PiP: main preview view not set")
+            Log.e(TAG, "❌ Cannot enable PiP: main preview view not set")
             return
         }
 
+        Log.i(TAG, "Enabling PiP mode...")
         createPiPOverlay()
+
+        if (pipOverlayView == null) {
+            Log.e(TAG, "❌ PiP overlay creation failed - overlay is null")
+            return
+        }
+
+        Log.i(TAG, "✅ PiP overlay created successfully")
         applyCameraConfiguration()
 
         cameraContext?.debugLogger?.logPlugin(
@@ -288,7 +296,8 @@ class DualCameraPiPPlugin : UIPlugin() {
             "pip_enabled",
             mapOf(
                 "mainCamera" to _mainCamera.value,
-                "pipCamera" to _pipCamera.value
+                "pipCamera" to _pipCamera.value,
+                "overlayCreated" to (pipOverlayView != null)
             )
         )
     }
@@ -311,33 +320,49 @@ class DualCameraPiPPlugin : UIPlugin() {
      * Create the PiP overlay view
      */
     private fun createPiPOverlay() {
-        val previewView = mainPreviewView ?: return
-        val parent = previewView.parent as? ViewGroup ?: return
+        val previewView = mainPreviewView
+        if (previewView == null) {
+            Log.e(TAG, "Cannot create PiP overlay: mainPreviewView is null")
+            return
+        }
+
+        val parent = previewView.parent as? ViewGroup
+        if (parent == null) {
+            Log.e(TAG, "Cannot create PiP overlay: parent ViewGroup is null")
+            return
+        }
 
         // Create PiP overlay if it doesn't exist
         if (pipOverlayView == null) {
-            pipOverlayView = PiPOverlayView(cameraContext!!.context).apply {
-                setPosition(_pipPosition.value)
-                setSize(_pipSize.value)
-                setDraggable(isDraggable)
-                setOpacity(pipOpacity)
-                setSnapToCorners(snapToCorners)
+            try {
+                pipOverlayView = PiPOverlayView(cameraContext!!.context).apply {
+                    setPosition(_pipPosition.value)
+                    setSize(_pipSize.value)
+                    setDraggable(isDraggable)
+                    setOpacity(pipOpacity)
+                    setSnapToCorners(snapToCorners)
 
-                // Set up drag and position change callbacks
-                setOnPositionChangedListener { newPosition ->
-                    _pipPosition.value = newPosition
-                    saveSettings()
+                    // Set up drag and position change callbacks
+                    setOnPositionChangedListener { newPosition ->
+                        _pipPosition.value = newPosition
+                        saveSettings()
+                    }
+
+                    setOnSwapRequestListener {
+                        swapCameras()
+                    }
                 }
 
-                setOnSwapRequestListener {
-                    swapCameras()
-                }
+                // Add to parent view
+                parent.addView(pipOverlayView)
+
+                Log.i(TAG, "✅ PiP overlay created and added to view hierarchy (parent: ${parent.javaClass.simpleName})")
+            } catch (e: Exception) {
+                Log.e(TAG, "❌ Failed to create PiP overlay", e)
+                pipOverlayView = null
             }
-
-            // Add to parent view
-            parent.addView(pipOverlayView)
-
-            Log.i(TAG, "PiP overlay created and added to view hierarchy")
+        } else {
+            Log.i(TAG, "PiP overlay already exists, reusing")
         }
     }
 

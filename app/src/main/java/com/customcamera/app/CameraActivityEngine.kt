@@ -522,9 +522,13 @@ class CameraActivityEngine : AppCompatActivity() {
                         val preview = cameraEngine.getPreview()
                         preview?.setSurfaceProvider(binding.previewView.surfaceProvider)
 
+                        // Restore plugin UI overlays (grid, crop, etc.)
+                        binding.pluginOverlayContainer.removeAllViews()
+                        setupPluginUIOverlays()
+
                         updateFlashButton()
                         animateSwitchButton()
-                        Log.i(TAG, "✅ Camera switched successfully with video support")
+                        Log.i(TAG, "✅ Camera switched successfully with video support and plugin states restored")
                     } else {
                         Log.e(TAG, "❌ Camera switch failed: ${result.exceptionOrNull()?.message}")
                         Toast.makeText(this@CameraActivityEngine, "Failed to switch camera", Toast.LENGTH_SHORT).show()
@@ -1721,6 +1725,19 @@ class CameraActivityEngine : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        // Refresh plugin overlays when returning from settings to reflect any changes
+        try {
+            if (::cameraEngine.isInitialized && ::binding.isInitialized) {
+                lifecycleScope.launch {
+                    binding.pluginOverlayContainer.removeAllViews()
+                    setupPluginUIOverlays()
+                }
+                Log.i(TAG, "Plugin overlays refreshed on resume")
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error refreshing overlays on resume", e)
+        }
+
         // Update plugin states when returning from settings
         updatePluginStatesFromSettings()
     }
@@ -1945,6 +1962,28 @@ class CameraActivityEngine : AppCompatActivity() {
 
     private fun toggleDualCameraPiP() {
         try {
+            // Check if plugin is initialized
+            if (!::dualCameraPiPPlugin.isInitialized) {
+                Log.e(TAG, "PiP plugin not initialized")
+                Toast.makeText(this, "PiP not available", Toast.LENGTH_SHORT).show()
+                return
+            }
+
+            // Validate camera count before enabling
+            val cameraManager = getSystemService(android.hardware.camera2.CameraManager::class.java)
+            val cameraCount = cameraManager?.cameraIdList?.size ?: 0
+
+            if (cameraCount < 2 && !dualCameraPiPPlugin.isPiPEnabled.value) {
+                Log.w(TAG, "PiP requires at least 2 cameras, found: $cameraCount")
+                Toast.makeText(
+                    this,
+                    "PiP requires at least 2 cameras (found $cameraCount)",
+                    Toast.LENGTH_LONG
+                ).show()
+                return
+            }
+
+            // Toggle PiP state
             val wasEnabled = dualCameraPiPPlugin.togglePiP()
 
             val message = if (wasEnabled) {
@@ -1954,11 +1993,11 @@ class CameraActivityEngine : AppCompatActivity() {
             }
 
             Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
-            Log.i(TAG, message)
+            Log.i(TAG, "$message (cameras available: $cameraCount)")
 
         } catch (e: Exception) {
             Log.e(TAG, "Error toggling dual camera PiP", e)
-            Toast.makeText(this, "PiP toggle failed", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "PiP toggle failed: ${e.message}", Toast.LENGTH_LONG).show()
         }
     }
 
