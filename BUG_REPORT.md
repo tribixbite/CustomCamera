@@ -1,12 +1,13 @@
-# CustomCamera v2.0.24 - Comprehensive Bug Report
+# CustomCamera v2.0.25 - Comprehensive Bug Report
 **Date**: 2025-10-10
-**Status**: Critical Issues Identified
+**Status**: Critical Issues Fixed (Bugs #1, #2, #4)
 
 ## 🔴 CRITICAL BUGS
 
-### 1. Settings Synchronization Broken (Grid Overlay)
+### 1. ✅ FIXED: Settings Synchronization Broken (Grid Overlay)
 **Severity**: HIGH
 **Location**: `SimpleSettingsActivity.kt:77` & `CameraActivityEngine.kt:1200`
+**Fixed in**: v2.0.25 (commit e8b76a3)
 
 **Problem**: Settings and camera UI use different state management mechanisms:
 - **Settings page**: Uses `settingsManager.setGridOverlay()` → Updates SharedPreferences
@@ -25,9 +26,10 @@
 
 ---
 
-### 2. PiP (Picture-in-Picture) Appears Non-Functional
+### 2. ✅ FIXED: PiP (Picture-in-Picture) Appears Non-Functional
 **Severity**: HIGH
 **Location**: `DualCameraPiPPlugin.kt:277-284`
+**Fixed in**: v2.0.25 (commit e8b76a3)
 
 **Problem**: PiP requires second camera but has no validation:
 ```kotlin
@@ -78,9 +80,10 @@ private fun enablePiPMode() {
 
 ---
 
-### 4. Camera Switching Doesn't Persist Plugin States
+### 4. ✅ FIXED: Camera Switching Doesn't Persist Plugin States
 **Severity**: MEDIUM
 **Location**: `CameraActivityEngine.kt:491-535`
+**Fixed in**: v2.0.25 (commit e8b76a3)
 
 **Problem**: When switching cameras:
 ```kotlin
