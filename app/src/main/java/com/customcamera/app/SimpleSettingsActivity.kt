@@ -123,16 +123,11 @@ class SimpleSettingsActivity : AppCompatActivity() {
             "Enable tap-to-focus and continuous autofocus",
             settingsManager.isPluginEnabled("AutoFocus")
         ) { enabled ->
+            // Update StateFlow - AutoFocusPlugin reads from this centralized state
             settingsManager.setPluginEnabled("AutoFocus", enabled)
 
-            // Send broadcast to camera interface
-            val intent = android.content.Intent("com.customcamera.PLUGIN_TOGGLE")
-            intent.putExtra("plugin", "AutoFocus")
-            intent.putExtra("enabled", enabled)
-            sendBroadcast(intent)
-
             Toast.makeText(this, "AutoFocus plugin ${if (enabled) "enabled" else "disabled"} - restart camera to apply", Toast.LENGTH_LONG).show()
-            Log.i(TAG, "AutoFocus plugin setting changed: $enabled")
+            Log.i(TAG, "AutoFocus plugin setting changed via StateFlow: $enabled")
         }
 
         addSwitchSetting(

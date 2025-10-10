@@ -20,6 +20,27 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 
+/**
+ * ⚠️ DEPRECATED - Legacy camera activity without plugin system
+ *
+ * This is the original basic camera implementation.
+ * For production use, please use CameraActivityEngine which includes:
+ * - Full plugin system with 18+ plugins
+ * - Professional manual controls
+ * - AI-powered features
+ * - Advanced video recording
+ * - StateFlow reactive architecture
+ *
+ * This class is kept for reference and fallback purposes only.
+ *
+ * @deprecated Use CameraActivityEngine instead
+ * @see CameraActivityEngine
+ */
+@Deprecated(
+    message = "Use CameraActivityEngine for full plugin system support",
+    replaceWith = ReplaceWith("CameraActivityEngine"),
+    level = DeprecationLevel.WARNING
+)
 class CameraActivity : AppCompatActivity() {
     
     private lateinit var binding: ActivityCameraBinding
