@@ -123,6 +123,7 @@ class DebugActivity : AppCompatActivity() {
             textSize = 18f
             setPadding(0, 24, 0, 12)
             setTypeface(null, android.graphics.Typeface.BOLD)
+            setTextColor(android.graphics.Color.BLACK)
         }
         debugContainer.addView(titleView)
     }
@@ -132,6 +133,7 @@ class DebugActivity : AppCompatActivity() {
             text = "Camera info will be displayed here"
             textSize = 14f
             setPadding(8, 8, 8, 8)
+            setTextColor(android.graphics.Color.BLACK)
             setBackgroundColor(android.graphics.Color.LTGRAY)
         }
         debugContainer.addView(infoText)
@@ -199,6 +201,7 @@ class DebugActivity : AppCompatActivity() {
             text = "API call log will be displayed here"
             textSize = 12f
             setPadding(8, 8, 8, 8)
+            setTextColor(android.graphics.Color.BLACK)
             setBackgroundColor(android.graphics.Color.LTGRAY)
             maxLines = 10
         }
@@ -309,6 +312,7 @@ class DebugActivity : AppCompatActivity() {
                     text = "Camera $index: $facing, Flash: ${cameraInfo.hasFlashUnit()}, Rotation: ${cameraInfo.sensorRotationDegrees}°"
                     textSize = 12f
                     setPadding(4, 4, 4, 4)
+                    setTextColor(android.graphics.Color.BLACK)
                 }
                 container.addView(cameraView)
             }

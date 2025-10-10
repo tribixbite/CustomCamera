@@ -201,6 +201,7 @@ class SimpleSettingsActivity : AppCompatActivity() {
             textSize = 20f
             setPadding(0, 24, 0, 16)
             setTypeface(null, android.graphics.Typeface.BOLD)
+            setTextColor(android.graphics.Color.BLACK)
         }
         settingsContainer.addView(titleView)
     }
@@ -224,12 +225,14 @@ class SimpleSettingsActivity : AppCompatActivity() {
         val titleView = TextView(this).apply {
             text = title
             textSize = 16f
+            setTextColor(android.graphics.Color.BLACK)
         }
         textContainer.addView(titleView)
 
         val descriptionView = TextView(this).apply {
             text = description
             textSize = 14f
+            setTextColor(android.graphics.Color.DKGRAY)
             alpha = 0.7f
         }
         textContainer.addView(descriptionView)
@@ -255,12 +258,14 @@ class SimpleSettingsActivity : AppCompatActivity() {
         val titleView = TextView(this).apply {
             text = title
             textSize = 16f
+            setTextColor(android.graphics.Color.BLACK)
             layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
         }
 
         val valueView = TextView(this).apply {
             text = value
             textSize = 16f
+            setTextColor(android.graphics.Color.BLACK)
             setTypeface(null, android.graphics.Typeface.BOLD)
         }
 
@@ -278,6 +283,7 @@ class SimpleSettingsActivity : AppCompatActivity() {
                 textSize = 14f
                 setTextColor(android.graphics.Color.RED)
                 setPadding(16, 16, 16, 16)
+                setBackgroundColor(android.graphics.Color.parseColor("#FFEEEE"))
             }
             settingsContainer.addView(errorView)
 
