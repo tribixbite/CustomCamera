@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/black"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="32dp">
+
+    <!-- App Title -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="📸 CustomCamera"
+        android:textColor="@color/white"
+        android:textSize="32sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="16dp" />
+
+    <!-- App Description -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Professional Plugin-Based Camera App"
+        android:textColor="@color/white"
+        android:textSize="18sp"
+        android:textAlignment="center"
+        android:layout_marginBottom="8dp" />
+
+    <!-- Version Info -->
+    <TextView
+        android:id="@+id/versionText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="v1.0.0"
+        android:textColor="@color/white"
+        android:textSize="14sp"
+        android:alpha="0.7"
+        android:layout_marginBottom="48dp"
+        android:visibility="visible" />
+
+    <!-- Primary Actions -->
+    <LinearLayout
+        android:layout_width="300dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center">
+
+        <Button
+            android:id="@+id/openCameraButton"
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:text="📸 Select Camera"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="16dp" />
+
+        <Button
+            android:id="@+id/quickCameraButton"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:text="⚡ Quick Camera"
+            android:textSize="16sp"
+            android:layout_marginBottom="24dp" />
+
+        <!-- Secondary Actions -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center">
+
+            <Button
+                android:id="@+id/settingsButton"
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                android:text="⚙️ Settings"
+                android:textSize="14sp" />
+
+            <Button
+                android:id="@+id/aboutButton"
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:text="ℹ️ About"
+                android:textSize="14sp" />
+
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/exitButton"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginTop="24dp"
+            android:text="❌ Exit"
+            android:textSize="14sp"
+            android:alpha="0.7" />
+
+    </LinearLayout>
+
+</LinearLayout>

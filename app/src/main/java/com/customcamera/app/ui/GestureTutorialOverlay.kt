@@ -73,9 +73,9 @@ class GestureTutorialOverlay(
         parentView.addView(overlayView)
     }
 
-    private fun addTitle() {
+    private fun addTitle(titleText: String = "📱 Camera Gestures & Controls") {
         val title = TextView(context).apply {
-            text = "📱 Camera Gestures & Controls"
+            text = titleText
             textSize = 24f
             setTextColor(Color.WHITE)
             setPadding(0, 0, 0, 32)

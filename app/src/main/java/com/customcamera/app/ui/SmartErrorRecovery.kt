@@ -302,14 +302,14 @@ class SmartErrorRecovery(
     /**
      * Data classes
      */
-    private data class ErrorInfo(
+    data class ErrorInfo(
         val title: String,
         val message: String,
         val icon: String,
         val actions: List<ErrorAction>
     )
 
-    private data class ErrorAction(
+    data class ErrorAction(
         val label: String,
         val action: () -> Unit
     )

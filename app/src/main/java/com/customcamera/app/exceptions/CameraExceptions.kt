@@ -88,3 +88,27 @@ class CameraPermissionException(
     message: String,
     cause: Throwable? = null
 ) : CameraException("Camera permission error: $message", cause)
+
+/**
+ * Camera configuration errors
+ */
+class CameraConfigurationException(
+    message: String,
+    cause: Throwable? = null
+) : CameraException("Camera configuration error: $message", cause)
+
+/**
+ * Capture operation failed
+ */
+class CaptureFailedException(
+    message: String,
+    cause: Throwable? = null
+) : CameraException("Capture failed: $message", cause)
+
+/**
+ * No cameras available on device
+ */
+class NoCamerasAvailableException(
+    message: String = "No cameras found on this device",
+    cause: Throwable? = null
+) : CameraException(message, cause)
