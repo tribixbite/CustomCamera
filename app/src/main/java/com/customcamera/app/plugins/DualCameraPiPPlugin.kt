@@ -63,7 +63,10 @@ class DualCameraPiPPlugin : UIPlugin() {
             lifecycleOwner = context.context as LifecycleOwner
         )
 
-        loadSettings(context)
+        // Load camera indices from settings
+        _mainCamera.value = context.settingsManager.defaultCameraIndex.value
+        _pipCamera.value = context.settingsManager.pipCameraIndex.value
+        Log.i(TAG, "Loaded camera indices - Main: ${_mainCamera.value}, PiP: ${_pipCamera.value}")
 
         // Auto-select appropriate PiP camera if default doesn't exist
         validateAndFixCameraIndices()

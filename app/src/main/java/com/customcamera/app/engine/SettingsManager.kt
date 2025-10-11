@@ -16,13 +16,15 @@ class SettingsManager(context: Context) {
     private val prefs: SharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
     // State flows for reactive settings
-    private val _defaultCameraIndex = MutableStateFlow(getInt(KEY_DEFAULT_CAMERA_INDEX, 2))
+    private val _defaultCameraIndex = MutableStateFlow(getInt(KEY_DEFAULT_CAMERA_INDEX, 0))
+    private val _pipCameraIndex = MutableStateFlow(getInt(KEY_PIP_CAMERA_INDEX, 1))
     private val _photoQuality = MutableStateFlow(getInt(KEY_PHOTO_QUALITY, 95))
     private val _flashMode = MutableStateFlow(getString(KEY_FLASH_MODE, "auto"))
     private val _gridOverlay = MutableStateFlow(getBoolean(KEY_GRID_OVERLAY, false))
     private val _debugLogging = MutableStateFlow(getBoolean(KEY_DEBUG_LOGGING, false))
 
     val defaultCameraIndex: StateFlow<Int> = _defaultCameraIndex.asStateFlow()
+    val pipCameraIndex: StateFlow<Int> = _pipCameraIndex.asStateFlow()
     val photoQuality: StateFlow<Int> = _photoQuality.asStateFlow()
     val flashMode: StateFlow<String> = _flashMode.asStateFlow()
     val gridOverlay: StateFlow<Boolean> = _gridOverlay.asStateFlow()
@@ -35,6 +37,12 @@ class SettingsManager(context: Context) {
         putInt(KEY_DEFAULT_CAMERA_INDEX, index)
         _defaultCameraIndex.value = index
         Log.i(TAG, "Default camera index set to: $index")
+    }
+
+    fun setPipCameraIndex(index: Int) {
+        putInt(KEY_PIP_CAMERA_INDEX, index)
+        _pipCameraIndex.value = index
+        Log.i(TAG, "PiP camera index set to: $index")
     }
 
     fun setPhotoQuality(quality: Int) {
@@ -223,7 +231,8 @@ class SettingsManager(context: Context) {
     }
 
     private fun refreshStateFlows() {
-        _defaultCameraIndex.value = getInt(KEY_DEFAULT_CAMERA_INDEX, 2)
+        _defaultCameraIndex.value = getInt(KEY_DEFAULT_CAMERA_INDEX, 0)
+        _pipCameraIndex.value = getInt(KEY_PIP_CAMERA_INDEX, 1)
         _photoQuality.value = getInt(KEY_PHOTO_QUALITY, 95)
         _flashMode.value = getString(KEY_FLASH_MODE, "auto")
         _gridOverlay.value = getBoolean(KEY_GRID_OVERLAY, false)
@@ -261,6 +270,7 @@ class SettingsManager(context: Context) {
 
         // Setting keys
         private const val KEY_DEFAULT_CAMERA_INDEX = "default_camera_index"
+        private const val KEY_PIP_CAMERA_INDEX = "pip_camera_index"
         private const val KEY_PHOTO_QUALITY = "photo_quality"
         private const val KEY_PHOTO_RESOLUTION = "photo_resolution"
         private const val KEY_VIDEO_QUALITY = "video_quality"

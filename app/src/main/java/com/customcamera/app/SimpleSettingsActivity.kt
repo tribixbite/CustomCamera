@@ -3,12 +3,12 @@ package com.customcamera.app
 import android.os.Bundle
 import android.util.Log
 import android.view.MenuItem
-import android.widget.LinearLayout
-import android.widget.Switch
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.lifecycle.lifecycleScope
 import com.customcamera.app.engine.SettingsManager
+import kotlinx.coroutines.launch
 
 /**
  * Simple working settings activity for camera configuration
@@ -17,6 +17,7 @@ class SimpleSettingsActivity : AppCompatActivity() {
 
     private lateinit var settingsManager: SettingsManager
     private lateinit var settingsContainer: LinearLayout
+    private var availableCameras: List<Pair<Int, String>> = emptyList()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,12 +39,43 @@ class SimpleSettingsActivity : AppCompatActivity() {
         // Initialize settings safely
         try {
             settingsManager = SettingsManager(this)
-            createSettingsUI()
+
+            // Detect available cameras asynchronously
+            lifecycleScope.launch {
+                try {
+                    detectAvailableCameras()
+                    createSettingsUI()
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to detect cameras", e)
+                    createSettingsUI() // Still create UI even if camera detection fails
+                }
+            }
         } catch (e: Exception) {
             Log.e(TAG, "Failed to initialize settings", e)
 
             // Create fallback UI
             createFallbackUI(e.message ?: "Unknown error")
+        }
+    }
+
+    private suspend fun detectAvailableCameras() {
+        try {
+            val cameraProvider = ProcessCameraProvider.getInstance(this).get()
+            val cameras = cameraProvider.availableCameraInfos
+
+            availableCameras = cameras.mapIndexed { index, cameraInfo ->
+                val facing = when (cameraInfo.lensFacing) {
+                    androidx.camera.core.CameraSelector.LENS_FACING_FRONT -> "Front"
+                    androidx.camera.core.CameraSelector.LENS_FACING_BACK -> "Back"
+                    else -> "External"
+                }
+                Pair(index, "Camera $index ($facing)")
+            }
+
+            Log.i(TAG, "Detected ${availableCameras.size} cameras")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error detecting cameras", e)
+            availableCameras = emptyList()
         }
     }
 
@@ -66,6 +98,39 @@ class SimpleSettingsActivity : AppCompatActivity() {
         try {
             // Add title
             addTitle("Camera Settings")
+
+            // Camera selection section
+            if (availableCameras.isNotEmpty()) {
+                addTitle("Camera Selection")
+
+                // Main camera selection
+                addSpinnerSetting(
+                    "Main Camera",
+                    "Default camera to use when opening camera",
+                    availableCameras.map { it.second },
+                    settingsManager.defaultCameraIndex.value
+                ) { selectedIndex ->
+                    settingsManager.setDefaultCameraIndex(selectedIndex)
+                    Toast.makeText(this, "Main camera set to: ${availableCameras[selectedIndex].second}", Toast.LENGTH_SHORT).show()
+                    Log.i(TAG, "Main camera changed to index: $selectedIndex")
+                }
+
+                // PiP camera selection
+                if (availableCameras.size > 1) {
+                    addSpinnerSetting(
+                        "PiP Camera",
+                        "Secondary camera for Picture-in-Picture mode",
+                        availableCameras.map { it.second },
+                        settingsManager.pipCameraIndex.value
+                    ) { selectedIndex ->
+                        settingsManager.setPipCameraIndex(selectedIndex)
+                        Toast.makeText(this, "PiP camera set to: ${availableCameras[selectedIndex].second}", Toast.LENGTH_SHORT).show()
+                        Log.i(TAG, "PiP camera changed to index: $selectedIndex")
+                    }
+                }
+
+                addInfoSetting("Available Cameras", "${availableCameras.size} detected")
+            }
 
         // Grid overlay setting
         addSwitchSetting(
@@ -201,7 +266,7 @@ class SimpleSettingsActivity : AppCompatActivity() {
             textSize = 20f
             setPadding(0, 24, 0, 16)
             setTypeface(null, android.graphics.Typeface.BOLD)
-            setTextColor(android.graphics.Color.BLACK)
+            setTextColor(android.graphics.Color.WHITE)
         }
         settingsContainer.addView(titleView)
     }
@@ -225,15 +290,15 @@ class SimpleSettingsActivity : AppCompatActivity() {
         val titleView = TextView(this).apply {
             text = title
             textSize = 16f
-            setTextColor(android.graphics.Color.BLACK)
+            setTextColor(android.graphics.Color.WHITE)
         }
         textContainer.addView(titleView)
 
         val descriptionView = TextView(this).apply {
             text = description
             textSize = 14f
-            setTextColor(android.graphics.Color.DKGRAY)
-            alpha = 0.7f
+            setTextColor(android.graphics.Color.LTGRAY)
+            alpha = 0.9f
         }
         textContainer.addView(descriptionView)
 
@@ -258,19 +323,80 @@ class SimpleSettingsActivity : AppCompatActivity() {
         val titleView = TextView(this).apply {
             text = title
             textSize = 16f
-            setTextColor(android.graphics.Color.BLACK)
+            setTextColor(android.graphics.Color.WHITE)
             layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
         }
 
         val valueView = TextView(this).apply {
             text = value
             textSize = 16f
-            setTextColor(android.graphics.Color.BLACK)
+            setTextColor(android.graphics.Color.WHITE)
             setTypeface(null, android.graphics.Typeface.BOLD)
         }
 
         container.addView(titleView)
         container.addView(valueView)
+        settingsContainer.addView(container)
+    }
+
+    private fun addSpinnerSetting(
+        title: String,
+        description: String,
+        options: List<String>,
+        initialSelection: Int,
+        onChanged: (Int) -> Unit
+    ) {
+        val container = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(0, 8, 0, 8)
+        }
+
+        val titleView = TextView(this).apply {
+            text = title
+            textSize = 16f
+            setTextColor(android.graphics.Color.WHITE)
+        }
+        container.addView(titleView)
+
+        val descriptionView = TextView(this).apply {
+            text = description
+            textSize = 14f
+            setTextColor(android.graphics.Color.LTGRAY)
+            alpha = 0.9f
+            setPadding(0, 0, 0, 8)
+        }
+        container.addView(descriptionView)
+
+        val spinner = Spinner(this).apply {
+            adapter = ArrayAdapter(
+                this@SimpleSettingsActivity,
+                android.R.layout.simple_spinner_item,
+                options
+            ).also { adapter ->
+                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+            }
+
+            // Set initial selection safely
+            val safeSelection = initialSelection.coerceIn(0, options.size - 1)
+            setSelection(safeSelection)
+
+            onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+                override fun onItemSelected(parent: AdapterView<*>?, view: android.view.View?, position: Int, id: Long) {
+                    // Only trigger callback if it's not the initial setup
+                    if (tag == "initialized") {
+                        onChanged(position)
+                    } else {
+                        tag = "initialized"
+                    }
+                }
+
+                override fun onNothingSelected(parent: AdapterView<*>?) {
+                    // Do nothing
+                }
+            }
+        }
+        container.addView(spinner)
+
         settingsContainer.addView(container)
     }
 
