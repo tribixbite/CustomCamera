@@ -29,6 +29,7 @@ class CameraEngine(
     private var cameraProvider: ProcessCameraProvider? = null
     private var camera: Camera? = null
     private var currentCameraSelector: CameraSelector? = null
+    private var apiMonitor: com.customcamera.app.debug.CameraAPIMonitor? = null
 
     private val pluginManager = PluginManager()
     private val _isInitialized = MutableStateFlow(false)
@@ -61,13 +62,39 @@ class CameraEngine(
             _availableCameras.value = cameras
             Log.i(TAG, "Found ${cameras.size} available cameras")
 
-            // Initialize plugin manager with camera context
+            // Create API monitor for debugging
+            this.apiMonitor = com.customcamera.app.debug.CameraAPIMonitor(
+                com.customcamera.app.engine.CameraContext(
+                    context = context,
+                    cameraProvider = cameraProvider!!,
+                    debugLogger = DebugLogger(),
+                    settingsManager = SettingsManager(context),
+                    cameraEngine = this,
+                    apiMonitor = null // Circular reference prevention
+                )
+            )
+
+            // Set as global instance for DebugActivity access
+            com.customcamera.app.debug.GlobalAPIMonitor.setInstance(this.apiMonitor!!)
+            Log.i(TAG, "✅ API monitor initialized and registered globally")
+
+            // Log camera provider initialization
+            this.apiMonitor?.logCameraProviderCall(
+                "getInstance",
+                mapOf(
+                    "availableCameras" to cameras.size,
+                    "timestamp" to System.currentTimeMillis()
+                )
+            )
+
+            // Initialize plugin manager with camera context including API monitor
             val cameraContext = CameraContext(
                 context = context,
                 cameraProvider = cameraProvider!!,
                 debugLogger = DebugLogger(),
                 settingsManager = SettingsManager(context),
-                cameraEngine = this
+                cameraEngine = this,
+                apiMonitor = this.apiMonitor
             )
             pluginManager.initialize(cameraContext)
 
@@ -107,6 +134,12 @@ class CameraEngine(
                 lifecycleOwner,
                 currentCameraSelector!!,
                 *useCases.toTypedArray()
+            )
+
+            // Log camera binding operation
+            apiMonitor?.logCameraBinding(
+                cameraId = "camera_${config.cameraIndex}",
+                useCases = useCases
             )
 
             // Notify plugins that camera is ready

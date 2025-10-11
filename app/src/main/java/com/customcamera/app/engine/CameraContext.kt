@@ -2,6 +2,7 @@ package com.customcamera.app.engine
 
 import android.content.Context
 import androidx.camera.lifecycle.ProcessCameraProvider
+import com.customcamera.app.debug.CameraAPIMonitor
 
 /**
  * Shared context and utilities for camera plugins.
@@ -12,5 +13,6 @@ data class CameraContext(
     val cameraProvider: ProcessCameraProvider,
     val debugLogger: DebugLogger,
     val settingsManager: SettingsManager,
-    val cameraEngine: CameraEngine? = null
+    val cameraEngine: CameraEngine? = null,
+    val apiMonitor: CameraAPIMonitor? = null
 )

@@ -32,7 +32,7 @@ class DebugActivity : AppCompatActivity() {
 
     private lateinit var debugContainer: LinearLayout
     private lateinit var settingsManager: SettingsManager
-    private lateinit var cameraAPIMonitor: CameraAPIMonitor
+    private var cameraAPIMonitor: CameraAPIMonitor? = null
     private lateinit var cameraResetManager: CameraResetManager
     private lateinit var cameraManager: CameraManager
 
@@ -71,14 +71,25 @@ class DebugActivity : AppCompatActivity() {
         settingsManager = SettingsManager(this)
         cameraManager = getSystemService(Context.CAMERA_SERVICE) as CameraManager
 
-        // Initialize debug systems (mock camera context for now)
+        // Get global API monitor instance from active camera session
+        cameraAPIMonitor = com.customcamera.app.debug.GlobalAPIMonitor.getInstance()
+
+        if (cameraAPIMonitor != null) {
+            Log.i(TAG, "✅ Using global API monitor from active camera session")
+        } else {
+            Log.w(TAG, "⚠️ No active camera session - API monitor not available")
+        }
+
+        // Initialize debug systems (mock camera context for reset manager)
         val mockContext = try {
             val cameraProvider = ProcessCameraProvider.getInstance(this).get()
             com.customcamera.app.engine.CameraContext(
                 context = this,
                 cameraProvider = cameraProvider,
                 debugLogger = com.customcamera.app.engine.DebugLogger(),
-                settingsManager = settingsManager
+                settingsManager = settingsManager,
+                cameraEngine = null,
+                apiMonitor = cameraAPIMonitor
             )
         } catch (e: Exception) {
             Log.e(TAG, "Failed to create camera context for debug", e)
@@ -86,7 +97,6 @@ class DebugActivity : AppCompatActivity() {
         }
 
         if (mockContext != null) {
-            cameraAPIMonitor = CameraAPIMonitor(mockContext)
             cameraResetManager = CameraResetManager(mockContext)
         }
     }
@@ -222,9 +232,9 @@ class DebugActivity : AppCompatActivity() {
             text = "View API Call Log"
             setOnClickListener {
                 try {
-                    val logData = if (::cameraAPIMonitor.isInitialized) {
-                        val report = cameraAPIMonitor.generateDebugReport()
-                        val stats = cameraAPIMonitor.getAPICallStats()
+                    val logData = cameraAPIMonitor?.let { monitor ->
+                        val report = monitor.generateDebugReport()
+                        val stats = monitor.getAPICallStats()
 
                         if ((stats["totalCalls"] as? Int) ?: 0 > 0) {
                             report
@@ -235,22 +245,36 @@ class DebugActivity : AppCompatActivity() {
                                 appendLine()
                                 appendLine("ℹ️ No API calls have been tracked yet")
                                 appendLine()
-                                appendLine("The API monitoring system is initialized but requires")
-                                appendLine("instrumentation in camera activities to track calls.")
+                                appendLine("The API monitoring system is active and tracking camera operations.")
+                                appendLine("Use the camera to generate activity, then check this log again.")
                                 appendLine()
-                                appendLine("📌 To populate this log:")
-                                appendLine("1. Add CameraAPIMonitor instance to CameraActivityEngine")
-                                appendLine("2. Call monitor methods during camera operations:")
-                                appendLine("   - logCameraBinding() when binding cameras")
-                                appendLine("   - logCameraControl() for zoom, focus, exposure")
-                                appendLine("   - logCameraProviderCall() for provider operations")
-                                appendLine("   - trackFrameProcessing() during capture")
+                                appendLine("📌 Tracked operations:")
+                                appendLine("• Camera binding (when camera starts)")
+                                appendLine("• Photo capture")
+                                appendLine("• Camera switching")
+                                appendLine("• Flash toggle")
+                                appendLine("• Night mode toggle")
                                 appendLine()
-                                appendLine("Monitor Status: ✅ Ready, awaiting instrumentation")
+                                appendLine("Monitor Status: ✅ Active, awaiting camera operations")
                             }
                         }
-                    } else {
-                        "⚠️ Camera API Monitor not initialized"
+                    } ?: buildString {
+                        appendLine("=== Camera API Monitor Debug Report ===")
+                        appendLine("Generated: ${SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(Date())}")
+                        appendLine()
+                        appendLine("⚠️ No active camera session detected")
+                        appendLine()
+                        appendLine("The API monitor is only available when you have")
+                        appendLine("an active camera session running.")
+                        appendLine()
+                        appendLine("📌 To activate monitoring:")
+                        appendLine("1. Return to main screen")
+                        appendLine("2. Open the camera")
+                        appendLine("3. Use camera features (capture, switch, flash, etc.)")
+                        appendLine("4. Return to this debug screen")
+                        appendLine("5. View the logged API calls")
+                        appendLine()
+                        appendLine("Monitor Status: ⚠️ No active session")
                     }
                     logText.text = logData
                     Log.i(TAG, "API Log:\n$logData")
@@ -456,11 +480,8 @@ class DebugActivity : AppCompatActivity() {
     private suspend fun exportDebugData() {
         try {
             val settingsSummary = settingsManager.getSettingsSummary()
-            val debugReport = if (::cameraAPIMonitor.isInitialized) {
-                cameraAPIMonitor.generateDebugReport()
-            } else {
-                "API Monitor not initialized"
-            }
+            val debugReport = cameraAPIMonitor?.generateDebugReport()
+                ?: "API Monitor not available (no active camera session)"
 
             val exportData = """
                 === CustomCamera Debug Export ===

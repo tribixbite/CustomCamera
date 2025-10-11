@@ -400,6 +400,15 @@ class CameraActivityEngine : AppCompatActivity() {
         val imageCapture = cameraEngine.getImageCapture() ?: return
 
         try {
+            // Log photo capture operation
+            com.customcamera.app.debug.GlobalAPIMonitor.getInstance()?.logCameraControl(
+                "capturePhoto",
+                mapOf(
+                    "timestamp" to System.currentTimeMillis(),
+                    "cameraIndex" to cameraIndex
+                )
+            )
+
             val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
             val photoFile = File(filesDir, "CAMERA_ENGINE_$timestamp.jpg")
             val outputFileOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
@@ -408,6 +417,14 @@ class CameraActivityEngine : AppCompatActivity() {
             val nightModePlugin = cameraEngine.getPlugin("NightMode") as? NightModePlugin
 
             if (nightModePlugin?.isNightModeActive() == true) {
+                // Log long exposure capture
+                com.customcamera.app.debug.GlobalAPIMonitor.getInstance()?.logCameraControl(
+                    "captureLongExposure",
+                    mapOf(
+                        "exposureTime" to nightModePlugin.getCurrentExposureTime(),
+                        "timestamp" to System.currentTimeMillis()
+                    )
+                )
                 // Use long exposure capture for night mode
                 captureLongExposurePhoto(outputFileOptions, photoFile, timestamp)
             } else {
@@ -501,8 +518,19 @@ class CameraActivityEngine : AppCompatActivity() {
 
                 if (availableCameras.size > 1) {
                     // Cycle to next camera
+                    val oldCameraIndex = cameraIndex
                     cameraIndex = (cameraIndex + 1) % availableCameras.size
                     Log.i(TAG, "Switching to camera $cameraIndex with engine")
+
+                    // Log camera switch operation
+                    com.customcamera.app.debug.GlobalAPIMonitor.getInstance()?.logCameraControl(
+                        "switchCamera",
+                        mapOf(
+                            "fromIndex" to oldCameraIndex,
+                            "toIndex" to cameraIndex,
+                            "timestamp" to System.currentTimeMillis()
+                        )
+                    )
 
                     // Switch camera using engine with video support
                     val config = CameraConfig(
@@ -548,6 +576,17 @@ class CameraActivityEngine : AppCompatActivity() {
 
         if (camera.cameraInfo.hasFlashUnit()) {
             isFlashOn = !isFlashOn
+
+            // Log flash toggle operation
+            com.customcamera.app.debug.GlobalAPIMonitor.getInstance()?.logCameraControl(
+                "toggleFlash",
+                mapOf(
+                    "enabled" to isFlashOn,
+                    "cameraIndex" to cameraIndex,
+                    "timestamp" to System.currentTimeMillis()
+                )
+            )
+
             camera.cameraControl.enableTorch(isFlashOn)
             updateFlashButton()
             animateFlashButton()
@@ -603,6 +642,16 @@ class CameraActivityEngine : AppCompatActivity() {
 
     private fun toggleNightMode() {
         isNightModeEnabled = !isNightModeEnabled
+
+        // Log night mode toggle operation
+        com.customcamera.app.debug.GlobalAPIMonitor.getInstance()?.logCameraControl(
+            "toggleNightMode",
+            mapOf(
+                "enabled" to isNightModeEnabled,
+                "cameraIndex" to cameraIndex,
+                "timestamp" to System.currentTimeMillis()
+            )
+        )
 
         try {
             // Get the enhanced NightModePlugin from the registered plugins
