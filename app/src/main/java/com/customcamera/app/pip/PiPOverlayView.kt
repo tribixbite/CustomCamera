@@ -66,6 +66,7 @@ class PiPOverlayView @JvmOverloads constructor(
         previewView = PreviewView(context).apply {
             id = ViewCompat.generateViewId()
             scaleType = PreviewView.ScaleType.FILL_CENTER
+            implementationMode = PreviewView.ImplementationMode.COMPATIBLE // Use COMPATIBLE for better compatibility
             layoutParams = LayoutParams(
                 LayoutParams.MATCH_PARENT,
                 LayoutParams.MATCH_PARENT
@@ -78,7 +79,8 @@ class PiPOverlayView @JvmOverloads constructor(
         setupOverlay()
         applyCurrentLayout()
 
-        Log.i(TAG, "PiPOverlayView initialized")
+        Log.i(TAG, "PiPOverlayView initialized with PreviewView ID: ${previewView.id}")
+        Log.i(TAG, "PreviewView implementation mode: ${previewView.implementationMode}")
     }
 
     /**

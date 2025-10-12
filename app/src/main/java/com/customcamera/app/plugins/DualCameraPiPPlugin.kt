@@ -278,12 +278,15 @@ class DualCameraPiPPlugin : UIPlugin() {
      * Enable PiP mode by creating overlay and setting up dual cameras
      */
     private fun enablePiPMode() {
+        Log.i(TAG, "=== ENABLING PiP MODE ===")
+
         if (mainPreviewView == null) {
             Log.e(TAG, "❌ Cannot enable PiP: main preview view not set")
             return
         }
 
-        Log.i(TAG, "Enabling PiP mode...")
+        Log.i(TAG, "✅ Main preview view available")
+        Log.i(TAG, "Creating PiP overlay...")
         createPiPOverlay()
 
         if (pipOverlayView == null) {
@@ -292,6 +295,20 @@ class DualCameraPiPPlugin : UIPlugin() {
         }
 
         Log.i(TAG, "✅ PiP overlay created successfully")
+        Log.i(TAG, "PiP overlay size: ${pipOverlayView!!.width}x${pipOverlayView!!.height}")
+
+        val pipPreview = pipOverlayView?.getPreviewView()
+        if (pipPreview == null) {
+            Log.e(TAG, "❌ PiP PreviewView is null!")
+            return
+        }
+
+        Log.i(TAG, "✅ PiP PreviewView obtained: ${pipPreview.javaClass.simpleName}")
+        Log.i(TAG, "PiP PreviewView size: ${pipPreview.width}x${pipPreview.height}")
+        Log.i(TAG, "PiP PreviewView ID: ${pipPreview.id}")
+
+        Log.i(TAG, "Applying camera configuration...")
+        Log.i(TAG, "Target PiP camera index: ${_pipCamera.value}")
         applyCameraConfiguration()
 
         cameraContext?.debugLogger?.logPlugin(
@@ -300,9 +317,12 @@ class DualCameraPiPPlugin : UIPlugin() {
             mapOf(
                 "mainCamera" to _mainCamera.value,
                 "pipCamera" to _pipCamera.value,
-                "overlayCreated" to (pipOverlayView != null)
+                "overlayCreated" to (pipOverlayView != null),
+                "previewViewReady" to (pipPreview != null)
             )
         )
+
+        Log.i(TAG, "=== PiP MODE ENABLE COMPLETE ===")
     }
 
     /**

@@ -60,18 +60,29 @@ class DualCameraCoordinator(
     private fun initializeCameraProvider() {
         coordinatorScope.launch {
             try {
+                Log.i(TAG, "Initializing camera provider...")
                 val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
-                cameraProvider = cameraProviderFuture.get()
+                cameraProvider = suspendCoroutine { continuation ->
+                    cameraProviderFuture.addListener({
+                        try {
+                            val provider = cameraProviderFuture.get()
+                            continuation.resumeWith(Result.success(provider))
+                        } catch (e: Exception) {
+                            continuation.resumeWith(Result.failure(e))
+                        }
+                    }, ContextCompat.getMainExecutor(context))
+                }
 
                 // Check if dual camera setup is supported
                 val availableCameras = cameraProvider?.availableCameraInfos ?: emptyList()
                 _isDualCameraSupported.value = availableCameras.size >= 2
 
-                Log.i(TAG, "Camera provider initialized. Dual camera supported: ${_isDualCameraSupported.value}")
+                Log.i(TAG, "✅ Camera provider initialized successfully")
+                Log.i(TAG, "Dual camera supported: ${_isDualCameraSupported.value}")
                 Log.i(TAG, "Available cameras: ${availableCameras.size}")
 
             } catch (e: Exception) {
-                Log.e(TAG, "Failed to initialize camera provider", e)
+                Log.e(TAG, "❌ Failed to initialize camera provider", e)
                 _isDualCameraSupported.value = false
             }
         }
@@ -378,11 +389,6 @@ class DualCameraCoordinator(
         pipCameraIndex: Int,
         pipPreviewView: PreviewView?
     ) {
-        if (!_isDualCameraSupported.value) {
-            Log.w(TAG, "PiP camera setup requested but dual camera not supported")
-            return
-        }
-
         if (pipPreviewView == null) {
             Log.e(TAG, "❌ Cannot setup PiP camera: pipPreviewView is null")
             return
@@ -390,54 +396,99 @@ class DualCameraCoordinator(
 
         coordinatorScope.launch {
             try {
-                Log.i(TAG, "Setting up PiP camera only: index=$pipCameraIndex")
+                Log.i(TAG, "=== Setting up PiP camera ===")
+                Log.i(TAG, "PiP camera index: $pipCameraIndex")
+                Log.i(TAG, "PreviewView: ${pipPreviewView.javaClass.simpleName}")
+                Log.i(TAG, "PreviewView size: ${pipPreviewView.width}x${pipPreviewView.height}")
+
+                // **CRITICAL FIX**: Wait for camera provider to be initialized
+                var retries = 0
+                while (cameraProvider == null && retries < 50) {
+                    Log.i(TAG, "Waiting for camera provider initialization... (attempt ${retries + 1})")
+                    delay(100)
+                    retries++
+                }
+
+                val provider = cameraProvider
+                if (provider == null) {
+                    Log.e(TAG, "❌ Camera provider not available after waiting")
+                    return@launch
+                }
+
+                Log.i(TAG, "✅ Camera provider ready")
+                Log.i(TAG, "Available cameras: ${provider.availableCameraInfos.size}")
+
+                // Check dual camera support
+                if (provider.availableCameraInfos.size < 2) {
+                    Log.w(TAG, "⚠️ Dual camera not supported (only ${provider.availableCameraInfos.size} cameras)")
+                    _isDualCameraSupported.value = false
+                    return@launch
+                }
 
                 _pipCameraIndex.value = pipCameraIndex
+
+                // Wait for the view to be laid out if needed
+                if (pipPreviewView.width == 0 || pipPreviewView.height == 0) {
+                    Log.i(TAG, "Waiting for PreviewView layout...")
+                    delay(200) // Give it more time to lay out
+                }
 
                 // Create camera selector for PiP camera
                 pipCameraSelector = createCameraSelector(pipCameraIndex)
 
                 if (pipCameraSelector == null) {
-                    Log.e(TAG, "❌ Failed to create PiP camera selector")
+                    Log.e(TAG, "❌ Failed to create PiP camera selector for index $pipCameraIndex")
                     return@launch
                 }
+
+                Log.i(TAG, "✅ Camera selector created for PiP camera $pipCameraIndex")
 
                 // Set up PiP preview
                 pipPreview = Preview.Builder()
+                    .setTargetRotation(android.view.Surface.ROTATION_0)
                     .build()
                     .also { preview ->
+                        Log.i(TAG, "Setting surface provider for PiP preview...")
                         preview.setSurfaceProvider(pipPreviewView.surfaceProvider)
+                        Log.i(TAG, "✅ Surface provider set")
                     }
-
-                // Bind only the PiP camera (don't touch main camera)
-                val provider = cameraProvider ?: run {
-                    Log.e(TAG, "❌ Camera provider not available")
-                    return@launch
-                }
 
                 try {
                     // Unbind only the PiP camera if it exists
                     pipCamera?.let {
+                        Log.i(TAG, "Unbinding existing PiP camera...")
                         provider.unbind(pipPreview)
                     }
 
-                    // Bind the PiP camera
-                    pipCamera = provider.bindToLifecycle(
-                        lifecycleOwner,
-                        pipCameraSelector!!,
-                        pipPreview
-                    )
+                    Log.i(TAG, "Binding PiP camera to lifecycle...")
 
-                    _isActive.value = true
-                    Log.i(TAG, "✅ PiP camera bound successfully to index $pipCameraIndex")
+                    // **CRITICAL**: Ensure we're on the main thread for camera binding
+                    withContext(Dispatchers.Main) {
+                        pipCamera = provider.bindToLifecycle(
+                            lifecycleOwner,
+                            pipCameraSelector!!,
+                            pipPreview
+                        )
+
+                        _isActive.value = true
+                        Log.i(TAG, "✅✅✅ PiP camera bound successfully to index $pipCameraIndex")
+                        Log.i(TAG, "PiP camera info: ${pipCamera?.cameraInfo}")
+                        Log.i(TAG, "PiP camera state: ${pipCamera?.cameraInfo?.cameraState?.value}")
+                    }
 
                 } catch (e: Exception) {
                     Log.e(TAG, "❌ Failed to bind PiP camera", e)
+                    Log.e(TAG, "Error type: ${e.javaClass.simpleName}")
+                    Log.e(TAG, "Error message: ${e.message}")
+                    e.printStackTrace()
                     _isActive.value = false
                 }
 
             } catch (e: Exception) {
                 Log.e(TAG, "❌ Failed to setup PiP camera", e)
+                Log.e(TAG, "Error type: ${e.javaClass.simpleName}")
+                Log.e(TAG, "Error message: ${e.message}")
+                e.printStackTrace()
                 _isActive.value = false
             }
         }
