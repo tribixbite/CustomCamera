@@ -371,6 +371,100 @@ class DualCameraCoordinator(
     }
 
     /**
+     * Set up only the PiP camera without affecting the main camera.
+     * Use this when the main camera is already bound by CameraEngine.
+     */
+    fun setupPipCameraOnly(
+        pipCameraIndex: Int,
+        pipPreviewView: PreviewView?
+    ) {
+        if (!_isDualCameraSupported.value) {
+            Log.w(TAG, "PiP camera setup requested but dual camera not supported")
+            return
+        }
+
+        if (pipPreviewView == null) {
+            Log.e(TAG, "❌ Cannot setup PiP camera: pipPreviewView is null")
+            return
+        }
+
+        coordinatorScope.launch {
+            try {
+                Log.i(TAG, "Setting up PiP camera only: index=$pipCameraIndex")
+
+                _pipCameraIndex.value = pipCameraIndex
+
+                // Create camera selector for PiP camera
+                pipCameraSelector = createCameraSelector(pipCameraIndex)
+
+                if (pipCameraSelector == null) {
+                    Log.e(TAG, "❌ Failed to create PiP camera selector")
+                    return@launch
+                }
+
+                // Set up PiP preview
+                pipPreview = Preview.Builder()
+                    .build()
+                    .also { preview ->
+                        preview.setSurfaceProvider(pipPreviewView.surfaceProvider)
+                    }
+
+                // Bind only the PiP camera (don't touch main camera)
+                val provider = cameraProvider ?: run {
+                    Log.e(TAG, "❌ Camera provider not available")
+                    return@launch
+                }
+
+                try {
+                    // Unbind only the PiP camera if it exists
+                    pipCamera?.let {
+                        provider.unbind(pipPreview)
+                    }
+
+                    // Bind the PiP camera
+                    pipCamera = provider.bindToLifecycle(
+                        lifecycleOwner,
+                        pipCameraSelector!!,
+                        pipPreview
+                    )
+
+                    _isActive.value = true
+                    Log.i(TAG, "✅ PiP camera bound successfully to index $pipCameraIndex")
+
+                } catch (e: Exception) {
+                    Log.e(TAG, "❌ Failed to bind PiP camera", e)
+                    _isActive.value = false
+                }
+
+            } catch (e: Exception) {
+                Log.e(TAG, "❌ Failed to setup PiP camera", e)
+                _isActive.value = false
+            }
+        }
+    }
+
+    /**
+     * Stop only the PiP camera without affecting the main camera
+     */
+    fun stopPipCameraOnly() {
+        coordinatorScope.launch {
+            try {
+                pipCamera?.let {
+                    pipPreview?.let { preview ->
+                        cameraProvider?.unbind(preview)
+                    }
+                    pipCamera = null
+                    pipPreview = null
+                    _isActive.value = false
+                    Log.i(TAG, "✅ PiP camera stopped")
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "❌ Failed to stop PiP camera", e)
+            }
+        }
+    }
+
+    /**
      * Check if dual camera coordinator is currently active
      */
     fun isActive(): Boolean = _isActive.value

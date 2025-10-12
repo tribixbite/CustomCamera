@@ -306,11 +306,12 @@ class DualCameraPiPPlugin : UIPlugin() {
     }
 
     /**
-     * Disable PiP mode by removing overlay and reverting to single camera
+     * Disable PiP mode by removing overlay and stopping PiP camera
      */
     private fun disablePiPMode() {
+        Log.i(TAG, "Disabling PiP mode...")
         removePiPOverlay()
-        dualCameraCoordinator?.stopPiPCamera()
+        dualCameraCoordinator?.stopPipCameraOnly()
 
         cameraContext?.debugLogger?.logPlugin(
             name,
@@ -393,14 +394,22 @@ class DualCameraPiPPlugin : UIPlugin() {
     }
 
     /**
-     * Apply current camera configuration to coordinator
+     * Apply current camera configuration to coordinator.
+     * Only binds the PiP camera since main camera is managed by CameraEngine.
      */
     private fun applyCameraConfiguration() {
+        val pipPreview = pipOverlayView?.getPreviewView()
+
+        if (pipPreview == null) {
+            Log.e(TAG, "❌ Cannot apply camera configuration: PiP preview view is null")
+            return
+        }
+
         dualCameraCoordinator?.let { coordinator ->
-            coordinator.setupDualCamera(
-                mainCameraIndex = _mainCamera.value,
+            Log.i(TAG, "Applying PiP camera configuration: index=${_pipCamera.value}")
+            coordinator.setupPipCameraOnly(
                 pipCameraIndex = _pipCamera.value,
-                pipPreviewView = pipOverlayView?.getPreviewView()
+                pipPreviewView = pipPreview
             )
         }
     }
