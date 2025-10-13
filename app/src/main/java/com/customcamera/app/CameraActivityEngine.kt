@@ -1464,9 +1464,20 @@ class CameraActivityEngine : AppCompatActivity() {
 
             // Add touch listener to preview view for pinch gestures
             binding.previewView.setOnTouchListener { _, event ->
-                scaleGestureDetector?.onTouchEvent(event) ?: false
+                // Let ScaleGestureDetector process the event first
+                val scaleHandled = scaleGestureDetector?.onTouchEvent(event) == true
 
-                // Also handle tap gestures (existing functionality)
+                // If scale gesture consumed the event, don't process taps
+                if (scaleHandled) {
+                    return@setOnTouchListener true
+                }
+
+                // Only process tap gestures for single-touch events (not during pinch)
+                if (event.pointerCount > 1) {
+                    return@setOnTouchListener false
+                }
+
+                // Handle tap gestures (existing functionality)
                 when (event.action) {
                     MotionEvent.ACTION_DOWN -> {
                         val currentTime = System.currentTimeMillis()
