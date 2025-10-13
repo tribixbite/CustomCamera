@@ -383,6 +383,15 @@ class CameraActivityEngine : AppCompatActivity() {
                 // Update flash button state
                 updateFlashButton()
 
+                // Initialize zoom controller for pinch-to-zoom
+                val camera = cameraEngine.getCurrentCamera()
+                if (camera != null && zoomController == null) {
+                    zoomController = com.customcamera.app.camera2.ZoomController(this@CameraActivityEngine).apply {
+                        initialize(cameraIndex.toString(), camera)
+                    }
+                    Log.i(TAG, "Zoom controller initialized for pinch-to-zoom")
+                }
+
                 // Setup pinch-to-zoom gestures
                 setupPinchToZoom()
 
@@ -851,8 +860,12 @@ class CameraActivityEngine : AppCompatActivity() {
                     initialize(cameraIndex.toString())
                 }
 
-                zoomController = com.customcamera.app.camera2.ZoomController(this).apply {
-                    initialize(cameraIndex.toString())
+                // Initialize zoom controller if not already created during camera setup
+                val camera = cameraEngine.getCurrentCamera()
+                if (zoomController == null && camera != null) {
+                    zoomController = com.customcamera.app.camera2.ZoomController(this).apply {
+                        initialize(cameraIndex.toString(), camera)
+                    }
                 }
 
                 shutterSpeedController = com.customcamera.app.camera2.ShutterSpeedController(this).apply {

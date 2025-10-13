@@ -26,7 +26,7 @@ class ZoomController(
     /**
      * Initialize zoom controller for specific camera
      */
-    fun initialize(cameraId: String): Boolean {
+    fun initialize(cameraId: String, camera: Camera? = null): Boolean {
         return try {
             cameraManager = context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
             val characteristics = cameraManager!!.getCameraCharacteristics(cameraId)
@@ -34,6 +34,15 @@ class ZoomController(
             // Extract zoom capabilities from Camera2
             maxDigitalZoom = characteristics.get(CameraCharacteristics.SCALER_AVAILABLE_MAX_DIGITAL_ZOOM) ?: 1.0f
             maxZoomRatio = maxDigitalZoom.coerceAtMost(10.0f) // Limit to 10x for usability
+
+            // Initialize current zoom from camera state if available
+            if (camera != null) {
+                val zoomState = camera.cameraInfo.zoomState.value
+                currentZoomRatio = zoomState?.zoomRatio ?: 1.0f
+                minZoomRatio = zoomState?.minZoomRatio ?: 1.0f
+                maxZoomRatio = zoomState?.maxZoomRatio ?: maxDigitalZoom
+                Log.i(TAG, "Initialized from camera zoom state: current=${currentZoomRatio}, range=${minZoomRatio}-${maxZoomRatio}")
+            }
 
             Log.i(TAG, "Zoom controller initialized for camera $cameraId")
             Log.i(TAG, "Max digital zoom: $maxDigitalZoom")
@@ -55,11 +64,35 @@ class ZoomController(
             val clampedZoom = zoomRatio.coerceIn(minZoomRatio, maxZoomRatio)
 
             if (camera != null) {
-                // Use CameraX zoom control
-                camera.cameraControl.setZoomRatio(clampedZoom)
+                Log.d(TAG, "Setting zoom ratio: ${String.format("%.2f", clampedZoom)}x")
+
+                // Get current zoom state for debugging
+                val zoomState = camera.cameraInfo.zoomState.value
+                Log.d(TAG, "Current zoom state: ratio=${zoomState?.zoomRatio}, min=${zoomState?.minZoomRatio}, max=${zoomState?.maxZoomRatio}")
+
+                // Use CameraX zoom control - returns ListenableFuture
+                val future = camera.cameraControl.setZoomRatio(clampedZoom)
                 currentZoomRatio = clampedZoom
 
-                Log.d(TAG, "Zoom ratio set to: ${String.format("%.1f", clampedZoom)}x")
+                // Add listener to verify zoom was applied (optional - for debugging only)
+                // Note: During rapid pinch gestures, operations get canceled by newer ones - this is normal
+                future.addListener({
+                    try {
+                        future.get()
+                        Log.v(TAG, "✅ Zoom applied: ${String.format("%.2f", clampedZoom)}x")
+                    } catch (e: java.util.concurrent.ExecutionException) {
+                        // OperationCanceledException is normal during rapid pinch - new zoom replaces old one
+                        if (e.cause?.javaClass?.simpleName == "OperationCanceledException") {
+                            Log.v(TAG, "Zoom superseded by newer value (normal during pinch)")
+                        } else {
+                            Log.w(TAG, "Zoom application issue: ${e.message}")
+                        }
+                    } catch (e: Exception) {
+                        Log.w(TAG, "Zoom application exception", e)
+                    }
+                }, android.os.Handler(android.os.Looper.getMainLooper())::post)
+
+                Log.d(TAG, "Zoom ratio command sent: ${String.format("%.2f", clampedZoom)}x")
                 true
             } else {
                 Log.w(TAG, "Camera not available for zoom control")
