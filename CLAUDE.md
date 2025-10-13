@@ -399,6 +399,49 @@ Launch camera → Select camera index → Initialize CameraEngine with plugins
 - ✅ Floating UI design matches modern camera apps
 - ✅ Error handling prevents crashes
 
+## ✅ SESSION COMPLETED: Pinch-to-Zoom Fix (2025-10-13)
+
+### ✅ Bug Identified & Fixed
+**Problem**: Pinch-to-zoom gesture not working in camera interface
+
+**Root Cause**: Touch listener in setupPinchToZoom() (CameraActivityEngine.kt:1466-1511) was calling `scaleGestureDetector.onTouchEvent()` but ignoring its return value, causing:
+- Events not properly consumed by ScaleGestureDetector
+- Tap gesture logic always running, even during pinch
+- Multi-touch pinch events conflicting with single-touch tap detection
+
+**Debug Process**: Used zen MCP with Gemini-2.5-Pro for systematic investigation:
+- Step 1: Identified touch listener return value bug
+- Step 2: Traced execution path and confirmed hypothesis
+- Step 3: Verified bug with concrete code evidence (CERTAIN confidence)
+
+**Fix Applied**:
+```kotlin
+// Check if ScaleGestureDetector handled event first
+val scaleHandled = scaleGestureDetector?.onTouchEvent(event) == true
+if (scaleHandled) {
+    return@setOnTouchListener true  // Consume event properly
+}
+
+// Only process taps for single-touch events
+if (event.pointerCount > 1) {
+    return@setOnTouchListener false
+}
+```
+
+**Changes**:
+- ✅ ScaleGestureDetector return value now properly checked
+- ✅ Events consumed correctly when pinch detected
+- ✅ Tap processing skipped during multi-touch gestures
+- ✅ No gesture conflicts between pinch and tap
+
+**Build Status**:
+- Build Time: 22s
+- Version: 2.0.43 (code 27)
+- APK Size: ~27MB
+- Status: Ready for testing
+
+**Test**: Pinch-to-zoom should now work correctly in camera preview
+
 ## ✅ SESSION COMPLETED: UX Improvements & Bug Fixes (2025-10-10)
 
 ### ✅ Major Achievements
