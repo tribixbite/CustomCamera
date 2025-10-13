@@ -85,12 +85,19 @@ class BarcodePlugin : ProcessingPlugin() {
     override suspend fun processFrame(image: ImageProxy): ProcessingResult {
         val currentTime = System.currentTimeMillis()
 
+        // Check if scanning is enabled
+        if (!isAutoScanEnabled) {
+            Log.d(TAG, "Barcode scanning disabled, skipping frame")
+            return ProcessingResult.Skip
+        }
+
         // Throttle processing to avoid performance impact
         if (currentTime - lastProcessingTime < processingInterval) {
             return ProcessingResult.Skip
         }
 
         lastProcessingTime = currentTime
+        Log.d(TAG, "Processing frame for barcode detection...")
 
         return try {
             // Real ML Kit barcode detection
@@ -256,13 +263,18 @@ class BarcodePlugin : ProcessingPlugin() {
      */
     private suspend fun performRealBarcodeDetection(image: ImageProxy): List<DetectedBarcode> {
         return try {
-            val mediaImage = image.image ?: return emptyList()
+            val mediaImage = image.image ?: run {
+                Log.w(TAG, "MediaImage is null, cannot detect barcodes")
+                return emptyList()
+            }
             val inputImage = InputImage.fromMediaImage(mediaImage, image.imageInfo.rotationDegrees)
+            Log.d(TAG, "ML Kit processing image: ${image.width}x${image.height}, rotation: ${image.imageInfo.rotationDegrees}")
 
             // Await ML Kit barcode detection results using suspendCancellableCoroutine
             val mlkitBarcodes = suspendCancellableCoroutine<List<Barcode>> { continuation ->
                 scanner.process(inputImage)
                     .addOnSuccessListener { barcodes: List<Barcode> ->
+                        Log.d(TAG, "ML Kit detection success: ${barcodes.size} barcodes found")
                         if (continuation.isActive) {
                             continuation.resume(barcodes)
                         }
@@ -367,17 +379,24 @@ class BarcodePlugin : ProcessingPlugin() {
      */
     fun toggleScanning(): Boolean {
         isAutoScanEnabled = !isAutoScanEnabled
-        if (!isAutoScanEnabled) {
+
+        // IMPORTANT: Also toggle the plugin's enabled state
+        // The PluginManager checks plugin.isEnabled before calling processFrame
+        if (isAutoScanEnabled) {
+            enable()
+        } else {
+            disable()
             clearDetectedBarcodes()
         }
+
         saveSettings()
 
-        Log.i(TAG, "Barcode scanning ${if (isAutoScanEnabled) "enabled" else "disabled"}")
+        Log.i(TAG, "Barcode scanning ${if (isAutoScanEnabled) "enabled" else "disabled"}, plugin.isEnabled=${isEnabled}")
 
         cameraContext?.debugLogger?.logPlugin(
             name,
             "scanning_toggled",
-            mapOf("enabled" to isAutoScanEnabled)
+            mapOf("enabled" to isAutoScanEnabled, "pluginEnabled" to isEnabled)
         )
 
         return isAutoScanEnabled

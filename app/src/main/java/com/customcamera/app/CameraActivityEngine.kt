@@ -1169,6 +1169,7 @@ class CameraActivityEngine : AppCompatActivity() {
                 isBarcodeScanningEnabled = barcodePlugin.toggleScanning()
 
                 Log.i(TAG, "Barcode scanning ${if (isBarcodeScanningEnabled) "enabled" else "disabled"}")
+                Log.i(TAG, "BarcodePlugin state - isEnabled: ${barcodePlugin.isEnabled}, isScanningEnabled: ${barcodePlugin.isScanningEnabled()}")
 
                 Toast.makeText(
                     this,
@@ -2029,45 +2030,15 @@ class CameraActivityEngine : AppCompatActivity() {
     }
 
     private fun setupPiPGestureDetection() {
-        // Set up quadruple-tap gesture to toggle PiP (to avoid conflicts with existing gestures)
-        val gestureDetector = android.view.GestureDetector(this, object : android.view.GestureDetector.SimpleOnGestureListener() {
-            private var tapCount = 0
-            private var lastTapTime = 0L
-            private val multiTapTimeout = 500L // ms
+        // IMPORTANT: This function is called AFTER setupPinchToZoom()
+        // We must NOT overwrite the existing touch listener, but enhance it instead
+        // The pinch-to-zoom touch listener already handles both scale and tap gestures
+        // So we don't need to set a new touch listener here - it's already handled in setupPinchToZoom()
 
-            override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
-                val currentTime = System.currentTimeMillis()
+        Log.i(TAG, "PiP gesture detection integrated with existing pinch-to-zoom handler")
 
-                if (currentTime - lastTapTime > multiTapTimeout) {
-                    tapCount = 1
-                } else {
-                    tapCount++
-                }
-
-                lastTapTime = currentTime
-
-                // Check for quadruple tap
-                if (tapCount == 4) {
-                    toggleDualCameraPiP()
-                    tapCount = 0
-                    return true
-                }
-
-                // Check for quintuple tap
-                if (tapCount == 5) {
-                    toggleVideoRecording()
-                    tapCount = 0
-                    return true
-                }
-
-                return false
-            }
-        })
-
-        binding.previewView.setOnTouchListener { _, event ->
-            gestureDetector.onTouchEvent(event)
-            false // Allow other touch handling to continue
-        }
+        // Note: setupPinchToZoom() at line 1465 already sets up the touch listener
+        // which handles both pinch gestures (zoom) and tap gestures (grid, barcode, etc.)
     }
 
     private fun toggleDualCameraPiP() {
