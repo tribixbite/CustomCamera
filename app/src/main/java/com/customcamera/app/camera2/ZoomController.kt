@@ -17,7 +17,7 @@ class ZoomController(
     private var currentZoomRatio: Float = 1.0f
     private var minZoomRatio: Float = 1.0f
     private var maxZoomRatio: Float = 10.0f
-    private var zoomStepSize: Float = 0.1f
+    private var zoomStepSize: Float = 0.01f  // Reduced for smooth pinch-to-zoom response
 
     // Camera2 characteristics
     private var cameraManager: CameraManager? = null
@@ -76,11 +76,18 @@ class ZoomController(
      * Process pinch gesture for zoom
      */
     fun processPinchGesture(scaleFactor: Float, camera: Camera?): Boolean {
-        val newZoomRatio = (currentZoomRatio * scaleFactor).coerceIn(minZoomRatio, maxZoomRatio)
+        Log.d(TAG, "processPinchGesture: scaleFactor=$scaleFactor, currentZoom=$currentZoomRatio")
 
-        return if (kotlin.math.abs(newZoomRatio - currentZoomRatio) > zoomStepSize) {
+        val newZoomRatio = (currentZoomRatio * scaleFactor).coerceIn(minZoomRatio, maxZoomRatio)
+        val zoomDelta = kotlin.math.abs(newZoomRatio - currentZoomRatio)
+
+        Log.d(TAG, "newZoomRatio=$newZoomRatio, delta=$zoomDelta, stepSize=$zoomStepSize")
+
+        return if (zoomDelta > zoomStepSize) {
+            Log.d(TAG, "Applying zoom change: $currentZoomRatio -> $newZoomRatio")
             setZoomRatio(newZoomRatio, camera)
         } else {
+            Log.v(TAG, "Zoom change too small, ignoring")
             false // No significant change
         }
     }

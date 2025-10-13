@@ -383,6 +383,9 @@ class CameraActivityEngine : AppCompatActivity() {
                 // Update flash button state
                 updateFlashButton()
 
+                // Setup pinch-to-zoom gestures
+                setupPinchToZoom()
+
                 // Hide enhanced loading indicator
                 loadingIndicatorManager.hideLoading()
 
@@ -860,8 +863,7 @@ class CameraActivityEngine : AppCompatActivity() {
                     initialize(cameraIndex.toString())
                 }
 
-                // Setup pinch-to-zoom
-                setupPinchToZoom()
+                // Note: Pinch-to-zoom is now set up during camera initialization (startCameraWithEngine)
 
                 val titleView = android.widget.TextView(this).apply {
                     text = "Manual Controls"
@@ -1439,25 +1441,33 @@ class CameraActivityEngine : AppCompatActivity() {
             scaleGestureDetector = ScaleGestureDetector(this, object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
                 override fun onScale(detector: ScaleGestureDetector): Boolean {
                     val scaleFactor = detector.scaleFactor
+                    Log.d(TAG, "onScale called: scaleFactor=$scaleFactor")
+
                     // Get current camera for video recording
-            val camera = cameraEngine.getCurrentCamera()
+                    val camera = cameraEngine.getCurrentCamera()
 
                     if (camera != null) {
+                        Log.d(TAG, "Camera available, processing pinch gesture")
                         val zoomApplied = zoomController?.processPinchGesture(scaleFactor, camera) ?: false
+                        Log.d(TAG, "Zoom applied: $zoomApplied")
                         if (zoomApplied) {
                             updateZoomIndicator()
                         }
                         return true
+                    } else {
+                        Log.w(TAG, "Camera not available for zoom")
                     }
                     return false
                 }
 
                 override fun onScaleBegin(detector: ScaleGestureDetector): Boolean {
+                    Log.d(TAG, "onScaleBegin: Pinch gesture started")
                     showZoomIndicator()
                     return true
                 }
 
                 override fun onScaleEnd(detector: ScaleGestureDetector) {
+                    Log.d(TAG, "onScaleEnd: Pinch gesture ended")
                     hideZoomIndicatorAfterDelay()
                 }
             })
@@ -1467,8 +1477,13 @@ class CameraActivityEngine : AppCompatActivity() {
                 // Let ScaleGestureDetector process the event first
                 val scaleHandled = scaleGestureDetector?.onTouchEvent(event) == true
 
+                if (event.pointerCount > 1) {
+                    Log.v(TAG, "Multi-touch event detected: pointers=${event.pointerCount}, scaleHandled=$scaleHandled")
+                }
+
                 // If scale gesture consumed the event, don't process taps
                 if (scaleHandled) {
+                    Log.d(TAG, "Scale gesture handled, consuming event")
                     return@setOnTouchListener true
                 }
 
