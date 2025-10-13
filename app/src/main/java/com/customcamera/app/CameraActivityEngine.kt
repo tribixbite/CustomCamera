@@ -1195,6 +1195,11 @@ class CameraActivityEngine : AppCompatActivity() {
 
                         // Switch to Main thread for UI operations
                         withContext(Dispatchers.Main) {
+                            // Reconnect preview after rebinding camera with image analysis
+                            val preview = cameraEngine.getPreview()
+                            preview?.setSurfaceProvider(binding.previewView.surfaceProvider)
+                            Log.i(TAG, "Preview reconnected after enabling image analysis")
+
                             // Add barcode overlay to UI
                             if (barcodeOverlayView == null) {
                                 val overlay = com.customcamera.app.barcode.BarcodeOverlayView(this@CameraActivityEngine)
@@ -1223,6 +1228,28 @@ class CameraActivityEngine : AppCompatActivity() {
                         val rootView = binding.root
                         rootView.removeView(overlay)
                         barcodeOverlayView = null
+                    }
+
+                    // Disable image analysis to save resources
+                    lifecycleScope.launch(Dispatchers.IO) {
+                        val config = CameraConfig(
+                            cameraIndex = cameraIndex,
+                            enablePreview = true,
+                            enableImageCapture = true,
+                            enableVideoCapture = true,
+                            enableImageAnalysis = false
+                        )
+
+                        val bindResult = cameraEngine.bindCamera(config)
+                        if (bindResult.isSuccess) {
+                            Log.i(TAG, "Image analysis disabled to save resources")
+                        }
+
+                        withContext(Dispatchers.Main) {
+                            // Reconnect preview after rebinding
+                            val preview = cameraEngine.getPreview()
+                            preview?.setSurfaceProvider(binding.previewView.surfaceProvider)
+                        }
                     }
                 }
 
