@@ -1774,6 +1774,40 @@ class CameraActivityEngine : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+
+        // Check if camera selection changed in settings
+        if (::cameraEngine.isInitialized && hasCameraPermission()) {
+            val settingsManager = SettingsManager(this)
+            val settingsDefaultCamera = settingsManager.defaultCameraIndex.value
+
+            if (settingsDefaultCamera != cameraIndex) {
+                Log.i(TAG, "Camera selection changed in settings: $cameraIndex → $settingsDefaultCamera")
+                cameraIndex = settingsDefaultCamera
+
+                // Reinitialize camera with new index
+                lifecycleScope.launch {
+                    try {
+                        val switchResult = cameraEngine.switchCamera(cameraIndex)
+                        if (switchResult.isSuccess) {
+                            // Reconfigure preview after camera switch
+                            val preview = cameraEngine.getPreview()
+                            preview?.setSurfaceProvider(binding.previewView.surfaceProvider)
+
+                            // Update flash button state for new camera
+                            updateFlashButton()
+
+                            Toast.makeText(this@CameraActivityEngine, "Camera switched", Toast.LENGTH_SHORT).show()
+                            Log.i(TAG, "✅ Camera switched to index: $cameraIndex")
+                        } else {
+                            Log.e(TAG, "Failed to switch camera: ${switchResult.exceptionOrNull()?.message}")
+                        }
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error switching camera on resume", e)
+                    }
+                }
+            }
+        }
+
         // Refresh plugin overlays when returning from settings to reflect any changes
         try {
             if (::cameraEngine.isInitialized && ::binding.isInitialized) {
