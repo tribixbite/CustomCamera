@@ -697,130 +697,12 @@ concurrentCamera = provider.bindToLifecycle(
 - ✅ Modified: `DualCameraPiPPlugin.kt` - Mode switching integration
 - ✅ Updated: `memory/PIP.md` - Implementation status
 
-## ✅ SESSION COMPLETED: Dual Camera Photo Composition (2025-10-14)
-
-### ✅ Implementation Complete
-**Feature**: Photos taken in PiP mode now capture and composite both camera feeds
-
-**Problem**: PiP mode displayed both cameras correctly, but photo capture only saved main camera image
-**Solution**: Implemented manual dual camera photo composition with Canvas/Bitmap
-
-### Technical Implementation
-
-**1. Added PiP ImageCapture**:
-- Added `pipImageCapture: ImageCapture?` to CameraEngine
-- PiP camera now has Preview + ImageCapture (2 UseCases, within concurrent limit)
-- Proper cleanup when exiting concurrent mode
-
-**2. Created Dual Capture Method**:
-```kotlin
-CameraEngine.captureDualPhoto(outputFile, onSuccess, onError)
-```
-- Captures from both main and PiP cameras simultaneously using async/await
-- Converts ImageProxy to Bitmap with `imageProxyToBitmap()` helper
-- Composites images with `compositeImages()` method
-- Saves final composite as JPEG (95% quality)
-
-**3. Image Composition**:
-- Main camera image as full background
-- PiP image overlayed at top-right corner
-- PiP scaled to 33% of main image width
-- 16dp margin from edges (density-aware)
-- White border (4dp stroke) around PiP for visibility
-- Proper aspect ratio preservation
-
-**4. UI Integration**:
-- CameraActivityEngine detects concurrent mode via `getCurrentMode()`
-- Automatically uses dual capture when in PiP mode
-- Loading indicator with 5s timeout
-- Toast notifications for capture status
-- Debug logging for both camera captures
-
-### Build Status
-- **Version**: 2.0.55-build.30
-- **Build Time**: 13s
-- **APK Size**: 27MB
-- **Warnings**: Minor (unused parameters)
-- **Status**: Ready for device testing
-
-### Files Modified
-- ✅ Modified: `CameraEngine.kt` - Added pipImageCapture, captureDualPhoto(), imageProxyToBitmap(), compositeImages()
-- ✅ Modified: `CameraActivityEngine.kt` - Added concurrent mode detection and captureDualPhoto() wrapper
-
-### Technical Challenges Solved
-1. **Import Issues**: Fixed `kotlin.coroutines.suspendCoroutine` import path
-2. **Bitmap Conversion**: Implemented proper ImageProxy to Bitmap conversion
-3. **Type Safety**: Fixed nullable Int? to Any conversion in logging
-4. **Composition Logic**: Implemented Canvas-based image overlay with proper positioning
-
-### Next Steps
-1. **Device Testing**: Test dual camera photo capture on physical device
-2. **Verify Composition**: Ensure PiP overlay matches visual display
-3. **User Feedback**: Confirm photos save correctly with both cameras composited
-
-## ✅ SESSION COMPLETED: PiP Layout Fix (2025-10-14)
-
-### ✅ Critical Bug Fixed
-**Problem**: Concurrent camera mode wasn't showing live feeds from either camera despite:
-- Capability detection returning true
-- CameraEngine.switchToConcurrentMode() implementation being correct
-- Device having working concurrent camera support (worked in previous commits)
-
-**Root Cause**: Camera was being bound immediately after creating PiP overlay, before the view was laid out with proper dimensions (0x0 size)
-
-**Solution**: Added ViewTreeObserver.OnGlobalLayoutListener to wait for overlay layout before binding cameras
-
-### Technical Implementation
-
-**1. Added Layout Waiting Logic**:
-```kotlin
-pipOverlayView?.viewTreeObserver?.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
-    override fun onGlobalLayout() {
-        pipOverlayView?.viewTreeObserver?.removeOnGlobalLayoutListener(this)
-        Log.i(TAG, "✅ PiP overlay laid out: ${pipOverlayView!!.width}x${pipOverlayView!!.height}")
-        applyCameraConfiguration(mainPreviewView!!, pipPreview)
-    }
-})
-```
-
-**2. Created applyCameraConfiguration() Helper**:
-- Called after overlay is laid out with proper dimensions
-- Contains the concurrent camera binding logic
-- Ensures PreviewViews have non-zero size before camera binding
-- Properly handles fallback to sequential mode on error
-
-**3. What Was Already Correct**:
-- CameraEngine.switchToConcurrentMode() implementation was perfect
-- Concurrent camera API usage was correct (bindToLifecycle with list of configs)
-- UseCase groups properly configured (2 use cases per camera)
-- Surface providers correctly connected
-
-### Changes Made
-- ✅ Modified: `DualCameraPiPPlugin.kt` - Added layout waiting in enablePiPMode()
-- ✅ Created: `applyCameraConfiguration()` method for post-layout camera binding
-- ✅ No changes needed to CameraEngine - implementation was already correct
-
-### Build Status
-- **Version**: 2.0.59-build.31
-- **Build Time**: 6s
-- **APK Size**: 27MB
-- **Status**: Ready for device testing
-
-### Key Insight
-The concurrent camera implementation was already complete from the previous session. The issue was purely timing - the plugin was trying to bind cameras before the views were ready. This matches the fix pattern from the earlier PiP Window Fix session (transparent background + layout timing).
-
-### Test Plan
-1. Enable PiP mode
-2. Verify both main camera and PiP camera show LIVE feeds simultaneously
-3. Take photos to confirm dual camera photo composition works
-4. Verify PiP overlay is draggable and properly positioned
-
 ## Next Session Priorities
-1. **Device Testing**: Test PiP concurrent camera with layout fix
-2. **Verify Live Feeds**: Confirm both cameras display simultaneously
-3. **Photo Composition**: Verify dual camera photo capture works
-4. **Phase 9B**: Real-time video stabilization (hardware + software fallback)
-5. **Phase 9D**: Advanced UI polish (enhanced settings, animations, loading indicators)
+1. **Device Testing**: Test PiP concurrent camera on physical device
+2. **Verify Camera Feeds**: Ensure both main and PiP previews display correctly
+3. **Phase 9B**: Real-time video stabilization (hardware + software fallback)
+4. **Phase 9D**: Advanced UI polish (enhanced settings, animations, loading indicators)
+5. **Optional Cleanup**: Remove unused CameraActivity.kt (legacy)
 
 ## Camera Selection Status
 ✅ Camera selection system is working correctly with CameraActivityEngine. The Intent-based camera index passing is properly integrated with the plugin system initialization.
@@ -850,7 +732,7 @@ cat CLAUDE.md && echo "====" && cat memory/todo.md | head -50
 ```
 
 ---
-*Last Updated: 2025-10-14*
-*Current Status: PiP layout fix applied - concurrent camera mode should now show live feeds*
-*Next Session: Device test PiP concurrent camera with layout fix, verify both cameras display live*
+*Last Updated: 2025-10-10*
+*Current Status: UX improvements implemented, text visibility and build errors fixed*
+*Next Session: Integrate UX components into CameraActivityEngine or continue Phase 9 features*
 *Master Task List: memory/todo.md (ALWAYS CHECK FIRST)*

@@ -15,12 +15,12 @@ ADDED from /data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/
 INJECTED from /data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:2:1-89:12
 MERGED from [androidx.databinding:viewbinding:8.0.2] /data/data/com.termux/files/home/.gradle/caches/transforms-4/42eed37373c63f1cec8a24c3803f0478/transformed/jetified-viewbinding-8.0.2/AndroidManifest.xml:2:1-7:12
 MERGED from [com.google.android.material:material:1.10.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/a571be23fd8d4059f09460559514e692/transformed/material-1.10.0/AndroidManifest.xml:17:1-24:12
-MERGED from [androidx.camera:camera-video:1.4.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/f22378bb4dd18de85dffeef90b3dea2f/transformed/jetified-camera-video-1.4.0/AndroidManifest.xml:2:1-7:12
-MERGED from [androidx.camera:camera-view:1.4.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/e11ad705aebd1b6efac5716b36728946/transformed/jetified-camera-view-1.4.0/AndroidManifest.xml:2:1-7:12
-MERGED from [androidx.camera:camera-lifecycle:1.4.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/378477e7522a21ffc4ec633b1259ae1e/transformed/jetified-camera-lifecycle-1.4.0/AndroidManifest.xml:2:1-7:12
-MERGED from [androidx.camera:camera-camera2:1.4.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/7bfc8049b68c4449d6998eb0487c6356/transformed/jetified-camera-camera2-1.4.0/AndroidManifest.xml:17:1-36:12
-MERGED from [androidx.camera:camera-core:1.4.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c05b11854b0059b52aae44d173c74ed9/transformed/jetified-camera-core-1.4.0/AndroidManifest.xml:17:1-36:12
 MERGED from [androidx.constraintlayout:constraintlayout:2.1.4] /data/data/com.termux/files/home/.gradle/caches/transforms-4/e136a45fffda0f3d734b8b51a074f3e3/transformed/constraintlayout-2.1.4/AndroidManifest.xml:2:1-11:12
+MERGED from [androidx.camera:camera-video:1.3.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/b1fb9f4f876379f6d0a2bef1380a9dd2/transformed/jetified-camera-video-1.3.1/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.camera:camera-lifecycle:1.3.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/fbdd2770dfd6294f0675e4f6569a4b54/transformed/jetified-camera-lifecycle-1.3.1/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.camera:camera-camera2:1.3.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/1e0b4fc1804d07a5f414abc7ffc1306b/transformed/jetified-camera-camera2-1.3.1/AndroidManifest.xml:17:1-36:12
+MERGED from [androidx.camera:camera-core:1.3.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/504d89197f35b745f68d0b662fbdb2a2/transformed/jetified-camera-core-1.3.1/AndroidManifest.xml:17:1-36:12
+MERGED from [androidx.camera:camera-view:1.3.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/17431ec50f9e732378f955e693de5602/transformed/jetified-camera-view-1.3.1/AndroidManifest.xml:2:1-7:12
 MERGED from [androidx.appcompat:appcompat-resources:1.6.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/286eb62155ba317ccf09894f8fc77b33/transformed/jetified-appcompat-resources-1.6.1/AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.appcompat:appcompat:1.6.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/99a2631ecc969582ca9814ebdd6c39a5/transformed/appcompat-1.6.1/AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.viewpager2:viewpager2:1.0.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/d4e17b87d0d7aa85787bd45b8aa59504/transformed/jetified-viewpager2-1.0.0/AndroidManifest.xml:17:1-24:12
@@ -65,13 +65,12 @@ MERGED from [androidx.lifecycle:lifecycle-livedata-ktx:2.7.0] /data/data/com.ter
 MERGED from [androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2d1f53410fd4a0e8910816f05f399ee5/transformed/jetified-lifecycle-viewmodel-ktx-2.7.0/AndroidManifest.xml:2:1-7:12
 MERGED from [androidx.cursoradapter:cursoradapter:1.0.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/e5b2f1e60ecb044f2e67b65184eeb4c2/transformed/cursoradapter-1.0.0/AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.cardview:cardview:1.0.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/802c3a0edd9e6b4594e0664e3967a831/transformed/cardview-1.0.0/AndroidManifest.xml:17:1-22:12
-MERGED from [androidx.profileinstaller:profileinstaller:1.3.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c6bf2148b704dc55410a6d5e12882d04/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:17:1-55:12
 MERGED from [androidx.exifinterface:exifinterface:1.3.2] /data/data/com.termux/files/home/.gradle/caches/transforms-4/0ae45460c2d29043dc191d26b40e3e3d/transformed/exifinterface-1.3.2/AndroidManifest.xml:17:1-24:12
-MERGED from [androidx.tracing:tracing-ktx:1.2.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/351ec6ddc469fdb0cd5e0f579eedd08f/transformed/jetified-tracing-ktx-1.2.0/AndroidManifest.xml:17:1-22:12
-MERGED from [androidx.startup:startup-runtime:1.1.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/674f2c01cbf67cdc0ed03a73c9a42cf2/transformed/jetified-startup-runtime-1.1.1/AndroidManifest.xml:17:1-33:12
-MERGED from [androidx.tracing:tracing:1.2.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/f2c42032873d93d1ecbf8b0902bb4221/transformed/jetified-tracing-1.2.0/AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.interpolator:interpolator:1.0.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/024f4738d404af7ece58c7d265f3c234/transformed/interpolator-1.0.0/AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/bf927290e5a074cf4962f02842122e06/transformed/versionedparcelable-1.1.1/AndroidManifest.xml:17:1-27:12
+MERGED from [androidx.profileinstaller:profileinstaller:1.3.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c6bf2148b704dc55410a6d5e12882d04/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:17:1-55:12
+MERGED from [androidx.startup:startup-runtime:1.1.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/674f2c01cbf67cdc0ed03a73c9a42cf2/transformed/jetified-startup-runtime-1.1.1/AndroidManifest.xml:17:1-33:12
+MERGED from [androidx.tracing:tracing:1.0.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/526eebaed2ee61faa55d73e4b49ccbae/transformed/jetified-tracing-1.0.0/AndroidManifest.xml:17:1-24:12
 MERGED from [androidx.arch.core:core-runtime:2.2.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/f8f6922ddb170c632d087b8fbd19aec7/transformed/core-runtime-2.2.0/AndroidManifest.xml:17:1-22:12
 MERGED from [com.google.android.datatransport:transport-backend-cct:2.3.3] /data/data/com.termux/files/home/.gradle/caches/transforms-4/0f3baafd1f63ccf0c957c62314fe5114/transformed/jetified-transport-backend-cct-2.3.3/AndroidManifest.xml:15:1-38:12
 MERGED from [com.google.android.datatransport:transport-runtime:2.2.6] /data/data/com.termux/files/home/.gradle/caches/transforms-4/42ae05af79c00408c97d8d247cd0c682/transformed/jetified-transport-runtime-2.2.6/AndroidManifest.xml:15:1-41:12
@@ -81,7 +80,7 @@ MERGED from [com.google.firebase:firebase-encoders-json:17.1.0] /data/data/com.t
 MERGED from [androidx.documentfile:documentfile:1.0.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/604fd96cd80a2f18bd341ef4b8ebac72/transformed/documentfile-1.0.0/AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.localbroadcastmanager:localbroadcastmanager:1.0.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c6b0dd9135e722b45b0073a219728387/transformed/localbroadcastmanager-1.0.0/AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.print:print:1.0.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/ae67316f6153e04fbc631c4e263e2bd2/transformed/print-1.0.0/AndroidManifest.xml:17:1-22:12
-MERGED from [androidx.annotation:annotation-experimental:1.4.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/012fd07ac1e7161613876dc96eb730e4/transformed/jetified-annotation-experimental-1.4.1/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.annotation:annotation-experimental:1.3.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/996093c0ca7d48a6a449faae9a502175/transformed/jetified-annotation-experimental-1.3.1/AndroidManifest.xml:17:1-22:12
 MERGED from [com.google.android.odml:image:1.0.0-beta1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c312c9f99711a7bb6d8d14bf720ad9e3/transformed/jetified-image-1.0.0-beta1/AndroidManifest.xml:2:1-9:12
 INJECTED from /data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:2:1-89:12
 	package
@@ -120,12 +119,12 @@ application
 ADDED from /data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:16:5-87:19
 MERGED from [com.google.android.material:material:1.10.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/a571be23fd8d4059f09460559514e692/transformed/material-1.10.0/AndroidManifest.xml:22:5-20
 MERGED from [com.google.android.material:material:1.10.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/a571be23fd8d4059f09460559514e692/transformed/material-1.10.0/AndroidManifest.xml:22:5-20
-MERGED from [androidx.camera:camera-camera2:1.4.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/7bfc8049b68c4449d6998eb0487c6356/transformed/jetified-camera-camera2-1.4.0/AndroidManifest.xml:23:5-34:19
-MERGED from [androidx.camera:camera-camera2:1.4.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/7bfc8049b68c4449d6998eb0487c6356/transformed/jetified-camera-camera2-1.4.0/AndroidManifest.xml:23:5-34:19
-MERGED from [androidx.camera:camera-core:1.4.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c05b11854b0059b52aae44d173c74ed9/transformed/jetified-camera-core-1.4.0/AndroidManifest.xml:23:5-34:19
-MERGED from [androidx.camera:camera-core:1.4.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c05b11854b0059b52aae44d173c74ed9/transformed/jetified-camera-core-1.4.0/AndroidManifest.xml:23:5-34:19
 MERGED from [androidx.constraintlayout:constraintlayout:2.1.4] /data/data/com.termux/files/home/.gradle/caches/transforms-4/e136a45fffda0f3d734b8b51a074f3e3/transformed/constraintlayout-2.1.4/AndroidManifest.xml:9:5-20
 MERGED from [androidx.constraintlayout:constraintlayout:2.1.4] /data/data/com.termux/files/home/.gradle/caches/transforms-4/e136a45fffda0f3d734b8b51a074f3e3/transformed/constraintlayout-2.1.4/AndroidManifest.xml:9:5-20
+MERGED from [androidx.camera:camera-camera2:1.3.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/1e0b4fc1804d07a5f414abc7ffc1306b/transformed/jetified-camera-camera2-1.3.1/AndroidManifest.xml:23:5-34:19
+MERGED from [androidx.camera:camera-camera2:1.3.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/1e0b4fc1804d07a5f414abc7ffc1306b/transformed/jetified-camera-camera2-1.3.1/AndroidManifest.xml:23:5-34:19
+MERGED from [androidx.camera:camera-core:1.3.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/504d89197f35b745f68d0b662fbdb2a2/transformed/jetified-camera-core-1.3.1/AndroidManifest.xml:23:5-34:19
+MERGED from [androidx.camera:camera-core:1.3.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/504d89197f35b745f68d0b662fbdb2a2/transformed/jetified-camera-core-1.3.1/AndroidManifest.xml:23:5-34:19
 MERGED from [com.google.android.gms:play-services-mlkit-barcode-scanning:18.3.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/680cba39ecf3c907b9e72cfaad635414/transformed/jetified-play-services-mlkit-barcode-scanning-18.3.0/AndroidManifest.xml:8:5-16:19
 MERGED from [com.google.android.gms:play-services-mlkit-barcode-scanning:18.3.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/680cba39ecf3c907b9e72cfaad635414/transformed/jetified-play-services-mlkit-barcode-scanning-18.3.0/AndroidManifest.xml:8:5-16:19
 MERGED from [com.google.mlkit:vision-common:17.3.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/14fd37fbc2f25204a3a0cc29278ca0fc/transformed/jetified-vision-common-17.3.0/AndroidManifest.xml:8:5-16:19
@@ -144,12 +143,12 @@ MERGED from [androidx.lifecycle:lifecycle-process:2.7.0] /data/data/com.termux/f
 MERGED from [androidx.lifecycle:lifecycle-process:2.7.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/0349d1b278f29129af922da197e77d51/transformed/jetified-lifecycle-process-2.7.0/AndroidManifest.xml:23:5-33:19
 MERGED from [androidx.core:core:1.12.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/928de47e133b1ae84cdec1533ebaa58f/transformed/core-1.12.0/AndroidManifest.xml:28:5-89
 MERGED from [androidx.core:core:1.12.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/928de47e133b1ae84cdec1533ebaa58f/transformed/core-1.12.0/AndroidManifest.xml:28:5-89
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/bf927290e5a074cf4962f02842122e06/transformed/versionedparcelable-1.1.1/AndroidManifest.xml:24:5-25:19
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/bf927290e5a074cf4962f02842122e06/transformed/versionedparcelable-1.1.1/AndroidManifest.xml:24:5-25:19
 MERGED from [androidx.profileinstaller:profileinstaller:1.3.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c6bf2148b704dc55410a6d5e12882d04/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:23:5-53:19
 MERGED from [androidx.profileinstaller:profileinstaller:1.3.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c6bf2148b704dc55410a6d5e12882d04/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:23:5-53:19
 MERGED from [androidx.startup:startup-runtime:1.1.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/674f2c01cbf67cdc0ed03a73c9a42cf2/transformed/jetified-startup-runtime-1.1.1/AndroidManifest.xml:25:5-31:19
 MERGED from [androidx.startup:startup-runtime:1.1.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/674f2c01cbf67cdc0ed03a73c9a42cf2/transformed/jetified-startup-runtime-1.1.1/AndroidManifest.xml:25:5-31:19
-MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/bf927290e5a074cf4962f02842122e06/transformed/versionedparcelable-1.1.1/AndroidManifest.xml:24:5-25:19
-MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/bf927290e5a074cf4962f02842122e06/transformed/versionedparcelable-1.1.1/AndroidManifest.xml:24:5-25:19
 MERGED from [com.google.android.datatransport:transport-backend-cct:2.3.3] /data/data/com.termux/files/home/.gradle/caches/transforms-4/0f3baafd1f63ccf0c957c62314fe5114/transformed/jetified-transport-backend-cct-2.3.3/AndroidManifest.xml:28:5-36:19
 MERGED from [com.google.android.datatransport:transport-backend-cct:2.3.3] /data/data/com.termux/files/home/.gradle/caches/transforms-4/0f3baafd1f63ccf0c957c62314fe5114/transformed/jetified-transport-backend-cct-2.3.3/AndroidManifest.xml:28:5-36:19
 MERGED from [com.google.android.datatransport:transport-runtime:2.2.6] /data/data/com.termux/files/home/.gradle/caches/transforms-4/42ae05af79c00408c97d8d247cd0c682/transformed/jetified-transport-runtime-2.2.6/AndroidManifest.xml:25:5-39:19
@@ -266,18 +265,18 @@ MERGED from [androidx.databinding:viewbinding:8.0.2] /data/data/com.termux/files
 MERGED from [androidx.databinding:viewbinding:8.0.2] /data/data/com.termux/files/home/.gradle/caches/transforms-4/42eed37373c63f1cec8a24c3803f0478/transformed/jetified-viewbinding-8.0.2/AndroidManifest.xml:5:5-44
 MERGED from [com.google.android.material:material:1.10.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/a571be23fd8d4059f09460559514e692/transformed/material-1.10.0/AndroidManifest.xml:20:5-44
 MERGED from [com.google.android.material:material:1.10.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/a571be23fd8d4059f09460559514e692/transformed/material-1.10.0/AndroidManifest.xml:20:5-44
-MERGED from [androidx.camera:camera-video:1.4.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/f22378bb4dd18de85dffeef90b3dea2f/transformed/jetified-camera-video-1.4.0/AndroidManifest.xml:5:5-44
-MERGED from [androidx.camera:camera-video:1.4.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/f22378bb4dd18de85dffeef90b3dea2f/transformed/jetified-camera-video-1.4.0/AndroidManifest.xml:5:5-44
-MERGED from [androidx.camera:camera-view:1.4.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/e11ad705aebd1b6efac5716b36728946/transformed/jetified-camera-view-1.4.0/AndroidManifest.xml:5:5-44
-MERGED from [androidx.camera:camera-view:1.4.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/e11ad705aebd1b6efac5716b36728946/transformed/jetified-camera-view-1.4.0/AndroidManifest.xml:5:5-44
-MERGED from [androidx.camera:camera-lifecycle:1.4.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/378477e7522a21ffc4ec633b1259ae1e/transformed/jetified-camera-lifecycle-1.4.0/AndroidManifest.xml:5:5-44
-MERGED from [androidx.camera:camera-lifecycle:1.4.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/378477e7522a21ffc4ec633b1259ae1e/transformed/jetified-camera-lifecycle-1.4.0/AndroidManifest.xml:5:5-44
-MERGED from [androidx.camera:camera-camera2:1.4.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/7bfc8049b68c4449d6998eb0487c6356/transformed/jetified-camera-camera2-1.4.0/AndroidManifest.xml:21:5-44
-MERGED from [androidx.camera:camera-camera2:1.4.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/7bfc8049b68c4449d6998eb0487c6356/transformed/jetified-camera-camera2-1.4.0/AndroidManifest.xml:21:5-44
-MERGED from [androidx.camera:camera-core:1.4.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c05b11854b0059b52aae44d173c74ed9/transformed/jetified-camera-core-1.4.0/AndroidManifest.xml:21:5-44
-MERGED from [androidx.camera:camera-core:1.4.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c05b11854b0059b52aae44d173c74ed9/transformed/jetified-camera-core-1.4.0/AndroidManifest.xml:21:5-44
 MERGED from [androidx.constraintlayout:constraintlayout:2.1.4] /data/data/com.termux/files/home/.gradle/caches/transforms-4/e136a45fffda0f3d734b8b51a074f3e3/transformed/constraintlayout-2.1.4/AndroidManifest.xml:5:5-7:41
 MERGED from [androidx.constraintlayout:constraintlayout:2.1.4] /data/data/com.termux/files/home/.gradle/caches/transforms-4/e136a45fffda0f3d734b8b51a074f3e3/transformed/constraintlayout-2.1.4/AndroidManifest.xml:5:5-7:41
+MERGED from [androidx.camera:camera-video:1.3.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/b1fb9f4f876379f6d0a2bef1380a9dd2/transformed/jetified-camera-video-1.3.1/AndroidManifest.xml:5:5-44
+MERGED from [androidx.camera:camera-video:1.3.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/b1fb9f4f876379f6d0a2bef1380a9dd2/transformed/jetified-camera-video-1.3.1/AndroidManifest.xml:5:5-44
+MERGED from [androidx.camera:camera-lifecycle:1.3.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/fbdd2770dfd6294f0675e4f6569a4b54/transformed/jetified-camera-lifecycle-1.3.1/AndroidManifest.xml:5:5-44
+MERGED from [androidx.camera:camera-lifecycle:1.3.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/fbdd2770dfd6294f0675e4f6569a4b54/transformed/jetified-camera-lifecycle-1.3.1/AndroidManifest.xml:5:5-44
+MERGED from [androidx.camera:camera-camera2:1.3.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/1e0b4fc1804d07a5f414abc7ffc1306b/transformed/jetified-camera-camera2-1.3.1/AndroidManifest.xml:21:5-44
+MERGED from [androidx.camera:camera-camera2:1.3.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/1e0b4fc1804d07a5f414abc7ffc1306b/transformed/jetified-camera-camera2-1.3.1/AndroidManifest.xml:21:5-44
+MERGED from [androidx.camera:camera-core:1.3.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/504d89197f35b745f68d0b662fbdb2a2/transformed/jetified-camera-core-1.3.1/AndroidManifest.xml:21:5-44
+MERGED from [androidx.camera:camera-core:1.3.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/504d89197f35b745f68d0b662fbdb2a2/transformed/jetified-camera-core-1.3.1/AndroidManifest.xml:21:5-44
+MERGED from [androidx.camera:camera-view:1.3.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/17431ec50f9e732378f955e693de5602/transformed/jetified-camera-view-1.3.1/AndroidManifest.xml:5:5-44
+MERGED from [androidx.camera:camera-view:1.3.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/17431ec50f9e732378f955e693de5602/transformed/jetified-camera-view-1.3.1/AndroidManifest.xml:5:5-44
 MERGED from [androidx.appcompat:appcompat-resources:1.6.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/286eb62155ba317ccf09894f8fc77b33/transformed/jetified-appcompat-resources-1.6.1/AndroidManifest.xml:20:5-44
 MERGED from [androidx.appcompat:appcompat-resources:1.6.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/286eb62155ba317ccf09894f8fc77b33/transformed/jetified-appcompat-resources-1.6.1/AndroidManifest.xml:20:5-44
 MERGED from [androidx.appcompat:appcompat:1.6.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/99a2631ecc969582ca9814ebdd6c39a5/transformed/appcompat-1.6.1/AndroidManifest.xml:20:5-44
@@ -366,20 +365,18 @@ MERGED from [androidx.cursoradapter:cursoradapter:1.0.0] /data/data/com.termux/f
 MERGED from [androidx.cursoradapter:cursoradapter:1.0.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/e5b2f1e60ecb044f2e67b65184eeb4c2/transformed/cursoradapter-1.0.0/AndroidManifest.xml:20:5-44
 MERGED from [androidx.cardview:cardview:1.0.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/802c3a0edd9e6b4594e0664e3967a831/transformed/cardview-1.0.0/AndroidManifest.xml:20:5-44
 MERGED from [androidx.cardview:cardview:1.0.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/802c3a0edd9e6b4594e0664e3967a831/transformed/cardview-1.0.0/AndroidManifest.xml:20:5-44
-MERGED from [androidx.profileinstaller:profileinstaller:1.3.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c6bf2148b704dc55410a6d5e12882d04/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:21:5-44
-MERGED from [androidx.profileinstaller:profileinstaller:1.3.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c6bf2148b704dc55410a6d5e12882d04/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:21:5-44
 MERGED from [androidx.exifinterface:exifinterface:1.3.2] /data/data/com.termux/files/home/.gradle/caches/transforms-4/0ae45460c2d29043dc191d26b40e3e3d/transformed/exifinterface-1.3.2/AndroidManifest.xml:20:5-22:41
 MERGED from [androidx.exifinterface:exifinterface:1.3.2] /data/data/com.termux/files/home/.gradle/caches/transforms-4/0ae45460c2d29043dc191d26b40e3e3d/transformed/exifinterface-1.3.2/AndroidManifest.xml:20:5-22:41
-MERGED from [androidx.tracing:tracing-ktx:1.2.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/351ec6ddc469fdb0cd5e0f579eedd08f/transformed/jetified-tracing-ktx-1.2.0/AndroidManifest.xml:20:5-44
-MERGED from [androidx.tracing:tracing-ktx:1.2.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/351ec6ddc469fdb0cd5e0f579eedd08f/transformed/jetified-tracing-ktx-1.2.0/AndroidManifest.xml:20:5-44
-MERGED from [androidx.startup:startup-runtime:1.1.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/674f2c01cbf67cdc0ed03a73c9a42cf2/transformed/jetified-startup-runtime-1.1.1/AndroidManifest.xml:21:5-23:41
-MERGED from [androidx.startup:startup-runtime:1.1.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/674f2c01cbf67cdc0ed03a73c9a42cf2/transformed/jetified-startup-runtime-1.1.1/AndroidManifest.xml:21:5-23:41
-MERGED from [androidx.tracing:tracing:1.2.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/f2c42032873d93d1ecbf8b0902bb4221/transformed/jetified-tracing-1.2.0/AndroidManifest.xml:20:5-44
-MERGED from [androidx.tracing:tracing:1.2.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/f2c42032873d93d1ecbf8b0902bb4221/transformed/jetified-tracing-1.2.0/AndroidManifest.xml:20:5-44
 MERGED from [androidx.interpolator:interpolator:1.0.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/024f4738d404af7ece58c7d265f3c234/transformed/interpolator-1.0.0/AndroidManifest.xml:20:5-44
 MERGED from [androidx.interpolator:interpolator:1.0.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/024f4738d404af7ece58c7d265f3c234/transformed/interpolator-1.0.0/AndroidManifest.xml:20:5-44
 MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/bf927290e5a074cf4962f02842122e06/transformed/versionedparcelable-1.1.1/AndroidManifest.xml:20:5-22:41
 MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/bf927290e5a074cf4962f02842122e06/transformed/versionedparcelable-1.1.1/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.profileinstaller:profileinstaller:1.3.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c6bf2148b704dc55410a6d5e12882d04/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:21:5-44
+MERGED from [androidx.profileinstaller:profileinstaller:1.3.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c6bf2148b704dc55410a6d5e12882d04/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:21:5-44
+MERGED from [androidx.startup:startup-runtime:1.1.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/674f2c01cbf67cdc0ed03a73c9a42cf2/transformed/jetified-startup-runtime-1.1.1/AndroidManifest.xml:21:5-23:41
+MERGED from [androidx.startup:startup-runtime:1.1.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/674f2c01cbf67cdc0ed03a73c9a42cf2/transformed/jetified-startup-runtime-1.1.1/AndroidManifest.xml:21:5-23:41
+MERGED from [androidx.tracing:tracing:1.0.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/526eebaed2ee61faa55d73e4b49ccbae/transformed/jetified-tracing-1.0.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.tracing:tracing:1.0.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/526eebaed2ee61faa55d73e4b49ccbae/transformed/jetified-tracing-1.0.0/AndroidManifest.xml:20:5-22:41
 MERGED from [androidx.arch.core:core-runtime:2.2.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/f8f6922ddb170c632d087b8fbd19aec7/transformed/core-runtime-2.2.0/AndroidManifest.xml:20:5-44
 MERGED from [androidx.arch.core:core-runtime:2.2.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/f8f6922ddb170c632d087b8fbd19aec7/transformed/core-runtime-2.2.0/AndroidManifest.xml:20:5-44
 MERGED from [com.google.android.datatransport:transport-backend-cct:2.3.3] /data/data/com.termux/files/home/.gradle/caches/transforms-4/0f3baafd1f63ccf0c957c62314fe5114/transformed/jetified-transport-backend-cct-2.3.3/AndroidManifest.xml:19:5-21:41
@@ -398,8 +395,8 @@ MERGED from [androidx.localbroadcastmanager:localbroadcastmanager:1.0.0] /data/d
 MERGED from [androidx.localbroadcastmanager:localbroadcastmanager:1.0.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c6b0dd9135e722b45b0073a219728387/transformed/localbroadcastmanager-1.0.0/AndroidManifest.xml:20:5-44
 MERGED from [androidx.print:print:1.0.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/ae67316f6153e04fbc631c4e263e2bd2/transformed/print-1.0.0/AndroidManifest.xml:20:5-44
 MERGED from [androidx.print:print:1.0.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/ae67316f6153e04fbc631c4e263e2bd2/transformed/print-1.0.0/AndroidManifest.xml:20:5-44
-MERGED from [androidx.annotation:annotation-experimental:1.4.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/012fd07ac1e7161613876dc96eb730e4/transformed/jetified-annotation-experimental-1.4.1/AndroidManifest.xml:5:5-44
-MERGED from [androidx.annotation:annotation-experimental:1.4.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/012fd07ac1e7161613876dc96eb730e4/transformed/jetified-annotation-experimental-1.4.1/AndroidManifest.xml:5:5-44
+MERGED from [androidx.annotation:annotation-experimental:1.3.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/996093c0ca7d48a6a449faae9a502175/transformed/jetified-annotation-experimental-1.3.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.annotation:annotation-experimental:1.3.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/996093c0ca7d48a6a449faae9a502175/transformed/jetified-annotation-experimental-1.3.1/AndroidManifest.xml:20:5-44
 MERGED from [com.google.android.odml:image:1.0.0-beta1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c312c9f99711a7bb6d8d14bf720ad9e3/transformed/jetified-image-1.0.0-beta1/AndroidManifest.xml:5:5-44
 MERGED from [com.google.android.odml:image:1.0.0-beta1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c312c9f99711a7bb6d8d14bf720ad9e3/transformed/jetified-image-1.0.0-beta1/AndroidManifest.xml:5:5-44
 INJECTED from /data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml
@@ -419,25 +416,25 @@ ADDED from /data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/
 	android:name
 		ADDED from /data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:83:17-67
 service#androidx.camera.core.impl.MetadataHolderService
-ADDED from [androidx.camera:camera-camera2:1.4.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/7bfc8049b68c4449d6998eb0487c6356/transformed/jetified-camera-camera2-1.4.0/AndroidManifest.xml:24:9-33:19
-MERGED from [androidx.camera:camera-core:1.4.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c05b11854b0059b52aae44d173c74ed9/transformed/jetified-camera-core-1.4.0/AndroidManifest.xml:29:9-33:78
-MERGED from [androidx.camera:camera-core:1.4.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c05b11854b0059b52aae44d173c74ed9/transformed/jetified-camera-core-1.4.0/AndroidManifest.xml:29:9-33:78
+ADDED from [androidx.camera:camera-camera2:1.3.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/1e0b4fc1804d07a5f414abc7ffc1306b/transformed/jetified-camera-camera2-1.3.1/AndroidManifest.xml:24:9-33:19
+MERGED from [androidx.camera:camera-core:1.3.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/504d89197f35b745f68d0b662fbdb2a2/transformed/jetified-camera-core-1.3.1/AndroidManifest.xml:29:9-33:78
+MERGED from [androidx.camera:camera-core:1.3.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/504d89197f35b745f68d0b662fbdb2a2/transformed/jetified-camera-core-1.3.1/AndroidManifest.xml:29:9-33:78
 	tools:node
-		ADDED from [androidx.camera:camera-camera2:1.4.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/7bfc8049b68c4449d6998eb0487c6356/transformed/jetified-camera-camera2-1.4.0/AndroidManifest.xml:29:13-31
+		ADDED from [androidx.camera:camera-camera2:1.3.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/1e0b4fc1804d07a5f414abc7ffc1306b/transformed/jetified-camera-camera2-1.3.1/AndroidManifest.xml:29:13-31
 	android:enabled
-		ADDED from [androidx.camera:camera-camera2:1.4.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/7bfc8049b68c4449d6998eb0487c6356/transformed/jetified-camera-camera2-1.4.0/AndroidManifest.xml:26:13-36
+		ADDED from [androidx.camera:camera-camera2:1.3.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/1e0b4fc1804d07a5f414abc7ffc1306b/transformed/jetified-camera-camera2-1.3.1/AndroidManifest.xml:26:13-36
 	android:exported
-		ADDED from [androidx.camera:camera-camera2:1.4.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/7bfc8049b68c4449d6998eb0487c6356/transformed/jetified-camera-camera2-1.4.0/AndroidManifest.xml:27:13-37
+		ADDED from [androidx.camera:camera-camera2:1.3.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/1e0b4fc1804d07a5f414abc7ffc1306b/transformed/jetified-camera-camera2-1.3.1/AndroidManifest.xml:27:13-37
 	tools:ignore
-		ADDED from [androidx.camera:camera-camera2:1.4.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/7bfc8049b68c4449d6998eb0487c6356/transformed/jetified-camera-camera2-1.4.0/AndroidManifest.xml:28:13-75
+		ADDED from [androidx.camera:camera-camera2:1.3.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/1e0b4fc1804d07a5f414abc7ffc1306b/transformed/jetified-camera-camera2-1.3.1/AndroidManifest.xml:28:13-75
 	android:name
-		ADDED from [androidx.camera:camera-camera2:1.4.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/7bfc8049b68c4449d6998eb0487c6356/transformed/jetified-camera-camera2-1.4.0/AndroidManifest.xml:25:13-75
+		ADDED from [androidx.camera:camera-camera2:1.3.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/1e0b4fc1804d07a5f414abc7ffc1306b/transformed/jetified-camera-camera2-1.3.1/AndroidManifest.xml:25:13-75
 meta-data#androidx.camera.core.impl.MetadataHolderService.DEFAULT_CONFIG_PROVIDER
-ADDED from [androidx.camera:camera-camera2:1.4.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/7bfc8049b68c4449d6998eb0487c6356/transformed/jetified-camera-camera2-1.4.0/AndroidManifest.xml:30:13-32:89
+ADDED from [androidx.camera:camera-camera2:1.3.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/1e0b4fc1804d07a5f414abc7ffc1306b/transformed/jetified-camera-camera2-1.3.1/AndroidManifest.xml:30:13-32:89
 	android:value
-		ADDED from [androidx.camera:camera-camera2:1.4.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/7bfc8049b68c4449d6998eb0487c6356/transformed/jetified-camera-camera2-1.4.0/AndroidManifest.xml:32:17-86
+		ADDED from [androidx.camera:camera-camera2:1.3.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/1e0b4fc1804d07a5f414abc7ffc1306b/transformed/jetified-camera-camera2-1.3.1/AndroidManifest.xml:32:17-86
 	android:name
-		ADDED from [androidx.camera:camera-camera2:1.4.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/7bfc8049b68c4449d6998eb0487c6356/transformed/jetified-camera-camera2-1.4.0/AndroidManifest.xml:31:17-103
+		ADDED from [androidx.camera:camera-camera2:1.3.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/1e0b4fc1804d07a5f414abc7ffc1306b/transformed/jetified-camera-camera2-1.3.1/AndroidManifest.xml:31:17-103
 service#com.google.mlkit.common.internal.MlKitComponentDiscoveryService
 ADDED from [com.google.android.gms:play-services-mlkit-barcode-scanning:18.3.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/680cba39ecf3c907b9e72cfaad635414/transformed/jetified-play-services-mlkit-barcode-scanning-18.3.0/AndroidManifest.xml:9:9-15:19
 MERGED from [com.google.mlkit:vision-common:17.3.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/14fd37fbc2f25204a3a0cc29278ca0fc/transformed/jetified-vision-common-17.3.0/AndroidManifest.xml:9:9-15:19

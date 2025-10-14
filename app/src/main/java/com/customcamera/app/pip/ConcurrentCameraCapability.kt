@@ -49,33 +49,13 @@ class ConcurrentCameraCapability(private val context: Context) {
             // Query concurrent camera support from CameraX
             val concurrentCameraInfos = provider.availableConcurrentCameraInfos
 
-            Log.i(TAG, "CameraX API reports ${concurrentCameraInfos.size} concurrent combinations")
-
             if (concurrentCameraInfos.isEmpty()) {
-                Log.w(TAG, "⚠️ CameraX API reports no concurrent support, but device has ${availableCameras.size} cameras")
-                Log.w(TAG, "Will attempt concurrent mode anyway - some devices have buggy capability reporting")
-
-                // Don't give up - try to create combinations manually
-                // Many devices support concurrent cameras even if the API doesn't report it correctly
-                val manualCombinations = mutableListOf<Pair<Int, Int>>()
-
-                // Try common combinations
-                if (availableCameras.size >= 2) {
-                    manualCombinations.add(Pair(0, 1)) // First two cameras
-                    if (availableCameras.size >= 3) {
-                        manualCombinations.add(Pair(0, 2)) // First and third
-                    }
-                }
-
-                Log.i(TAG, "Created ${manualCombinations.size} manual camera combinations to try")
-
-                val recommended = if (manualCombinations.isNotEmpty()) manualCombinations[0] else null
-
+                Log.w(TAG, "No concurrent camera combinations supported by hardware")
                 return ConcurrentCameraInfo(
-                    isSupported = true, // Try anyway
-                    availableCombinations = manualCombinations,
-                    recommendedCombination = recommended,
-                    errorMessage = null
+                    isSupported = false,
+                    availableCombinations = emptyList(),
+                    recommendedCombination = null,
+                    errorMessage = "Device hardware does not support concurrent camera operation. This is a hardware limitation."
                 )
             }
 
