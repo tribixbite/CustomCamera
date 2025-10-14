@@ -41,6 +41,10 @@ class CameraEngine(
     private var singleCamera: Camera? = null
     private var concurrentCamera: ConcurrentCamera? = null // Concurrent camera for PiP mode
 
+    // State preservation for concurrent mode
+    private var videoWasEnabled = false
+    private var analysisWasEnabled = false
+
     private val pluginManager = PluginManager()
     private val _isInitialized = MutableStateFlow(false)
     private val _currentCameraIndex = MutableStateFlow(0)
@@ -260,6 +264,11 @@ class CameraEngine(
 
                 val provider = cameraProvider ?: throw IllegalStateException("Camera provider not initialized")
 
+                // Preserve current state before switching modes
+                videoWasEnabled = videoCapture != null
+                analysisWasEnabled = imageAnalysis != null
+                Log.i(TAG, "Preserving state: video=$videoWasEnabled, analysis=$analysisWasEnabled")
+
                 // Unbind current camera (if any)
                 unbindCurrentCamera()
 
@@ -270,7 +279,9 @@ class CameraEngine(
                         setSurfaceProvider(pipPreviewView.surfaceProvider)
                     }
 
-                // Build use cases for main camera (with all use cases and plugins)
+                // Build use cases for main camera
+                // IMPORTANT: Concurrent cameras support max 2 UseCases per camera
+                // We use Preview + ImageCapture only (no video, no image analysis in concurrent mode)
                 val mainUseCases = mutableListOf<UseCase>()
 
                 // Main camera preview
@@ -283,11 +294,9 @@ class CameraEngine(
                 mainUseCases.add(mainCapture)
                 imageCapture = mainCapture
 
-                // Video capture (if enabled)
-                videoCapture?.let { mainUseCases.add(it) }
-
-                // Image analysis (if enabled)
-                imageAnalysis?.let { mainUseCases.add(it) }
+                // NOTE: VideoCapture and ImageAnalysis are disabled in concurrent mode
+                // to stay within the 2 UseCase limit
+                Log.i(TAG, "Concurrent mode: Using ${mainUseCases.size} use cases for main camera (Preview + ImageCapture)")
 
                 // Build UseCaseGroup for main camera
                 val mainUseCaseGroup = UseCaseGroup.Builder().apply {
@@ -338,7 +347,19 @@ class CameraEngine(
                 onSuccess()
 
             } catch (e: Exception) {
-                Log.e(TAG, "❌ Failed to switch to concurrent mode", e)
+                Log.e(TAG, "❌ Failed to switch to concurrent mode: ${e.message}", e)
+
+                // Log specific error details
+                when {
+                    e.message?.contains("surface combination") == true -> {
+                        Log.e(TAG, "Surface combination not supported - likely too many use cases")
+                        Log.e(TAG, "Concurrent cameras support max 2 UseCases per camera at 720p/1440p")
+                    }
+                    e.message?.contains("concurrent") == true -> {
+                        Log.e(TAG, "Device may not support concurrent camera operation")
+                    }
+                }
+
                 // Fall back to single camera
                 try {
                     switchToSingleMode()
@@ -355,16 +376,17 @@ class CameraEngine(
      */
     fun switchToSingleMode() {
         Log.i(TAG, "Switching to single camera mode")
+        Log.i(TAG, "Restoring state: video=$videoWasEnabled, analysis=$analysisWasEnabled")
 
         unbindCurrentCamera()
 
-        // Rebind single camera with current config
+        // Rebind single camera with preserved config
         val currentConfig = CameraConfig(
             cameraIndex = _currentCameraIndex.value,
             enablePreview = true,
             enableImageCapture = true,
-            enableVideoCapture = videoCapture != null,
-            enableImageAnalysis = imageAnalysis != null
+            enableVideoCapture = videoWasEnabled,
+            enableImageAnalysis = analysisWasEnabled
         )
 
         // Note: This is a blocking operation, but it's simple enough

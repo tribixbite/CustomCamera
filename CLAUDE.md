@@ -632,7 +632,7 @@ All UX components are standalone and ready for integration into CameraActivityEn
 - **Triple Tap**: Toggle barcode scanning
 - **Quadruple Tap**: Toggle crop mode
 
-## ✅ SESSION COMPLETED: PiP Concurrent Camera Full Implementation (2025-10-14)
+## ✅ SESSION COMPLETED: PiP Concurrent Camera + UseCase Limit Fix (2025-10-14)
 
 ### ✅ Implementation Complete
 1. **✅ ConcurrentCameraCapability.kt** - Hardware capability detection
@@ -668,7 +668,19 @@ concurrentCamera = provider.bindToLifecycle(
 - ✅ Clean compilation with CameraX 1.3.1
 - ✅ Proper imports for `ConcurrentCamera` and `UseCaseGroup`
 - ✅ No lifecycle conflicts - uses correct API pattern
+- ✅ UseCase limit fix applied - max 2 per camera
 - ✅ Ready for device testing
+
+### Critical Bug Fix: UseCase Limit
+**Problem**: "no supported surface combination" error on device
+**Root Cause**: Main camera was binding 4 use cases (Preview + ImageCapture + VideoCapture + ImageAnalysis)
+**CameraX Limit**: Concurrent cameras support **maximum 2 UseCases per camera**
+
+**Solution**:
+- Main camera: Preview + ImageCapture only (2 UseCases) ✅
+- PiP camera: Preview only (1 UseCase) ✅
+- Preserved state: Video and ImageAnalysis restored when exiting PiP
+- Better error logging for surface combination issues
 
 ### Files Modified
 - ✅ Created: `ConcurrentCameraCapability.kt` - Hardware detection
