@@ -444,12 +444,22 @@ if (event.pointerCount > 1) {
 
 ## ✅ SESSION COMPLETED: PiP Window Fix (2025-10-14)
 
-### ✅ Bug Identified & Fixed
+### ✅ Two Critical Bugs Identified & Fixed
 **Problem**: PiP (Picture-in-Picture) window showing as blank transparent rectangle instead of camera feed
 
-**Root Cause**: In PiPOverlayView.kt line 75, the PreviewView had `setBackgroundColor(Color.TRANSPARENT)` which made the camera surface transparent.
+**Root Causes Found**:
+1. **Transparent Background Bug** (PiPOverlayView.kt:75)
+   - PreviewView had `setBackgroundColor(Color.TRANSPARENT)`
+   - Made the camera surface invisible
 
-**Fix Applied**:
+2. **View Layout Timing Bug** (DualCameraPiPPlugin.kt:312)
+   - Camera was bound immediately after creating overlay
+   - View hadn't been measured/laid out yet (0x0 dimensions)
+   - Camera bound to unmeasured PreviewView with no surface ready
+
+**Fixes Applied**:
+
+**Fix 1 - Remove Transparent Background**:
 ```kotlin
 // Before (WRONG):
 setBackgroundColor(Color.TRANSPARENT)
@@ -458,17 +468,34 @@ setBackgroundColor(Color.TRANSPARENT)
 // Note: No background color set - let the camera feed be visible
 ```
 
+**Fix 2 - Wait for View Layout**:
+```kotlin
+// Before (WRONG):
+applyCameraConfiguration() // Called immediately
+
+// After (CORRECT):
+pipOverlayView?.viewTreeObserver?.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
+    override fun onGlobalLayout() {
+        pipOverlayView?.viewTreeObserver?.removeOnGlobalLayoutListener(this)
+        Log.i(TAG, "PiP overlay laid out: ${pipOverlayView!!.width}x${pipOverlayView!!.height}")
+        applyCameraConfiguration() // Now called after layout
+    }
+})
+```
+
 **Changes**:
 - ✅ Removed transparent background from PreviewView
-- ✅ PreviewView now properly renders camera feed
-- ✅ PiP overlay border still visible (drawn by parent FrameLayout)
+- ✅ Camera binding waits for view to be measured and laid out
+- ✅ ViewTreeObserver ensures proper timing
+- ✅ PreviewView has proper dimensions when camera binds
+- ✅ Surface provider ready when camera starts
 
 **Build Status**:
-- Build Time: 6s
+- Build Time: 10s
 - APK Size: ~27MB
 - Status: Ready for testing
 
-**Test**: PiP window should now display the secondary camera feed instead of blank transparent rectangle
+**Test**: PiP window should now display the secondary camera feed with proper dimensions and visible content
 
 ## ✅ SESSION COMPLETED: UX Improvements & Bug Fixes (2025-10-10)
 
