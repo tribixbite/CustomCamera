@@ -697,6 +697,67 @@ concurrentCamera = provider.bindToLifecycle(
 - ✅ Modified: `DualCameraPiPPlugin.kt` - Mode switching integration
 - ✅ Updated: `memory/PIP.md` - Implementation status
 
+## ✅ SESSION COMPLETED: Dual Camera Photo Composition (2025-10-14)
+
+### ✅ Implementation Complete
+**Feature**: Photos taken in PiP mode now capture and composite both camera feeds
+
+**Problem**: PiP mode displayed both cameras correctly, but photo capture only saved main camera image
+**Solution**: Implemented manual dual camera photo composition with Canvas/Bitmap
+
+### Technical Implementation
+
+**1. Added PiP ImageCapture**:
+- Added `pipImageCapture: ImageCapture?` to CameraEngine
+- PiP camera now has Preview + ImageCapture (2 UseCases, within concurrent limit)
+- Proper cleanup when exiting concurrent mode
+
+**2. Created Dual Capture Method**:
+```kotlin
+CameraEngine.captureDualPhoto(outputFile, onSuccess, onError)
+```
+- Captures from both main and PiP cameras simultaneously using async/await
+- Converts ImageProxy to Bitmap with `imageProxyToBitmap()` helper
+- Composites images with `compositeImages()` method
+- Saves final composite as JPEG (95% quality)
+
+**3. Image Composition**:
+- Main camera image as full background
+- PiP image overlayed at top-right corner
+- PiP scaled to 33% of main image width
+- 16dp margin from edges (density-aware)
+- White border (4dp stroke) around PiP for visibility
+- Proper aspect ratio preservation
+
+**4. UI Integration**:
+- CameraActivityEngine detects concurrent mode via `getCurrentMode()`
+- Automatically uses dual capture when in PiP mode
+- Loading indicator with 5s timeout
+- Toast notifications for capture status
+- Debug logging for both camera captures
+
+### Build Status
+- **Version**: 2.0.55-build.30
+- **Build Time**: 13s
+- **APK Size**: 27MB
+- **Warnings**: Minor (unused parameters)
+- **Status**: Ready for device testing
+
+### Files Modified
+- ✅ Modified: `CameraEngine.kt` - Added pipImageCapture, captureDualPhoto(), imageProxyToBitmap(), compositeImages()
+- ✅ Modified: `CameraActivityEngine.kt` - Added concurrent mode detection and captureDualPhoto() wrapper
+
+### Technical Challenges Solved
+1. **Import Issues**: Fixed `kotlin.coroutines.suspendCoroutine` import path
+2. **Bitmap Conversion**: Implemented proper ImageProxy to Bitmap conversion
+3. **Type Safety**: Fixed nullable Int? to Any conversion in logging
+4. **Composition Logic**: Implemented Canvas-based image overlay with proper positioning
+
+### Next Steps
+1. **Device Testing**: Test dual camera photo capture on physical device
+2. **Verify Composition**: Ensure PiP overlay matches visual display
+3. **User Feedback**: Confirm photos save correctly with both cameras composited
+
 ## Next Session Priorities
 1. **Device Testing**: Test PiP concurrent camera on physical device
 2. **Verify Camera Feeds**: Ensure both main and PiP previews display correctly
@@ -732,7 +793,7 @@ cat CLAUDE.md && echo "====" && cat memory/todo.md | head -50
 ```
 
 ---
-*Last Updated: 2025-10-10*
-*Current Status: UX improvements implemented, text visibility and build errors fixed*
-*Next Session: Integrate UX components into CameraActivityEngine or continue Phase 9 features*
+*Last Updated: 2025-10-14*
+*Current Status: Dual camera photo composition implemented - PiP photos now capture both cameras*
+*Next Session: Device test dual camera photo composition, verify PiP overlay matches display*
 *Master Task List: memory/todo.md (ALWAYS CHECK FIRST)*
