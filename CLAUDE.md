@@ -540,6 +540,83 @@ if (provider != null) {
 - Creating separate coordinator with separate init = separate reference = conflict
 - Solution: Share the exact same provider instance between all camera operations
 
+## ✅ SESSION COMPLETED: Dual Camera Photo Capture (2025-10-14)
+
+### ✅ Implementation Complete
+**User Request**: "im seeing both feeds from main and pip, can we capture both when photo is taken"
+
+**What Was Built**:
+1. **✅ PiP Overlay Position API** - Added `getPiPOverlayRect()` to DualCameraPiPPlugin
+   - Returns normalized coordinates (0-1) for compositor
+   - Calculates position based on PiPPosition and PiPSize settings
+   - Handles all 8 position variants (corners, centers, etc.)
+
+2. **✅ Dual Camera Capture Logic** - Modified `captureRegularPhoto()` in CameraActivityEngine
+   - Detects concurrent camera mode automatically
+   - Captures main image in memory (not directly to file)
+   - Retrieves latest PiP frame from CameraEngine
+   - Gets PiP overlay position from plugin
+   - Uses DualCameraCompositor to composite both images
+   - Graceful fallback to single image if PiP unavailable
+
+3. **✅ Helper Methods** - Added `saveSingleImage()` for fallback scenario
+   - Converts ImageProxy to bytes and saves to file
+   - Proper resource cleanup with image.close()
+
+**Technical Details**:
+```kotlin
+// Detection logic in captureRegularPhoto()
+val isDualCamera = cameraEngine.getCurrentMode() is CameraMode.Concurrent
+                   && cameraEngine.hasPipFrame()
+
+if (isDualCamera) {
+    // Capture in memory, composite with PiP, then save
+    imageCapture.takePicture(executor, OnImageCapturedCallback {
+        val pipFrame = cameraEngine.getLatestPipFrame()
+        val pipRect = pipPlugin?.getPiPOverlayRect()
+        DualCameraCompositor.compositeImages(main, pip, rect, file)
+    })
+} else {
+    // Single camera: Save directly to file
+    imageCapture.takePicture(outputFileOptions, OnImageSavedCallback {
+        // Normal save flow
+    })
+}
+```
+
+**User Feedback**:
+- "Dual camera photo saved: [filename]" when both cameras captured
+- "Photo saved: [filename]" for single camera mode
+- "PiP frame not available, saving main image only" on fallback
+- "Dual camera capture failed" on errors
+
+**Changes**:
+- ✅ `DualCameraPiPPlugin.kt`: Added getPiPOverlayRect() method
+- ✅ `CameraActivityEngine.kt`: Modified captureRegularPhoto() with mode detection
+- ✅ `CameraActivityEngine.kt`: Added saveSingleImage() helper method
+- ✅ `CameraActivityEngine.kt`: Added CameraMode import
+- ✅ Clean build in 13s with minor unused parameter warnings
+
+**Build Status**:
+- Build Time: 13s
+- APK Size: ~27MB
+- Warnings: Minor (unused parameters in timestamp)
+- Status: Production-ready for device testing
+
+**Test Instructions**:
+1. Enable PiP mode (Settings → Dual Camera PiP → Enable)
+2. Position and size PiP overlay as desired
+3. Take photo using capture button
+4. Check saved photo - should show main image with PiP overlay composited
+5. PiP overlay should be at same position/size as on screen preview
+6. Verify rounded corners and white border on PiP overlay
+
+**Integration Notes**:
+- Uses existing DualCameraCompositor utility (created in previous session)
+- Integrates with PiP frame capture system (ImageAnalysis on PiP camera)
+- Compatible with all existing photo capture features (HDR, Night Mode, etc.)
+- Future enhancement: Could also add dual camera support to captureLongExposurePhoto()
+
 ## ✅ SESSION COMPLETED: UX Improvements & Bug Fixes (2025-10-10)
 
 ### ✅ Major Achievements
