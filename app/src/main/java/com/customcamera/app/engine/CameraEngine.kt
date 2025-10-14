@@ -318,7 +318,7 @@ class CameraEngine(
                 val mainSelector = createCameraSelector(mainCameraIndex)
                 val pipSelector = createCameraSelector(pipCameraIndex)
 
-                // Build SingleCameraConfigs using CameraX 1.3 API
+                // Build SingleCameraConfigs using CameraX 1.4 API
                 val primaryConfig = ConcurrentCamera.SingleCameraConfig(
                     mainSelector,
                     mainUseCaseGroup,
@@ -330,6 +330,8 @@ class CameraEngine(
                     pipUseCaseGroup,
                     lifecycleOwner
                 )
+
+                Log.i(TAG, "Concurrent cameras configured - will use manual composition for photos")
 
                 // Bind concurrent cameras
                 concurrentCamera = provider.bindToLifecycle(

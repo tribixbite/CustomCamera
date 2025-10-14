@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.customcamera.app-mergeDebugResources-42:/values-el/values-el.xml",
+            "outputFile": "com.customcamera.app-mergeDebugResources-44:/values-el/values-el.xml",
             "map": [
                 {
                     "source": "/data/data/com.termux/files/home/.gradle/caches/transforms-4/46f300e2476b05a82da5145645d171c9/transformed/jetified-play-services-base-18.1.0/res/values-el/values.xml",

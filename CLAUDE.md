@@ -671,16 +671,24 @@ concurrentCamera = provider.bindToLifecycle(
 - ✅ UseCase limit fix applied - max 2 per camera
 - ✅ Ready for device testing
 
-### Critical Bug Fix: UseCase Limit
-**Problem**: "no supported surface combination" error on device
-**Root Cause**: Main camera was binding 4 use cases (Preview + ImageCapture + VideoCapture + ImageAnalysis)
-**CameraX Limit**: Concurrent cameras support **maximum 2 UseCases per camera**
+### Critical Bug Fixes
 
-**Solution**:
-- Main camera: Preview + ImageCapture only (2 UseCases) ✅
-- PiP camera: Preview only (1 UseCase) ✅
-- Preserved state: Video and ImageAnalysis restored when exiting PiP
-- Better error logging for surface combination issues
+**Bug #1: UseCase Limit**
+- **Problem**: "no supported surface combination" error on device
+- **Root Cause**: Main camera was binding 4 use cases (Preview + ImageCapture + VideoCapture + ImageAnalysis)
+- **CameraX Limit**: Concurrent cameras support **maximum 2 UseCases per camera**
+- **Solution**: Main camera limited to Preview + ImageCapture (2 UseCases) ✅
+
+**Bug #2: Main Camera Preview Connection**
+- **Problem**: Main camera showed blank screen (PiP worked fine)
+- **Root Cause**: Main camera Preview use case wasn't connected to PreviewView
+- **Missing**: `setSurfaceProvider()` call for main camera preview
+- **Solution**: Added mainPreviewView parameter and connected surface provider ✅
+
+**State Preservation**:
+- Video and ImageAnalysis states saved before entering PiP mode
+- Automatically restored when exiting PiP mode
+- Better error logging for troubleshooting
 
 ### Files Modified
 - ✅ Created: `ConcurrentCameraCapability.kt` - Hardware detection
