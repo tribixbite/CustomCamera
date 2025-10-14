@@ -449,8 +449,16 @@ class DualCameraCoordinator(
                     .build()
                     .also { preview ->
                         Log.i(TAG, "Setting surface provider for PiP preview...")
+                        Log.i(TAG, "PreviewView details: width=${pipPreviewView.width}, height=${pipPreviewView.height}")
+                        Log.i(TAG, "PreviewView visibility: ${pipPreviewView.visibility}")
+                        Log.i(TAG, "PreviewView alpha: ${pipPreviewView.alpha}")
+                        Log.i(TAG, "PreviewView background: ${pipPreviewView.background}")
+
                         preview.setSurfaceProvider(pipPreviewView.surfaceProvider)
                         Log.i(TAG, "✅ Surface provider set")
+
+                        // Give the surface time to be created
+                        delay(100)
                     }
 
                 try {
@@ -474,6 +482,16 @@ class DualCameraCoordinator(
                         Log.i(TAG, "✅✅✅ PiP camera bound successfully to index $pipCameraIndex")
                         Log.i(TAG, "PiP camera info: ${pipCamera?.cameraInfo}")
                         Log.i(TAG, "PiP camera state: ${pipCamera?.cameraInfo?.cameraState?.value}")
+                        Log.i(TAG, "PiP preview surface requested: ${pipPreview?.attachedSurfaceResolution}")
+
+                        // Monitor camera state changes
+                        pipCamera?.cameraInfo?.cameraState?.observe(lifecycleOwner) { state ->
+                            Log.i(TAG, "PiP camera state changed: type=${state.type}, error=${state.error}")
+                        }
+
+                        // Give camera time to start streaming
+                        delay(300)
+                        Log.i(TAG, "PiP camera should now be streaming...")
                     }
 
                 } catch (e: Exception) {

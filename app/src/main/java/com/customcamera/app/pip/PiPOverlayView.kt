@@ -66,11 +66,14 @@ class PiPOverlayView @JvmOverloads constructor(
         previewView = PreviewView(context).apply {
             id = ViewCompat.generateViewId()
             scaleType = PreviewView.ScaleType.FILL_CENTER
-            implementationMode = PreviewView.ImplementationMode.COMPATIBLE // Use COMPATIBLE for better compatibility
+            implementationMode = PreviewView.ImplementationMode.PERFORMANCE // Use PERFORMANCE for better rendering
             layoutParams = LayoutParams(
                 LayoutParams.MATCH_PARENT,
                 LayoutParams.MATCH_PARENT
             )
+            // Ensure the PreviewView is visible and can receive camera feed
+            // Note: No background color set - let the camera feed be visible
+            visibility = View.VISIBLE
         }
 
         addView(previewView)
@@ -81,6 +84,8 @@ class PiPOverlayView @JvmOverloads constructor(
 
         Log.i(TAG, "PiPOverlayView initialized with PreviewView ID: ${previewView.id}")
         Log.i(TAG, "PreviewView implementation mode: ${previewView.implementationMode}")
+        Log.i(TAG, "PreviewView scale type: ${previewView.scaleType}")
+        Log.i(TAG, "PreviewView visibility: ${previewView.visibility}")
     }
 
     /**
