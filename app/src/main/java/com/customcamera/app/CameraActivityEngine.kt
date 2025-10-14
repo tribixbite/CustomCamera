@@ -409,8 +409,6 @@ class CameraActivityEngine : AppCompatActivity() {
     }
 
     private fun capturePhoto() {
-        val imageCapture = cameraEngine.getImageCapture() ?: return
-
         try {
             // Log photo capture operation
             com.customcamera.app.debug.GlobalAPIMonitor.getInstance()?.logCameraControl(
@@ -423,6 +421,17 @@ class CameraActivityEngine : AppCompatActivity() {
 
             val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
             val photoFile = File(filesDir, "CAMERA_ENGINE_$timestamp.jpg")
+
+            // Check if we're in concurrent (PiP) mode
+            val currentMode = cameraEngine.getCurrentMode()
+            if (currentMode is com.customcamera.app.engine.CameraMode.Concurrent) {
+                // Use dual camera capture for PiP mode
+                captureDualPhoto(photoFile, timestamp)
+                return
+            }
+
+            // Single camera mode - check for special capture modes
+            val imageCapture = cameraEngine.getImageCapture() ?: return
             val outputFileOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
 
             // Check if night mode is enabled for long exposure capture
@@ -516,6 +525,56 @@ class CameraActivityEngine : AppCompatActivity() {
         }
     }
 
+    /**
+     * Capture photo from both cameras in concurrent mode and composite them
+     */
+    private fun captureDualPhoto(photoFile: File, timestamp: String) {
+        // Show dual camera capture loading
+        loadingIndicatorManager.showLoading(
+            binding.root as ViewGroup,
+            LoadingIndicatorManager.LoadingType.PHOTO_CAPTURE,
+            autoDismiss = 5000L
+        )
+
+        lifecycleScope.launch {
+            try {
+                Log.i(TAG, "Starting dual camera photo capture...")
+                Toast.makeText(this@CameraActivityEngine, "Capturing from both cameras...", Toast.LENGTH_SHORT).show()
+
+                // Log dual camera capture
+                val concurrentMode = cameraEngine.getCurrentMode() as? com.customcamera.app.engine.CameraMode.Concurrent
+                com.customcamera.app.debug.GlobalAPIMonitor.getInstance()?.logCameraControl(
+                    "captureDualPhoto",
+                    mapOf(
+                        "timestamp" to System.currentTimeMillis(),
+                        "mainCamera" to (concurrentMode?.mainCameraIndex ?: -1),
+                        "pipCamera" to (concurrentMode?.pipCameraIndex ?: -1)
+                    )
+                )
+
+                // Capture and composite both cameras
+                cameraEngine.captureDualPhoto(
+                    outputFile = photoFile,
+                    onSuccess = {
+                        loadingIndicatorManager.hideLoading()
+                        Toast.makeText(this@CameraActivityEngine, "Dual camera photo saved: ${photoFile.name}", Toast.LENGTH_SHORT).show()
+                        Log.i(TAG, "Dual camera photo saved: ${photoFile.absolutePath}")
+                        animateCaptureButton()
+                    },
+                    onError = { exception ->
+                        loadingIndicatorManager.hideLoading()
+                        Log.e(TAG, "Dual camera photo capture failed", exception)
+                        Toast.makeText(this@CameraActivityEngine, "Dual capture failed: ${exception.message}", Toast.LENGTH_SHORT).show()
+                    }
+                )
+
+            } catch (e: Exception) {
+                loadingIndicatorManager.hideLoading()
+                Log.e(TAG, "Dual camera capture error", e)
+                Toast.makeText(this@CameraActivityEngine, "Dual capture error: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
 
     private fun switchCamera() {
         lifecycleScope.launch {

@@ -2,7 +2,9 @@ package com.customcamera.app.engine
 
 import android.content.Context
 import android.util.Log
+import android.graphics.Bitmap
 import androidx.camera.core.*
+import androidx.camera.core.impl.utils.executor.CameraXExecutors
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.video.Recorder
 import androidx.camera.video.VideoCapture
@@ -13,12 +15,17 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.async
+import kotlin.coroutines.suspendCoroutine
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 import com.customcamera.app.engine.plugins.CameraPlugin
 import com.customcamera.app.engine.plugins.PluginManager
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import java.io.File
 
 /**
  * Central camera coordination engine that manages camera lifecycle,
@@ -60,6 +67,9 @@ class CameraEngine(
     private var imageCapture: ImageCapture? = null
     private var videoCapture: VideoCapture<Recorder>? = null
     private var imageAnalysis: ImageAnalysis? = null
+
+    // PiP camera image capture (only used in concurrent mode)
+    private var pipImageCapture: ImageCapture? = null
 
     /**
      * Initialize the camera engine and set up the camera provider
@@ -230,6 +240,7 @@ class CameraEngine(
     fun getImageCapture(): ImageCapture? = imageCapture
     fun getVideoCapture(): VideoCapture<Recorder>? = videoCapture
     fun getImageAnalysis(): ImageAnalysis? = imageAnalysis
+    fun getPipImageCapture(): ImageCapture? = pipImageCapture
 
     /**
      * Process a frame through all registered plugins
@@ -281,6 +292,10 @@ class CameraEngine(
                         setSurfaceProvider(pipPreviewView.surfaceProvider)
                     }
 
+                // Create PiP image capture use case for dual camera composition
+                val pipCapture = ImageCapture.Builder().build()
+                pipImageCapture = pipCapture
+
                 // Build use cases for main camera
                 // IMPORTANT: Concurrent cameras support max 2 UseCases per camera
                 // We use Preview + ImageCapture only (no video, no image analysis in concurrent mode)
@@ -309,10 +324,13 @@ class CameraEngine(
                     mainUseCases.forEach { addUseCase(it) }
                 }.build()
 
-                // Build UseCaseGroup for PiP camera (preview only)
+                // Build UseCaseGroup for PiP camera (Preview + ImageCapture)
                 val pipUseCaseGroup = UseCaseGroup.Builder()
                     .addUseCase(pipPreview)
+                    .addUseCase(pipCapture)
                     .build()
+
+                Log.i(TAG, "PiP camera configured with Preview + ImageCapture for dual photo composition")
 
                 // Create camera selectors
                 val mainSelector = createCameraSelector(mainCameraIndex)
@@ -441,6 +459,7 @@ class CameraEngine(
                 cameraProvider?.unbindAll()
                 concurrentCamera = null
                 camera = null
+                pipImageCapture = null // Clear PiP image capture when exiting concurrent mode
             }
         }
     }
@@ -449,6 +468,172 @@ class CameraEngine(
      * Get current camera mode
      */
     fun getCurrentMode(): CameraMode = currentMode
+
+    /**
+     * Capture photo from both cameras in concurrent mode and composite them
+     *
+     * @param outputFile File to save the composited image
+     * @param onSuccess Callback invoked when capture succeeds
+     * @param onError Callback invoked when capture fails
+     */
+    suspend fun captureDualPhoto(
+        outputFile: File,
+        onSuccess: () -> Unit,
+        onError: (Exception) -> Unit
+    ) = withContext(Dispatchers.Main) {
+        try {
+            val mainCapture = imageCapture ?: throw IllegalStateException("Main ImageCapture not initialized")
+            val pipCapture = pipImageCapture ?: throw IllegalStateException("PiP ImageCapture not initialized")
+
+            Log.i(TAG, "=== Starting dual camera capture ===")
+
+            // Capture from both cameras using in-memory capture
+            val mainImageDeferred = async(Dispatchers.IO) {
+                suspendCoroutine<Bitmap> { continuation ->
+                    mainCapture.takePicture(
+                        ContextCompat.getMainExecutor(context),
+                        object : ImageCapture.OnImageCapturedCallback() {
+                            override fun onCaptureSuccess(image: ImageProxy) {
+                                try {
+                                    val bitmap = imageProxyToBitmap(image)
+                                    image.close()
+                                    continuation.resume(bitmap)
+                                } catch (e: Exception) {
+                                    image.close()
+                                    continuation.resumeWithException(e)
+                                }
+                            }
+
+                            override fun onError(exception: ImageCaptureException) {
+                                continuation.resumeWithException(exception)
+                            }
+                        }
+                    )
+                }
+            }
+
+            val pipImageDeferred = async(Dispatchers.IO) {
+                suspendCoroutine<Bitmap> { continuation ->
+                    pipCapture.takePicture(
+                        ContextCompat.getMainExecutor(context),
+                        object : ImageCapture.OnImageCapturedCallback() {
+                            override fun onCaptureSuccess(image: ImageProxy) {
+                                try {
+                                    val bitmap = imageProxyToBitmap(image)
+                                    image.close()
+                                    continuation.resume(bitmap)
+                                } catch (e: Exception) {
+                                    image.close()
+                                    continuation.resumeWithException(e)
+                                }
+                            }
+
+                            override fun onError(exception: ImageCaptureException) {
+                                continuation.resumeWithException(exception)
+                            }
+                        }
+                    )
+                }
+            }
+
+            // Wait for both captures to complete
+            val mainBitmap = mainImageDeferred.await()
+            val pipBitmap = pipImageDeferred.await()
+
+            Log.i(TAG, "✅ Both cameras captured successfully")
+            Log.i(TAG, "Main: ${mainBitmap.width}x${mainBitmap.height}, PiP: ${pipBitmap.width}x${pipBitmap.height}")
+
+            // Composite the images
+            val compositedBitmap = withContext(Dispatchers.Default) {
+                compositeImages(mainBitmap, pipBitmap)
+            }
+
+            // Save the composited image
+            withContext(Dispatchers.IO) {
+                outputFile.outputStream().use { out ->
+                    compositedBitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 95, out)
+                }
+            }
+
+            Log.i(TAG, "✅ Composited image saved: ${outputFile.absolutePath}")
+            onSuccess()
+
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Dual camera capture failed", e)
+            onError(e)
+        }
+    }
+
+    /**
+     * Convert ImageProxy to Bitmap
+     */
+    private fun imageProxyToBitmap(image: ImageProxy): Bitmap {
+        val buffer = image.planes[0].buffer
+        val bytes = ByteArray(buffer.remaining())
+        buffer.get(bytes)
+        return android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+    }
+
+    /**
+     * Composite main and PiP images together
+     * Places PiP image in top-right corner at 1/3 scale with 16dp margin
+     */
+    private fun compositeImages(
+        mainBitmap: android.graphics.Bitmap,
+        pipBitmap: android.graphics.Bitmap
+    ): android.graphics.Bitmap {
+        val result = android.graphics.Bitmap.createBitmap(
+            mainBitmap.width,
+            mainBitmap.height,
+            android.graphics.Bitmap.Config.ARGB_8888
+        )
+
+        val canvas = android.graphics.Canvas(result)
+
+        // Draw main image as background
+        canvas.drawBitmap(mainBitmap, 0f, 0f, null)
+
+        // Calculate PiP size (1/3 of main image width)
+        val pipScale = 0.33f
+        val pipWidth = (mainBitmap.width * pipScale).toInt()
+        val pipHeight = (pipBitmap.height * pipWidth) / pipBitmap.width
+
+        // Calculate PiP position (top-right with 16dp margin)
+        val density = context.resources.displayMetrics.density
+        val margin = (16 * density).toInt()
+        val pipX = mainBitmap.width - pipWidth - margin
+        val pipY = margin
+
+        // Scale and draw PiP image
+        val scaledPipBitmap = android.graphics.Bitmap.createScaledBitmap(
+            pipBitmap,
+            pipWidth,
+            pipHeight,
+            true
+        )
+
+        // Draw white border around PiP
+        val borderPaint = android.graphics.Paint().apply {
+            color = android.graphics.Color.WHITE
+            style = android.graphics.Paint.Style.STROKE
+            strokeWidth = 4 * density
+        }
+
+        canvas.drawRect(
+            (pipX - 2 * density).toInt().toFloat(),
+            (pipY - 2 * density).toInt().toFloat(),
+            (pipX + pipWidth + 2 * density).toInt().toFloat(),
+            (pipY + pipHeight + 2 * density).toInt().toFloat(),
+            borderPaint
+        )
+
+        // Draw PiP image
+        canvas.drawBitmap(scaledPipBitmap, pipX.toFloat(), pipY.toFloat(), null)
+
+        Log.i(TAG, "Image composition: Main=${mainBitmap.width}x${mainBitmap.height}, PiP=${pipWidth}x${pipHeight} at ($pipX,$pipY)")
+
+        return result
+    }
 
     /**
      * Clean up resources and plugins
@@ -465,6 +650,7 @@ class CameraEngine(
         imageCapture = null
         videoCapture = null
         imageAnalysis = null
+        pipImageCapture = null
 
         _isInitialized.value = false
         Log.i(TAG, "✅ CameraEngine cleanup complete")
