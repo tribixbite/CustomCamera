@@ -307,9 +307,18 @@ class DualCameraPiPPlugin : UIPlugin() {
         Log.i(TAG, "PiP PreviewView size: ${pipPreview.width}x${pipPreview.height}")
         Log.i(TAG, "PiP PreviewView ID: ${pipPreview.id}")
 
-        Log.i(TAG, "Applying camera configuration...")
-        Log.i(TAG, "Target PiP camera index: ${_pipCamera.value}")
-        applyCameraConfiguration()
+        // Wait for the view to be laid out before binding camera
+        pipOverlayView?.viewTreeObserver?.addOnGlobalLayoutListener(object : android.view.ViewTreeObserver.OnGlobalLayoutListener {
+            override fun onGlobalLayout() {
+                pipOverlayView?.viewTreeObserver?.removeOnGlobalLayoutListener(this)
+
+                Log.i(TAG, "PiP overlay laid out: ${pipOverlayView!!.width}x${pipOverlayView!!.height}")
+                Log.i(TAG, "PiP PreviewView laid out: ${pipPreview.width}x${pipPreview.height}")
+                Log.i(TAG, "Applying camera configuration...")
+                Log.i(TAG, "Target PiP camera index: ${_pipCamera.value}")
+                applyCameraConfiguration()
+            }
+        })
 
         cameraContext?.debugLogger?.logPlugin(
             name,
