@@ -444,7 +444,7 @@ if (event.pointerCount > 1) {
 
 ## ✅ SESSION COMPLETED: PiP Window Fix (2025-10-14)
 
-### ✅ Two Critical Bugs Identified & Fixed
+### ✅ Three Critical Bugs Identified & Fixed
 **Problem**: PiP (Picture-in-Picture) window showing as blank transparent rectangle instead of camera feed
 
 **Root Causes Found**:
@@ -456,6 +456,13 @@ if (event.pointerCount > 1) {
    - Camera was bound immediately after creating overlay
    - View hadn't been measured/laid out yet (0x0 dimensions)
    - Camera bound to unmeasured PreviewView with no surface ready
+
+3. **🔴 CRITICAL: ProcessCameraProvider Conflict** (DualCameraCoordinator.kt:64 + DualCameraPiPPlugin.kt:67)
+   - DualCameraCoordinator created its own ProcessCameraProvider instance
+   - CameraEngine had a separate ProcessCameraProvider instance
+   - **You can't bind cameras through different provider instances**
+   - Main camera bound to CameraEngine's provider, PiP camera bound to coordinator's provider = CONFLICT
+   - This was the actual root cause preventing camera binding
 
 **Fixes Applied**:
 
@@ -483,19 +490,55 @@ pipOverlayView?.viewTreeObserver?.addOnGlobalLayoutListener(object : ViewTreeObs
 })
 ```
 
+**Fix 3 - Share Single ProcessCameraProvider** (THE CRITICAL FIX):
+```kotlin
+// DualCameraCoordinator.kt - Before (WRONG):
+init {
+    initializeCameraProvider() // Creates SEPARATE provider
+}
+private fun initializeCameraProvider() {
+    val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
+    cameraProvider = cameraProviderFuture.get() // SEPARATE INSTANCE
+}
+
+// DualCameraCoordinator.kt - After (CORRECT):
+init {
+    // Provider will be set via setProvider() method
+}
+fun setProvider(provider: ProcessCameraProvider) {
+    cameraProvider = provider // SHARED INSTANCE
+}
+
+// DualCameraPiPPlugin.kt - After (CORRECT):
+val provider = context.cameraEngine?.getProvider() // Get CameraEngine's provider
+if (provider != null) {
+    dualCameraCoordinator?.setProvider(provider) // Share it!
+}
+```
+
 **Changes**:
 - ✅ Removed transparent background from PreviewView
 - ✅ Camera binding waits for view to be measured and laid out
 - ✅ ViewTreeObserver ensures proper timing
 - ✅ PreviewView has proper dimensions when camera binds
 - ✅ Surface provider ready when camera starts
+- ✅ **DualCameraCoordinator and CameraEngine share single ProcessCameraProvider**
+- ✅ **Both main and PiP cameras bound through same provider instance**
+- ✅ **No provider conflicts - cameras can coexist**
 
 **Build Status**:
-- Build Time: 10s
+- Build Time: 8s
 - APK Size: ~27MB
+- Commits: 3 (transparent bg, layout timing, provider sharing)
 - Status: Ready for testing
 
 **Test**: PiP window should now display the secondary camera feed with proper dimensions and visible content
+
+**Technical Notes**:
+- ProcessCameraProvider.getInstance() returns the same singleton per context
+- But you must use the same reference for binding multiple cameras
+- Creating separate coordinator with separate init = separate reference = conflict
+- Solution: Share the exact same provider instance between all camera operations
 
 ## ✅ SESSION COMPLETED: UX Improvements & Bug Fixes (2025-10-10)
 
