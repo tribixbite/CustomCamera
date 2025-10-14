@@ -565,6 +565,119 @@ class CameraEngine(
     }
 
     /**
+     * Capture photo sequentially from both cameras and composite them
+     * Fallback for devices without concurrent camera support
+     *
+     * @param mainCameraIndex Index of main camera
+     * @param pipCameraIndex Index of PiP camera
+     * @param outputFile File to save the composited image
+     * @param onSuccess Callback invoked when capture succeeds
+     * @param onError Callback invoked when capture fails
+     */
+    suspend fun captureSequentialDualPhoto(
+        mainCameraIndex: Int,
+        pipCameraIndex: Int,
+        outputFile: File,
+        onSuccess: () -> Unit,
+        onError: (Exception) -> Unit
+    ) = withContext(Dispatchers.Main) {
+        try {
+            Log.i(TAG, "=== Starting sequential dual camera capture ===")
+            Log.i(TAG, "Main camera: $mainCameraIndex, PiP camera: $pipCameraIndex")
+
+            // Step 1: Capture from current (main) camera
+            val mainCapture = imageCapture ?: throw IllegalStateException("ImageCapture not initialized")
+
+            val mainBitmap = suspendCoroutine<Bitmap> { continuation ->
+                mainCapture.takePicture(
+                    ContextCompat.getMainExecutor(context),
+                    object : ImageCapture.OnImageCapturedCallback() {
+                        override fun onCaptureSuccess(image: ImageProxy) {
+                            try {
+                                val bitmap = imageProxyToBitmap(image)
+                                image.close()
+                                continuation.resume(bitmap)
+                            } catch (e: Exception) {
+                                image.close()
+                                continuation.resumeWithException(e)
+                            }
+                        }
+
+                        override fun onError(exception: ImageCaptureException) {
+                            continuation.resumeWithException(exception)
+                        }
+                    }
+                )
+            }
+
+            Log.i(TAG, "✅ Main camera captured: ${mainBitmap.width}x${mainBitmap.height}")
+
+            // Step 2: Switch to PiP camera
+            Log.i(TAG, "Switching to PiP camera...")
+            val switchResult = switchCamera(pipCameraIndex)
+            if (switchResult.isFailure) {
+                throw switchResult.exceptionOrNull() ?: Exception("Camera switch failed")
+            }
+
+            // Wait a brief moment for camera to stabilize
+            kotlinx.coroutines.delay(100)
+
+            // Step 3: Capture from PiP camera
+            val pipCapture = imageCapture ?: throw IllegalStateException("ImageCapture not initialized after switch")
+
+            val pipBitmap = suspendCoroutine<Bitmap> { continuation ->
+                pipCapture.takePicture(
+                    ContextCompat.getMainExecutor(context),
+                    object : ImageCapture.OnImageCapturedCallback() {
+                        override fun onCaptureSuccess(image: ImageProxy) {
+                            try {
+                                val bitmap = imageProxyToBitmap(image)
+                                image.close()
+                                continuation.resume(bitmap)
+                            } catch (e: Exception) {
+                                image.close()
+                                continuation.resumeWithException(e)
+                            }
+                        }
+
+                        override fun onError(exception: ImageCaptureException) {
+                            continuation.resumeWithException(exception)
+                        }
+                    }
+                )
+            }
+
+            Log.i(TAG, "✅ PiP camera captured: ${pipBitmap.width}x${pipBitmap.height}")
+
+            // Step 4: Switch back to main camera
+            Log.i(TAG, "Switching back to main camera...")
+            val switchBackResult = switchCamera(mainCameraIndex)
+            if (switchBackResult.isFailure) {
+                Log.w(TAG, "⚠️ Failed to switch back to main camera, but photos captured successfully")
+            }
+
+            // Step 5: Composite the images
+            val compositedBitmap = withContext(Dispatchers.Default) {
+                compositeImages(mainBitmap, pipBitmap)
+            }
+
+            // Step 6: Save the composited image
+            withContext(Dispatchers.IO) {
+                outputFile.outputStream().use { out ->
+                    compositedBitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 95, out)
+                }
+            }
+
+            Log.i(TAG, "✅ Sequential dual camera photo saved: ${outputFile.absolutePath}")
+            onSuccess()
+
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Sequential dual camera capture failed", e)
+            onError(e)
+        }
+    }
+
+    /**
      * Convert ImageProxy to Bitmap
      */
     private fun imageProxyToBitmap(image: ImageProxy): Bitmap {

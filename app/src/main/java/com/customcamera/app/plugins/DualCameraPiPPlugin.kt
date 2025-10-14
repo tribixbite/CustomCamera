@@ -350,18 +350,6 @@ class DualCameraPiPPlugin : UIPlugin() {
     private fun enablePiPMode() {
         Log.i(TAG, "=== ENABLING PiP MODE ===")
 
-        // Check concurrent camera support
-        if (!_isDualCameraSupported.value) {
-            Log.e(TAG, "❌ Cannot enable PiP: Concurrent cameras not supported on this device")
-            Toast.makeText(
-                cameraContext?.context,
-                "Dual camera not supported on this device",
-                Toast.LENGTH_LONG
-            ).show()
-            _isPiPEnabled.value = false
-            return
-        }
-
         if (mainPreviewView == null) {
             Log.e(TAG, "❌ Cannot enable PiP: main preview view not set")
             return
@@ -394,39 +382,65 @@ class DualCameraPiPPlugin : UIPlugin() {
             return
         }
 
-        // Request CameraEngine to switch to concurrent mode
-        cameraContext?.cameraEngine?.switchToConcurrentMode(
-            mainCameraIndex = _mainCamera.value,
-            pipCameraIndex = _pipCamera.value,
-            mainPreviewView = mainPreviewView!!,
-            pipPreviewView = pipPreview,
-            onSuccess = {
-                Log.i(TAG, "✅ PiP mode enabled successfully")
-                _isPiPEnabled.value = true
+        // Try concurrent camera mode if supported
+        if (_isDualCameraSupported.value) {
+            Log.i(TAG, "Device supports concurrent camera - using concurrent mode")
+            // Request CameraEngine to switch to concurrent mode
+            cameraContext?.cameraEngine?.switchToConcurrentMode(
+                mainCameraIndex = _mainCamera.value,
+                pipCameraIndex = _pipCamera.value,
+                mainPreviewView = mainPreviewView!!,
+                pipPreviewView = pipPreview,
+                onSuccess = {
+                    Log.i(TAG, "✅ Concurrent PiP mode enabled successfully")
+                    _isPiPEnabled.value = true
 
-                cameraContext?.debugLogger?.logPlugin(
-                    name,
-                    "pip_enabled",
-                    mapOf(
-                        "mainCamera" to _mainCamera.value,
-                        "pipCamera" to _pipCamera.value,
-                        "overlayCreated" to true
+                    cameraContext?.debugLogger?.logPlugin(
+                        name,
+                        "pip_enabled_concurrent",
+                        mapOf(
+                            "mainCamera" to _mainCamera.value,
+                            "pipCamera" to _pipCamera.value,
+                            "mode" to "concurrent"
+                        )
                     )
-                )
-            },
-            onFailure = { exception ->
-                Log.e(TAG, "❌ Failed to enable PiP mode", exception)
-                removePiPOverlay()
-                _isPiPEnabled.value = false
-                Toast.makeText(
-                    cameraContext?.context,
-                    "Failed to enable dual camera: ${exception.message}",
-                    Toast.LENGTH_LONG
-                ).show()
-            }
-        )
+                },
+                onFailure = { exception ->
+                    Log.e(TAG, "❌ Concurrent mode failed, falling back to sequential mode", exception)
+                    // Fall back to sequential mode
+                    enableSequentialPiPMode()
+                }
+            )
+        } else {
+            Log.i(TAG, "Device doesn't support concurrent camera - using sequential capture mode")
+            enableSequentialPiPMode()
+        }
 
         Log.i(TAG, "=== PiP MODE ENABLE COMPLETE ===")
+    }
+
+    /**
+     * Enable PiP in sequential capture mode (fallback for devices without concurrent camera support)
+     */
+    private fun enableSequentialPiPMode() {
+        Log.i(TAG, "Enabling PiP in sequential capture mode")
+        _isPiPEnabled.value = true
+
+        Toast.makeText(
+            cameraContext?.context,
+            "Dual camera enabled (sequential mode)",
+            Toast.LENGTH_SHORT
+        ).show()
+
+        cameraContext?.debugLogger?.logPlugin(
+            name,
+            "pip_enabled_sequential",
+            mapOf(
+                "mainCamera" to _mainCamera.value,
+                "pipCamera" to _pipCamera.value,
+                "mode" to "sequential"
+            )
+        )
     }
 
     /**

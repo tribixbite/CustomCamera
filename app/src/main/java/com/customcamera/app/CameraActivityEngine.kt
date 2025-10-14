@@ -422,12 +422,22 @@ class CameraActivityEngine : AppCompatActivity() {
             val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
             val photoFile = File(filesDir, "CAMERA_ENGINE_$timestamp.jpg")
 
-            // Check if we're in concurrent (PiP) mode
-            val currentMode = cameraEngine.getCurrentMode()
-            if (currentMode is com.customcamera.app.engine.CameraMode.Concurrent) {
-                // Use dual camera capture for PiP mode
-                captureDualPhoto(photoFile, timestamp)
-                return
+            // Check if PiP is enabled
+            val pipPlugin = cameraEngine.getPlugin("DualCameraPiP") as? DualCameraPiPPlugin
+            val isPiPEnabled = pipPlugin?.isPiPEnabled?.value == true
+
+            if (isPiPEnabled) {
+                // Check if we're in concurrent mode or sequential mode
+                val currentMode = cameraEngine.getCurrentMode()
+                if (currentMode is com.customcamera.app.engine.CameraMode.Concurrent) {
+                    // Use concurrent dual camera capture
+                    captureDualPhoto(photoFile, timestamp)
+                    return
+                } else {
+                    // Use sequential dual camera capture (fallback for devices without concurrent support)
+                    captureSequentialDualPhoto(photoFile, timestamp)
+                    return
+                }
             }
 
             // Single camera mode - check for special capture modes
@@ -572,6 +582,64 @@ class CameraActivityEngine : AppCompatActivity() {
                 loadingIndicatorManager.hideLoading()
                 Log.e(TAG, "Dual camera capture error", e)
                 Toast.makeText(this@CameraActivityEngine, "Dual capture error: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    /**
+     * Capture photo sequentially from both cameras and composite them
+     * Fallback for devices without concurrent camera support
+     */
+    private fun captureSequentialDualPhoto(photoFile: File, timestamp: String) {
+        // Show sequential dual camera capture loading
+        loadingIndicatorManager.showLoading(
+            binding.root as ViewGroup,
+            LoadingIndicatorManager.LoadingType.PHOTO_CAPTURE,
+            autoDismiss = 10000L // Longer timeout for sequential capture
+        )
+
+        lifecycleScope.launch {
+            try {
+                Log.i(TAG, "Starting sequential dual camera photo capture...")
+                Toast.makeText(this@CameraActivityEngine, "Capturing from both cameras (sequential)...", Toast.LENGTH_SHORT).show()
+
+                // Get camera indices from PiP plugin
+                val pipPlugin = cameraEngine.getPlugin("DualCameraPiP") as? DualCameraPiPPlugin
+                val mainCameraIndex = pipPlugin?.mainCamera?.value ?: cameraIndex
+                val pipCameraIndex = pipPlugin?.pipCamera?.value ?: ((cameraIndex + 1) % cameraEngine.availableCameras.value.size)
+
+                // Log sequential dual camera capture
+                com.customcamera.app.debug.GlobalAPIMonitor.getInstance()?.logCameraControl(
+                    "captureSequentialDualPhoto",
+                    mapOf(
+                        "timestamp" to System.currentTimeMillis(),
+                        "mainCamera" to mainCameraIndex,
+                        "pipCamera" to pipCameraIndex
+                    )
+                )
+
+                // Capture and composite both cameras sequentially
+                cameraEngine.captureSequentialDualPhoto(
+                    mainCameraIndex = mainCameraIndex,
+                    pipCameraIndex = pipCameraIndex,
+                    outputFile = photoFile,
+                    onSuccess = {
+                        loadingIndicatorManager.hideLoading()
+                        Toast.makeText(this@CameraActivityEngine, "Sequential dual camera photo saved: ${photoFile.name}", Toast.LENGTH_SHORT).show()
+                        Log.i(TAG, "Sequential dual camera photo saved: ${photoFile.absolutePath}")
+                        animateCaptureButton()
+                    },
+                    onError = { exception ->
+                        loadingIndicatorManager.hideLoading()
+                        Log.e(TAG, "Sequential dual camera photo capture failed", exception)
+                        Toast.makeText(this@CameraActivityEngine, "Sequential capture failed: ${exception.message}", Toast.LENGTH_SHORT).show()
+                    }
+                )
+
+            } catch (e: Exception) {
+                loadingIndicatorManager.hideLoading()
+                Log.e(TAG, "Sequential dual camera capture error", e)
+                Toast.makeText(this@CameraActivityEngine, "Sequential capture error: ${e.message}", Toast.LENGTH_SHORT).show()
             }
         }
     }
