@@ -462,11 +462,15 @@ class CameraActivityEngine : AppCompatActivity() {
         )
 
         // Check if in concurrent camera mode (dual camera capture)
-        val isDualCamera = cameraEngine.getCurrentMode() is CameraMode.Concurrent && cameraEngine.hasPipFrame()
+        val currentMode = cameraEngine.getCurrentMode()
+        val hasPipFrame = cameraEngine.hasPipFrame()
+        val isDualCamera = currentMode is CameraMode.Concurrent && hasPipFrame
+
+        Log.i(TAG, "Photo capture mode check: currentMode=$currentMode, hasPipFrame=$hasPipFrame, isDualCamera=$isDualCamera")
 
         if (isDualCamera) {
             // Dual camera capture: Get main image in memory, composite with PiP, then save
-            Log.i(TAG, "Capturing dual camera photo...")
+            Log.i(TAG, "📸 Capturing dual camera photo...")
             imageCapture.takePicture(
                 ContextCompat.getMainExecutor(this),
                 object : ImageCapture.OnImageCapturedCallback() {
@@ -484,7 +488,10 @@ class CameraActivityEngine : AppCompatActivity() {
                             val pipPlugin = cameraEngine.getPlugin("DualCameraPiP") as? DualCameraPiPPlugin
                             val pipRect = pipPlugin?.getPiPOverlayRect() ?: android.graphics.RectF(0.7f, 0.7f, 0.95f, 0.9f)
 
+                            Log.i(TAG, "PiP plugin: $pipPlugin, PiP rect: $pipRect")
+
                             // Composite images
+                            Log.i(TAG, "Calling DualCameraCompositor.compositeImages()...")
                             val success = com.customcamera.app.utils.DualCameraCompositor.compositeImages(
                                 mainImage = mainImage,
                                 pipImage = pipImage,
@@ -496,8 +503,8 @@ class CameraActivityEngine : AppCompatActivity() {
 
                             if (success) {
                                 loadingIndicatorManager.hideLoading()
-                                Toast.makeText(this@CameraActivityEngine, "Dual camera photo saved: ${photoFile.name}", Toast.LENGTH_SHORT).show()
-                                Log.i(TAG, "Dual camera photo saved: ${photoFile.absolutePath}")
+                                Toast.makeText(this@CameraActivityEngine, "✅ Dual camera photo saved: ${photoFile.name}", Toast.LENGTH_SHORT).show()
+                                Log.i(TAG, "✅ Dual camera photo saved: ${photoFile.absolutePath}")
                                 animateCaptureButton()
                             } else {
                                 throw Exception("Failed to composite images")

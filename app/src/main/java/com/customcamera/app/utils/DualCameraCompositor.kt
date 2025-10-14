@@ -1,6 +1,8 @@
 package com.customcamera.app.utils
 
 import android.graphics.*
+import android.graphics.ImageFormat
+import android.graphics.YuvImage
 import android.util.Log
 import androidx.camera.core.ImageProxy
 import java.io.File
@@ -32,15 +34,25 @@ object DualCameraCompositor {
     ): Boolean {
         return try {
             Log.i(TAG, "Starting dual camera composite...")
+            Log.i(TAG, "Main image: ${mainImage.width}x${mainImage.height}, format: ${mainImage.format}")
+            Log.i(TAG, "PiP image: ${pipImage.width}x${pipImage.height}, format: ${pipImage.format}")
+            Log.i(TAG, "PiP rect: $pipRect")
 
             // Convert ImageProxy to Bitmap
             val mainBitmap = imageProxyToBitmap(mainImage)
-            val pipBitmap = imageProxyToBitmap(pipImage)
-
-            if (mainBitmap == null || pipBitmap == null) {
-                Log.e(TAG, "Failed to convert images to bitmaps")
+            if (mainBitmap == null) {
+                Log.e(TAG, "Failed to convert main image to bitmap")
                 return false
             }
+            Log.i(TAG, "Main bitmap created: ${mainBitmap.width}x${mainBitmap.height}")
+
+            val pipBitmap = imageProxyToBitmap(pipImage)
+            if (pipBitmap == null) {
+                Log.e(TAG, "Failed to convert PiP image to bitmap")
+                mainBitmap.recycle()
+                return false
+            }
+            Log.i(TAG, "PiP bitmap created: ${pipBitmap.width}x${pipBitmap.height}")
 
             // Create composite
             val composite = Bitmap.createBitmap(
@@ -114,18 +126,31 @@ object DualCameraCompositor {
 
     /**
      * Convert ImageProxy to Bitmap
+     * Handles YUV_420_888 format from CameraX
      */
     private fun imageProxyToBitmap(image: ImageProxy): Bitmap? {
         return try {
-            val buffer: ByteBuffer = image.planes[0].buffer
-            val bytes = ByteArray(buffer.remaining())
-            buffer.get(bytes)
+            val yBuffer = image.planes[0].buffer // Y
+            val vuBuffer = image.planes[2].buffer // V
+            val uBuffer = image.planes[1].buffer // U
 
-            val options = BitmapFactory.Options().apply {
-                inPreferredConfig = Bitmap.Config.ARGB_8888
-            }
+            val ySize = yBuffer.remaining()
+            val uSize = uBuffer.remaining()
+            val vSize = vuBuffer.remaining()
 
-            BitmapFactory.decodeByteArray(bytes, 0, bytes.size, options)
+            val nv21 = ByteArray(ySize + uSize + vSize)
+
+            // U and V are swapped
+            yBuffer.get(nv21, 0, ySize)
+            vuBuffer.get(nv21, ySize, vSize)
+            uBuffer.get(nv21, ySize + vSize, uSize)
+
+            val yuvImage = YuvImage(nv21, ImageFormat.NV21, image.width, image.height, null)
+            val out = java.io.ByteArrayOutputStream()
+            yuvImage.compressToJpeg(Rect(0, 0, image.width, image.height), 95, out)
+            val imageBytes = out.toByteArray()
+
+            BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
         } catch (e: Exception) {
             Log.e(TAG, "Failed to convert ImageProxy to Bitmap", e)
             null
