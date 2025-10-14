@@ -6,8 +6,12 @@ import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.video.Recorder
 import androidx.camera.video.VideoCapture
+import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import com.customcamera.app.engine.plugins.CameraPlugin
 import com.customcamera.app.engine.plugins.PluginManager
 import kotlinx.coroutines.flow.Flow
@@ -30,6 +34,11 @@ class CameraEngine(
     private var camera: Camera? = null
     private var currentCameraSelector: CameraSelector? = null
     private var apiMonitor: com.customcamera.app.debug.CameraAPIMonitor? = null
+
+    // Camera mode tracking for single vs concurrent operation
+    private var currentMode: CameraMode = CameraMode.Single
+    private var singleCamera: Camera? = null
+    private var pipCamera: Camera? = null // Secondary camera for PiP mode
 
     private val pluginManager = PluginManager()
     private val _isInitialized = MutableStateFlow(false)
@@ -223,6 +232,117 @@ class CameraEngine(
     fun processFrame(image: ImageProxy) {
         pluginManager.processFrame(image)
     }
+
+    /**
+     * Switch to concurrent camera mode for PiP functionality
+     *
+     * Note: This is a TODO implementation that needs proper concurrent camera API support.
+     * For now, we'll log a message indicating this feature requires CameraX concurrent API.
+     *
+     * @param mainCameraIndex Index of the main (primary) camera
+     * @param pipCameraIndex Index of the PiP (secondary) camera
+     * @param pipPreviewView PreviewView for the PiP camera feed
+     * @param onSuccess Callback invoked when mode switch succeeds
+     * @param onFailure Callback invoked with exception if mode switch fails
+     */
+    fun switchToConcurrentMode(
+        mainCameraIndex: Int,
+        pipCameraIndex: Int,
+        pipPreviewView: PreviewView,
+        onSuccess: () -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        // Launch in coroutine to handle async operations
+        CoroutineScope(Dispatchers.Main).launch {
+            try {
+                Log.i(TAG, "=== Switching to concurrent camera mode ===")
+                Log.i(TAG, "Main camera: $mainCameraIndex, PiP camera: $pipCameraIndex")
+
+                // TODO: Implement proper ConcurrentCamera API from CameraX 1.3+
+                // Current implementation: Use DualCameraCoordinator's workaround approach
+                // This avoids the lifecycle conflict by not using standard bindToLifecycle
+
+                Log.w(TAG, "⚠️ Concurrent camera mode not yet fully implemented")
+                Log.w(TAG, "Falling back to DualCameraCoordinator approach")
+
+                onFailure(Exception("Concurrent camera API implementation pending"))
+
+            } catch (e: Exception) {
+                Log.e(TAG, "❌ Failed to switch to concurrent mode", e)
+                onFailure(e)
+            }
+        }
+    }
+
+    /**
+     * Switch back to single camera mode (exit PiP)
+     */
+    fun switchToSingleMode() {
+        Log.i(TAG, "Switching to single camera mode")
+
+        unbindCurrentCamera()
+
+        // Rebind single camera with current config
+        val currentConfig = CameraConfig(
+            cameraIndex = _currentCameraIndex.value,
+            enablePreview = true,
+            enableImageCapture = true,
+            enableVideoCapture = videoCapture != null,
+            enableImageAnalysis = imageAnalysis != null
+        )
+
+        // Note: This is a blocking operation, but it's simple enough
+        try {
+            val provider = cameraProvider ?: throw IllegalStateException("Camera provider not initialized")
+
+            val useCases = buildUseCases(currentConfig)
+            currentCameraSelector = createCameraSelector(currentConfig.cameraIndex)
+
+            singleCamera = provider.bindToLifecycle(
+                lifecycleOwner,
+                currentCameraSelector!!,
+                *useCases.toTypedArray()
+            )
+
+            camera = singleCamera
+            currentMode = CameraMode.Single
+
+            // Notify plugins
+            singleCamera?.let { cam ->
+                CoroutineScope(Dispatchers.Main).launch {
+                    pluginManager.onCameraReady(cam)
+                }
+            }
+
+            Log.i(TAG, "✅ Switched to single camera mode")
+
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Failed to switch to single camera mode", e)
+        }
+    }
+
+    /**
+     * Unbind the current camera based on mode
+     */
+    private fun unbindCurrentCamera() {
+        when (currentMode) {
+            is CameraMode.Single -> {
+                cameraProvider?.unbindAll()
+                singleCamera = null
+                camera = null
+            }
+            is CameraMode.Concurrent -> {
+                cameraProvider?.unbindAll()
+                pipCamera = null
+                camera = null
+            }
+        }
+    }
+
+    /**
+     * Get current camera mode
+     */
+    fun getCurrentMode(): CameraMode = currentMode
 
     /**
      * Clean up resources and plugins

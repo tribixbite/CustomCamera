@@ -13,9 +13,12 @@ import com.customcamera.app.engine.CameraContext
 import com.customcamera.app.engine.plugins.UIPlugin
 import com.customcamera.app.pip.PiPOverlayView
 import com.customcamera.app.pip.DualCameraCoordinator
+import com.customcamera.app.pip.ConcurrentCameraCapability
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.*
+import android.widget.Toast
 
 /**
  * DualCameraPiPPlugin provides picture-in-picture functionality for dual camera recording.
@@ -35,6 +38,7 @@ class DualCameraPiPPlugin : UIPlugin() {
 
     // PiP state management
     private val _isPiPEnabled = MutableStateFlow(false)
+    private val _isDualCameraSupported = MutableStateFlow(false)
     private val _pipPosition = MutableStateFlow(PiPPosition.TOP_RIGHT)
     private val _pipSize = MutableStateFlow(PiPSize.MEDIUM)
     private val _mainCamera = MutableStateFlow(0) // Main camera index
@@ -42,6 +46,7 @@ class DualCameraPiPPlugin : UIPlugin() {
 
     // Public state flows
     val isPiPEnabled: StateFlow<Boolean> = _isPiPEnabled.asStateFlow()
+    val isDualCameraSupported: StateFlow<Boolean> = _isDualCameraSupported.asStateFlow()
     val pipPosition: StateFlow<PiPPosition> = _pipPosition.asStateFlow()
     val pipSize: StateFlow<PiPSize> = _pipSize.asStateFlow()
     val mainCamera: StateFlow<Int> = _mainCamera.asStateFlow()
@@ -68,13 +73,35 @@ class DualCameraPiPPlugin : UIPlugin() {
         if (provider != null) {
             dualCameraCoordinator?.setProvider(provider)
             Log.i(TAG, "✅ Shared camera provider set for DualCameraCoordinator")
+
+            // Check concurrent camera support
+            val capability = ConcurrentCameraCapability(context.context)
+            val concurrentInfo = capability.checkSupport(provider)
+
+            if (!concurrentInfo.isSupported) {
+                Log.w(TAG, "⚠️ Concurrent cameras not supported: ${concurrentInfo.errorMessage}")
+                _isDualCameraSupported.value = false
+            } else {
+                _isDualCameraSupported.value = true
+                Log.i(TAG, "✅ Concurrent cameras supported: ${concurrentInfo.availableCombinations.size} combinations")
+
+                // Use recommended combination if available
+                concurrentInfo.recommendedCombination?.let { (main, pip) ->
+                    _mainCamera.value = main
+                    _pipCamera.value = pip
+                    Log.i(TAG, "Using recommended camera combination: main=$main, pip=$pip")
+                }
+            }
         } else {
             Log.e(TAG, "❌ Camera provider not available from CameraEngine")
+            _isDualCameraSupported.value = false
         }
 
-        // Load camera indices from settings
-        _mainCamera.value = context.settingsManager.defaultCameraIndex.value
-        _pipCamera.value = context.settingsManager.pipCameraIndex.value
+        // Load camera indices from settings (may override recommended)
+        val savedMain = context.settingsManager.defaultCameraIndex.value
+        val savedPip = context.settingsManager.pipCameraIndex.value
+        if (savedMain >= 0) _mainCamera.value = savedMain
+        if (savedPip >= 0) _pipCamera.value = savedPip
         Log.i(TAG, "Loaded camera indices - Main: ${_mainCamera.value}, PiP: ${_pipCamera.value}")
 
         // Auto-select appropriate PiP camera if default doesn't exist
@@ -85,6 +112,7 @@ class DualCameraPiPPlugin : UIPlugin() {
             "initialized",
             mapOf(
                 "pipEnabled" to _isPiPEnabled.value,
+                "dualCameraSupported" to _isDualCameraSupported.value,
                 "position" to _pipPosition.value.name,
                 "size" to _pipSize.value.name,
                 "mainCamera" to _mainCamera.value,
@@ -191,14 +219,15 @@ class DualCameraPiPPlugin : UIPlugin() {
         _mainCamera.value = currentPiP
         _pipCamera.value = currentMain
 
-        // Apply the camera switch
+        // Apply the camera switch if PiP is enabled
         if (_isPiPEnabled.value) {
-            applyCameraConfiguration()
+            // Re-setup cameras with swapped indices
+            dualCameraCoordinator?.swapCameras()
         }
 
         saveSettings()
 
-        Log.i(TAG, "Cameras swapped: main=$currentPiP, pip=$currentMain")
+        Log.i(TAG, "Cameras swapped: main=${_mainCamera.value}, pip=${_pipCamera.value}")
 
         cameraContext?.debugLogger?.logPlugin(
             name,
@@ -218,7 +247,15 @@ class DualCameraPiPPlugin : UIPlugin() {
         _pipCamera.value = pipCameraIndex
 
         if (_isPiPEnabled.value) {
-            applyCameraConfiguration()
+            val pipPreview = pipOverlayView?.getPreviewView()
+            if (pipPreview != null) {
+                // Re-setup PiP camera with new index
+                dualCameraCoordinator?.stopPipCameraOnly()
+                dualCameraCoordinator?.setupPipCameraOnly(
+                    pipCameraIndex = pipCameraIndex,
+                    pipPreviewView = pipPreview
+                )
+            }
         }
 
         saveSettings()
@@ -284,10 +321,22 @@ class DualCameraPiPPlugin : UIPlugin() {
     }
 
     /**
-     * Enable PiP mode by creating overlay and setting up dual cameras
+     * Enable PiP mode by creating overlay and setting up second camera
      */
     private fun enablePiPMode() {
         Log.i(TAG, "=== ENABLING PiP MODE ===")
+
+        // Check concurrent camera support
+        if (!_isDualCameraSupported.value) {
+            Log.e(TAG, "❌ Cannot enable PiP: Concurrent cameras not supported on this device")
+            Toast.makeText(
+                cameraContext?.context,
+                "Dual camera not supported on this device",
+                Toast.LENGTH_LONG
+            ).show()
+            _isPiPEnabled.value = false
+            return
+        }
 
         if (mainPreviewView == null) {
             Log.e(TAG, "❌ Cannot enable PiP: main preview view not set")
@@ -304,32 +353,24 @@ class DualCameraPiPPlugin : UIPlugin() {
         }
 
         Log.i(TAG, "✅ PiP overlay created successfully")
-        Log.i(TAG, "PiP overlay size: ${pipOverlayView!!.width}x${pipOverlayView!!.height}")
 
         val pipPreview = pipOverlayView?.getPreviewView()
         if (pipPreview == null) {
             Log.e(TAG, "❌ PiP PreviewView is null!")
+            removePiPOverlay()
             return
         }
 
         Log.i(TAG, "✅ PiP PreviewView obtained: ${pipPreview.javaClass.simpleName}")
-        Log.i(TAG, "PiP PreviewView size: ${pipPreview.width}x${pipPreview.height}")
-        Log.i(TAG, "PiP PreviewView ID: ${pipPreview.id}")
 
-        // Wait for the PreviewView to be laid out before binding camera
-        pipPreview.viewTreeObserver?.addOnGlobalLayoutListener(object : android.view.ViewTreeObserver.OnGlobalLayoutListener {
-            override fun onGlobalLayout() {
-                if (pipPreview.width > 0 && pipPreview.height > 0) {
-                    pipPreview.viewTreeObserver?.removeOnGlobalLayoutListener(this)
+        // Use DualCameraCoordinator to set up the PiP camera
+        // This works around the lifecycle conflict by careful camera binding
+        dualCameraCoordinator?.setupPipCameraOnly(
+            pipCameraIndex = _pipCamera.value,
+            pipPreviewView = pipPreview
+        )
 
-                    Log.i(TAG, "PiP overlay laid out: ${pipOverlayView!!.width}x${pipOverlayView!!.height}")
-                    Log.i(TAG, "PiP PreviewView laid out: ${pipPreview.width}x${pipPreview.height}")
-                    Log.i(TAG, "Applying camera configuration...")
-                    Log.i(TAG, "Target PiP camera index: ${_pipCamera.value}")
-                    applyCameraConfiguration()
-                }
-            }
-        })
+        _isPiPEnabled.value = true
 
         cameraContext?.debugLogger?.logPlugin(
             name,
@@ -337,8 +378,7 @@ class DualCameraPiPPlugin : UIPlugin() {
             mapOf(
                 "mainCamera" to _mainCamera.value,
                 "pipCamera" to _pipCamera.value,
-                "overlayCreated" to (pipOverlayView != null),
-                "previewViewReady" to (pipPreview != null)
+                "overlayCreated" to true
             )
         )
 
@@ -433,26 +473,6 @@ class DualCameraPiPPlugin : UIPlugin() {
         }
     }
 
-    /**
-     * Apply current camera configuration to coordinator.
-     * Only binds the PiP camera since main camera is managed by CameraEngine.
-     */
-    private fun applyCameraConfiguration() {
-        val pipPreview = pipOverlayView?.getPreviewView()
-
-        if (pipPreview == null) {
-            Log.e(TAG, "❌ Cannot apply camera configuration: PiP preview view is null")
-            return
-        }
-
-        dualCameraCoordinator?.let { coordinator ->
-            Log.i(TAG, "Applying PiP camera configuration: index=${_pipCamera.value}")
-            coordinator.setupPipCameraOnly(
-                pipCameraIndex = _pipCamera.value,
-                pipPreviewView = pipPreview
-            )
-        }
-    }
 
     /**
      * Load settings from preferences
