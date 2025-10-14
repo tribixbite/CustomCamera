@@ -12,6 +12,7 @@ import androidx.lifecycle.LifecycleOwner
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import com.customcamera.app.engine.plugins.CameraPlugin
 import com.customcamera.app.engine.plugins.PluginManager
 import kotlinx.coroutines.flow.Flow
@@ -38,7 +39,7 @@ class CameraEngine(
     // Camera mode tracking for single vs concurrent operation
     private var currentMode: CameraMode = CameraMode.Single
     private var singleCamera: Camera? = null
-    private var pipCamera: Camera? = null // Secondary camera for PiP mode
+    private var concurrentCamera: ConcurrentCamera? = null // Concurrent camera for PiP mode
 
     private val pluginManager = PluginManager()
     private val _isInitialized = MutableStateFlow(false)
@@ -236,8 +237,7 @@ class CameraEngine(
     /**
      * Switch to concurrent camera mode for PiP functionality
      *
-     * Note: This is a TODO implementation that needs proper concurrent camera API support.
-     * For now, we'll log a message indicating this feature requires CameraX concurrent API.
+     * Uses CameraX 1.3+ ConcurrentCamera API to bind both cameras together.
      *
      * @param mainCameraIndex Index of the main (primary) camera
      * @param pipCameraIndex Index of the PiP (secondary) camera
@@ -258,17 +258,93 @@ class CameraEngine(
                 Log.i(TAG, "=== Switching to concurrent camera mode ===")
                 Log.i(TAG, "Main camera: $mainCameraIndex, PiP camera: $pipCameraIndex")
 
-                // TODO: Implement proper ConcurrentCamera API from CameraX 1.3+
-                // Current implementation: Use DualCameraCoordinator's workaround approach
-                // This avoids the lifecycle conflict by not using standard bindToLifecycle
+                val provider = cameraProvider ?: throw IllegalStateException("Camera provider not initialized")
 
-                Log.w(TAG, "⚠️ Concurrent camera mode not yet fully implemented")
-                Log.w(TAG, "Falling back to DualCameraCoordinator approach")
+                // Unbind current camera (if any)
+                unbindCurrentCamera()
 
-                onFailure(Exception("Concurrent camera API implementation pending"))
+                // Create PiP preview use case
+                val pipPreview = Preview.Builder()
+                    .build()
+                    .apply {
+                        setSurfaceProvider(pipPreviewView.surfaceProvider)
+                    }
+
+                // Build use cases for main camera (with all use cases and plugins)
+                val mainUseCases = mutableListOf<UseCase>()
+
+                // Main camera preview
+                val mainPreview = Preview.Builder().build()
+                mainUseCases.add(mainPreview)
+                preview = mainPreview
+
+                // Main camera image capture
+                val mainCapture = ImageCapture.Builder().build()
+                mainUseCases.add(mainCapture)
+                imageCapture = mainCapture
+
+                // Video capture (if enabled)
+                videoCapture?.let { mainUseCases.add(it) }
+
+                // Image analysis (if enabled)
+                imageAnalysis?.let { mainUseCases.add(it) }
+
+                // Build UseCaseGroup for main camera
+                val mainUseCaseGroup = UseCaseGroup.Builder().apply {
+                    mainUseCases.forEach { addUseCase(it) }
+                }.build()
+
+                // Build UseCaseGroup for PiP camera (preview only)
+                val pipUseCaseGroup = UseCaseGroup.Builder()
+                    .addUseCase(pipPreview)
+                    .build()
+
+                // Create camera selectors
+                val mainSelector = createCameraSelector(mainCameraIndex)
+                val pipSelector = createCameraSelector(pipCameraIndex)
+
+                // Build SingleCameraConfigs using CameraX 1.3 API
+                val primaryConfig = ConcurrentCamera.SingleCameraConfig(
+                    mainSelector,
+                    mainUseCaseGroup,
+                    lifecycleOwner
+                )
+
+                val secondaryConfig = ConcurrentCamera.SingleCameraConfig(
+                    pipSelector,
+                    pipUseCaseGroup,
+                    lifecycleOwner
+                )
+
+                // Bind concurrent cameras
+                concurrentCamera = provider.bindToLifecycle(
+                    listOf(primaryConfig, secondaryConfig)
+                )
+
+                // Update state
+                currentMode = CameraMode.Concurrent(mainCameraIndex, pipCameraIndex)
+                _currentCameraIndex.value = mainCameraIndex
+
+                // Get the primary camera for plugin notifications
+                val primaryCamera = concurrentCamera?.cameras?.firstOrNull()
+                if (primaryCamera != null) {
+                    camera = primaryCamera
+                    withContext(Dispatchers.Main) {
+                        pluginManager.onCameraReady(primaryCamera)
+                    }
+                }
+
+                Log.i(TAG, "✅ Successfully switched to concurrent camera mode")
+                onSuccess()
 
             } catch (e: Exception) {
                 Log.e(TAG, "❌ Failed to switch to concurrent mode", e)
+                // Fall back to single camera
+                try {
+                    switchToSingleMode()
+                } catch (fallbackException: Exception) {
+                    Log.e(TAG, "❌ Fallback to single mode also failed", fallbackException)
+                }
                 onFailure(e)
             }
         }
@@ -333,7 +409,7 @@ class CameraEngine(
             }
             is CameraMode.Concurrent -> {
                 cameraProvider?.unbindAll()
-                pipCamera = null
+                concurrentCamera = null
                 camera = null
             }
         }

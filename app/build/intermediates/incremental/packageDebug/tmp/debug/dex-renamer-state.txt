@@ -1,4 +1,4 @@
-#Tue Oct 14 06:08:20 GMT 2025
+#Tue Oct 14 06:16:06 GMT 2025
 base.0=/data/data/com.termux/files/home/git/swype/CustomCamera/app/build/intermediates/dex/debug/mergeExtDexDebug/classes.dex
 base.1=/data/data/com.termux/files/home/git/swype/CustomCamera/app/build/intermediates/dex/debug/mergeProjectDexDebug/0/classes.dex
 base.10=/data/data/com.termux/files/home/git/swype/CustomCamera/app/build/intermediates/dex/debug/mergeProjectDexDebug/3/classes.dex

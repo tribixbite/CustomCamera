@@ -221,8 +221,24 @@ class DualCameraPiPPlugin : UIPlugin() {
 
         // Apply the camera switch if PiP is enabled
         if (_isPiPEnabled.value) {
-            // Re-setup cameras with swapped indices
-            dualCameraCoordinator?.swapCameras()
+            val pipPreview = pipOverlayView?.getPreviewView()
+            if (pipPreview != null) {
+                // Switch to new concurrent configuration
+                cameraContext?.cameraEngine?.switchToConcurrentMode(
+                    mainCameraIndex = _mainCamera.value,
+                    pipCameraIndex = _pipCamera.value,
+                    pipPreviewView = pipPreview,
+                    onSuccess = {
+                        Log.i(TAG, "✅ Camera swap successful")
+                    },
+                    onFailure = { exception ->
+                        Log.e(TAG, "❌ Camera swap failed", exception)
+                        // Revert the swap
+                        _mainCamera.value = currentMain
+                        _pipCamera.value = currentPiP
+                    }
+                )
+            }
         }
 
         saveSettings()
@@ -249,11 +265,17 @@ class DualCameraPiPPlugin : UIPlugin() {
         if (_isPiPEnabled.value) {
             val pipPreview = pipOverlayView?.getPreviewView()
             if (pipPreview != null) {
-                // Re-setup PiP camera with new index
-                dualCameraCoordinator?.stopPipCameraOnly()
-                dualCameraCoordinator?.setupPipCameraOnly(
+                // Switch to new concurrent configuration
+                cameraContext?.cameraEngine?.switchToConcurrentMode(
+                    mainCameraIndex = mainCameraIndex,
                     pipCameraIndex = pipCameraIndex,
-                    pipPreviewView = pipPreview
+                    pipPreviewView = pipPreview,
+                    onSuccess = {
+                        Log.i(TAG, "✅ Camera configuration updated")
+                    },
+                    onFailure = { exception ->
+                        Log.e(TAG, "❌ Failed to update camera configuration", exception)
+                    }
                 )
             }
         }
@@ -321,7 +343,7 @@ class DualCameraPiPPlugin : UIPlugin() {
     }
 
     /**
-     * Enable PiP mode by creating overlay and setting up second camera
+     * Enable PiP mode by creating overlay and switching to concurrent camera mode
      */
     private fun enablePiPMode() {
         Log.i(TAG, "=== ENABLING PiP MODE ===")
@@ -363,35 +385,47 @@ class DualCameraPiPPlugin : UIPlugin() {
 
         Log.i(TAG, "✅ PiP PreviewView obtained: ${pipPreview.javaClass.simpleName}")
 
-        // Use DualCameraCoordinator to set up the PiP camera
-        // This works around the lifecycle conflict by careful camera binding
-        dualCameraCoordinator?.setupPipCameraOnly(
+        // Request CameraEngine to switch to concurrent mode
+        cameraContext?.cameraEngine?.switchToConcurrentMode(
+            mainCameraIndex = _mainCamera.value,
             pipCameraIndex = _pipCamera.value,
-            pipPreviewView = pipPreview
-        )
+            pipPreviewView = pipPreview,
+            onSuccess = {
+                Log.i(TAG, "✅ PiP mode enabled successfully")
+                _isPiPEnabled.value = true
 
-        _isPiPEnabled.value = true
-
-        cameraContext?.debugLogger?.logPlugin(
-            name,
-            "pip_enabled",
-            mapOf(
-                "mainCamera" to _mainCamera.value,
-                "pipCamera" to _pipCamera.value,
-                "overlayCreated" to true
-            )
+                cameraContext?.debugLogger?.logPlugin(
+                    name,
+                    "pip_enabled",
+                    mapOf(
+                        "mainCamera" to _mainCamera.value,
+                        "pipCamera" to _pipCamera.value,
+                        "overlayCreated" to true
+                    )
+                )
+            },
+            onFailure = { exception ->
+                Log.e(TAG, "❌ Failed to enable PiP mode", exception)
+                removePiPOverlay()
+                _isPiPEnabled.value = false
+                Toast.makeText(
+                    cameraContext?.context,
+                    "Failed to enable dual camera: ${exception.message}",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
         )
 
         Log.i(TAG, "=== PiP MODE ENABLE COMPLETE ===")
     }
 
     /**
-     * Disable PiP mode by removing overlay and stopping PiP camera
+     * Disable PiP mode by removing overlay and switching back to single camera
      */
     private fun disablePiPMode() {
         Log.i(TAG, "Disabling PiP mode...")
         removePiPOverlay()
-        dualCameraCoordinator?.stopPipCameraOnly()
+        cameraContext?.cameraEngine?.switchToSingleMode()
 
         cameraContext?.debugLogger?.logPlugin(
             name,
