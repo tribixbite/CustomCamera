@@ -222,11 +222,12 @@ class DualCameraPiPPlugin : UIPlugin() {
         // Apply the camera switch if PiP is enabled
         if (_isPiPEnabled.value) {
             val pipPreview = pipOverlayView?.getPreviewView()
-            if (pipPreview != null) {
+            if (pipPreview != null && mainPreviewView != null) {
                 // Switch to new concurrent configuration
                 cameraContext?.cameraEngine?.switchToConcurrentMode(
                     mainCameraIndex = _mainCamera.value,
                     pipCameraIndex = _pipCamera.value,
+                    mainPreviewView = mainPreviewView!!,
                     pipPreviewView = pipPreview,
                     onSuccess = {
                         Log.i(TAG, "✅ Camera swap successful")
@@ -264,11 +265,12 @@ class DualCameraPiPPlugin : UIPlugin() {
 
         if (_isPiPEnabled.value) {
             val pipPreview = pipOverlayView?.getPreviewView()
-            if (pipPreview != null) {
+            if (pipPreview != null && mainPreviewView != null) {
                 // Switch to new concurrent configuration
                 cameraContext?.cameraEngine?.switchToConcurrentMode(
                     mainCameraIndex = mainCameraIndex,
                     pipCameraIndex = pipCameraIndex,
+                    mainPreviewView = mainPreviewView!!,
                     pipPreviewView = pipPreview,
                     onSuccess = {
                         Log.i(TAG, "✅ Camera configuration updated")
@@ -385,10 +387,18 @@ class DualCameraPiPPlugin : UIPlugin() {
 
         Log.i(TAG, "✅ PiP PreviewView obtained: ${pipPreview.javaClass.simpleName}")
 
+        // Ensure mainPreviewView is available
+        if (mainPreviewView == null) {
+            Log.e(TAG, "❌ Main PreviewView is null!")
+            removePiPOverlay()
+            return
+        }
+
         // Request CameraEngine to switch to concurrent mode
         cameraContext?.cameraEngine?.switchToConcurrentMode(
             mainCameraIndex = _mainCamera.value,
             pipCameraIndex = _pipCamera.value,
+            mainPreviewView = mainPreviewView!!,
             pipPreviewView = pipPreview,
             onSuccess = {
                 Log.i(TAG, "✅ PiP mode enabled successfully")

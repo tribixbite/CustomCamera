@@ -245,6 +245,7 @@ class CameraEngine(
      *
      * @param mainCameraIndex Index of the main (primary) camera
      * @param pipCameraIndex Index of the PiP (secondary) camera
+     * @param mainPreviewView PreviewView for the main camera feed
      * @param pipPreviewView PreviewView for the PiP camera feed
      * @param onSuccess Callback invoked when mode switch succeeds
      * @param onFailure Callback invoked with exception if mode switch fails
@@ -252,6 +253,7 @@ class CameraEngine(
     fun switchToConcurrentMode(
         mainCameraIndex: Int,
         pipCameraIndex: Int,
+        mainPreviewView: PreviewView,
         pipPreviewView: PreviewView,
         onSuccess: () -> Unit,
         onFailure: (Exception) -> Unit
@@ -284,10 +286,14 @@ class CameraEngine(
                 // We use Preview + ImageCapture only (no video, no image analysis in concurrent mode)
                 val mainUseCases = mutableListOf<UseCase>()
 
-                // Main camera preview
-                val mainPreview = Preview.Builder().build()
+                // Main camera preview - connect to main PreviewView
+                val mainPreview = Preview.Builder().build().apply {
+                    setSurfaceProvider(mainPreviewView.surfaceProvider)
+                }
                 mainUseCases.add(mainPreview)
                 preview = mainPreview
+
+                Log.i(TAG, "Main camera preview connected to PreviewView")
 
                 // Main camera image capture
                 val mainCapture = ImageCapture.Builder().build()
