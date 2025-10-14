@@ -764,6 +764,8 @@ class CameraEngine(
         videoCapture = null
         imageAnalysis = null
         pipImageCapture = null
+        singleCamera = null
+        concurrentCamera = null
 
         _isInitialized.value = false
         Log.i(TAG, "✅ CameraEngine cleanup complete")

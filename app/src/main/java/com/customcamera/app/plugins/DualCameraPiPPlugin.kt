@@ -382,6 +382,31 @@ class DualCameraPiPPlugin : UIPlugin() {
             return
         }
 
+        // CRITICAL: Wait for PiP overlay to be laid out before binding cameras
+        // The view needs to have non-zero dimensions before camera can bind to it
+        Log.i(TAG, "Waiting for PiP overlay to be laid out...")
+        pipOverlayView?.viewTreeObserver?.addOnGlobalLayoutListener(object : android.view.ViewTreeObserver.OnGlobalLayoutListener {
+            override fun onGlobalLayout() {
+                // Remove listener to avoid multiple calls
+                pipOverlayView?.viewTreeObserver?.removeOnGlobalLayoutListener(this)
+
+                Log.i(TAG, "✅ PiP overlay laid out: ${pipOverlayView!!.width}x${pipOverlayView!!.height}")
+
+                // Now safe to bind cameras - views have dimensions
+                applyCameraConfiguration(mainPreviewView!!, pipPreview)
+            }
+        })
+
+        Log.i(TAG, "=== PiP MODE ENABLE COMPLETE ===")
+    }
+
+    /**
+     * Apply camera configuration after overlay is laid out
+     * This ensures views have proper dimensions before camera binding
+     */
+    private fun applyCameraConfiguration(mainPreviewView: PreviewView, pipPreviewView: PreviewView) {
+        Log.i(TAG, "Applying camera configuration with laid-out views")
+
         // Try concurrent camera mode if supported
         if (_isDualCameraSupported.value) {
             Log.i(TAG, "Device supports concurrent camera - using concurrent mode")
@@ -389,8 +414,8 @@ class DualCameraPiPPlugin : UIPlugin() {
             cameraContext?.cameraEngine?.switchToConcurrentMode(
                 mainCameraIndex = _mainCamera.value,
                 pipCameraIndex = _pipCamera.value,
-                mainPreviewView = mainPreviewView!!,
-                pipPreviewView = pipPreview,
+                mainPreviewView = mainPreviewView,
+                pipPreviewView = pipPreviewView,
                 onSuccess = {
                     Log.i(TAG, "✅ Concurrent PiP mode enabled successfully")
                     _isPiPEnabled.value = true
@@ -415,8 +440,6 @@ class DualCameraPiPPlugin : UIPlugin() {
             Log.i(TAG, "Device doesn't support concurrent camera - using sequential capture mode")
             enableSequentialPiPMode()
         }
-
-        Log.i(TAG, "=== PiP MODE ENABLE COMPLETE ===")
     }
 
     /**
