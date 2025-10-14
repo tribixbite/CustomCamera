@@ -80,7 +80,17 @@ class PiPOverlayView @JvmOverloads constructor(
 
         // Configure the overlay
         setupOverlay()
-        applyCurrentLayout()
+
+        // Wait for view to be added to hierarchy and laid out before applying dimensions
+        viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
+            override fun onGlobalLayout() {
+                if (width > 0 && height > 0) {
+                    viewTreeObserver.removeOnGlobalLayoutListener(this)
+                    Log.d(TAG, "PiPOverlayView laid out with size: ${width}x${height}")
+                    applyCurrentLayout()
+                }
+            }
+        })
 
         Log.i(TAG, "PiPOverlayView initialized with PreviewView ID: ${previewView.id}")
         Log.i(TAG, "PreviewView implementation mode: ${previewView.implementationMode}")
