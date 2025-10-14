@@ -63,6 +63,15 @@ class DualCameraPiPPlugin : UIPlugin() {
             lifecycleOwner = context.context as LifecycleOwner
         )
 
+        // **CRITICAL**: Share the same camera provider as CameraEngine
+        val provider = context.cameraEngine?.getProvider()
+        if (provider != null) {
+            dualCameraCoordinator?.setProvider(provider)
+            Log.i(TAG, "✅ Shared camera provider set for DualCameraCoordinator")
+        } else {
+            Log.e(TAG, "❌ Camera provider not available from CameraEngine")
+        }
+
         // Load camera indices from settings
         _mainCamera.value = context.settingsManager.defaultCameraIndex.value
         _pipCamera.value = context.settingsManager.pipCameraIndex.value

@@ -51,41 +51,23 @@ class DualCameraCoordinator(
 
     init {
         Log.i(TAG, "DualCameraCoordinator initialized")
-        initializeCameraProvider()
+        // Provider will be set via setProvider() method
     }
 
     /**
-     * Initialize the camera provider and check dual camera support
+     * Set the camera provider (must be called before using dual camera features)
+     * CRITICAL: Must use the same provider as CameraEngine to avoid conflicts
      */
-    private fun initializeCameraProvider() {
-        coordinatorScope.launch {
-            try {
-                Log.i(TAG, "Initializing camera provider...")
-                val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
-                cameraProvider = suspendCoroutine { continuation ->
-                    cameraProviderFuture.addListener({
-                        try {
-                            val provider = cameraProviderFuture.get()
-                            continuation.resumeWith(Result.success(provider))
-                        } catch (e: Exception) {
-                            continuation.resumeWith(Result.failure(e))
-                        }
-                    }, ContextCompat.getMainExecutor(context))
-                }
+    fun setProvider(provider: ProcessCameraProvider) {
+        cameraProvider = provider
 
-                // Check if dual camera setup is supported
-                val availableCameras = cameraProvider?.availableCameraInfos ?: emptyList()
-                _isDualCameraSupported.value = availableCameras.size >= 2
+        // Check if dual camera setup is supported
+        val availableCameras = provider.availableCameraInfos
+        _isDualCameraSupported.value = availableCameras.size >= 2
 
-                Log.i(TAG, "✅ Camera provider initialized successfully")
-                Log.i(TAG, "Dual camera supported: ${_isDualCameraSupported.value}")
-                Log.i(TAG, "Available cameras: ${availableCameras.size}")
-
-            } catch (e: Exception) {
-                Log.e(TAG, "❌ Failed to initialize camera provider", e)
-                _isDualCameraSupported.value = false
-            }
-        }
+        Log.i(TAG, "✅ Camera provider set successfully")
+        Log.i(TAG, "Dual camera supported: ${_isDualCameraSupported.value}")
+        Log.i(TAG, "Available cameras: ${availableCameras.size}")
     }
 
     /**
@@ -401,17 +383,9 @@ class DualCameraCoordinator(
                 Log.i(TAG, "PreviewView: ${pipPreviewView.javaClass.simpleName}")
                 Log.i(TAG, "PreviewView size: ${pipPreviewView.width}x${pipPreviewView.height}")
 
-                // **CRITICAL FIX**: Wait for camera provider to be initialized
-                var retries = 0
-                while (cameraProvider == null && retries < 50) {
-                    Log.i(TAG, "Waiting for camera provider initialization... (attempt ${retries + 1})")
-                    delay(100)
-                    retries++
-                }
-
                 val provider = cameraProvider
                 if (provider == null) {
-                    Log.e(TAG, "❌ Camera provider not available after waiting")
+                    Log.e(TAG, "❌ Camera provider not set - call setProvider() first")
                     return@launch
                 }
 
