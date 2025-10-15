@@ -3368,6 +3368,7 @@ id fragment_container_view_tag
 id frost
 id fullscreen_header
 id galleryButton
+id gestureHintsOverlay
 id ghost_view
 id ghost_view_holder
 id gone
@@ -3529,6 +3530,7 @@ id pathRelative
 id peekHeight
 id percent
 id performance
+id performanceMonitor
 id pin
 id pipButton
 id pluginControlsPanel

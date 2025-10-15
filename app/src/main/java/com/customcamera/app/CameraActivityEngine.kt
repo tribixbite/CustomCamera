@@ -69,6 +69,12 @@ class CameraActivityEngine : AppCompatActivity() {
     private var zoomIndicator: android.widget.TextView? = null
     private var shutterSpeedController: com.customcamera.app.camera2.ShutterSpeedController? = null
     private var focusDistanceController: com.customcamera.app.camera2.FocusDistanceController? = null
+
+    // Conference presentation enhancements
+    private lateinit var hapticManager: com.customcamera.app.presentation.EnhancedHapticManager
+    private lateinit var demoShowcaseManager: com.customcamera.app.presentation.DemoShowcaseManager
+    private var gestureHintsOverlay: com.customcamera.app.presentation.GestureHintsOverlay? = null
+    private var presentationPerformanceMonitor: com.customcamera.app.presentation.PerformanceMonitor? = null
     private var focusPeakingOverlay: com.customcamera.app.focus.FocusPeakingOverlay? = null
     @Volatile private var isFocusPeakingEnabled: Boolean = false
     private var lastTapTime = 0L
@@ -133,6 +139,14 @@ class CameraActivityEngine : AppCompatActivity() {
 
         // Initialize UI enhancement components
         loadingIndicatorManager = LoadingIndicatorManager(this)
+
+        // Initialize presentation enhancements
+        hapticManager = com.customcamera.app.presentation.EnhancedHapticManager(this)
+        demoShowcaseManager = com.customcamera.app.presentation.DemoShowcaseManager(this)
+        gestureHintsOverlay = binding.gestureHintsOverlay
+        presentationPerformanceMonitor = binding.performanceMonitor
+
+        Log.i(TAG, "✅ Presentation enhancements initialized")
 
         // Initialize camera engine and plugins
         initializeCameraEngine()
@@ -208,9 +222,23 @@ class CameraActivityEngine : AppCompatActivity() {
                         toggleSmartSceneDetection()
                     }
                     5 -> {
-                        // Six-tap - toggle object detection
-                        toggleObjectDetection()
-                        tapCount = 0 // Reset after six-tap
+                        // Six-tap - toggle gesture hints
+                        gestureHintsOverlay?.toggle()
+                        hapticManager.mediumTap()
+                        com.customcamera.app.presentation.EnhancedToast.info(this@CameraActivityEngine, "Gesture hints toggled")
+                    }
+                    6 -> {
+                        // Seven-tap - toggle demo showcase mode
+                        if (demoShowcaseManager.isInShowcaseMode()) {
+                            demoShowcaseManager.endShowcase(binding.root as android.view.ViewGroup)
+                            hapticManager.success()
+                            com.customcamera.app.presentation.EnhancedToast.info(this@CameraActivityEngine, "Demo mode ended")
+                        } else {
+                            demoShowcaseManager.startDemoShowcase(binding.root as android.view.ViewGroup)
+                            hapticManager.success()
+                            com.customcamera.app.presentation.EnhancedToast.success(this@CameraActivityEngine, "Demo mode activated!")
+                        }
+                        tapCount = 0 // Reset after seven-tap
                     }
                     else -> tapCount = 0
                 }
@@ -503,7 +531,8 @@ class CameraActivityEngine : AppCompatActivity() {
 
                             if (success) {
                                 loadingIndicatorManager.hideLoading()
-                                Toast.makeText(this@CameraActivityEngine, "✅ Dual camera photo saved: ${photoFile.name}", Toast.LENGTH_SHORT).show()
+                                com.customcamera.app.presentation.EnhancedToast.dualCameraPhoto(this@CameraActivityEngine, photoFile.name)
+                                hapticManager.photoCapture()
                                 Log.i(TAG, "✅ Dual camera photo saved: ${photoFile.absolutePath}")
                                 animateCaptureButton()
                             } else {
@@ -511,15 +540,17 @@ class CameraActivityEngine : AppCompatActivity() {
                             }
                         } catch (e: Exception) {
                             loadingIndicatorManager.hideLoading()
+                            hapticManager.error()
                             Log.e(TAG, "Dual camera capture failed", e)
-                            Toast.makeText(this@CameraActivityEngine, "Dual camera capture failed", Toast.LENGTH_SHORT).show()
+                            com.customcamera.app.presentation.EnhancedToast.error(this@CameraActivityEngine, "Dual camera capture failed")
                         }
                     }
 
                     override fun onError(exception: ImageCaptureException) {
                         loadingIndicatorManager.hideLoading()
+                        hapticManager.error()
                         Log.e(TAG, "Photo capture failed with engine", exception)
-                        Toast.makeText(this@CameraActivityEngine, "Photo capture failed", Toast.LENGTH_SHORT).show()
+                        com.customcamera.app.presentation.EnhancedToast.error(this@CameraActivityEngine, "Photo capture failed")
                     }
                 }
             )
@@ -531,15 +562,17 @@ class CameraActivityEngine : AppCompatActivity() {
                 object : ImageCapture.OnImageSavedCallback {
                     override fun onImageSaved(output: ImageCapture.OutputFileResults) {
                         loadingIndicatorManager.hideLoading()
-                        Toast.makeText(this@CameraActivityEngine, "Photo saved: ${photoFile.name}", Toast.LENGTH_SHORT).show()
+                        com.customcamera.app.presentation.EnhancedToast.photoSaved(this@CameraActivityEngine, photoFile.name)
+                        hapticManager.photoCapture()
                         Log.i(TAG, "Photo saved with engine: ${photoFile.absolutePath}")
                         animateCaptureButton()
                     }
 
                     override fun onError(exception: ImageCaptureException) {
                         loadingIndicatorManager.hideLoading()
+                        hapticManager.error()
                         Log.e(TAG, "Photo capture failed with engine", exception)
-                        Toast.makeText(this@CameraActivityEngine, "Photo capture failed", Toast.LENGTH_SHORT).show()
+                        com.customcamera.app.presentation.EnhancedToast.error(this@CameraActivityEngine, "Photo capture failed")
                     }
                 }
             )
@@ -1387,17 +1420,21 @@ class CameraActivityEngine : AppCompatActivity() {
             gridOverlayPlugin.toggleGrid()
             val isVisible = gridOverlayPlugin.isGridVisible()
 
+            // Enhanced feedback
+            if (isVisible) {
+                hapticManager.featureActivated()
+                com.customcamera.app.presentation.EnhancedToast.featureActivated(this@CameraActivityEngine, "Grid Overlay")
+            } else {
+                hapticManager.featureDeactivated()
+                com.customcamera.app.presentation.EnhancedToast.featureDeactivated(this@CameraActivityEngine, "Grid Overlay")
+            }
+
             // Refresh plugin UI overlays
             lifecycleScope.launch {
                 binding.pluginOverlayContainer.removeAllViews()
                 setupPluginUIOverlays()
             }
 
-            Toast.makeText(
-                this@CameraActivityEngine,
-                "Grid ${if (isVisible) "shown" else "hidden"}",
-                Toast.LENGTH_SHORT
-            ).show()
             Log.i(TAG, "Grid toggled: $isVisible")
         } catch (e: Exception) {
             Log.e(TAG, "Error toggling grid", e)

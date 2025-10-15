@@ -182,4 +182,18 @@
 
     </LinearLayout>
 
+    <!-- Gesture Hints Overlay -->
+    <com.customcamera.app.presentation.GestureHintsOverlay
+        android:id="@+id/gestureHintsOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone" />
+
+    <!-- Performance Monitor Overlay -->
+    <com.customcamera.app.presentation.PerformanceMonitor
+        android:id="@+id/performanceMonitor"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone" />
+
 </FrameLayout>

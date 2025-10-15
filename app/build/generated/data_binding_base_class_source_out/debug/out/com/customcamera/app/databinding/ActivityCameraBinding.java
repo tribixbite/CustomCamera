@@ -13,6 +13,8 @@ import androidx.camera.view.PreviewView;
 import androidx.viewbinding.ViewBinding;
 import androidx.viewbinding.ViewBindings;
 import com.customcamera.app.R;
+import com.customcamera.app.presentation.GestureHintsOverlay;
+import com.customcamera.app.presentation.PerformanceMonitor;
 import java.lang.NullPointerException;
 import java.lang.Override;
 import java.lang.String;
@@ -34,6 +36,9 @@ public final class ActivityCameraBinding implements ViewBinding {
   public final ImageButton galleryButton;
 
   @NonNull
+  public final GestureHintsOverlay gestureHintsOverlay;
+
+  @NonNull
   public final ImageButton gridToggleButton;
 
   @NonNull
@@ -41,6 +46,9 @@ public final class ActivityCameraBinding implements ViewBinding {
 
   @NonNull
   public final ImageButton nightModeButton;
+
+  @NonNull
+  public final PerformanceMonitor performanceMonitor;
 
   @NonNull
   public final ImageButton pipButton;
@@ -66,8 +74,9 @@ public final class ActivityCameraBinding implements ViewBinding {
   private ActivityCameraBinding(@NonNull FrameLayout rootView,
       @NonNull ImageButton barcodeToggleButton, @NonNull ImageButton captureButton,
       @NonNull ImageButton flashButton, @NonNull ImageButton galleryButton,
-      @NonNull ImageButton gridToggleButton, @NonNull ImageButton manualControlsToggleButton,
-      @NonNull ImageButton nightModeButton, @NonNull ImageButton pipButton,
+      @NonNull GestureHintsOverlay gestureHintsOverlay, @NonNull ImageButton gridToggleButton,
+      @NonNull ImageButton manualControlsToggleButton, @NonNull ImageButton nightModeButton,
+      @NonNull PerformanceMonitor performanceMonitor, @NonNull ImageButton pipButton,
       @NonNull LinearLayout pluginControlsPanel, @NonNull FrameLayout pluginOverlayContainer,
       @NonNull PreviewView previewView, @NonNull ImageButton settingsButton,
       @NonNull ImageButton switchCameraButton, @NonNull ImageButton videoRecordButton) {
@@ -76,9 +85,11 @@ public final class ActivityCameraBinding implements ViewBinding {
     this.captureButton = captureButton;
     this.flashButton = flashButton;
     this.galleryButton = galleryButton;
+    this.gestureHintsOverlay = gestureHintsOverlay;
     this.gridToggleButton = gridToggleButton;
     this.manualControlsToggleButton = manualControlsToggleButton;
     this.nightModeButton = nightModeButton;
+    this.performanceMonitor = performanceMonitor;
     this.pipButton = pipButton;
     this.pluginControlsPanel = pluginControlsPanel;
     this.pluginOverlayContainer = pluginOverlayContainer;
@@ -139,6 +150,12 @@ public final class ActivityCameraBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.gestureHintsOverlay;
+      GestureHintsOverlay gestureHintsOverlay = ViewBindings.findChildViewById(rootView, id);
+      if (gestureHintsOverlay == null) {
+        break missingId;
+      }
+
       id = R.id.gridToggleButton;
       ImageButton gridToggleButton = ViewBindings.findChildViewById(rootView, id);
       if (gridToggleButton == null) {
@@ -154,6 +171,12 @@ public final class ActivityCameraBinding implements ViewBinding {
       id = R.id.nightModeButton;
       ImageButton nightModeButton = ViewBindings.findChildViewById(rootView, id);
       if (nightModeButton == null) {
+        break missingId;
+      }
+
+      id = R.id.performanceMonitor;
+      PerformanceMonitor performanceMonitor = ViewBindings.findChildViewById(rootView, id);
+      if (performanceMonitor == null) {
         break missingId;
       }
 
@@ -200,8 +223,9 @@ public final class ActivityCameraBinding implements ViewBinding {
       }
 
       return new ActivityCameraBinding((FrameLayout) rootView, barcodeToggleButton, captureButton,
-          flashButton, galleryButton, gridToggleButton, manualControlsToggleButton, nightModeButton,
-          pipButton, pluginControlsPanel, pluginOverlayContainer, previewView, settingsButton,
+          flashButton, galleryButton, gestureHintsOverlay, gridToggleButton,
+          manualControlsToggleButton, nightModeButton, performanceMonitor, pipButton,
+          pluginControlsPanel, pluginOverlayContainer, previewView, settingsButton,
           switchCameraButton, videoRecordButton);
     }
     String missingId = rootView.getResources().getResourceName(id);

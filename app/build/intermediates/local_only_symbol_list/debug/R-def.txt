@@ -76,6 +76,7 @@ id exitButton
 id exportSettingsButton
 id flashButton
 id galleryButton
+id gestureHintsOverlay
 id gridToggleButton
 id headerIcon
 id headerTitle
@@ -84,6 +85,7 @@ id loadingText
 id manualControlsToggleButton
 id nightModeButton
 id openCameraButton
+id performanceMonitor
 id pipButton
 id pluginControlsPanel
 id pluginOverlayContainer
