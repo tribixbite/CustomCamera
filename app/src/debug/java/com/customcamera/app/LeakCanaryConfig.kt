@@ -21,18 +21,7 @@ class LeakCanaryConfig {
                 dumpHeap = true,
 
                 // Number of retained objects before dumping heap
-                retainedVisibleThreshold = 5,
-
-                // References to watch
-                watchActivities = true,
-                watchFragments = true,
-                watchViewModels = true,
-
-                // Filter out known library leaks
-                filterKnownLeaks = true,
-
-                // Leak detection delay
-                watchDurationMillis = 5000
+                retainedVisibleThreshold = 5
             )
         }
     }
