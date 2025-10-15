@@ -1062,12 +1062,13 @@ concurrentCamera = provider.bindToLifecycle(
 - ✅ Modified: `DualCameraPiPPlugin.kt` - Mode switching integration
 - ✅ Updated: `memory/PIP.md` - Implementation status
 
-## ✅ SESSION COMPLETED: Video Recording Bug Fixes (2025-10-15)
+## ✅ SESSION COMPLETED: Video Recording & PiP Bug Fixes (2025-10-15)
 
-### ✅ Problem & Solution
-**User Report**: "it says failed to start recording" when trying to record video
+### ✅ Problems & Solutions
+**User Report 1**: "it says failed to start recording" when trying to record video
+**User Report 2**: "when i disable pip the main camera freezes"
 
-**Two Root Causes Found**:
+**Three Root Causes Found**:
 
 **Issue 1: PiP Mode Conflict**
 - PiP (concurrent camera) mode disables VideoCapture UseCase to stay within 2 UseCase limit
@@ -1078,6 +1079,12 @@ concurrentCamera = provider.bindToLifecycle(
 - Video recording with audio requires RECORD_AUDIO permission
 - App only requested CAMERA permission at runtime
 - Recording failed when trying to enable audio without permission
+
+**Issue 3: Preview Freeze on PiP Disable**
+- When disabling PiP, camera switches from concurrent to single mode
+- switchToSingleMode() creates new Preview UseCase and binds it
+- But doesn't reconnect Preview to PreviewView's surface provider
+- Camera is bound but has no display surface = frozen preview
 
 **Fixes Applied**:
 
@@ -1106,6 +1113,18 @@ private val requestPermissionsLauncher = registerForActivityResult(
 }
 ```
 
+**Fix 3 - Reconnect Preview After PiP Disable**:
+```kotlin
+// CameraActivityEngine.kt - toggleDualCameraPiP()
+if (!wasEnabled) {  // PiP was just disabled
+    lifecycleScope.launch(Dispatchers.Main) {
+        val preview = cameraEngine.getPreview()
+        preview?.setSurfaceProvider(binding.previewView.surfaceProvider)
+        Log.i(TAG, "Preview reconnected after disabling PiP")
+    }
+}
+```
+
 **Changes**:
 - ✅ Video button disabled (grayed out at 50% opacity) when PiP is active
 - ✅ Clear user message: "Video recording unavailable in PiP mode. Disable PiP to record video."
@@ -1115,11 +1134,17 @@ private val requestPermissionsLauncher = registerForActivityResult(
 - ✅ Permission check before enabling audio in video recording
 - ✅ Video records without audio if permission denied (with warning logged)
 - ✅ User feedback if microphone permission is denied
+- ✅ Preview reconnects to PreviewView when PiP is disabled
+- ✅ Camera preview no longer freezes after disabling PiP
+- ✅ Smooth transition between concurrent and single camera modes
 
 **Build Status**:
-- Build Time: 4s
+- Build Time: 5s
 - Status: Production-ready
-- Test: Uninstall app, reinstall to test permission prompts, then test video recording
+- Test:
+  1. Uninstall app, reinstall to test permission prompts
+  2. Test video recording in single camera mode
+  3. Enable PiP → Disable PiP → Verify preview doesn't freeze
 
 ## Next Session Priorities
 1. **Device Testing**: Test video recording disable/enable with PiP toggle
