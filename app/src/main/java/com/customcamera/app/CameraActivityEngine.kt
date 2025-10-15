@@ -148,6 +148,9 @@ class CameraActivityEngine : AppCompatActivity() {
 
         Log.i(TAG, "✅ Presentation enhancements initialized")
 
+        // Setup MediaProjection launcher for screen capture fallback
+        setupMediaProjectionLauncher()
+
         // Initialize camera engine and plugins
         initializeCameraEngine()
 
@@ -644,70 +647,176 @@ class CameraActivityEngine : AppCompatActivity() {
     }
 
     /**
-     * Capture screen view as fallback using PreviewView.getBitmap()
+     * Capture entire window including PiP using PixelCopy
+     * Falls back to MediaProjection if PixelCopy fails
      */
     private fun captureScreenFallback(photoFile: File) {
-        lifecycleScope.launch(Dispatchers.Main) {
-            try {
-                Log.i(TAG, "📸 Capturing screen view for dual camera fallback")
+        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.O) {
+            Log.e(TAG, "PixelCopy requires API 26+")
+            requestMediaProjectionFallback(photoFile)
+            return
+        }
 
-                // Get bitmap from main PreviewView
-                val mainBitmap = binding.previewView.bitmap
+        try {
+            Log.i(TAG, "📸 Capturing entire window with PixelCopy")
 
-                if (mainBitmap == null) {
-                    Log.e(TAG, "Failed to get bitmap from PreviewView")
-                    loadingIndicatorManager.hideLoading()
-                    hapticManager.error()
-                    com.customcamera.app.presentation.EnhancedToast.error(this@CameraActivityEngine, "Screen capture failed")
-                    return@launch
-                }
+            // Capture the entire window
+            val contentView = window.decorView.rootView
+            val bitmap = android.graphics.Bitmap.createBitmap(
+                contentView.width,
+                contentView.height,
+                android.graphics.Bitmap.Config.ARGB_8888
+            )
 
-                // Create canvas to draw PiP overlay on top
-                val canvas = android.graphics.Canvas(mainBitmap)
+            android.view.PixelCopy.request(
+                window,
+                bitmap,
+                { copyResult ->
+                    if (copyResult == android.view.PixelCopy.SUCCESS) {
+                        try {
+                            // Save bitmap to file
+                            photoFile.outputStream().use { out ->
+                                bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 95, out)
+                            }
 
-                // Draw PiP overlay if visible
-                pipOverlayView?.let { pipView ->
-                    if (pipView.visibility == android.view.View.VISIBLE) {
-                        val saved = canvas.save()
+                            runOnUiThread {
+                                loadingIndicatorManager.hideLoading()
+                                com.customcamera.app.presentation.EnhancedToast.dualCameraPhoto(this, "${photoFile.name} (screen capture)")
+                                hapticManager.photoCapture()
+                                Log.i(TAG, "✅ Screen capture saved: ${photoFile.absolutePath}")
+                                animateCaptureButton()
+                            }
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Failed to save PixelCopy bitmap", e)
+                            runOnUiThread {
+                                requestMediaProjectionFallback(photoFile)
+                            }
+                        }
+                    } else {
+                        Log.e(TAG, "PixelCopy failed with result: $copyResult")
+                        runOnUiThread {
+                            requestMediaProjectionFallback(photoFile)
+                        }
+                    }
+                },
+                android.os.Handler(android.os.Looper.getMainLooper())
+            )
+        } catch (e: Exception) {
+            Log.e(TAG, "PixelCopy exception", e)
+            requestMediaProjectionFallback(photoFile)
+        }
+    }
 
-                        // Translate canvas to PiP position
-                        val location = IntArray(2)
-                        pipView.getLocationOnScreen(location)
-                        val previewLocation = IntArray(2)
-                        binding.previewView.getLocationOnScreen(previewLocation)
+    private var mediaProjectionLauncher: androidx.activity.result.ActivityResultLauncher<Intent>? = null
+    private var pendingScreenshotFile: File? = null
 
-                        val offsetX = location[0] - previewLocation[0]
-                        val offsetY = location[1] - previewLocation[1]
+    private fun setupMediaProjectionLauncher() {
+        mediaProjectionLauncher = registerForActivityResult(
+            ActivityResultContracts.StartActivityForResult()
+        ) { result ->
+            val file = pendingScreenshotFile ?: return@registerForActivityResult
 
-                        canvas.translate(offsetX.toFloat(), offsetY.toFloat())
-                        pipView.draw(canvas)
-                        canvas.restoreToCount(saved)
-
-                        Log.i(TAG, "PiP overlay drawn on bitmap at offset ($offsetX, $offsetY)")
+            if (result.resultCode == RESULT_OK && result.data != null) {
+                lifecycleScope.launch {
+                    try {
+                        captureWithMediaProjection(result.resultCode, result.data!!, file)
+                    } catch (e: Exception) {
+                        Log.e(TAG, "MediaProjection capture failed", e)
+                        loadingIndicatorManager.hideLoading()
+                        hapticManager.error()
+                        com.customcamera.app.presentation.EnhancedToast.error(this@CameraActivityEngine, "Screen capture failed")
                     }
                 }
+            } else {
+                Log.e(TAG, "MediaProjection permission denied")
+                loadingIndicatorManager.hideLoading()
+                hapticManager.error()
+                com.customcamera.app.presentation.EnhancedToast.error(this@CameraActivityEngine, "Screen capture permission denied")
+            }
+            pendingScreenshotFile = null
+        }
+    }
 
-                // Save bitmap to file
-                withContext(Dispatchers.IO) {
-                    photoFile.outputStream().use { out ->
-                        mainBitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 95, out)
-                    }
+    private fun requestMediaProjectionFallback(photoFile: File) {
+        Log.i(TAG, "📸 Requesting MediaProjection for screen capture")
+
+        pendingScreenshotFile = photoFile
+
+        val mediaProjectionManager = getSystemService(android.content.Context.MEDIA_PROJECTION_SERVICE)
+            as android.media.projection.MediaProjectionManager
+
+        val intent = mediaProjectionManager.createScreenCaptureIntent()
+        mediaProjectionLauncher?.launch(intent)
+    }
+
+    private suspend fun captureWithMediaProjection(resultCode: Int, data: Intent, photoFile: File) = withContext(Dispatchers.IO) {
+        val mediaProjectionManager = getSystemService(android.content.Context.MEDIA_PROJECTION_SERVICE)
+            as android.media.projection.MediaProjectionManager
+
+        val mediaProjection = mediaProjectionManager.getMediaProjection(resultCode, data)
+
+        try {
+            // Get display metrics
+            val metrics = resources.displayMetrics
+            val width = metrics.widthPixels
+            val height = metrics.heightPixels
+            val density = metrics.densityDpi
+
+            // Create ImageReader
+            val imageReader = android.media.ImageReader.newInstance(
+                width, height,
+                android.graphics.PixelFormat.RGBA_8888, 2
+            )
+
+            // Create virtual display
+            val virtualDisplay = mediaProjection.createVirtualDisplay(
+                "ScreenCapture",
+                width, height, density,
+                android.hardware.display.DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
+                imageReader.surface,
+                null, null
+            )
+
+            // Wait a bit for the display to render
+            kotlinx.coroutines.delay(100)
+
+            // Capture image
+            val image = imageReader.acquireLatestImage()
+            if (image != null) {
+                val planes = image.planes
+                val buffer = planes[0].buffer
+                val pixelStride = planes[0].pixelStride
+                val rowStride = planes[0].rowStride
+                val rowPadding = rowStride - pixelStride * width
+
+                val bitmap = android.graphics.Bitmap.createBitmap(
+                    width + rowPadding / pixelStride,
+                    height,
+                    android.graphics.Bitmap.Config.ARGB_8888
+                )
+                bitmap.copyPixelsFromBuffer(buffer)
+                image.close()
+
+                // Save bitmap
+                photoFile.outputStream().use { out ->
+                    bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 95, out)
                 }
 
                 withContext(Dispatchers.Main) {
                     loadingIndicatorManager.hideLoading()
                     com.customcamera.app.presentation.EnhancedToast.dualCameraPhoto(this@CameraActivityEngine, "${photoFile.name} (screen capture)")
                     hapticManager.photoCapture()
-                    Log.i(TAG, "✅ Screen capture saved: ${photoFile.absolutePath}")
+                    Log.i(TAG, "✅ MediaProjection screen capture saved: ${photoFile.absolutePath}")
                     animateCaptureButton()
                 }
-
-            } catch (e: Exception) {
-                Log.e(TAG, "Screen capture fallback failed", e)
-                loadingIndicatorManager.hideLoading()
-                hapticManager.error()
-                com.customcamera.app.presentation.EnhancedToast.error(this@CameraActivityEngine, "Screen capture failed")
+            } else {
+                throw Exception("Failed to acquire image from ImageReader")
             }
+
+            virtualDisplay.release()
+            imageReader.close()
+        } finally {
+            mediaProjection.stop()
         }
     }
 
