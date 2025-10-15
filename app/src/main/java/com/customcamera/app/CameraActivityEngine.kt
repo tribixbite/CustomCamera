@@ -647,64 +647,11 @@ class CameraActivityEngine : AppCompatActivity() {
     }
 
     /**
-     * Capture entire window including PiP using PixelCopy
-     * Falls back to MediaProjection if PixelCopy fails
+     * Capture screen using MediaProjection (direct approach)
      */
     private fun captureScreenFallback(photoFile: File) {
-        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.O) {
-            Log.e(TAG, "PixelCopy requires API 26+")
-            requestMediaProjectionFallback(photoFile)
-            return
-        }
-
-        try {
-            Log.i(TAG, "📸 Capturing entire window with PixelCopy")
-
-            // Capture the entire window
-            val contentView = window.decorView.rootView
-            val bitmap = android.graphics.Bitmap.createBitmap(
-                contentView.width,
-                contentView.height,
-                android.graphics.Bitmap.Config.ARGB_8888
-            )
-
-            android.view.PixelCopy.request(
-                window,
-                bitmap,
-                { copyResult ->
-                    if (copyResult == android.view.PixelCopy.SUCCESS) {
-                        try {
-                            // Save bitmap to file
-                            photoFile.outputStream().use { out ->
-                                bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 95, out)
-                            }
-
-                            runOnUiThread {
-                                loadingIndicatorManager.hideLoading()
-                                com.customcamera.app.presentation.EnhancedToast.dualCameraPhoto(this, "${photoFile.name} (screen capture)")
-                                hapticManager.photoCapture()
-                                Log.i(TAG, "✅ Screen capture saved: ${photoFile.absolutePath}")
-                                animateCaptureButton()
-                            }
-                        } catch (e: Exception) {
-                            Log.e(TAG, "Failed to save PixelCopy bitmap", e)
-                            runOnUiThread {
-                                requestMediaProjectionFallback(photoFile)
-                            }
-                        }
-                    } else {
-                        Log.e(TAG, "PixelCopy failed with result: $copyResult")
-                        runOnUiThread {
-                            requestMediaProjectionFallback(photoFile)
-                        }
-                    }
-                },
-                android.os.Handler(android.os.Looper.getMainLooper())
-            )
-        } catch (e: Exception) {
-            Log.e(TAG, "PixelCopy exception", e)
-            requestMediaProjectionFallback(photoFile)
-        }
+        Log.i(TAG, "📸 Requesting MediaProjection for screen capture")
+        requestMediaProjectionFallback(photoFile)
     }
 
     private var mediaProjectionLauncher: androidx.activity.result.ActivityResultLauncher<Intent>? = null
