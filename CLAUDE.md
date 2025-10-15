@@ -972,9 +972,10 @@ private fun captureScreenshotFallback(photoFile: File) {
 - ✅ Clean build in 9s with minor deprecation warnings
 
 **Build Status**:
-- Build Time: 9s
-- APK Size: ~27MB
-- Warnings: Deprecated drawing cache API (works fine, future: PixelCopy)
+- Build Time: 5s
+- APK Size: ~31MB
+- Version: 2.0.73 (code 30)
+- Warnings: Minor (unused parameters only)
 - Status: Production-ready for device testing
 
 **Test Instructions**:
@@ -985,10 +986,12 @@ private fun captureScreenshotFallback(photoFile: File) {
 5. Confirm GPS location and timestamp are present
 
 **Technical Notes**:
-- Uses deprecated `isDrawingCacheEnabled` and `buildDrawingCache()` APIs
-- These still work on current Android versions
-- Future enhancement: Migrate to PixelCopy API for modern Android
-- Screenshot includes all UI elements (PiP overlay, buttons, etc.) - may want to hide UI first
+- ✅ **Fixed**: Now uses PixelCopy API (Android O+ / API 26+) to properly capture SurfaceView/TextureView
+- Previous version used deprecated drawing cache which captured blank/black views
+- PreviewView uses SurfaceView/TextureView which render on separate surfaces
+- PixelCopy.request() captures the actual window content including these layers
+- Legacy draw() fallback for pre-Android O devices (won't capture camera properly)
+- Screenshot includes all UI elements (PiP overlay, buttons, etc.)
 
 **Integration Status**:
 - ✅ Integrated with dual camera capture flow
