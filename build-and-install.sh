@@ -125,8 +125,35 @@ if ! command -v adb &>/dev/null; then
     echo "   Will use alternative installation methods"
 fi
 
-# Step 2: Update version and clean if requested
-echo "Step 2: Updating version numbers..."
+# Step 2: Stop and uninstall existing app
+echo "Step 2: Stopping and uninstalling existing app..."
+
+if command -v adb &>/dev/null; then
+    # Test if ADB is connected
+    if test_adb_connection; then
+        echo "  📱 ADB device connected"
+
+        # Force stop the app if running
+        echo "  Stopping app..."
+        adb shell am force-stop "$PACKAGE_NAME" 2>/dev/null && echo "  ✓ App stopped" || echo "  ℹ️  App not running"
+
+        # Uninstall the app
+        echo "  Uninstalling old version..."
+        if adb uninstall "$PACKAGE_NAME" 2>/dev/null; then
+            echo "  ✓ Old version uninstalled"
+        else
+            echo "  ℹ️  No previous version to uninstall"
+        fi
+    else
+        echo "  ℹ️  ADB not connected, skipping app cleanup"
+    fi
+else
+    echo "  ℹ️  ADB not available, skipping app cleanup"
+fi
+echo
+
+# Step 3: Update version and clean if requested
+echo "Step 3: Updating version numbers..."
 
 # Increment patch version for this build
 VERSION_FILE="app/version.properties"
@@ -158,8 +185,8 @@ else
     echo "Skipping clean (use 'clean' argument to force clean build)"
 fi
 
-# Step 3: Build the APK
-echo "Step 3: Building $BUILD_TYPE APK..."
+# Step 4: Build the APK
+echo "Step 4: Building $BUILD_TYPE APK..."
 echo "This may take a few minutes on first run..."
 
 if ./gradlew assembleDebug; then
@@ -169,8 +196,8 @@ else
     exit 1
 fi
 
-# Step 4: Find the latest APK
-echo "Step 4: Locating APK file..."
+# Step 5: Find the latest APK
+echo "Step 5: Locating APK file..."
 
 APK_PATH="app/build/outputs/apk/debug/app-debug.apk"
 
@@ -184,8 +211,8 @@ fi
 echo "✅ APK found: $APK_PATH"
 ls -lh "$APK_PATH"
 
-# Step 5: Multi-tier installation methods
-echo "Step 5: Installing APK (multi-tier auto-install)..."
+# Step 6: Multi-tier installation methods
+echo "Step 6: Installing APK (multi-tier auto-install)..."
 echo
 
 APK_SIZE=$(ls -lh "$APK_PATH" | awk '{print $5}')
@@ -231,9 +258,6 @@ if command -v adb &>/dev/null; then
     # Quick test - if ADB already has connected devices
     if test_adb_connection; then
         echo "  📱 ADB device already connected"
-        echo "  Uninstalling old version..."
-        adb uninstall "$PACKAGE_NAME" 2>/dev/null || true
-
         echo "  Installing new APK..."
         if adb install -r "$APK_PATH"; then
             echo
@@ -254,9 +278,6 @@ if command -v adb &>/dev/null; then
             MODEL=$(adb shell getprop ro.product.model 2>/dev/null | tr -d '\r')
             ANDROID=$(adb shell getprop ro.build.version.release 2>/dev/null | tr -d '\r')
             echo "  📱 Device: $MODEL (Android $ANDROID)"
-
-            echo "  Uninstalling old version..."
-            adb uninstall "$PACKAGE_NAME" 2>/dev/null || true
 
             echo "  Installing new APK..."
             if adb install -r "$APK_PATH"; then
