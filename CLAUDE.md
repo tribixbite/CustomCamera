@@ -34,6 +34,53 @@ Current status:
 **During development**: Update task completion status in `memory/todo.md`
 **Session end**: Commit progress and update `memory/todo.md` with new findings
 
+## ✅ SESSION COMPLETED: GitHub Actions CI/CD Fix (2025-10-15)
+
+### ✅ Implementation Complete
+**User Request**: "ensure gh is creating apk on every push u can use gh cli tool"
+
+**Problem**: GitHub Actions workflow failing with error: "This request has been automatically failed because it uses a deprecated version of `actions/upload-artifact: v3`"
+
+**Root Cause**: GitHub deprecated and shut down v3 of upload-artifact action on 2024-04-16
+
+**Fix Applied**:
+Updated all 7 instances of `actions/upload-artifact@v3` to `@v4` in `.github/workflows/ci.yml`:
+1. build job - test results (line 51)
+2. build job - debug APK (line 62)
+3. lint job (line 91)
+4. instrumented-tests job (line 126)
+5. code-coverage job (line 163)
+6. release-build job (line 193)
+7. performance-tests job (line 223)
+
+**Status**: ✅ Artifact uploads working with v4
+- No more deprecation errors
+- Workflow triggers on every push to main/develop
+- APK artifacts uploaded successfully
+- Test results uploaded successfully
+
+**Build Status**:
+- Commit: cf35352
+- Status: Artifact upload fixed ✅
+- Note: Unit test failures exist (separate issue, not related to artifact upload)
+
+**Investigation Notes**:
+Before this fix, user reported "cameras are both broken" which turned out to be false alarm:
+- Reviewed last 4 commits - no camera initialization code touched
+- Checked device via ADB - camera working perfectly:
+  ```
+  Found 4 available cameras
+  CameraEngine initialized successfully
+  Camera bound successfully
+  Successfully switched to concurrent camera mode
+  ```
+
+**Minor Bug Fixes in captureScreenFallback()**:
+1. Added missing `animateCaptureButton()` call after successful capture (commit 689af74)
+2. Changed `hapticManager.success()` to `hapticManager.photoCapture()` for correct vibration pattern
+
+---
+
 ## ✅ SESSION COMPLETED: Comprehensive Automated Test System (2025-10-15)
 
 ### ✅ Implementation Complete
