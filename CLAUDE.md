@@ -8,10 +8,14 @@ Modern Kotlin camera app with Samsung/Google-style floating UI, robust camera se
 **Architecture**: Clean Android + CameraEngine + Professional UX + CI/CD + Automated Testing (38+ tests)
 
 ## Build Commands
-- `./gradlew assembleDebug`: Build debug APK
-- `./gradlew clean assembleDebug`: Clean build
-- `adb install -r app/build/outputs/apk/debug/app-debug.apk`: Install app
+- `./build-and-install.sh`: **Automated build with app stop/uninstall** (recommended)
+- `./build-and-install.sh clean`: Clean build with app cleanup
+- `./gradlew assembleDebug`: Build debug APK only
+- `./gradlew clean assembleDebug`: Clean build only
+- `adb install -r app/build/outputs/apk/debug/app-debug.apk`: Manual install
 - `adb logcat -d | grep "customcamera\|CameraActivity\|CameraSelection"`: Check app logs
+
+**Note**: `build-and-install.sh` now automatically stops and uninstalls the existing app before building to prevent file locking issues.
 
 ## Task Management
 
