@@ -684,11 +684,12 @@ class CameraActivityEngine : AppCompatActivity() {
 
                                     withContext(Dispatchers.Main) {
                                         loadingIndicatorManager.hideLoading()
-                                        hapticManager.success()
+                                        hapticManager.photoCapture()
                                         com.customcamera.app.presentation.EnhancedToast.success(
                                             this@CameraActivityEngine,
                                             "Dual camera photo saved: ${photoFile.name}"
                                         )
+                                        animateCaptureButton()
                                     }
                                 } else {
                                     Log.e(TAG, "❌ PixelCopy failed with result: $copyResult")
