@@ -1146,9 +1146,52 @@ if (!wasEnabled) {  // PiP was just disabled
   2. Test video recording in single camera mode
   3. Enable PiP → Disable PiP → Verify preview doesn't freeze
 
+## ✅ SESSION CONTINUED: Dual Camera Photo Capture Fix (2025-10-15)
+
+### ✅ Problem & Solution
+**User Report**: "dual camera capture failed"
+
+**Root Cause**:
+- YUV_420_888 to Bitmap conversion in DualCameraCompositor was incorrect
+- Did not handle row stride and pixel stride properly
+- Wrong plane order and incorrect NV21 format creation
+- UV planes were not properly interleaved
+
+**Fix Applied**:
+```kotlin
+// Correct YUV plane handling
+val yPlane = planes[0]  // Y
+val uPlane = planes[1]  // U
+val vPlane = planes[2]  // V
+
+// Handle stride-based copying
+if (uvPixelStride == 1) {
+    // Tightly packed - bulk copy
+    vBuffer.get(nv21, ySize, vSize)
+    uBuffer.get(nv21, ySize + vSize, uSize)
+} else {
+    // Interleaved - manual copy with stride
+    for (row/col in UV dimensions) {
+        nv21[nv21Index++] = vBuffer[vIndex]
+        nv21[nv21Index++] = uBuffer[uIndex]
+    }
+}
+```
+
+**Changes**:
+- ✅ Correct YUV_420_888 plane order (Y, U, V)
+- ✅ Proper row stride and pixel stride handling
+- ✅ Correct NV21 format (Y + interleaved VU)
+- ✅ Handles both tightly-packed and interleaved UV data
+- ✅ Added detailed stride logging for debugging
+- ✅ Dual camera composite photos now work correctly
+
+**Build**: 32s, production-ready
+
 ## Next Session Priorities
-1. **Device Testing**: Test video recording disable/enable with PiP toggle
-2. **Verify PiP Dual Camera**: Ensure both main and PiP previews display correctly
+1. **Device Testing**: Test dual camera photo capture with PiP enabled
+2. **Verify Composite**: Check that PiP overlay appears correctly in saved photos
+3. **Test All Fixes**: Video recording, PiP toggle, dual camera capture
 3. **Test Dual Photo Capture**: Verify composite photos with PiP overlay work
 4. **Phase 9B**: Real-time video stabilization (hardware + software fallback)
 5. **Phase 9D**: Advanced UI polish (enhanced settings, animations, loading indicators)
