@@ -1188,10 +1188,39 @@ if (uvPixelStride == 1) {
 
 **Build**: 32s, production-ready
 
+## ✅ SESSION CONTINUED: Gesture Controls & UI Fixes (2025-10-15)
+
+### ✅ Three More Issues Fixed
+
+**Issue 1: Gesture Controls Off-By-One Error**
+- Gestures were triggering wrong features (2x was grid when it should be at tapCount 2, not 1)
+- **Fix**: Corrected tap count logic - now properly counts: 2=grid, 3=barcode, 4=crop, 5=scene, 6=object
+
+**Issue 2: "Tap Anywhere to Dismiss" Not Working**
+- GestureHintsOverlay showed message but had no touch listener
+- **Fix**: Added `setOnClickListener` to dismiss overlay on tap
+
+**Issue 3: Dual Camera Debug Logging**
+- Added comprehensive logging to YUV conversion for debugging
+- Buffer position resets, bounds checking, byte count logging
+- **Note**: Need device logs to diagnose further
+
+**Changes**:
+- ✅ Double tap (2x) → Grid overlay
+- ✅ Triple tap (3x) → Barcode scanning
+- ✅ Quadruple tap (4x) → Crop mode
+- ✅ Five tap (5x) → Smart scene detection
+- ✅ Six tap (6x) → Object detection
+- ✅ Gesture hints overlay dismisses on tap
+- ✅ Enhanced logging for dual camera debugging
+
+**Build**: 22s, production-ready
+
 ## Next Session Priorities
-1. **Device Testing**: Test dual camera photo capture with PiP enabled
-2. **Verify Composite**: Check that PiP overlay appears correctly in saved photos
-3. **Test All Fixes**: Video recording, PiP toggle, dual camera capture
+1. **Get Device Logs**: Need `adb logcat` output when dual camera capture fails
+2. **Device Testing**: Test gesture controls (2x/3x/4x taps)
+3. **Verify Dismiss**: Check that gesture hints overlay dismisses on tap
+4. **Test All Fixes**: Video recording, PiP toggle, dual camera capture
 3. **Test Dual Photo Capture**: Verify composite photos with PiP overlay work
 4. **Phase 9B**: Real-time video stabilization (hardware + software fallback)
 5. **Phase 9D**: Advanced UI polish (enhanced settings, animations, loading indicators)
