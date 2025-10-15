@@ -130,21 +130,58 @@ object DualCameraCompositor {
      */
     private fun imageProxyToBitmap(image: ImageProxy): Bitmap? {
         return try {
-            val yBuffer = image.planes[0].buffer // Y
-            val vuBuffer = image.planes[2].buffer // V
-            val uBuffer = image.planes[1].buffer // U
+            // YUV_420_888 format: planes[0] = Y, planes[1] = U, planes[2] = V
+            val planes = image.planes
+            val yPlane = planes[0]
+            val uPlane = planes[1]
+            val vPlane = planes[2]
 
+            val yBuffer = yPlane.buffer
+            val uBuffer = uPlane.buffer
+            val vBuffer = vPlane.buffer
+
+            // Get buffer sizes
             val ySize = yBuffer.remaining()
             val uSize = uBuffer.remaining()
-            val vSize = vuBuffer.remaining()
+            val vSize = vBuffer.remaining()
 
+            // Create NV21 byte array (Y followed by interleaved VU)
             val nv21 = ByteArray(ySize + uSize + vSize)
 
-            // U and V are swapped
+            // Copy Y plane
             yBuffer.get(nv21, 0, ySize)
-            vuBuffer.get(nv21, ySize, vSize)
-            uBuffer.get(nv21, ySize + vSize, uSize)
 
+            // Get row and pixel strides
+            val yRowStride = yPlane.rowStride
+            val yPixelStride = yPlane.pixelStride
+            val uvRowStride = uPlane.rowStride
+            val uvPixelStride = uPlane.pixelStride
+
+            Log.d(TAG, "Image: ${image.width}x${image.height}, Y stride: $yRowStride/$yPixelStride, UV stride: $uvRowStride/$uvPixelStride")
+
+            // If pixel stride is 1, we can do bulk copy
+            if (uvPixelStride == 1) {
+                // Simple case: tightly packed UV data
+                vBuffer.get(nv21, ySize, vSize)
+                uBuffer.get(nv21, ySize + vSize, uSize)
+            } else {
+                // Complex case: need to interleave VU manually
+                val uvWidth = image.width / 2
+                val uvHeight = image.height / 2
+
+                var nv21Index = ySize
+                for (row in 0 until uvHeight) {
+                    for (col in 0 until uvWidth) {
+                        val vIndex = row * uvRowStride + col * uvPixelStride
+                        val uIndex = row * uvRowStride + col * uvPixelStride
+
+                        nv21[nv21Index++] = vBuffer[vIndex]
+                        nv21[nv21Index++] = uBuffer[uIndex]
+                    }
+                }
+            }
+
+            // Convert NV21 to Bitmap via YuvImage
             val yuvImage = YuvImage(nv21, ImageFormat.NV21, image.width, image.height, null)
             val out = java.io.ByteArrayOutputStream()
             yuvImage.compressToJpeg(Rect(0, 0, image.width, image.height), 95, out)
@@ -153,6 +190,7 @@ object DualCameraCompositor {
             BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
         } catch (e: Exception) {
             Log.e(TAG, "Failed to convert ImageProxy to Bitmap", e)
+            Log.e(TAG, "Image format: ${image.format}, size: ${image.width}x${image.height}")
             null
         }
     }
