@@ -149,7 +149,9 @@ object DualCameraCompositor {
             val nv21 = ByteArray(ySize + uSize + vSize)
 
             // Copy Y plane
+            yBuffer.position(0) // Reset buffer position
             yBuffer.get(nv21, 0, ySize)
+            Log.d(TAG, "Copied Y plane: $ySize bytes")
 
             // Get row and pixel strides
             val yRowStride = yPlane.rowStride
@@ -158,14 +160,22 @@ object DualCameraCompositor {
             val uvPixelStride = uPlane.pixelStride
 
             Log.d(TAG, "Image: ${image.width}x${image.height}, Y stride: $yRowStride/$yPixelStride, UV stride: $uvRowStride/$uvPixelStride")
+            Log.d(TAG, "Buffer sizes: Y=$ySize, U=$uSize, V=$vSize, NV21=${nv21.size}")
+
+            // Reset UV buffer positions
+            uBuffer.position(0)
+            vBuffer.position(0)
 
             // If pixel stride is 1, we can do bulk copy
             if (uvPixelStride == 1) {
                 // Simple case: tightly packed UV data
+                Log.d(TAG, "Using bulk copy for UV planes (pixelStride=1)")
                 vBuffer.get(nv21, ySize, vSize)
                 uBuffer.get(nv21, ySize + vSize, uSize)
+                Log.d(TAG, "Copied V plane: $vSize bytes, U plane: $uSize bytes")
             } else {
                 // Complex case: need to interleave VU manually
+                Log.d(TAG, "Using manual interleaving for UV planes (pixelStride=$uvPixelStride)")
                 val uvWidth = image.width / 2
                 val uvHeight = image.height / 2
 
@@ -175,10 +185,16 @@ object DualCameraCompositor {
                         val vIndex = row * uvRowStride + col * uvPixelStride
                         val uIndex = row * uvRowStride + col * uvPixelStride
 
-                        nv21[nv21Index++] = vBuffer[vIndex]
-                        nv21[nv21Index++] = uBuffer[uIndex]
+                        if (vIndex < vSize && uIndex < uSize) {
+                            nv21[nv21Index++] = vBuffer[vIndex]
+                            nv21[nv21Index++] = uBuffer[uIndex]
+                        } else {
+                            Log.e(TAG, "Buffer index out of bounds: vIndex=$vIndex/$vSize, uIndex=$uIndex/$uSize at row=$row, col=$col")
+                            break
+                        }
                     }
                 }
+                Log.d(TAG, "Interleaved UV planes: wrote ${nv21Index - ySize} bytes")
             }
 
             // Convert NV21 to Bitmap via YuvImage

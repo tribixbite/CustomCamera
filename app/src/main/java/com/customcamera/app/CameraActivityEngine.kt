@@ -1642,20 +1642,31 @@ class CameraActivityEngine : AppCompatActivity() {
                         val currentTime = System.currentTimeMillis()
                         if (currentTime - lastTapTime < 300) {
                             tapCount++
+                            Log.d(TAG, "Tap count: $tapCount")
                             when (tapCount) {
-                                1 -> toggleGrid()
                                 2 -> {
-                                    toggleBarcodeScanning()
+                                    // Double tap - toggle grid
+                                    toggleGrid()
                                     tapCount = 0
                                 }
                                 3 -> {
-                                    // Quadruple tap - show zoom info
-                                    showZoomInfo()
+                                    // Triple tap - toggle barcode
+                                    toggleBarcodeScanning()
                                     tapCount = 0
                                 }
                                 4 -> {
-                                    // Five tap - toggle focus peaking
-                                    toggleFocusPeaking()
+                                    // Quadruple tap - toggle crop
+                                    toggleCrop()
+                                    tapCount = 0
+                                }
+                                5 -> {
+                                    // Five tap - toggle smart scene
+                                    toggleSmartSceneDetection()
+                                    tapCount = 0
+                                }
+                                6 -> {
+                                    // Six tap - toggle object detection
+                                    toggleObjectDetection()
                                     tapCount = 0
                                 }
                             }

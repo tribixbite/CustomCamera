@@ -57,6 +57,11 @@ class GestureHintsOverlay @JvmOverloads constructor(
         iconPaint.textAlign = Paint.Align.CENTER
         iconPaint.setShadowLayer(8f, 0f, 4f, Color.BLACK)
 
+        // Tap anywhere to dismiss
+        setOnClickListener {
+            hideHints()
+        }
+
         // Auto-show on first run
         if (!hasSeenHints) {
             postDelayed({
