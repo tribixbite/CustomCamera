@@ -126,12 +126,22 @@ class AdvancedVideoRecordingPlugin : UIPlugin() {
             val outputFile = createVideoFile()
             val outputOptions = FileOutputOptions.Builder(outputFile).build()
 
+            // Check if RECORD_AUDIO permission is granted before enabling audio
+            val hasAudioPermission = androidx.core.content.ContextCompat.checkSelfPermission(
+                cameraContext!!.context,
+                android.Manifest.permission.RECORD_AUDIO
+            ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+
             // Configure recording with manual controls
             val pendingRecording = videoCapture.output
                 .prepareRecording(cameraContext!!.context, outputOptions)
                 .apply {
-                    if (_audioRecordingEnabled.value) {
+                    // Only enable audio if permission is granted AND setting is enabled
+                    if (_audioRecordingEnabled.value && hasAudioPermission) {
                         withAudioEnabled()
+                        Log.i(TAG, "Audio recording enabled")
+                    } else if (_audioRecordingEnabled.value && !hasAudioPermission) {
+                        Log.w(TAG, "Audio recording requested but permission denied - recording without audio")
                     }
                 }
 

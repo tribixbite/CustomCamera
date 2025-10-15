@@ -19,10 +19,20 @@ class CameraSelectionActivity : AppCompatActivity() {
     private var selectedCameraIndex: Int = 0
     private var availableCameras: List<androidx.camera.core.CameraInfo> = emptyList()
     
-    private val requestPermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        if (isGranted) {
+    private val requestPermissionsLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val cameraGranted = permissions[Manifest.permission.CAMERA] ?: false
+        val audioGranted = permissions[Manifest.permission.RECORD_AUDIO] ?: false
+
+        if (cameraGranted) {
+            if (!audioGranted) {
+                Toast.makeText(
+                    this,
+                    "Microphone permission denied. Video recording will be silent.",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
             detectAvailableCameras()
         } else {
             Toast.makeText(this, getString(R.string.camera_permission_required), Toast.LENGTH_LONG).show()
@@ -39,10 +49,15 @@ class CameraSelectionActivity : AppCompatActivity() {
         
         setupClickListeners()
         
-        if (hasCameraPermission()) {
+        if (hasRequiredPermissions()) {
             detectAvailableCameras()
         } else {
-            requestPermissionLauncher.launch(Manifest.permission.CAMERA)
+            requestPermissionsLauncher.launch(
+                arrayOf(
+                    Manifest.permission.CAMERA,
+                    Manifest.permission.RECORD_AUDIO
+                )
+            )
         }
     }
     
@@ -77,11 +92,19 @@ class CameraSelectionActivity : AppCompatActivity() {
         }
     }
     
-    private fun hasCameraPermission(): Boolean {
-        return ContextCompat.checkSelfPermission(
-            this, 
+    private fun hasRequiredPermissions(): Boolean {
+        val cameraGranted = ContextCompat.checkSelfPermission(
+            this,
             Manifest.permission.CAMERA
         ) == PackageManager.PERMISSION_GRANTED
+
+        val audioGranted = ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.RECORD_AUDIO
+        ) == PackageManager.PERMISSION_GRANTED
+
+        // Camera is required, audio is optional (just warn if missing)
+        return cameraGranted
     }
     
     private fun detectAvailableCameras() {
