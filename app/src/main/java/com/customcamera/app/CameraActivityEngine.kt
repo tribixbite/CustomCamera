@@ -412,6 +412,9 @@ class CameraActivityEngine : AppCompatActivity() {
                 // Update flash button state
                 updateFlashButton()
 
+                // Update video button state based on camera mode
+                updateVideoButtonState()
+
                 // Initialize zoom controller for pinch-to-zoom
                 val camera = cameraEngine.getCurrentCamera()
                 if (camera != null && zoomController == null) {
@@ -2243,9 +2246,33 @@ class CameraActivityEngine : AppCompatActivity() {
             Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
             Log.i(TAG, "$message (cameras available: $cameraCount)")
 
+            // Update video button state based on camera mode
+            // Video recording is disabled in concurrent mode due to UseCase limit
+            updateVideoButtonState()
+
         } catch (e: Exception) {
             Log.e(TAG, "Error toggling dual camera PiP", e)
             Toast.makeText(this, "PiP toggle failed: ${e.message}", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    /**
+     * Update video button enabled state based on current camera mode.
+     * Video recording is disabled in concurrent (PiP) mode due to UseCase limits.
+     */
+    private fun updateVideoButtonState() {
+        val currentMode = cameraEngine.getCurrentMode()
+        val isVideoAvailable = currentMode is com.customcamera.app.engine.CameraMode.Single
+
+        binding.videoRecordButton.apply {
+            isEnabled = isVideoAvailable
+            alpha = if (isVideoAvailable) 1.0f else 0.5f
+        }
+
+        if (!isVideoAvailable) {
+            Log.i(TAG, "Video recording disabled in concurrent camera mode (PiP active)")
+        } else {
+            Log.i(TAG, "Video recording enabled in single camera mode")
         }
     }
 
@@ -2274,9 +2301,31 @@ class CameraActivityEngine : AppCompatActivity() {
                 plugin.stopRecording()
                 Toast.makeText(this, "Video recording stopped", Toast.LENGTH_SHORT).show()
             } else {
+                // Check if in concurrent camera mode (PiP active)
+                val currentMode = cameraEngine.getCurrentMode()
+                if (currentMode is com.customcamera.app.engine.CameraMode.Concurrent) {
+                    Log.w(TAG, "Video recording not available in concurrent camera mode")
+                    Toast.makeText(
+                        this,
+                        "Video recording unavailable in PiP mode. Disable PiP to record video.",
+                        Toast.LENGTH_LONG
+                    ).show()
+                    return
+                }
+
                 // Check if video capture is available from engine
                 val videoCapture = cameraEngine.getVideoCapture()
                 Log.i(TAG, "Video capture from engine: $videoCapture")
+
+                if (videoCapture == null) {
+                    Log.e(TAG, "VideoCapture not initialized")
+                    Toast.makeText(
+                        this,
+                        "Video recording not available. Please restart the camera.",
+                        Toast.LENGTH_LONG
+                    ).show()
+                    return
+                }
 
                 lifecycleScope.launch {
                     val result = plugin.startRecording()
