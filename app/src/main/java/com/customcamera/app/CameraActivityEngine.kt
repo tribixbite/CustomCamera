@@ -697,10 +697,13 @@ class CameraActivityEngine : AppCompatActivity() {
     }
 
     private suspend fun captureWithMediaProjection(resultCode: Int, data: Intent, photoFile: File) = withContext(Dispatchers.IO) {
+        Log.i(TAG, "📸 Starting MediaProjection capture")
+
         val mediaProjectionManager = getSystemService(android.content.Context.MEDIA_PROJECTION_SERVICE)
             as android.media.projection.MediaProjectionManager
 
         val mediaProjection = mediaProjectionManager.getMediaProjection(resultCode, data)
+        Log.i(TAG, "MediaProjection obtained: $mediaProjection")
 
         try {
             // Get display metrics
@@ -708,12 +711,14 @@ class CameraActivityEngine : AppCompatActivity() {
             val width = metrics.widthPixels
             val height = metrics.heightPixels
             val density = metrics.densityDpi
+            Log.i(TAG, "Display metrics: ${width}x${height} @ ${density}dpi")
 
             // Create ImageReader
             val imageReader = android.media.ImageReader.newInstance(
                 width, height,
                 android.graphics.PixelFormat.RGBA_8888, 2
             )
+            Log.i(TAG, "ImageReader created")
 
             // Create virtual display
             val virtualDisplay = mediaProjection.createVirtualDisplay(
@@ -723,47 +728,69 @@ class CameraActivityEngine : AppCompatActivity() {
                 imageReader.surface,
                 null, null
             )
+            Log.i(TAG, "VirtualDisplay created: $virtualDisplay")
 
-            // Wait a bit for the display to render
-            kotlinx.coroutines.delay(100)
-
-            // Capture image
-            val image = imageReader.acquireLatestImage()
-            if (image != null) {
-                val planes = image.planes
-                val buffer = planes[0].buffer
-                val pixelStride = planes[0].pixelStride
-                val rowStride = planes[0].rowStride
-                val rowPadding = rowStride - pixelStride * width
-
-                val bitmap = android.graphics.Bitmap.createBitmap(
-                    width + rowPadding / pixelStride,
-                    height,
-                    android.graphics.Bitmap.Config.ARGB_8888
-                )
-                bitmap.copyPixelsFromBuffer(buffer)
-                image.close()
-
-                // Save bitmap
-                photoFile.outputStream().use { out ->
-                    bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 95, out)
+            // Wait longer for the display to render and try multiple times
+            var image: android.media.Image? = null
+            for (attempt in 1..10) {
+                kotlinx.coroutines.delay(200)
+                image = imageReader.acquireLatestImage()
+                if (image != null) {
+                    Log.i(TAG, "Image acquired on attempt $attempt")
+                    break
                 }
+                Log.w(TAG, "Attempt $attempt: No image available yet, retrying...")
+            }
 
-                withContext(Dispatchers.Main) {
-                    loadingIndicatorManager.hideLoading()
-                    com.customcamera.app.presentation.EnhancedToast.dualCameraPhoto(this@CameraActivityEngine, "${photoFile.name} (screen capture)")
-                    hapticManager.photoCapture()
-                    Log.i(TAG, "✅ MediaProjection screen capture saved: ${photoFile.absolutePath}")
-                    animateCaptureButton()
+            if (image != null) {
+                try {
+                    val planes = image.planes
+                    val buffer = planes[0].buffer
+                    val pixelStride = planes[0].pixelStride
+                    val rowStride = planes[0].rowStride
+                    val rowPadding = rowStride - pixelStride * width
+
+                    Log.i(TAG, "Image format: pixelStride=$pixelStride, rowStride=$rowStride, rowPadding=$rowPadding")
+
+                    val bitmap = android.graphics.Bitmap.createBitmap(
+                        width + rowPadding / pixelStride,
+                        height,
+                        android.graphics.Bitmap.Config.ARGB_8888
+                    )
+                    buffer.position(0)
+                    bitmap.copyPixelsFromBuffer(buffer)
+                    Log.i(TAG, "Bitmap created: ${bitmap.width}x${bitmap.height}")
+
+                    // Save bitmap
+                    photoFile.outputStream().use { out ->
+                        bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 95, out)
+                    }
+                    Log.i(TAG, "Bitmap saved to file: ${photoFile.absolutePath}")
+
+                    withContext(Dispatchers.Main) {
+                        loadingIndicatorManager.hideLoading()
+                        com.customcamera.app.presentation.EnhancedToast.dualCameraPhoto(this@CameraActivityEngine, "${photoFile.name} (screen capture)")
+                        hapticManager.photoCapture()
+                        Log.i(TAG, "✅ MediaProjection screen capture saved: ${photoFile.absolutePath}")
+                        animateCaptureButton()
+                    }
+                } finally {
+                    image.close()
                 }
             } else {
-                throw Exception("Failed to acquire image from ImageReader")
+                Log.e(TAG, "Failed to acquire image after 10 attempts")
+                throw Exception("Failed to acquire image from ImageReader after 10 attempts (2 seconds)")
             }
 
             virtualDisplay.release()
             imageReader.close()
+            Log.i(TAG, "Resources released")
+        } catch (e: Exception) {
+            Log.e(TAG, "MediaProjection capture exception", e)
+            throw e
         } finally {
             mediaProjection.stop()
+            Log.i(TAG, "MediaProjection stopped")
         }
     }
 
