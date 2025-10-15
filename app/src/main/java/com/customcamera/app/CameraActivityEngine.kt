@@ -39,8 +39,6 @@ import android.animation.ObjectAnimator
 import android.animation.AnimatorSet
 import android.view.HapticFeedbackConstants
 import android.view.ViewGroup
-import android.graphics.Bitmap
-import android.graphics.Canvas
 import com.customcamera.app.ui.LoadingIndicatorManager
 
 /**
@@ -512,9 +510,8 @@ class CameraActivityEngine : AppCompatActivity() {
                             // Get PiP frame
                             val pipImage = cameraEngine.getLatestPipFrame()
                             if (pipImage == null) {
-                                Log.e(TAG, "PiP frame not available, using screenshot fallback")
-                                mainImage.close()
-                                captureScreenshotFallback(photoFile)
+                                Log.e(TAG, "PiP frame not available, saving main camera only")
+                                saveSingleImage(mainImage, outputFileOptions, photoFile)
                                 return
                             }
 
@@ -542,12 +539,53 @@ class CameraActivityEngine : AppCompatActivity() {
                                 Log.i(TAG, "✅ Dual camera photo saved: ${photoFile.absolutePath}")
                                 animateCaptureButton()
                             } else {
-                                Log.e(TAG, "Composite failed, using screenshot fallback")
-                                captureScreenshotFallback(photoFile)
+                                Log.e(TAG, "Composite failed, saving main camera only")
+                                // Retake photo from main camera as fallback
+                                imageCapture.takePicture(
+                                    outputFileOptions,
+                                    ContextCompat.getMainExecutor(this@CameraActivityEngine),
+                                    object : ImageCapture.OnImageSavedCallback {
+                                        override fun onImageSaved(output: ImageCapture.OutputFileResults) {
+                                            loadingIndicatorManager.hideLoading()
+                                            com.customcamera.app.presentation.EnhancedToast.photoSaved(this@CameraActivityEngine, "${photoFile.name} (main camera)")
+                                            hapticManager.photoCapture()
+                                            Log.i(TAG, "Photo saved (main camera fallback): ${photoFile.absolutePath}")
+                                            animateCaptureButton()
+                                        }
+
+                                        override fun onError(exception: ImageCaptureException) {
+                                            loadingIndicatorManager.hideLoading()
+                                            hapticManager.error()
+                                            Log.e(TAG, "Fallback photo capture failed", exception)
+                                            com.customcamera.app.presentation.EnhancedToast.error(this@CameraActivityEngine, "Photo capture failed")
+                                        }
+                                    }
+                                )
                             }
                         } catch (e: Exception) {
-                            Log.e(TAG, "Dual camera capture failed, using screenshot fallback", e)
-                            captureScreenshotFallback(photoFile)
+                            Log.e(TAG, "Dual camera capture failed, saving main camera only", e)
+                            mainImage.close()
+                            // Retake photo from main camera as fallback
+                            imageCapture.takePicture(
+                                outputFileOptions,
+                                ContextCompat.getMainExecutor(this@CameraActivityEngine),
+                                object : ImageCapture.OnImageSavedCallback {
+                                    override fun onImageSaved(output: ImageCapture.OutputFileResults) {
+                                        loadingIndicatorManager.hideLoading()
+                                        com.customcamera.app.presentation.EnhancedToast.photoSaved(this@CameraActivityEngine, "${photoFile.name} (main camera)")
+                                        hapticManager.photoCapture()
+                                        Log.i(TAG, "Photo saved (main camera fallback): ${photoFile.absolutePath}")
+                                        animateCaptureButton()
+                                    }
+
+                                    override fun onError(exception: ImageCaptureException) {
+                                        loadingIndicatorManager.hideLoading()
+                                        hapticManager.error()
+                                        Log.e(TAG, "Fallback photo capture failed", exception)
+                                        com.customcamera.app.presentation.EnhancedToast.error(this@CameraActivityEngine, "Photo capture failed")
+                                    }
+                                }
+                            )
                         }
                     }
 
@@ -642,132 +680,6 @@ class CameraActivityEngine : AppCompatActivity() {
                 Log.e(TAG, "Long exposure capture error", e)
                 Toast.makeText(this@CameraActivityEngine, "Long exposure error: ${e.message}", Toast.LENGTH_LONG).show()
             }
-        }
-    }
-
-    /**
-     * Screenshot fallback for dual camera capture when composite fails
-     * Uses PixelCopy API to capture SurfaceView/TextureView content properly
-     */
-    private fun captureScreenshotFallback(photoFile: File) {
-        try {
-            Log.i(TAG, "📸 Using screenshot fallback for dual camera capture")
-
-            // PixelCopy requires Android O+ (API 26+)
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                val rootView = binding.root
-                val bitmap = Bitmap.createBitmap(
-                    rootView.width,
-                    rootView.height,
-                    Bitmap.Config.ARGB_8888
-                )
-
-                // Use PixelCopy to capture the window (includes SurfaceView/TextureView)
-                val locationInWindow = IntArray(2)
-                rootView.getLocationInWindow(locationInWindow)
-
-                android.view.PixelCopy.request(
-                    window,
-                    android.graphics.Rect(
-                        locationInWindow[0],
-                        locationInWindow[1],
-                        locationInWindow[0] + rootView.width,
-                        locationInWindow[1] + rootView.height
-                    ),
-                    bitmap,
-                    { copyResult ->
-                        if (copyResult == android.view.PixelCopy.SUCCESS) {
-                            try {
-                                // Save bitmap to file with JPEG quality
-                                photoFile.outputStream().use { out ->
-                                    bitmap.compress(Bitmap.CompressFormat.JPEG, 95, out)
-                                }
-
-                                // Add EXIF metadata (location and timestamp)
-                                try {
-                                    val exif = androidx.exifinterface.media.ExifInterface(photoFile.absolutePath)
-
-                                    // Set timestamp
-                                    val timestamp = java.text.SimpleDateFormat("yyyy:MM:dd HH:mm:ss", java.util.Locale.US)
-                                        .format(java.util.Date())
-                                    exif.setAttribute(androidx.exifinterface.media.ExifInterface.TAG_DATETIME, timestamp)
-                                    exif.setAttribute(androidx.exifinterface.media.ExifInterface.TAG_DATETIME_ORIGINAL, timestamp)
-                                    exif.setAttribute(androidx.exifinterface.media.ExifInterface.TAG_DATETIME_DIGITIZED, timestamp)
-
-                                    // Add GPS location if available
-                                    if (androidx.core.content.ContextCompat.checkSelfPermission(
-                                            this,
-                                            android.Manifest.permission.ACCESS_FINE_LOCATION
-                                        ) == android.content.pm.PackageManager.PERMISSION_GRANTED
-                                    ) {
-                                        val locationManager = getSystemService(android.content.Context.LOCATION_SERVICE) as android.location.LocationManager
-                                        val location = locationManager.getLastKnownLocation(android.location.LocationManager.GPS_PROVIDER)
-                                            ?: locationManager.getLastKnownLocation(android.location.LocationManager.NETWORK_PROVIDER)
-
-                                        if (location != null) {
-                                            exif.setLatLong(location.latitude, location.longitude)
-                                            exif.setAttribute(androidx.exifinterface.media.ExifInterface.TAG_GPS_ALTITUDE, location.altitude.toString())
-                                            Log.i(TAG, "Added GPS metadata: ${location.latitude}, ${location.longitude}")
-                                        }
-                                    }
-
-                                    exif.saveAttributes()
-                                    Log.i(TAG, "EXIF metadata saved")
-                                } catch (e: Exception) {
-                                    Log.w(TAG, "Failed to add EXIF metadata", e)
-                                }
-
-                                // Success feedback
-                                runOnUiThread {
-                                    loadingIndicatorManager.hideLoading()
-                                    com.customcamera.app.presentation.EnhancedToast.dualCameraPhoto(this, "${photoFile.name} (screenshot)")
-                                    hapticManager.photoCapture()
-                                    Log.i(TAG, "✅ Dual camera photo saved (screenshot mode): ${photoFile.absolutePath}")
-                                    animateCaptureButton()
-                                }
-                            } catch (e: Exception) {
-                                Log.e(TAG, "Failed to save screenshot bitmap", e)
-                                runOnUiThread {
-                                    loadingIndicatorManager.hideLoading()
-                                    hapticManager.error()
-                                    com.customcamera.app.presentation.EnhancedToast.error(this, "Screenshot save failed")
-                                }
-                            }
-                        } else {
-                            Log.e(TAG, "PixelCopy failed with result: $copyResult")
-                            runOnUiThread {
-                                loadingIndicatorManager.hideLoading()
-                                hapticManager.error()
-                                com.customcamera.app.presentation.EnhancedToast.error(this, "Screenshot capture failed")
-                            }
-                        }
-                    },
-                    android.os.Handler(android.os.Looper.getMainLooper())
-                )
-            } else {
-                // Fallback for pre-Android O devices (draw method, won't capture SurfaceView properly)
-                Log.w(TAG, "PixelCopy not available (API < 26), using fallback draw method")
-                val rootView = binding.root
-                val bitmap = Bitmap.createBitmap(rootView.width, rootView.height, Bitmap.Config.ARGB_8888)
-                val canvas = Canvas(bitmap)
-                rootView.draw(canvas)
-
-                photoFile.outputStream().use { out ->
-                    bitmap.compress(Bitmap.CompressFormat.JPEG, 95, out)
-                }
-
-                loadingIndicatorManager.hideLoading()
-                com.customcamera.app.presentation.EnhancedToast.dualCameraPhoto(this, "${photoFile.name} (screenshot)")
-                hapticManager.photoCapture()
-                Log.i(TAG, "✅ Dual camera photo saved (legacy screenshot): ${photoFile.absolutePath}")
-                animateCaptureButton()
-            }
-
-        } catch (e: Exception) {
-            Log.e(TAG, "Screenshot fallback failed", e)
-            loadingIndicatorManager.hideLoading()
-            hapticManager.error()
-            com.customcamera.app.presentation.EnhancedToast.error(this, "Screenshot capture failed")
         }
     }
 
