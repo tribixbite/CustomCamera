@@ -63,6 +63,7 @@ MERGED from [androidx.savedstate:savedstate:1.2.1] /data/data/com.termux/files/h
 MERGED from [androidx.lifecycle:lifecycle-viewmodel:2.7.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/daea2c3f479e157868d6fb0069e3be59/transformed/lifecycle-viewmodel-2.7.0/AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.lifecycle:lifecycle-livedata-ktx:2.7.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/36f906e72fb12d0fb3c5a80ef967dc84/transformed/jetified-lifecycle-livedata-ktx-2.7.0/AndroidManifest.xml:2:1-7:12
 MERGED from [androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2d1f53410fd4a0e8910816f05f399ee5/transformed/jetified-lifecycle-viewmodel-ktx-2.7.0/AndroidManifest.xml:2:1-7:12
+MERGED from [com.squareup.leakcanary:leakcanary-android:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/fb9ab1e1fbdffd8ba26dffd97cee6a9a/transformed/jetified-leakcanary-android-2.12/AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.cursoradapter:cursoradapter:1.0.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/e5b2f1e60ecb044f2e67b65184eeb4c2/transformed/cursoradapter-1.0.0/AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.cardview:cardview:1.0.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/802c3a0edd9e6b4594e0664e3967a831/transformed/cardview-1.0.0/AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.exifinterface:exifinterface:1.3.2] /data/data/com.termux/files/home/.gradle/caches/transforms-4/0ae45460c2d29043dc191d26b40e3e3d/transformed/exifinterface-1.3.2/AndroidManifest.xml:17:1-24:12
@@ -80,7 +81,16 @@ MERGED from [com.google.firebase:firebase-encoders-json:17.1.0] /data/data/com.t
 MERGED from [androidx.documentfile:documentfile:1.0.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/604fd96cd80a2f18bd341ef4b8ebac72/transformed/documentfile-1.0.0/AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.localbroadcastmanager:localbroadcastmanager:1.0.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c6b0dd9135e722b45b0073a219728387/transformed/localbroadcastmanager-1.0.0/AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.print:print:1.0.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/ae67316f6153e04fbc631c4e263e2bd2/transformed/print-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:17:1-105:12
+MERGED from [com.squareup.leakcanary:leakcanary-object-watcher-android:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/45f230f3abd767bd251e00e53a077552/transformed/jetified-leakcanary-object-watcher-android-2.12/AndroidManifest.xml:2:1-15:12
+MERGED from [com.squareup.leakcanary:plumber-android:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2c5b2373a61c3ac6b4f22a02e46c7727/transformed/jetified-plumber-android-2.12/AndroidManifest.xml:2:1-15:12
 MERGED from [androidx.annotation:annotation-experimental:1.3.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/996093c0ca7d48a6a449faae9a502175/transformed/jetified-annotation-experimental-1.3.1/AndroidManifest.xml:17:1-22:12
+MERGED from [com.squareup.leakcanary:leakcanary-object-watcher-android-androidx:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/401bfd8b176975ea310b872a10738ca8/transformed/jetified-leakcanary-object-watcher-android-androidx-2.12/AndroidManifest.xml:2:1-7:12
+MERGED from [com.squareup.leakcanary:leakcanary-object-watcher-android-support-fragments:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/31f669f9712c0d12101cf97d558b33a8/transformed/jetified-leakcanary-object-watcher-android-support-fragments-2.12/AndroidManifest.xml:2:1-7:12
+MERGED from [com.squareup.leakcanary:leakcanary-object-watcher-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/d22efe019ae764cd22df41a9fb28d7a0/transformed/jetified-leakcanary-object-watcher-android-core-2.12/AndroidManifest.xml:2:1-7:12
+MERGED from [com.squareup.leakcanary:plumber-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/3ad50200fdf265ce6f9d765d8cfc543a/transformed/jetified-plumber-android-core-2.12/AndroidManifest.xml:2:1-7:12
+MERGED from [com.squareup.leakcanary:leakcanary-android-utils:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/36bfd52711f00c3a15b0451b77f83b92/transformed/jetified-leakcanary-android-utils-2.12/AndroidManifest.xml:2:1-7:12
+MERGED from [com.squareup.curtains:curtains:1.2.4] /data/data/com.termux/files/home/.gradle/caches/transforms-4/6d356bca00bc8ee2f6d9b9039bbd59bd/transformed/jetified-curtains-1.2.4/AndroidManifest.xml:2:1-9:12
 MERGED from [com.google.android.odml:image:1.0.0-beta1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c312c9f99711a7bb6d8d14bf720ad9e3/transformed/jetified-image-1.0.0-beta1/AndroidManifest.xml:2:1-9:12
 INJECTED from /data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:2:1-89:12
 	package
@@ -153,6 +163,12 @@ MERGED from [com.google.android.datatransport:transport-backend-cct:2.3.3] /data
 MERGED from [com.google.android.datatransport:transport-backend-cct:2.3.3] /data/data/com.termux/files/home/.gradle/caches/transforms-4/0f3baafd1f63ccf0c957c62314fe5114/transformed/jetified-transport-backend-cct-2.3.3/AndroidManifest.xml:28:5-36:19
 MERGED from [com.google.android.datatransport:transport-runtime:2.2.6] /data/data/com.termux/files/home/.gradle/caches/transforms-4/42ae05af79c00408c97d8d247cd0c682/transformed/jetified-transport-runtime-2.2.6/AndroidManifest.xml:25:5-39:19
 MERGED from [com.google.android.datatransport:transport-runtime:2.2.6] /data/data/com.termux/files/home/.gradle/caches/transforms-4/42ae05af79c00408c97d8d247cd0c682/transformed/jetified-transport-runtime-2.2.6/AndroidManifest.xml:25:5-39:19
+MERGED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:31:5-103:19
+MERGED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:31:5-103:19
+MERGED from [com.squareup.leakcanary:leakcanary-object-watcher-android:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/45f230f3abd767bd251e00e53a077552/transformed/jetified-leakcanary-object-watcher-android-2.12/AndroidManifest.xml:7:5-13:19
+MERGED from [com.squareup.leakcanary:leakcanary-object-watcher-android:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/45f230f3abd767bd251e00e53a077552/transformed/jetified-leakcanary-object-watcher-android-2.12/AndroidManifest.xml:7:5-13:19
+MERGED from [com.squareup.leakcanary:plumber-android:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2c5b2373a61c3ac6b4f22a02e46c7727/transformed/jetified-plumber-android-2.12/AndroidManifest.xml:7:5-13:19
+MERGED from [com.squareup.leakcanary:plumber-android:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2c5b2373a61c3ac6b4f22a02e46c7727/transformed/jetified-plumber-android-2.12/AndroidManifest.xml:7:5-13:19
 MERGED from [com.google.android.odml:image:1.0.0-beta1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c312c9f99711a7bb6d8d14bf720ad9e3/transformed/jetified-image-1.0.0-beta1/AndroidManifest.xml:7:5-20
 MERGED from [com.google.android.odml:image:1.0.0-beta1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c312c9f99711a7bb6d8d14bf720ad9e3/transformed/jetified-image-1.0.0-beta1/AndroidManifest.xml:7:5-20
 	android:appComponentFactory
@@ -361,6 +377,8 @@ MERGED from [androidx.lifecycle:lifecycle-livedata-ktx:2.7.0] /data/data/com.ter
 MERGED from [androidx.lifecycle:lifecycle-livedata-ktx:2.7.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/36f906e72fb12d0fb3c5a80ef967dc84/transformed/jetified-lifecycle-livedata-ktx-2.7.0/AndroidManifest.xml:5:5-44
 MERGED from [androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2d1f53410fd4a0e8910816f05f399ee5/transformed/jetified-lifecycle-viewmodel-ktx-2.7.0/AndroidManifest.xml:5:5-44
 MERGED from [androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2d1f53410fd4a0e8910816f05f399ee5/transformed/jetified-lifecycle-viewmodel-ktx-2.7.0/AndroidManifest.xml:5:5-44
+MERGED from [com.squareup.leakcanary:leakcanary-android:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/fb9ab1e1fbdffd8ba26dffd97cee6a9a/transformed/jetified-leakcanary-android-2.12/AndroidManifest.xml:20:5-44
+MERGED from [com.squareup.leakcanary:leakcanary-android:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/fb9ab1e1fbdffd8ba26dffd97cee6a9a/transformed/jetified-leakcanary-android-2.12/AndroidManifest.xml:20:5-44
 MERGED from [androidx.cursoradapter:cursoradapter:1.0.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/e5b2f1e60ecb044f2e67b65184eeb4c2/transformed/cursoradapter-1.0.0/AndroidManifest.xml:20:5-44
 MERGED from [androidx.cursoradapter:cursoradapter:1.0.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/e5b2f1e60ecb044f2e67b65184eeb4c2/transformed/cursoradapter-1.0.0/AndroidManifest.xml:20:5-44
 MERGED from [androidx.cardview:cardview:1.0.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/802c3a0edd9e6b4594e0664e3967a831/transformed/cardview-1.0.0/AndroidManifest.xml:20:5-44
@@ -395,8 +413,26 @@ MERGED from [androidx.localbroadcastmanager:localbroadcastmanager:1.0.0] /data/d
 MERGED from [androidx.localbroadcastmanager:localbroadcastmanager:1.0.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c6b0dd9135e722b45b0073a219728387/transformed/localbroadcastmanager-1.0.0/AndroidManifest.xml:20:5-44
 MERGED from [androidx.print:print:1.0.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/ae67316f6153e04fbc631c4e263e2bd2/transformed/print-1.0.0/AndroidManifest.xml:20:5-44
 MERGED from [androidx.print:print:1.0.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/ae67316f6153e04fbc631c4e263e2bd2/transformed/print-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:20:5-22:41
+MERGED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:20:5-22:41
+MERGED from [com.squareup.leakcanary:leakcanary-object-watcher-android:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/45f230f3abd767bd251e00e53a077552/transformed/jetified-leakcanary-object-watcher-android-2.12/AndroidManifest.xml:5:5-44
+MERGED from [com.squareup.leakcanary:leakcanary-object-watcher-android:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/45f230f3abd767bd251e00e53a077552/transformed/jetified-leakcanary-object-watcher-android-2.12/AndroidManifest.xml:5:5-44
+MERGED from [com.squareup.leakcanary:plumber-android:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2c5b2373a61c3ac6b4f22a02e46c7727/transformed/jetified-plumber-android-2.12/AndroidManifest.xml:5:5-44
+MERGED from [com.squareup.leakcanary:plumber-android:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2c5b2373a61c3ac6b4f22a02e46c7727/transformed/jetified-plumber-android-2.12/AndroidManifest.xml:5:5-44
 MERGED from [androidx.annotation:annotation-experimental:1.3.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/996093c0ca7d48a6a449faae9a502175/transformed/jetified-annotation-experimental-1.3.1/AndroidManifest.xml:20:5-44
 MERGED from [androidx.annotation:annotation-experimental:1.3.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/996093c0ca7d48a6a449faae9a502175/transformed/jetified-annotation-experimental-1.3.1/AndroidManifest.xml:20:5-44
+MERGED from [com.squareup.leakcanary:leakcanary-object-watcher-android-androidx:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/401bfd8b176975ea310b872a10738ca8/transformed/jetified-leakcanary-object-watcher-android-androidx-2.12/AndroidManifest.xml:5:5-44
+MERGED from [com.squareup.leakcanary:leakcanary-object-watcher-android-androidx:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/401bfd8b176975ea310b872a10738ca8/transformed/jetified-leakcanary-object-watcher-android-androidx-2.12/AndroidManifest.xml:5:5-44
+MERGED from [com.squareup.leakcanary:leakcanary-object-watcher-android-support-fragments:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/31f669f9712c0d12101cf97d558b33a8/transformed/jetified-leakcanary-object-watcher-android-support-fragments-2.12/AndroidManifest.xml:5:5-44
+MERGED from [com.squareup.leakcanary:leakcanary-object-watcher-android-support-fragments:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/31f669f9712c0d12101cf97d558b33a8/transformed/jetified-leakcanary-object-watcher-android-support-fragments-2.12/AndroidManifest.xml:5:5-44
+MERGED from [com.squareup.leakcanary:leakcanary-object-watcher-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/d22efe019ae764cd22df41a9fb28d7a0/transformed/jetified-leakcanary-object-watcher-android-core-2.12/AndroidManifest.xml:5:5-44
+MERGED from [com.squareup.leakcanary:leakcanary-object-watcher-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/d22efe019ae764cd22df41a9fb28d7a0/transformed/jetified-leakcanary-object-watcher-android-core-2.12/AndroidManifest.xml:5:5-44
+MERGED from [com.squareup.leakcanary:plumber-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/3ad50200fdf265ce6f9d765d8cfc543a/transformed/jetified-plumber-android-core-2.12/AndroidManifest.xml:5:5-44
+MERGED from [com.squareup.leakcanary:plumber-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/3ad50200fdf265ce6f9d765d8cfc543a/transformed/jetified-plumber-android-core-2.12/AndroidManifest.xml:5:5-44
+MERGED from [com.squareup.leakcanary:leakcanary-android-utils:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/36bfd52711f00c3a15b0451b77f83b92/transformed/jetified-leakcanary-android-utils-2.12/AndroidManifest.xml:5:5-44
+MERGED from [com.squareup.leakcanary:leakcanary-android-utils:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/36bfd52711f00c3a15b0451b77f83b92/transformed/jetified-leakcanary-android-utils-2.12/AndroidManifest.xml:5:5-44
+MERGED from [com.squareup.curtains:curtains:1.2.4] /data/data/com.termux/files/home/.gradle/caches/transforms-4/6d356bca00bc8ee2f6d9b9039bbd59bd/transformed/jetified-curtains-1.2.4/AndroidManifest.xml:5:5-7:41
+MERGED from [com.squareup.curtains:curtains:1.2.4] /data/data/com.termux/files/home/.gradle/caches/transforms-4/6d356bca00bc8ee2f6d9b9039bbd59bd/transformed/jetified-curtains-1.2.4/AndroidManifest.xml:5:5-7:41
 MERGED from [com.google.android.odml:image:1.0.0-beta1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c312c9f99711a7bb6d8d14bf720ad9e3/transformed/jetified-image-1.0.0-beta1/AndroidManifest.xml:5:5-44
 MERGED from [com.google.android.odml:image:1.0.0-beta1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c312c9f99711a7bb6d8d14bf720ad9e3/transformed/jetified-image-1.0.0-beta1/AndroidManifest.xml:5:5-44
 INJECTED from /data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml
@@ -619,3 +655,123 @@ ADDED from [com.google.android.datatransport:transport-runtime:2.2.6] /data/data
 		ADDED from [com.google.android.datatransport:transport-runtime:2.2.6] /data/data/com.termux/files/home/.gradle/caches/transforms-4/42ae05af79c00408c97d8d247cd0c682/transformed/jetified-transport-runtime-2.2.6/AndroidManifest.xml:34:13-37
 	android:name
 		ADDED from [com.google.android.datatransport:transport-runtime:2.2.6] /data/data/com.termux/files/home/.gradle/caches/transforms-4/42ae05af79c00408c97d8d247cd0c682/transformed/jetified-transport-runtime-2.2.6/AndroidManifest.xml:33:13-132
+uses-permission#android.permission.READ_EXTERNAL_STORAGE
+ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:25:5-80
+	android:name
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:25:22-77
+uses-permission#android.permission.WRITE_EXTERNAL_STORAGE
+ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:26:5-81
+	android:name
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:26:22-78
+uses-permission#android.permission.POST_NOTIFICATIONS
+ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:29:5-77
+	android:name
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:29:22-74
+provider#leakcanary.internal.LeakCanaryFileProvider
+ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:32:9-40:20
+	android:grantUriPermissions
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:36:13-47
+	android:authorities
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:34:13-88
+	android:exported
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:35:13-37
+	android:name
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:33:13-70
+activity#leakcanary.internal.activity.LeakActivity
+ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:42:9-73:20
+	android:label
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:46:13-71
+	android:exported
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:44:13-36
+	android:icon
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:45:13-52
+	android:theme
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:48:13-63
+	android:taskAffinity
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:47:13-76
+	android:name
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:43:13-69
+intent-filter#action:name:android.intent.action.VIEW+category:name:android.intent.category.BROWSABLE+category:name:android.intent.category.DEFAULT+data:host:*+data:mimeType:*/*+data:pathPattern:.*\\..*\\..*\\..*\\..*\\..*\\..*\\.hprof+data:pathPattern:.*\\..*\\..*\\..*\\..*\\..*\\.hprof+data:pathPattern:.*\\..*\\..*\\..*\\..*\\.hprof+data:pathPattern:.*\\..*\\..*\\..*\\.hprof+data:pathPattern:.*\\..*\\..*\\.hprof+data:pathPattern:.*\\..*\\.hprof+data:pathPattern:.*\\.hprof+data:scheme:content+data:scheme:file
+ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:49:13-72:29
+	android:label
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:49:28-81
+action#android.intent.action.VIEW
+ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:50:17-69
+	android:name
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:50:25-66
+category#android.intent.category.DEFAULT
+ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:52:17-76
+	android:name
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:52:27-73
+category#android.intent.category.BROWSABLE
+ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:53:17-78
+	android:name
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:53:27-75
+data
+ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:55:17-47
+	android:scheme
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:55:23-44
+activity-alias#leakcanary.internal.activity.LeakLauncherActivity
+ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:75:9-92:26
+	android:enabled
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:78:13-66
+	android:label
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:81:13-71
+	android:exported
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:79:13-36
+	android:targetActivity
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:82:13-79
+	android:icon
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:80:13-52
+	android:banner
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:77:13-59
+	android:theme
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:84:13-63
+	android:taskAffinity
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:83:13-76
+	android:name
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:76:13-77
+intent-filter#action:name:android.intent.action.MAIN+category:name:android.intent.category.LAUNCHER+category:name:android.intent.category.LEANBACK_LAUNCHER
+ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:85:13-91:29
+category#android.intent.category.LEANBACK_LAUNCHER
+ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:90:17-86
+	android:name
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:90:27-83
+activity#leakcanary.internal.RequestPermissionActivity
+ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:94:9-100:68
+	android:label
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:98:13-82
+	android:excludeFromRecents
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:96:13-46
+	android:icon
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:97:13-52
+	android:theme
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:100:13-65
+	android:taskAffinity
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:99:13-76
+	android:name
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:95:13-73
+receiver#leakcanary.internal.NotificationReceiver
+ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:102:9-77
+	android:name
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:102:19-74
+provider#leakcanary.internal.MainProcessAppWatcherInstaller
+ADDED from [com.squareup.leakcanary:leakcanary-object-watcher-android:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/45f230f3abd767bd251e00e53a077552/transformed/jetified-leakcanary-object-watcher-android-2.12/AndroidManifest.xml:8:9-12:40
+	android:enabled
+		ADDED from [com.squareup.leakcanary:leakcanary-object-watcher-android:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/45f230f3abd767bd251e00e53a077552/transformed/jetified-leakcanary-object-watcher-android-2.12/AndroidManifest.xml:11:13-69
+	android:authorities
+		ADDED from [com.squareup.leakcanary:leakcanary-object-watcher-android:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/45f230f3abd767bd251e00e53a077552/transformed/jetified-leakcanary-object-watcher-android-2.12/AndroidManifest.xml:10:13-72
+	android:exported
+		ADDED from [com.squareup.leakcanary:leakcanary-object-watcher-android:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/45f230f3abd767bd251e00e53a077552/transformed/jetified-leakcanary-object-watcher-android-2.12/AndroidManifest.xml:12:13-37
+	android:name
+		ADDED from [com.squareup.leakcanary:leakcanary-object-watcher-android:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/45f230f3abd767bd251e00e53a077552/transformed/jetified-leakcanary-object-watcher-android-2.12/AndroidManifest.xml:9:13-78
+provider#leakcanary.internal.PlumberInstaller
+ADDED from [com.squareup.leakcanary:plumber-android:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2c5b2373a61c3ac6b4f22a02e46c7727/transformed/jetified-plumber-android-2.12/AndroidManifest.xml:8:9-12:40
+	android:enabled
+		ADDED from [com.squareup.leakcanary:plumber-android:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2c5b2373a61c3ac6b4f22a02e46c7727/transformed/jetified-plumber-android-2.12/AndroidManifest.xml:11:13-69
+	android:authorities
+		ADDED from [com.squareup.leakcanary:plumber-android:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2c5b2373a61c3ac6b4f22a02e46c7727/transformed/jetified-plumber-android-2.12/AndroidManifest.xml:10:13-69
+	android:exported
+		ADDED from [com.squareup.leakcanary:plumber-android:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2c5b2373a61c3ac6b4f22a02e46c7727/transformed/jetified-plumber-android-2.12/AndroidManifest.xml:12:13-37
+	android:name
+		ADDED from [com.squareup.leakcanary:plumber-android:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2c5b2373a61c3ac6b4f22a02e46c7727/transformed/jetified-plumber-android-2.12/AndroidManifest.xml:9:13-64

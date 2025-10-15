@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.customcamera.app-mergeDebugResources-42:/values-uk/values-uk.xml",
+            "outputFile": "com.customcamera.app-mergeDebugResources-46:/values-uk/values-uk.xml",
             "map": [
                 {
                     "source": "/data/data/com.termux/files/home/.gradle/caches/transforms-4/928de47e133b1ae84cdec1533ebaa58f/transformed/core-1.12.0/res/values-uk/values-uk.xml",
