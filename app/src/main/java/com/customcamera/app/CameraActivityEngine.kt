@@ -39,6 +39,8 @@ import android.animation.ObjectAnimator
 import android.animation.AnimatorSet
 import android.view.HapticFeedbackConstants
 import android.view.ViewGroup
+import android.graphics.Bitmap
+import android.graphics.Canvas
 import com.customcamera.app.ui.LoadingIndicatorManager
 
 /**
@@ -500,7 +502,7 @@ class CameraActivityEngine : AppCompatActivity() {
         Log.i(TAG, "Photo capture mode check: currentMode=$currentMode, hasPipFrame=$hasPipFrame, isDualCamera=$isDualCamera")
 
         if (isDualCamera) {
-            // Dual camera capture: Get main image in memory, composite with PiP, then save
+            // Dual camera capture: Try composite, fallback to screenshot if it fails
             Log.i(TAG, "📸 Capturing dual camera photo...")
             imageCapture.takePicture(
                 ContextCompat.getMainExecutor(this),
@@ -510,8 +512,9 @@ class CameraActivityEngine : AppCompatActivity() {
                             // Get PiP frame
                             val pipImage = cameraEngine.getLatestPipFrame()
                             if (pipImage == null) {
-                                Log.e(TAG, "PiP frame not available, saving main image only")
-                                saveSingleImage(mainImage, outputFileOptions, photoFile)
+                                Log.e(TAG, "PiP frame not available, using screenshot fallback")
+                                mainImage.close()
+                                captureScreenshotFallback(photoFile)
                                 return
                             }
 
@@ -539,13 +542,12 @@ class CameraActivityEngine : AppCompatActivity() {
                                 Log.i(TAG, "✅ Dual camera photo saved: ${photoFile.absolutePath}")
                                 animateCaptureButton()
                             } else {
-                                throw Exception("Failed to composite images")
+                                Log.e(TAG, "Composite failed, using screenshot fallback")
+                                captureScreenshotFallback(photoFile)
                             }
                         } catch (e: Exception) {
-                            loadingIndicatorManager.hideLoading()
-                            hapticManager.error()
-                            Log.e(TAG, "Dual camera capture failed", e)
-                            com.customcamera.app.presentation.EnhancedToast.error(this@CameraActivityEngine, "Dual camera capture failed")
+                            Log.e(TAG, "Dual camera capture failed, using screenshot fallback", e)
+                            captureScreenshotFallback(photoFile)
                         }
                     }
 
@@ -643,6 +645,85 @@ class CameraActivityEngine : AppCompatActivity() {
         }
     }
 
+    /**
+     * Screenshot fallback for dual camera capture when composite fails
+     * Captures the entire view hierarchy including PiP overlay and preserves metadata
+     */
+    private fun captureScreenshotFallback(photoFile: File) {
+        try {
+            Log.i(TAG, "📸 Using screenshot fallback for dual camera capture")
+
+            // Capture screenshot of entire view hierarchy
+            val rootView = binding.root
+            rootView.isDrawingCacheEnabled = true
+            rootView.buildDrawingCache()
+
+            // Create bitmap from view
+            val bitmap = Bitmap.createBitmap(
+                rootView.width,
+                rootView.height,
+                Bitmap.Config.ARGB_8888
+            )
+            val canvas = Canvas(bitmap)
+            rootView.draw(canvas)
+
+            // Save bitmap to file with JPEG quality
+            photoFile.outputStream().use { out ->
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 95, out)
+            }
+
+            // Clean up view cache
+            rootView.isDrawingCacheEnabled = false
+            rootView.destroyDrawingCache()
+
+            // Add EXIF metadata (location and timestamp)
+            try {
+                val exif = androidx.exifinterface.media.ExifInterface(photoFile.absolutePath)
+
+                // Set timestamp
+                val timestamp = java.text.SimpleDateFormat("yyyy:MM:dd HH:mm:ss", java.util.Locale.US)
+                    .format(java.util.Date())
+                exif.setAttribute(androidx.exifinterface.media.ExifInterface.TAG_DATETIME, timestamp)
+                exif.setAttribute(androidx.exifinterface.media.ExifInterface.TAG_DATETIME_ORIGINAL, timestamp)
+                exif.setAttribute(androidx.exifinterface.media.ExifInterface.TAG_DATETIME_DIGITIZED, timestamp)
+
+                // Add GPS location if available (check for location permission)
+                if (androidx.core.content.ContextCompat.checkSelfPermission(
+                        this,
+                        android.Manifest.permission.ACCESS_FINE_LOCATION
+                    ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+                ) {
+                    val locationManager = getSystemService(android.content.Context.LOCATION_SERVICE) as android.location.LocationManager
+                    val location = locationManager.getLastKnownLocation(android.location.LocationManager.GPS_PROVIDER)
+                        ?: locationManager.getLastKnownLocation(android.location.LocationManager.NETWORK_PROVIDER)
+
+                    if (location != null) {
+                        exif.setLatLong(location.latitude, location.longitude)
+                        exif.setAttribute(androidx.exifinterface.media.ExifInterface.TAG_GPS_ALTITUDE, location.altitude.toString())
+                        Log.i(TAG, "Added GPS metadata: ${location.latitude}, ${location.longitude}")
+                    }
+                }
+
+                exif.saveAttributes()
+                Log.i(TAG, "EXIF metadata saved")
+            } catch (e: Exception) {
+                Log.w(TAG, "Failed to add EXIF metadata", e)
+            }
+
+            // Success feedback
+            loadingIndicatorManager.hideLoading()
+            com.customcamera.app.presentation.EnhancedToast.dualCameraPhoto(this, "${photoFile.name} (screenshot)")
+            hapticManager.photoCapture()
+            Log.i(TAG, "✅ Dual camera photo saved (screenshot mode): ${photoFile.absolutePath}")
+            animateCaptureButton()
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Screenshot fallback failed", e)
+            loadingIndicatorManager.hideLoading()
+            hapticManager.error()
+            com.customcamera.app.presentation.EnhancedToast.error(this, "Screenshot capture failed")
+        }
+    }
 
     private fun switchCamera() {
         lifecycleScope.launch {
