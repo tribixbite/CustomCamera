@@ -539,53 +539,13 @@ class CameraActivityEngine : AppCompatActivity() {
                                 Log.i(TAG, "✅ Dual camera photo saved: ${photoFile.absolutePath}")
                                 animateCaptureButton()
                             } else {
-                                Log.e(TAG, "Composite failed, saving main camera only")
-                                // Retake photo from main camera as fallback
-                                imageCapture.takePicture(
-                                    outputFileOptions,
-                                    ContextCompat.getMainExecutor(this@CameraActivityEngine),
-                                    object : ImageCapture.OnImageSavedCallback {
-                                        override fun onImageSaved(output: ImageCapture.OutputFileResults) {
-                                            loadingIndicatorManager.hideLoading()
-                                            com.customcamera.app.presentation.EnhancedToast.photoSaved(this@CameraActivityEngine, "${photoFile.name} (main camera)")
-                                            hapticManager.photoCapture()
-                                            Log.i(TAG, "Photo saved (main camera fallback): ${photoFile.absolutePath}")
-                                            animateCaptureButton()
-                                        }
-
-                                        override fun onError(exception: ImageCaptureException) {
-                                            loadingIndicatorManager.hideLoading()
-                                            hapticManager.error()
-                                            Log.e(TAG, "Fallback photo capture failed", exception)
-                                            com.customcamera.app.presentation.EnhancedToast.error(this@CameraActivityEngine, "Photo capture failed")
-                                        }
-                                    }
-                                )
+                                Log.e(TAG, "Composite failed, capturing screen view")
+                                captureScreenFallback(photoFile)
                             }
                         } catch (e: Exception) {
-                            Log.e(TAG, "Dual camera capture failed, saving main camera only", e)
+                            Log.e(TAG, "Dual camera capture failed, capturing screen view", e)
                             mainImage.close()
-                            // Retake photo from main camera as fallback
-                            imageCapture.takePicture(
-                                outputFileOptions,
-                                ContextCompat.getMainExecutor(this@CameraActivityEngine),
-                                object : ImageCapture.OnImageSavedCallback {
-                                    override fun onImageSaved(output: ImageCapture.OutputFileResults) {
-                                        loadingIndicatorManager.hideLoading()
-                                        com.customcamera.app.presentation.EnhancedToast.photoSaved(this@CameraActivityEngine, "${photoFile.name} (main camera)")
-                                        hapticManager.photoCapture()
-                                        Log.i(TAG, "Photo saved (main camera fallback): ${photoFile.absolutePath}")
-                                        animateCaptureButton()
-                                    }
-
-                                    override fun onError(exception: ImageCaptureException) {
-                                        loadingIndicatorManager.hideLoading()
-                                        hapticManager.error()
-                                        Log.e(TAG, "Fallback photo capture failed", exception)
-                                        com.customcamera.app.presentation.EnhancedToast.error(this@CameraActivityEngine, "Photo capture failed")
-                                    }
-                                }
-                            )
+                            captureScreenFallback(photoFile)
                         }
                     }
 
@@ -679,6 +639,74 @@ class CameraActivityEngine : AppCompatActivity() {
                 loadingIndicatorManager.hideLoading()
                 Log.e(TAG, "Long exposure capture error", e)
                 Toast.makeText(this@CameraActivityEngine, "Long exposure error: ${e.message}", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    /**
+     * Capture screen view as fallback using PreviewView.getBitmap()
+     */
+    private fun captureScreenFallback(photoFile: File) {
+        lifecycleScope.launch(Dispatchers.Main) {
+            try {
+                Log.i(TAG, "📸 Capturing screen view for dual camera fallback")
+
+                // Get bitmap from main PreviewView
+                val mainBitmap = binding.previewView.bitmap
+
+                if (mainBitmap == null) {
+                    Log.e(TAG, "Failed to get bitmap from PreviewView")
+                    loadingIndicatorManager.hideLoading()
+                    hapticManager.error()
+                    com.customcamera.app.presentation.EnhancedToast.error(this@CameraActivityEngine, "Screen capture failed")
+                    return@launch
+                }
+
+                // Create canvas to draw PiP overlay on top
+                val canvas = android.graphics.Canvas(mainBitmap)
+
+                // Draw PiP overlay if visible
+                pipOverlayView?.let { pipView ->
+                    if (pipView.visibility == android.view.View.VISIBLE) {
+                        val saved = canvas.save()
+
+                        // Translate canvas to PiP position
+                        val location = IntArray(2)
+                        pipView.getLocationOnScreen(location)
+                        val previewLocation = IntArray(2)
+                        binding.previewView.getLocationOnScreen(previewLocation)
+
+                        val offsetX = location[0] - previewLocation[0]
+                        val offsetY = location[1] - previewLocation[1]
+
+                        canvas.translate(offsetX.toFloat(), offsetY.toFloat())
+                        pipView.draw(canvas)
+                        canvas.restoreToCount(saved)
+
+                        Log.i(TAG, "PiP overlay drawn on bitmap at offset ($offsetX, $offsetY)")
+                    }
+                }
+
+                // Save bitmap to file
+                withContext(Dispatchers.IO) {
+                    photoFile.outputStream().use { out ->
+                        mainBitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 95, out)
+                    }
+                }
+
+                withContext(Dispatchers.Main) {
+                    loadingIndicatorManager.hideLoading()
+                    com.customcamera.app.presentation.EnhancedToast.dualCameraPhoto(this@CameraActivityEngine, "${photoFile.name} (screen capture)")
+                    hapticManager.photoCapture()
+                    Log.i(TAG, "✅ Screen capture saved: ${photoFile.absolutePath}")
+                    animateCaptureButton()
+                }
+
+            } catch (e: Exception) {
+                Log.e(TAG, "Screen capture fallback failed", e)
+                loadingIndicatorManager.hideLoading()
+                hapticManager.error()
+                com.customcamera.app.presentation.EnhancedToast.error(this@CameraActivityEngine, "Screen capture failed")
             }
         }
     }
