@@ -909,51 +909,58 @@ if (isDualCamera) {
 - Compatible with all existing photo capture features (HDR, Night Mode, etc.)
 - Future enhancement: Could also add dual camera support to captureLongExposurePhoto()
 
-## ✅ SESSION COMPLETED: Screen Capture Fallback for Dual Camera (2025-10-15)
+## ✅ SESSION ACTIVE: Screen Capture Fallback for Dual Camera (2025-10-15)
 
 ### ✅ Implementation Complete
 **User Request**: "dual camera capture failed. unless youre sure you found the fix, for now when pip pic doesnt work save a screenshot in lieue of picture and still store location metadata etc"
 
 **What Was Built**:
-1. **✅ PreviewView.getBitmap() Capture** - Uses CameraX's built-in bitmap capture
-   - Captures main camera preview using PreviewView.getBitmap()
-   - Internally uses PixelCopy for hardware-accelerated surfaces
-   - More reliable than manual PixelCopy implementation
-   - Works on API 24+ (Android N)
+1. **✅ PixelCopy Window Capture** - Captures entire window including PiP
+   - Uses PixelCopy.request() on window.decorView.rootView
+   - Captures all UI elements including both camera feeds
+   - Hardware-accelerated capture
+   - Works on API 26+ (Android O)
 
-2. **✅ PiP Overlay Compositing** - Draws PiP overlay on captured bitmap
-   - Calculates PiP position relative to main preview
-   - Uses Canvas to draw PiP overlay view on main bitmap
-   - Preserves PiP position and appearance from screen
-   - Creates composite image showing both camera feeds
+2. **✅ MediaProjection Fallback** - Final fallback with user permission
+   - Triggers if PixelCopy fails
+   - Shows system permission dialog (required by Android)
+   - Uses VirtualDisplay + ImageReader for capture
+   - Captures entire screen at display resolution
+   - Proper resource cleanup (stops projection after capture)
 
-3. **✅ Automatic Fallback** - Seamless integration
-   - Triggers when PiP frame unavailable
-   - Triggers when composite operation fails
-   - Triggers on any capture exception
-   - User sees "(screen capture)" suffix
+3. **✅ Three-Tier Fallback Chain** - Automatic progression
+   - Tier 1: Dual camera composite (YUV plane compositing)
+   - Tier 2: PixelCopy window capture (no permission needed)
+   - Tier 3: MediaProjection screen capture (permission required)
+   - Each tier triggers automatically if previous fails
 
 **Technical Implementation**:
 ```kotlin
 private fun captureScreenFallback(photoFile: File) {
-    // Get bitmap from main PreviewView (uses PixelCopy internally)
-    val mainBitmap = binding.previewView.bitmap
+    // Tier 2: PixelCopy
+    val contentView = window.decorView.rootView
+    val bitmap = Bitmap.createBitmap(contentView.width, contentView.height, ARGB_8888)
 
-    // Draw PiP overlay on top
-    val canvas = Canvas(mainBitmap)
-    pipOverlayView?.let { pipView ->
-        // Calculate position relative to main preview
-        val offsetX = pipView.screenX - previewView.screenX
-        val offsetY = pipView.screenY - previewView.screenY
-
-        canvas.translate(offsetX.toFloat(), offsetY.toFloat())
-        pipView.draw(canvas)
+    PixelCopy.request(window, bitmap) { copyResult ->
+        if (copyResult == PixelCopy.SUCCESS) {
+            // Save bitmap
+            photoFile.outputStream().use { out ->
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 95, out)
+            }
+        } else {
+            // Tier 3: MediaProjection fallback
+            requestMediaProjectionFallback(photoFile)
+        }
     }
+}
 
-    // Save composite bitmap
-    photoFile.outputStream().use { out ->
-        mainBitmap.compress(Bitmap.CompressFormat.JPEG, 95, out)
-    }
+private fun captureWithMediaProjection(resultCode: Int, data: Intent, photoFile: File) {
+    val mediaProjection = mediaProjectionManager.getMediaProjection(resultCode, data)
+    val imageReader = ImageReader.newInstance(width, height, PixelFormat.RGBA_8888, 2)
+    val virtualDisplay = mediaProjection.createVirtualDisplay(...)
+
+    val image = imageReader.acquireLatestImage()
+    // Convert image to bitmap and save
 }
 ```
 
@@ -975,32 +982,36 @@ private fun captureScreenFallback(photoFile: File) {
 - ✅ Clean build in 5s with minor warnings
 
 **Build Status**:
-- Build Time: 5s
+- Build Time: 1s (incremental)
 - APK Size: ~31MB
-- Version: 2.0.79 (code 30)
+- Version: 2.0.81 (code 30)
 - Warnings: Minor (unused parameters only)
 - Status: Production-ready for device testing
 
 **Test Instructions**:
 1. Enable PiP mode
-2. Trigger a dual camera capture failure (or wait for natural failure)
-3. Verify photo shows both camera feeds
-4. Check toast shows "(screen capture)" suffix
-5. PiP overlay should be in correct position
+2. Trigger a dual camera capture failure
+3. **PixelCopy attempt**: Should capture silently (no dialog)
+4. If PixelCopy fails: **MediaProjection dialog appears**
+5. Accept permission → screen captured
+6. Verify photo shows both camera feeds
+7. Check toast shows "(screen capture)" suffix
 
 **Technical Notes**:
-- **PreviewView.getBitmap()** is the official CameraX way to capture preview
-- Internally uses PixelCopy on API 24+ for hardware-accelerated capture
-- Falls back to TextureView snapshot on older devices
-- Canvas compositing allows drawing PiP overlay at correct position
-- Result shows "what you see is what you get" from screen
-- Screen resolution quality (not full camera resolution like ImageCapture)
+- **PixelCopy**: Captures app window only, no system UI
+- **MediaProjection**: Captures entire screen including system UI
+- Permission dialog only shown if PixelCopy fails
+- VirtualDisplay renders to ImageReader for MediaProjection
+- 100ms delay allows display to render before capture
+- Proper cleanup: stops MediaProjection, releases VirtualDisplay and ImageReader
+- Screen resolution quality (not full camera resolution)
 
-**Advantages over manual PixelCopy**:
-- CameraX handles API version differences
-- Automatic SurfaceView vs TextureView handling
-- Built-in error handling
-- One line of code: `previewView.bitmap`
+**Why This Approach**:
+- PixelCopy is silent (no permission dialog) for most cases
+- MediaProjection provides guaranteed fallback
+- User only sees permission dialog if PixelCopy fails
+- Both approaches capture actual rendered content (PiP included)
+- Automatic tier progression without user intervention
 
 **Integration Status**:
 - ✅ Integrated with dual camera capture flow
