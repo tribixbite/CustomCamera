@@ -647,75 +647,121 @@ class CameraActivityEngine : AppCompatActivity() {
 
     /**
      * Screenshot fallback for dual camera capture when composite fails
-     * Captures the entire view hierarchy including PiP overlay and preserves metadata
+     * Uses PixelCopy API to capture SurfaceView/TextureView content properly
      */
     private fun captureScreenshotFallback(photoFile: File) {
         try {
             Log.i(TAG, "📸 Using screenshot fallback for dual camera capture")
 
-            // Capture screenshot of entire view hierarchy
-            val rootView = binding.root
-            rootView.isDrawingCacheEnabled = true
-            rootView.buildDrawingCache()
+            // PixelCopy requires Android O+ (API 26+)
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                val rootView = binding.root
+                val bitmap = Bitmap.createBitmap(
+                    rootView.width,
+                    rootView.height,
+                    Bitmap.Config.ARGB_8888
+                )
 
-            // Create bitmap from view
-            val bitmap = Bitmap.createBitmap(
-                rootView.width,
-                rootView.height,
-                Bitmap.Config.ARGB_8888
-            )
-            val canvas = Canvas(bitmap)
-            rootView.draw(canvas)
+                // Use PixelCopy to capture the window (includes SurfaceView/TextureView)
+                val locationInWindow = IntArray(2)
+                rootView.getLocationInWindow(locationInWindow)
 
-            // Save bitmap to file with JPEG quality
-            photoFile.outputStream().use { out ->
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 95, out)
-            }
+                android.view.PixelCopy.request(
+                    window,
+                    android.graphics.Rect(
+                        locationInWindow[0],
+                        locationInWindow[1],
+                        locationInWindow[0] + rootView.width,
+                        locationInWindow[1] + rootView.height
+                    ),
+                    bitmap,
+                    { copyResult ->
+                        if (copyResult == android.view.PixelCopy.SUCCESS) {
+                            try {
+                                // Save bitmap to file with JPEG quality
+                                photoFile.outputStream().use { out ->
+                                    bitmap.compress(Bitmap.CompressFormat.JPEG, 95, out)
+                                }
 
-            // Clean up view cache
-            rootView.isDrawingCacheEnabled = false
-            rootView.destroyDrawingCache()
+                                // Add EXIF metadata (location and timestamp)
+                                try {
+                                    val exif = androidx.exifinterface.media.ExifInterface(photoFile.absolutePath)
 
-            // Add EXIF metadata (location and timestamp)
-            try {
-                val exif = androidx.exifinterface.media.ExifInterface(photoFile.absolutePath)
+                                    // Set timestamp
+                                    val timestamp = java.text.SimpleDateFormat("yyyy:MM:dd HH:mm:ss", java.util.Locale.US)
+                                        .format(java.util.Date())
+                                    exif.setAttribute(androidx.exifinterface.media.ExifInterface.TAG_DATETIME, timestamp)
+                                    exif.setAttribute(androidx.exifinterface.media.ExifInterface.TAG_DATETIME_ORIGINAL, timestamp)
+                                    exif.setAttribute(androidx.exifinterface.media.ExifInterface.TAG_DATETIME_DIGITIZED, timestamp)
 
-                // Set timestamp
-                val timestamp = java.text.SimpleDateFormat("yyyy:MM:dd HH:mm:ss", java.util.Locale.US)
-                    .format(java.util.Date())
-                exif.setAttribute(androidx.exifinterface.media.ExifInterface.TAG_DATETIME, timestamp)
-                exif.setAttribute(androidx.exifinterface.media.ExifInterface.TAG_DATETIME_ORIGINAL, timestamp)
-                exif.setAttribute(androidx.exifinterface.media.ExifInterface.TAG_DATETIME_DIGITIZED, timestamp)
+                                    // Add GPS location if available
+                                    if (androidx.core.content.ContextCompat.checkSelfPermission(
+                                            this,
+                                            android.Manifest.permission.ACCESS_FINE_LOCATION
+                                        ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+                                    ) {
+                                        val locationManager = getSystemService(android.content.Context.LOCATION_SERVICE) as android.location.LocationManager
+                                        val location = locationManager.getLastKnownLocation(android.location.LocationManager.GPS_PROVIDER)
+                                            ?: locationManager.getLastKnownLocation(android.location.LocationManager.NETWORK_PROVIDER)
 
-                // Add GPS location if available (check for location permission)
-                if (androidx.core.content.ContextCompat.checkSelfPermission(
-                        this,
-                        android.Manifest.permission.ACCESS_FINE_LOCATION
-                    ) == android.content.pm.PackageManager.PERMISSION_GRANTED
-                ) {
-                    val locationManager = getSystemService(android.content.Context.LOCATION_SERVICE) as android.location.LocationManager
-                    val location = locationManager.getLastKnownLocation(android.location.LocationManager.GPS_PROVIDER)
-                        ?: locationManager.getLastKnownLocation(android.location.LocationManager.NETWORK_PROVIDER)
+                                        if (location != null) {
+                                            exif.setLatLong(location.latitude, location.longitude)
+                                            exif.setAttribute(androidx.exifinterface.media.ExifInterface.TAG_GPS_ALTITUDE, location.altitude.toString())
+                                            Log.i(TAG, "Added GPS metadata: ${location.latitude}, ${location.longitude}")
+                                        }
+                                    }
 
-                    if (location != null) {
-                        exif.setLatLong(location.latitude, location.longitude)
-                        exif.setAttribute(androidx.exifinterface.media.ExifInterface.TAG_GPS_ALTITUDE, location.altitude.toString())
-                        Log.i(TAG, "Added GPS metadata: ${location.latitude}, ${location.longitude}")
-                    }
+                                    exif.saveAttributes()
+                                    Log.i(TAG, "EXIF metadata saved")
+                                } catch (e: Exception) {
+                                    Log.w(TAG, "Failed to add EXIF metadata", e)
+                                }
+
+                                // Success feedback
+                                runOnUiThread {
+                                    loadingIndicatorManager.hideLoading()
+                                    com.customcamera.app.presentation.EnhancedToast.dualCameraPhoto(this, "${photoFile.name} (screenshot)")
+                                    hapticManager.photoCapture()
+                                    Log.i(TAG, "✅ Dual camera photo saved (screenshot mode): ${photoFile.absolutePath}")
+                                    animateCaptureButton()
+                                }
+                            } catch (e: Exception) {
+                                Log.e(TAG, "Failed to save screenshot bitmap", e)
+                                runOnUiThread {
+                                    loadingIndicatorManager.hideLoading()
+                                    hapticManager.error()
+                                    com.customcamera.app.presentation.EnhancedToast.error(this, "Screenshot save failed")
+                                }
+                            }
+                        } else {
+                            Log.e(TAG, "PixelCopy failed with result: $copyResult")
+                            runOnUiThread {
+                                loadingIndicatorManager.hideLoading()
+                                hapticManager.error()
+                                com.customcamera.app.presentation.EnhancedToast.error(this, "Screenshot capture failed")
+                            }
+                        }
+                    },
+                    android.os.Handler(android.os.Looper.getMainLooper())
+                )
+            } else {
+                // Fallback for pre-Android O devices (draw method, won't capture SurfaceView properly)
+                Log.w(TAG, "PixelCopy not available (API < 26), using fallback draw method")
+                val rootView = binding.root
+                val bitmap = Bitmap.createBitmap(rootView.width, rootView.height, Bitmap.Config.ARGB_8888)
+                val canvas = Canvas(bitmap)
+                rootView.draw(canvas)
+
+                photoFile.outputStream().use { out ->
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 95, out)
                 }
 
-                exif.saveAttributes()
-                Log.i(TAG, "EXIF metadata saved")
-            } catch (e: Exception) {
-                Log.w(TAG, "Failed to add EXIF metadata", e)
+                loadingIndicatorManager.hideLoading()
+                com.customcamera.app.presentation.EnhancedToast.dualCameraPhoto(this, "${photoFile.name} (screenshot)")
+                hapticManager.photoCapture()
+                Log.i(TAG, "✅ Dual camera photo saved (legacy screenshot): ${photoFile.absolutePath}")
+                animateCaptureButton()
             }
-
-            // Success feedback
-            loadingIndicatorManager.hideLoading()
-            com.customcamera.app.presentation.EnhancedToast.dualCameraPhoto(this, "${photoFile.name} (screenshot)")
-            hapticManager.photoCapture()
-            Log.i(TAG, "✅ Dual camera photo saved (screenshot mode): ${photoFile.absolutePath}")
-            animateCaptureButton()
 
         } catch (e: Exception) {
             Log.e(TAG, "Screenshot fallback failed", e)
