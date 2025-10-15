@@ -1062,19 +1062,27 @@ concurrentCamera = provider.bindToLifecycle(
 - ✅ Modified: `DualCameraPiPPlugin.kt` - Mode switching integration
 - ✅ Updated: `memory/PIP.md` - Implementation status
 
-## ✅ SESSION COMPLETED: Video Recording Bug Fix (2025-10-15)
+## ✅ SESSION COMPLETED: Video Recording Bug Fixes (2025-10-15)
 
 ### ✅ Problem & Solution
 **User Report**: "it says failed to start recording" when trying to record video
 
-**Root Cause Found**:
+**Two Root Causes Found**:
+
+**Issue 1: PiP Mode Conflict**
 - PiP (concurrent camera) mode disables VideoCapture UseCase to stay within 2 UseCase limit
 - When user enabled PiP and tried to record video, videoCapture was null
 - AdvancedVideoRecordingPlugin.startRecording() failed with null VideoCapture
 
-**Fix Applied**:
+**Issue 2: Missing RECORD_AUDIO Permission**
+- Video recording with audio requires RECORD_AUDIO permission
+- App only requested CAMERA permission at runtime
+- Recording failed when trying to enable audio without permission
+
+**Fixes Applied**:
+
+**Fix 1 - Disable Video in PiP Mode**:
 ```kotlin
-// Added updateVideoButtonState() function
 private fun updateVideoButtonState() {
     val currentMode = cameraEngine.getCurrentMode()
     val isVideoAvailable = currentMode is CameraMode.Single
@@ -1086,17 +1094,32 @@ private fun updateVideoButtonState() {
 }
 ```
 
+**Fix 2 - Request Audio Permission**:
+```kotlin
+// CameraSelectionActivity.kt
+private val requestPermissionsLauncher = registerForActivityResult(
+    ActivityResultContracts.RequestMultiplePermissions()
+) { permissions ->
+    val cameraGranted = permissions[Manifest.permission.CAMERA] ?: false
+    val audioGranted = permissions[Manifest.permission.RECORD_AUDIO] ?: false
+    // Handle both permissions
+}
+```
+
 **Changes**:
 - ✅ Video button disabled (grayed out at 50% opacity) when PiP is active
 - ✅ Clear user message: "Video recording unavailable in PiP mode. Disable PiP to record video."
 - ✅ Added null check for VideoCapture before attempting recording
 - ✅ Button auto-enables when switching back to single camera mode
-- ✅ Called on camera initialization and PiP toggle
+- ✅ Both CAMERA and RECORD_AUDIO permissions now requested on app start
+- ✅ Permission check before enabling audio in video recording
+- ✅ Video records without audio if permission denied (with warning logged)
+- ✅ User feedback if microphone permission is denied
 
 **Build Status**:
-- Build Time: 8s
+- Build Time: 4s
 - Status: Production-ready
-- Test: Video button should be disabled in PiP mode, enabled otherwise
+- Test: Uninstall app, reinstall to test permission prompts, then test video recording
 
 ## Next Session Priorities
 1. **Device Testing**: Test video recording disable/enable with PiP toggle
