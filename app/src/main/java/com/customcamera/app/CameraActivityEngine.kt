@@ -2250,6 +2250,15 @@ class CameraActivityEngine : AppCompatActivity() {
             // Video recording is disabled in concurrent mode due to UseCase limit
             updateVideoButtonState()
 
+            // Reconnect preview if PiP was disabled (switched to single mode)
+            if (!wasEnabled) {
+                lifecycleScope.launch(Dispatchers.Main) {
+                    val preview = cameraEngine.getPreview()
+                    preview?.setSurfaceProvider(binding.previewView.surfaceProvider)
+                    Log.i(TAG, "Preview reconnected after disabling PiP")
+                }
+            }
+
         } catch (e: Exception) {
             Log.e(TAG, "Error toggling dual camera PiP", e)
             Toast.makeText(this, "PiP toggle failed: ${e.message}", Toast.LENGTH_LONG).show()
