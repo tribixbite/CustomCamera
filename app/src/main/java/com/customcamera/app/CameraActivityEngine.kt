@@ -647,11 +647,104 @@ class CameraActivityEngine : AppCompatActivity() {
     }
 
     /**
-     * Capture screen using MediaProjection (direct approach)
+     * Capture main and PiP separately, then stitch together
      */
     private fun captureScreenFallback(photoFile: File) {
-        Log.i(TAG, "📸 Requesting MediaProjection for screen capture")
-        requestMediaProjectionFallback(photoFile)
+        lifecycleScope.launch(Dispatchers.Main) {
+            try {
+                Log.i(TAG, "📸 Capturing main and PiP separately")
+
+                // Capture main preview
+                val mainBitmap = binding.previewView.bitmap
+                if (mainBitmap == null) {
+                    Log.e(TAG, "Failed to get main preview bitmap")
+                    loadingIndicatorManager.hideLoading()
+                    hapticManager.error()
+                    com.customcamera.app.presentation.EnhancedToast.error(this@CameraActivityEngine, "Screen capture failed")
+                    return@launch
+                }
+                Log.i(TAG, "Main preview captured: ${mainBitmap.width}x${mainBitmap.height}")
+
+                // Get PiP preview if available
+                var pipBitmap: android.graphics.Bitmap? = null
+                var pipX = 0
+                var pipY = 0
+                var pipWidth = 0
+                var pipHeight = 0
+
+                pipOverlayView?.let { pipView ->
+                    if (pipView.visibility == android.view.View.VISIBLE) {
+                        // Get the PreviewView from PiP overlay
+                        val pipPreviewView = pipView.getPreviewView()
+
+                        pipBitmap = pipPreviewView.bitmap
+                        if (pipBitmap != null) {
+                            // Calculate PiP position relative to main preview
+                            val pipLocation = IntArray(2)
+                            val mainLocation = IntArray(2)
+                            pipView.getLocationOnScreen(pipLocation)
+                            binding.previewView.getLocationOnScreen(mainLocation)
+
+                            pipX = pipLocation[0] - mainLocation[0]
+                            pipY = pipLocation[1] - mainLocation[1]
+                            pipWidth = pipView.width
+                            pipHeight = pipView.height
+
+                            Log.i(TAG, "PiP preview captured: ${pipBitmap?.width}x${pipBitmap?.height} at ($pipX, $pipY)")
+                        } else {
+                            Log.w(TAG, "PiP preview bitmap is null")
+                        }
+                    }
+                }
+
+                // Stitch them together
+                withContext(Dispatchers.IO) {
+                    val finalBitmap = if (pipBitmap != null) {
+                        // Create canvas on main bitmap
+                        val mutableBitmap = mainBitmap.copy(android.graphics.Bitmap.Config.ARGB_8888, true)
+                        val canvas = android.graphics.Canvas(mutableBitmap)
+
+                        // Scale PiP bitmap to match overlay size
+                        val scaledPipBitmap = android.graphics.Bitmap.createScaledBitmap(
+                            pipBitmap!!,
+                            pipWidth,
+                            pipHeight,
+                            true
+                        )
+
+                        // Draw PiP on top
+                        canvas.drawBitmap(scaledPipBitmap, pipX.toFloat(), pipY.toFloat(), null)
+                        Log.i(TAG, "PiP stitched onto main preview")
+
+                        mutableBitmap
+                    } else {
+                        Log.w(TAG, "No PiP available, saving main only")
+                        mainBitmap
+                    }
+
+                    // Save to file
+                    photoFile.outputStream().use { out ->
+                        finalBitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 95, out)
+                    }
+                    Log.i(TAG, "Final bitmap saved: ${photoFile.absolutePath}")
+
+                    withContext(Dispatchers.Main) {
+                        loadingIndicatorManager.hideLoading()
+                        val suffix = if (pipBitmap != null) "(dual capture)" else "(main only)"
+                        com.customcamera.app.presentation.EnhancedToast.dualCameraPhoto(this@CameraActivityEngine, "${photoFile.name} $suffix")
+                        hapticManager.photoCapture()
+                        Log.i(TAG, "✅ Screen capture saved: ${photoFile.absolutePath}")
+                        animateCaptureButton()
+                    }
+                }
+
+            } catch (e: Exception) {
+                Log.e(TAG, "Screen capture failed", e)
+                loadingIndicatorManager.hideLoading()
+                hapticManager.error()
+                com.customcamera.app.presentation.EnhancedToast.error(this@CameraActivityEngine, "Screen capture failed: ${e.message}")
+            }
+        }
     }
 
     private var mediaProjectionLauncher: androidx.activity.result.ActivityResultLauncher<Intent>? = null
