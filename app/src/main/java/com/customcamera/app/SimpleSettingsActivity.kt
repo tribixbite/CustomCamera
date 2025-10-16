@@ -8,6 +8,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.lifecycle.lifecycleScope
 import com.customcamera.app.engine.SettingsManager
+import com.customcamera.app.engine.plugins.PluginRegistry
 import kotlinx.coroutines.launch
 
 /**
@@ -180,38 +181,8 @@ class SimpleSettingsActivity : AppCompatActivity() {
         addInfoSetting("Photo Quality", "${settingsManager.photoQuality.value}%")
         addInfoSetting("Video Quality", settingsManager.getVideoQuality())
 
-        // Plugin controls
-        addTitle("Plugin Controls")
-
-        addSwitchSetting(
-            "AutoFocus Plugin",
-            "Enable tap-to-focus and continuous autofocus",
-            settingsManager.isPluginEnabled("AutoFocus")
-        ) { enabled ->
-            // Update StateFlow - AutoFocusPlugin reads from this centralized state
-            settingsManager.setPluginEnabled("AutoFocus", enabled)
-
-            Toast.makeText(this, "AutoFocus plugin ${if (enabled) "enabled" else "disabled"} - restart camera to apply", Toast.LENGTH_LONG).show()
-            Log.i(TAG, "AutoFocus plugin setting changed via StateFlow: $enabled")
-        }
-
-        addSwitchSetting(
-            "Grid Overlay Plugin",
-            "Enable composition grid overlays",
-            settingsManager.isPluginEnabled("GridOverlay")
-        ) { enabled ->
-            settingsManager.setPluginEnabled("GridOverlay", enabled)
-            Toast.makeText(this, "Grid plugin ${if (enabled) "enabled" else "disabled"}", Toast.LENGTH_SHORT).show()
-        }
-
-        addSwitchSetting(
-            "Camera Info Plugin",
-            "Enable frame analysis and monitoring",
-            settingsManager.isPluginEnabled("CameraInfo")
-        ) { enabled ->
-            settingsManager.setPluginEnabled("CameraInfo", enabled)
-            Toast.makeText(this, "Camera info plugin ${if (enabled) "enabled" else "disabled"}", Toast.LENGTH_SHORT).show()
-        }
+        // Auto-generate plugin settings from PluginRegistry
+        addPluginSettings()
 
         // Debug interface
         addTitle("Debug & Testing")
@@ -230,27 +201,14 @@ class SimpleSettingsActivity : AppCompatActivity() {
         }
         settingsContainer.addView(debugButton)
 
-        // Manual controls settings
-        addTitle("Manual Controls")
-
-        addSwitchSetting(
-            "Camera2 Manual Controls",
-            "Enable professional manual controls (ISO, shutter, focus)",
-            true // Always enabled since they're implemented
-        ) { enabled ->
-            Toast.makeText(this, "Manual controls are ${if (enabled) "available" else "disabled"} through settings button in camera", Toast.LENGTH_LONG).show()
-        }
-
-        addSwitchSetting(
-            "Pinch-to-Zoom",
-            "Enable pinch gesture zoom control",
-            true // Always enabled
-        ) { enabled ->
-            Toast.makeText(this, "Pinch-to-zoom is ${if (enabled) "available" else "disabled"} in camera preview", Toast.LENGTH_LONG).show()
-        }
-
-        addInfoSetting("Gesture Controls", "Double tap: Grid, Triple tap: Barcode, Pinch: Zoom")
-        addInfoSetting("Manual Panel", "Settings button → Manual controls")
+        // Gesture controls info
+        addTitle("Gesture Controls")
+        addInfoSetting("Grid Overlay", "Double tap camera preview")
+        addInfoSetting("Barcode Scanner", "Triple tap camera preview")
+        addInfoSetting("Crop Mode", "Quadruple tap camera preview")
+        addInfoSetting("Smart Scene", "Five tap camera preview")
+        addInfoSetting("Object Detection", "Six tap camera preview")
+        addInfoSetting("Zoom Control", "Pinch camera preview")
 
         Log.i(TAG, "Settings UI created")
 
@@ -431,6 +389,65 @@ class SimpleSettingsActivity : AppCompatActivity() {
 
         } catch (e: Exception) {
             Log.e(TAG, "Failed to create fallback UI", e)
+        }
+    }
+
+    /**
+     * Auto-generate plugin settings from PluginRegistry
+     * Displays all user-toggleable plugins grouped by category
+     */
+    private fun addPluginSettings() {
+        try {
+            val pluginsByCategory = PluginRegistry.getPluginsByCategory()
+
+            // Category display names
+            val categoryNames = mapOf(
+                com.customcamera.app.engine.plugins.PluginCategory.OVERLAYS to "Overlay Plugins",
+                com.customcamera.app.engine.plugins.PluginCategory.ANALYSIS to "Analysis Plugins",
+                com.customcamera.app.engine.plugins.PluginCategory.CONTROLS to "Control Plugins",
+                com.customcamera.app.engine.plugins.PluginCategory.AI to "AI-Powered Features",
+                com.customcamera.app.engine.plugins.PluginCategory.CAPTURE to "Capture Features"
+            )
+
+            // Iterate through categories in order
+            val orderedCategories = listOf(
+                com.customcamera.app.engine.plugins.PluginCategory.OVERLAYS,
+                com.customcamera.app.engine.plugins.PluginCategory.ANALYSIS,
+                com.customcamera.app.engine.plugins.PluginCategory.CONTROLS,
+                com.customcamera.app.engine.plugins.PluginCategory.AI,
+                com.customcamera.app.engine.plugins.PluginCategory.CAPTURE
+            )
+
+            for (category in orderedCategories) {
+                val plugins = pluginsByCategory[category] ?: continue
+                if (plugins.isEmpty()) continue
+
+                // Add category title
+                addTitle(categoryNames[category] ?: category.name)
+
+                // Add plugin settings
+                for (plugin in plugins) {
+                    addSwitchSetting(
+                        plugin.displayName,
+                        plugin.description,
+                        settingsManager.isPluginEnabled(plugin.name)
+                    ) { enabled ->
+                        settingsManager.setPluginEnabled(plugin.name, enabled)
+                        Toast.makeText(
+                            this,
+                            "${plugin.displayName} ${if (enabled) "enabled" else "disabled"}",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        Log.i(TAG, "${plugin.name} plugin changed to: $enabled")
+                    }
+                }
+            }
+
+            Log.i(TAG, "Auto-generated settings for ${pluginsByCategory.values.sumOf { it.size }} plugins")
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to auto-generate plugin settings", e)
+            Toast.makeText(this, "Plugin settings error: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
 
