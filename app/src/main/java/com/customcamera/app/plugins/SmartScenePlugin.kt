@@ -20,6 +20,11 @@ import kotlin.math.*
 class SmartScenePlugin : ProcessingPlugin() {
 
     override val name: String = "SmartScene"
+    override val displayName: String = "Smart Scene"
+    override val description: String = "AI-powered scene detection"
+    override val iconResId: Int = com.customcamera.app.R.drawable.ic_camera
+    override val category: com.customcamera.app.engine.plugins.PluginCategory = com.customcamera.app.engine.plugins.PluginCategory.AI
+    override val userToggleable: Boolean = true
     override val version: String = "1.0.0"
     override val priority: Int = 30 // High priority for scene analysis
 

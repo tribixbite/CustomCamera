@@ -15,6 +15,11 @@ import com.customcamera.app.engine.plugins.ProcessingMetadata
 class CameraInfoPlugin : ProcessingPlugin() {
 
     override val name: String = "CameraInfo"
+    override val displayName: String = "Camera Info"
+    override val description: String = "Real-time camera information display"
+    override val iconResId: Int = com.customcamera.app.R.drawable.ic_info
+    override val category: com.customcamera.app.engine.plugins.PluginCategory = com.customcamera.app.engine.plugins.PluginCategory.ANALYSIS
+    override val userToggleable: Boolean = true
     override val version: String = "1.0.0"
     override val priority: Int = 90 // Lower priority - informational only
 

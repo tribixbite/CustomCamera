@@ -17,6 +17,11 @@ import com.customcamera.app.barcode.DetectedBarcode
 class ScanningOverlayPlugin : UIPlugin() {
 
     override val name: String = "ScanningOverlay"
+    override val displayName: String = "Scan Overlay"
+    override val description: String = "Visual overlay for barcode scanning"
+    override val iconResId: Int = com.customcamera.app.R.drawable.ic_focus
+    override val category: com.customcamera.app.engine.plugins.PluginCategory = com.customcamera.app.engine.plugins.PluginCategory.ANALYSIS
+    override val userToggleable: Boolean = false
     override val version: String = "1.0.0"
     override val priority: Int = 45 // Medium priority for UI
 

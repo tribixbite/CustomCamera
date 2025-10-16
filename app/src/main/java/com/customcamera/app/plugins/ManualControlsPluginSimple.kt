@@ -31,6 +31,11 @@ class ManualControlsPluginSimple(
     }
 
     override val name: String = "ManualControls"
+    override val displayName: String = "Manual Controls"
+    override val description: String = "Basic manual camera controls"
+    override val iconResId: Int = com.customcamera.app.R.drawable.ic_settings
+    override val category: com.customcamera.app.engine.plugins.PluginCategory = com.customcamera.app.engine.plugins.PluginCategory.CONTROLS
+    override val userToggleable: Boolean = true
     override val version: String = "1.0.0"
     override val priority: Int = 50
 

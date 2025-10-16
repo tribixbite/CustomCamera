@@ -31,6 +31,11 @@ import java.io.FileOutputStream
 class RAWCapturePlugin : ControlPlugin() {
 
     override val name: String = "RAWCapture"
+    override val displayName: String = "RAW Capture"
+    override val description: String = "Capture photos in DNG/RAW format"
+    override val iconResId: Int = com.customcamera.app.R.drawable.ic_camera
+    override val category: com.customcamera.app.engine.plugins.PluginCategory = com.customcamera.app.engine.plugins.PluginCategory.CAPTURE
+    override val userToggleable: Boolean = true
     override val version: String = "1.0.0"
     override val priority: Int = 20 // High priority for capture control
 

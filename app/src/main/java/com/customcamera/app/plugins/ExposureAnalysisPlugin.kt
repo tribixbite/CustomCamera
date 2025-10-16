@@ -15,6 +15,11 @@ import com.customcamera.app.engine.plugins.ProcessingMetadata
 class ExposureAnalysisPlugin : ProcessingPlugin() {
 
     override val name: String = "ExposureAnalysis"
+    override val displayName: String = "Exposure Analysis"
+    override val description: String = "Analyze and optimize exposure"
+    override val iconResId: Int = com.customcamera.app.R.drawable.ic_info
+    override val category: com.customcamera.app.engine.plugins.PluginCategory = com.customcamera.app.engine.plugins.PluginCategory.ANALYSIS
+    override val userToggleable: Boolean = true
     override val version: String = "1.0.0"
     override val priority: Int = 65 // Medium priority for analysis
 

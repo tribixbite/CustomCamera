@@ -19,6 +19,11 @@ import java.util.regex.Pattern
 class QRScannerPlugin : ProcessingPlugin() {
 
     override val name: String = "QRScanner"
+    override val displayName: String = "QR Scanner"
+    override val description: String = "Specialized QR code scanning"
+    override val iconResId: Int = com.customcamera.app.R.drawable.ic_focus
+    override val category: com.customcamera.app.engine.plugins.PluginCategory = com.customcamera.app.engine.plugins.PluginCategory.ANALYSIS
+    override val userToggleable: Boolean = true
     override val version: String = "1.0.0"
     override val priority: Int = 35 // Higher priority than general barcode
 

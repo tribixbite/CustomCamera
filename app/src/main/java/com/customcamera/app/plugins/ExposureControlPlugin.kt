@@ -16,6 +16,11 @@ import kotlinx.coroutines.delay
 class ExposureControlPlugin : ControlPlugin() {
 
     override val name: String = "ExposureControl"
+    override val displayName: String = "Exposure Control"
+    override val description: String = "Manual exposure compensation and analysis"
+    override val iconResId: Int = com.customcamera.app.R.drawable.ic_settings
+    override val category: com.customcamera.app.engine.plugins.PluginCategory = com.customcamera.app.engine.plugins.PluginCategory.CONTROLS
+    override val userToggleable: Boolean = true
     override val version: String = "1.0.0"
     override val priority: Int = 15 // High priority for exposure controls
 

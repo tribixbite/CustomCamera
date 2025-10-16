@@ -23,6 +23,11 @@ import java.io.File
 class AdvancedVideoRecordingPlugin : UIPlugin() {
 
     override val name: String = "AdvancedVideoRecording"
+    override val displayName: String = "Advanced Video"
+    override val description: String = "Professional video recording features"
+    override val iconResId: Int = com.customcamera.app.R.drawable.ic_videocam
+    override val category: com.customcamera.app.engine.plugins.PluginCategory = com.customcamera.app.engine.plugins.PluginCategory.CAPTURE
+    override val userToggleable: Boolean = true
     override val version: String = "1.0.0"
     override val priority: Int = 25 // High priority for video management
 

@@ -23,6 +23,11 @@ import java.nio.ByteBuffer
 class ObjectDetectionPlugin : ProcessingPlugin() {
 
     override val name: String = "ObjectDetection"
+    override val displayName: String = "Object Detection"
+    override val description: String = "Real-time object recognition"
+    override val iconResId: Int = com.customcamera.app.R.drawable.ic_focus
+    override val category: com.customcamera.app.engine.plugins.PluginCategory = com.customcamera.app.engine.plugins.PluginCategory.AI
+    override val userToggleable: Boolean = true
     override val version: String = "1.0.0"
     override val priority: Int = 35 // High priority for object detection
 

@@ -19,6 +19,11 @@ import java.nio.ByteBuffer
 class HistogramPlugin : ProcessingPlugin() {
 
     override val name: String = "Histogram"
+    override val displayName: String = "Histogram"
+    override val description: String = "Real-time exposure histogram"
+    override val iconResId: Int = com.customcamera.app.R.drawable.ic_info
+    override val category: com.customcamera.app.engine.plugins.PluginCategory = com.customcamera.app.engine.plugins.PluginCategory.ANALYSIS
+    override val userToggleable: Boolean = true
     override val version: String = "1.0.0"
     override val priority: Int = 70 // Lower priority for analysis
 

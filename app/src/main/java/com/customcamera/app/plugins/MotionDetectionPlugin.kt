@@ -18,6 +18,11 @@ import kotlin.math.*
 class MotionDetectionPlugin : ProcessingPlugin() {
 
     override val name: String = "MotionDetection"
+    override val displayName: String = "Motion Detection"
+    override val description: String = "Detect motion and trigger capture"
+    override val iconResId: Int = com.customcamera.app.R.drawable.ic_focus
+    override val category: com.customcamera.app.engine.plugins.PluginCategory = com.customcamera.app.engine.plugins.PluginCategory.ANALYSIS
+    override val userToggleable: Boolean = true
     override val version: String = "1.0.0"
     override val priority: Int = 20 // Medium priority for motion detection
 

@@ -21,6 +21,11 @@ import java.util.concurrent.TimeUnit
 class AutoFocusPlugin : ControlPlugin() {
 
     override val name: String = "AutoFocus"
+    override val displayName: String = "Auto Focus"
+    override val description: String = "Automatic focus control with tap-to-focus"
+    override val iconResId: Int = com.customcamera.app.R.drawable.ic_focus
+    override val category: com.customcamera.app.engine.plugins.PluginCategory = com.customcamera.app.engine.plugins.PluginCategory.CONTROLS
+    override val userToggleable: Boolean = true
     override val version: String = "1.0.0"
     override val priority: Int = 10 // High priority for focus operations
 

@@ -54,8 +54,6 @@ class CameraActivityEngine : AppCompatActivity() {
     @Volatile private var isFlashOn: Boolean = false
     @Volatile private var isRecording: Boolean = false
     private var activeRecording: Recording? = null
-    @Volatile private var isManualControlsVisible: Boolean = false
-    private var manualControlsPanel: android.widget.LinearLayout? = null
     @Volatile private var isNightModeEnabled: Boolean = false
     @Volatile private var isHistogramVisible: Boolean = false
     private var histogramView: com.customcamera.app.analysis.HistogramView? = null
@@ -338,14 +336,13 @@ class CameraActivityEngine : AppCompatActivity() {
         // See toggleRawCapture() for implementation
 
         // ✅ Phase 8H Professional Manual Controls COMPLETE
-        // Professional manual controls implemented via Camera2 API integration:
-        // - ISO Control (Camera2ISOController in showManualControls())
-        // - Shutter Speed Control (ShutterSpeedController in showManualControls())
-        // - Focus Distance Control (FocusDistanceController in showManualControls())
-        // - White Balance Control (Manual color temperature in showManualControls())
-        // - Zoom Control (ZoomController with pinch-to-zoom)
-        // - Exposure Compensation (Real-time EV adjustment)
-        // See showManualControls() at line 752-1037 for full implementation
+        // Professional manual controls implemented via Plugin System:
+        // - ProControlsPlugin - Comprehensive professional camera controls
+        // - ManualControlsPluginSimple - Basic manual camera controls
+        // - ExposureControlPlugin - Manual exposure compensation and analysis
+        // - ManualFocusPlugin - Precise manual focus control
+        // - Camera2ISOController, ShutterSpeedController, FocusDistanceController
+        // All manual controls accessible via plugin dropdown menu
 
         // Note: 6 plugin files in ../disabled_plugins/ are not needed as we have
         // direct Camera2 integration providing all professional control features
@@ -1105,305 +1102,8 @@ class CameraActivityEngine : AppCompatActivity() {
         }
     }
 
-    private fun toggleManualControlsPanel() {
-        if (isManualControlsVisible) {
-            hideManualControls()
-        } else {
-            showManualControls()
-        }
-    }
-
-    private fun showManualControls() {
-        try {
-            if (manualControlsPanel == null) {
-                // Create manual controls panel
-                val panel = android.widget.LinearLayout(this).apply {
-                    orientation = android.widget.LinearLayout.VERTICAL
-                    setBackgroundColor(android.graphics.Color.argb(200, 0, 0, 0))
-                    setPadding(16, 16, 16, 16)
-                }
-                manualControlsPanel = panel
-
-                // Add manual controls with Camera2 capabilities
-                val helper = com.customcamera.app.camera2.ManualControlHelper(this)
-                helper.initializeForCamera(cameraIndex.toString())
-
-                // Initialize Camera2 controllers
-                camera2ISOController = com.customcamera.app.camera2.Camera2ISOController(this).apply {
-                    initialize(cameraIndex.toString())
-                }
-
-                // Initialize zoom controller if not already created during camera setup
-                val camera = cameraEngine.getCurrentCamera()
-                if (zoomController == null && camera != null) {
-                    zoomController = com.customcamera.app.camera2.ZoomController(this).apply {
-                        initialize(cameraIndex.toString(), camera)
-                    }
-                }
-
-                shutterSpeedController = com.customcamera.app.camera2.ShutterSpeedController(this).apply {
-                    initialize(cameraIndex.toString())
-                }
-
-                focusDistanceController = com.customcamera.app.camera2.FocusDistanceController(this).apply {
-                    initialize(cameraIndex.toString())
-                }
-
-                // Note: Pinch-to-zoom is now set up during camera initialization (startCameraWithEngine)
-
-                val titleView = android.widget.TextView(this).apply {
-                    text = "Manual Controls"
-                    textSize = 18f
-                    setTextColor(android.graphics.Color.WHITE)
-                    setPadding(0, 0, 0, 4)
-                }
-                panel.addView(titleView)
-
-                // Add instruction for full settings
-                val instructionView = android.widget.TextView(this).apply {
-                    text = "💡 Long press settings button for full settings page"
-                    textSize = 12f
-                    setTextColor(android.graphics.Color.LTGRAY)
-                    setPadding(0, 0, 0, 12)
-                }
-                panel.addView(instructionView)
-
-                // Show camera capabilities
-                val capabilitiesView = android.widget.TextView(this).apply {
-                    val capabilities = helper.getManualControlCapabilities()
-                    text = "Camera Capabilities:\n${capabilities["isoRange"]}\nManual: ${capabilities["manualControlSupported"]}"
-                    textSize = 12f
-                    setTextColor(android.graphics.Color.LTGRAY)
-                    setPadding(0, 0, 0, 16)
-                }
-                panel.addView(capabilitiesView)
-
-                // Add exposure compensation control with real camera connection
-                val exposureText = android.widget.TextView(this).apply {
-                    text = "Exposure: 0 EV (Real Camera Control)"
-                    setTextColor(android.graphics.Color.WHITE)
-                }
-                panel.addView(exposureText)
-
-                val exposureSeekBar = android.widget.SeekBar(this).apply {
-                    max = 12 // -6 to +6 EV
-                    progress = 6 // 0 EV
-                    setOnSeekBarChangeListener(object : android.widget.SeekBar.OnSeekBarChangeListener {
-                        override fun onProgressChanged(seekBar: android.widget.SeekBar?, progress: Int, fromUser: Boolean) {
-                            if (fromUser) {
-                                val ev = progress - 6
-                                exposureText.text = "Exposure: ${if (ev >= 0) "+" else ""}$ev EV (Camera2 API)"
-                                // Apply real exposure compensation
-                                lifecycleScope.launch {
-                                    val result = exposureControlPlugin.setExposureCompensation(ev)
-                                    Log.d(TAG, "Exposure compensation result: $result")
-                                }
-                            }
-                        }
-                        override fun onStartTrackingTouch(seekBar: android.widget.SeekBar?) {}
-                        override fun onStopTrackingTouch(seekBar: android.widget.SeekBar?) {}
-                    })
-                }
-                panel.addView(exposureSeekBar)
-
-                // Add ISO control with real camera ranges
-                val isoRange = helper.getISORange()
-                val isoText = android.widget.TextView(this).apply {
-                    text = if (isoRange != null) {
-                        "ISO: Auto (${isoRange.lower}-${isoRange.upper})"
-                    } else {
-                        "ISO: Auto (Limited support)"
-                    }
-                    setTextColor(android.graphics.Color.WHITE)
-                    setPadding(0, 16, 0, 0)
-                }
-                panel.addView(isoText)
-
-                val isoSeekBar = android.widget.SeekBar(this).apply {
-                    if (isoRange != null) {
-                        max = isoRange.upper - isoRange.lower
-                        progress = 100 - isoRange.lower // Default to ISO 100
-                    } else {
-                        max = 100
-                        progress = 20
-                    }
-
-                    setOnSeekBarChangeListener(object : android.widget.SeekBar.OnSeekBarChangeListener {
-                        override fun onProgressChanged(seekBar: android.widget.SeekBar?, progress: Int, fromUser: Boolean) {
-                            if (fromUser) {
-                                val iso = if (isoRange != null) {
-                                    (progress + isoRange.lower).coerceIn(isoRange.lower, isoRange.upper)
-                                } else {
-                                    (50 * 128.0.pow(progress / 100.0)).toInt().coerceIn(50, 6400)
-                                }
-                                isoText.text = "ISO: $iso ${if (isoRange != null) "(Hardware)" else "(Estimated)"}"
-
-                                // Apply real ISO control through Camera2
-                                camera2ISOController?.setISO(iso)
-                                Log.d(TAG, "ISO adjusted to: $iso (Camera2 API called)")
-                            }
-                        }
-                        override fun onStartTrackingTouch(seekBar: android.widget.SeekBar?) {}
-                        override fun onStopTrackingTouch(seekBar: android.widget.SeekBar?) {}
-                    })
-                }
-                panel.addView(isoSeekBar)
-
-                // Add white balance control
-                val wbText = android.widget.TextView(this).apply {
-                    text = "White Balance: Auto"
-                    setTextColor(android.graphics.Color.WHITE)
-                    setPadding(0, 16, 0, 0)
-                }
-                panel.addView(wbText)
-
-                val wbSpinner = android.widget.Spinner(this).apply {
-                    val wbOptions = arrayOf("Auto", "Daylight", "Cloudy", "Tungsten", "Fluorescent", "Flash")
-                    val adapter = android.widget.ArrayAdapter(
-                        this@CameraActivityEngine,
-                        android.R.layout.simple_spinner_item,
-                        wbOptions
-                    )
-                    adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-                    this.adapter = adapter
-
-                    onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
-                        override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: android.view.View?, position: Int, id: Long) {
-                            wbText.text = "White Balance: ${wbOptions[position]}"
-
-                            // Apply real white balance through Camera2
-                            val colorTemp = when (position) {
-                                0 -> 5500 // Auto/Daylight
-                                1 -> 5500 // Daylight
-                                2 -> 6500 // Cloudy
-                                3 -> 3200 // Tungsten
-                                4 -> 4000 // Fluorescent
-                                5 -> 5500 // Flash
-                                else -> 5500
-                            }
-                            camera2Controller?.setColorTemperature(colorTemp)
-                            Log.d(TAG, "White balance set to: ${wbOptions[position]} (${colorTemp}K Camera2 applied)")
-                        }
-                        override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
-                    }
-                }
-                panel.addView(wbSpinner)
-
-                // Add shutter speed control with real Camera2 capabilities
-                val shutterText = android.widget.TextView(this).apply {
-                    val shutterSettings = shutterSpeedController?.getCurrentShutterSpeedSettings()
-                    text = "Shutter: ${shutterSettings?.get("currentDisplayText") ?: "1/60s"} (Camera2)"
-                    setTextColor(android.graphics.Color.WHITE)
-                    setPadding(0, 16, 0, 0)
-                }
-                panel.addView(shutterText)
-
-                val shutterSpinner = android.widget.Spinner(this).apply {
-                    val availableShutterSpeeds = shutterSpeedController?.getAvailableShutterSpeeds() ?: emptyList()
-                    val shutterOptions = if (availableShutterSpeeds.isNotEmpty()) {
-                        availableShutterSpeeds.map { it.first }.toTypedArray()
-                    } else {
-                        arrayOf("1/60s", "1/30s", "1/15s", "1/8s", "1/4s", "1/2s", "1s", "2s")
-                    }
-
-                    val adapter = android.widget.ArrayAdapter(
-                        this@CameraActivityEngine,
-                        android.R.layout.simple_spinner_item,
-                        shutterOptions
-                    )
-                    adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-                    this.adapter = adapter
-
-                    onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
-                        override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: android.view.View?, position: Int, id: Long) {
-                            val selectedShutter = shutterOptions[position]
-                            shutterText.text = "Shutter: $selectedShutter (Camera2)"
-
-                            // Apply real shutter speed through Camera2
-                            shutterSpeedController?.setShutterSpeedByName(selectedShutter)
-                            Log.d(TAG, "Shutter speed set to: $selectedShutter")
-                        }
-                        override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
-                    }
-                }
-                panel.addView(shutterSpinner)
-
-                // Add focus distance control with real Camera2 capabilities
-                val focusText = android.widget.TextView(this).apply {
-                    val focusSettings = focusDistanceController?.getCurrentFocusDistanceSettings()
-                    text = "Focus: ${focusSettings?.get("currentDisplayText") ?: "Auto"} (Camera2)"
-                    setTextColor(android.graphics.Color.WHITE)
-                    setPadding(0, 16, 0, 0)
-                }
-                panel.addView(focusText)
-
-                val focusSpinner = android.widget.Spinner(this).apply {
-                    val availableFocusPresets = focusDistanceController?.getAvailableFocusPresets() ?: emptyList()
-                    val focusOptions = if (availableFocusPresets.isNotEmpty()) {
-                        availableFocusPresets.map { it.first }.toTypedArray()
-                    } else {
-                        arrayOf("Auto", "Infinity", "Landscape", "Portrait", "Close", "Macro")
-                    }
-
-                    val adapter = android.widget.ArrayAdapter(
-                        this@CameraActivityEngine,
-                        android.R.layout.simple_spinner_item,
-                        focusOptions
-                    )
-                    adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-                    this.adapter = adapter
-
-                    onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
-                        override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: android.view.View?, position: Int, id: Long) {
-                            val selectedFocus = focusOptions[position]
-                            focusText.text = "Focus: $selectedFocus (Camera2)"
-
-                            // Apply real focus distance through Camera2
-                            focusDistanceController?.setFocusDistanceByPreset(selectedFocus)
-                            Log.d(TAG, "Focus distance set to: $selectedFocus")
-                        }
-                        override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
-                    }
-                }
-                panel.addView(focusSpinner)
-
-                // Add hyperfocal distance calculator
-                val hyperfocalText = android.widget.TextView(this).apply {
-                    val hyperfocal = focusDistanceController?.calculateHyperfocalDistance(4.0f, 1.8f) ?: "Unknown"
-                    text = "📏 $hyperfocal"
-                    textSize = 12f
-                    setTextColor(android.graphics.Color.LTGRAY)
-                    setPadding(0, 8, 0, 0)
-                }
-                panel.addView(hyperfocalText)
-
-                // Add to camera layout
-                val rootView = binding.root
-                val layoutParams = android.widget.FrameLayout.LayoutParams(
-                    android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
-                    android.widget.FrameLayout.LayoutParams.WRAP_CONTENT
-                ).apply {
-                    gravity = android.view.Gravity.BOTTOM
-                }
-                rootView.addView(manualControlsPanel, layoutParams)
-            }
-
-            manualControlsPanel?.visibility = android.view.View.VISIBLE
-            isManualControlsVisible = true
-
-            Log.i(TAG, "Manual controls panel shown")
-
-        } catch (e: Exception) {
-            Log.e(TAG, "Error showing manual controls", e)
-            Toast.makeText(this, "Manual controls error: ${e.message}", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    private fun hideManualControls() {
-        manualControlsPanel?.visibility = android.view.View.GONE
-        isManualControlsVisible = false
-        Log.i(TAG, "Manual controls panel hidden")
-    }
+    // NOTE: Manual controls are now handled by ProControlsPlugin and ManualControlsPluginSimple
+    // These plugins are automatically integrated into the plugin dropdown system
 
     private fun showAdvancedControls() {
         lifecycleScope.launch {
@@ -1459,11 +1159,14 @@ class CameraActivityEngine : AppCompatActivity() {
                 Log.i(TAG, "Barcode scanning ${if (isBarcodeScanningEnabled) "enabled" else "disabled"}")
                 Log.i(TAG, "BarcodePlugin state - isEnabled: ${barcodePlugin.isEnabled}, isScanningEnabled: ${barcodePlugin.isScanningEnabled()}")
 
-                Toast.makeText(
-                    this,
-                    "Barcode ${if (isBarcodeScanningEnabled) "enabled" else "disabled"}",
-                    Toast.LENGTH_SHORT
-                ).show()
+                // Enhanced feedback
+                if (isBarcodeScanningEnabled) {
+                    hapticManager.featureActivated()
+                    com.customcamera.app.presentation.EnhancedToast.featureActivated(this@CameraActivityEngine, "Barcode Scanner")
+                } else {
+                    hapticManager.featureDeactivated()
+                    com.customcamera.app.presentation.EnhancedToast.featureDeactivated(this@CameraActivityEngine, "Barcode Scanner")
+                }
 
                 // Enable image analysis and UI if needed (run in background to avoid freezing)
                 if (isBarcodeScanningEnabled) {
@@ -1545,16 +1248,14 @@ class CameraActivityEngine : AppCompatActivity() {
                 // Update settings
                 val settingsManager = com.customcamera.app.engine.SettingsManager(this)
                 settingsManager.setPluginEnabled("Barcode", isBarcodeScanningEnabled)
-
-                Toast.makeText(this, "Barcode scanning ${if (isBarcodeScanningEnabled) "enabled" else "disabled"}", Toast.LENGTH_SHORT).show()
             } else {
                 Log.w(TAG, "BarcodePlugin not found")
-                Toast.makeText(this, "Barcode plugin not available", Toast.LENGTH_SHORT).show()
+                com.customcamera.app.presentation.EnhancedToast.error(this, "Barcode plugin not available")
             }
 
         } catch (e: Exception) {
             Log.e(TAG, "Error toggling barcode scanning", e)
-            Toast.makeText(this, "Barcode scanning error: ${e.message}", Toast.LENGTH_SHORT).show()
+            com.customcamera.app.presentation.EnhancedToast.error(this, "Barcode scanning error: ${e.message}")
         }
     }
 
@@ -2273,11 +1974,6 @@ class CameraActivityEngine : AppCompatActivity() {
             barcodeOverlayView = null
         }
 
-        manualControlsPanel?.let {
-            binding.root.removeView(it)
-            manualControlsPanel = null
-        }
-
         focusPeakingOverlay?.let {
             binding.root.removeView(it)
             focusPeakingOverlay = null
@@ -2950,10 +2646,8 @@ class CameraActivityEngine : AppCompatActivity() {
         }
     }
 
-    // NOTE: Professional manual controls are implemented via toggleManualControlsPanel()
-    // which calls showManualControls() at line 752. The controls include:
-    // - ISO, Shutter Speed, Focus Distance, White Balance, Exposure Compensation
-    // See showManualControls() for the complete Camera2 API integration
+    // NOTE: Professional manual controls are now handled by the plugin system
+    // Access via the master plugin button → ProControlsPlugin or ManualControlsPluginSimple
 
     companion object {
         private const val TAG = "CameraActivityEngine"

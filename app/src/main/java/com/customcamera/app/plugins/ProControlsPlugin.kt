@@ -29,6 +29,11 @@ import kotlinx.coroutines.launch
 class ProControlsPlugin : ControlPlugin() {
 
     override val name: String = "ProControls"
+    override val displayName: String = "Pro Controls"
+    override val description: String = "Professional manual camera controls"
+    override val iconResId: Int = com.customcamera.app.R.drawable.ic_settings
+    override val category: com.customcamera.app.engine.plugins.PluginCategory = com.customcamera.app.engine.plugins.PluginCategory.CONTROLS
+    override val userToggleable: Boolean = true
     override val version: String = "1.0.0"
     override val priority: Int = 20 // High priority for camera controls
 

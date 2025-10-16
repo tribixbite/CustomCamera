@@ -21,6 +21,11 @@ import kotlin.math.*
 class SmartAdjustmentsPlugin : ProcessingPlugin() {
 
     override val name: String = "SmartAdjustments"
+    override val displayName: String = "Smart Adjustments"
+    override val description: String = "AI-based camera parameter optimization"
+    override val iconResId: Int = com.customcamera.app.R.drawable.ic_settings
+    override val category: com.customcamera.app.engine.plugins.PluginCategory = com.customcamera.app.engine.plugins.PluginCategory.AI
+    override val userToggleable: Boolean = true
     override val version: String = "1.0.0"
     override val priority: Int = 25 // Medium-high priority for adjustments
 

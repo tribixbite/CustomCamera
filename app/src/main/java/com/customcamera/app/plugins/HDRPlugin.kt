@@ -16,6 +16,11 @@ import com.customcamera.app.engine.plugins.ProcessingMetadata
 class HDRPlugin : ProcessingPlugin() {
 
     override val name: String = "HDR"
+    override val displayName: String = "HDR Mode"
+    override val description: String = "High dynamic range photography"
+    override val iconResId: Int = com.customcamera.app.R.drawable.ic_camera
+    override val category: com.customcamera.app.engine.plugins.PluginCategory = com.customcamera.app.engine.plugins.PluginCategory.CAPTURE
+    override val userToggleable: Boolean = true
     override val version: String = "1.0.0"
     override val priority: Int = 85 // Lower priority for specialized processing
 

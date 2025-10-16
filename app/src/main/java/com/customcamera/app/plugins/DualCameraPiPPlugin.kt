@@ -28,6 +28,11 @@ import android.widget.Toast
 class DualCameraPiPPlugin : UIPlugin() {
 
     override val name: String = "DualCameraPiP"
+    override val displayName: String = "Dual Camera PiP"
+    override val description: String = "Picture-in-picture with dual cameras"
+    override val iconResId: Int = com.customcamera.app.R.drawable.ic_pip
+    override val category: com.customcamera.app.engine.plugins.PluginCategory = com.customcamera.app.engine.plugins.PluginCategory.CAPTURE
+    override val userToggleable: Boolean = true
     override val version: String = "1.0.0"
     override val priority: Int = 30 // High priority for UI management
 

@@ -32,6 +32,11 @@ import kotlin.math.*
 class NightModePlugin : ProcessingPlugin() {
 
     override val name: String = "NightMode"
+    override val displayName: String = "Night Mode"
+    override val description: String = "Low-light and long exposure photography"
+    override val iconResId: Int = com.customcamera.app.R.drawable.ic_night_mode
+    override val category: com.customcamera.app.engine.plugins.PluginCategory = com.customcamera.app.engine.plugins.PluginCategory.CAPTURE
+    override val userToggleable: Boolean = true
     override val version: String = "2.0.0"
     override val priority: Int = 80 // Lower priority for specialized processing
 
