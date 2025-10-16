@@ -1,6 +1,11 @@
 package com.customcamera.app.plugins
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Matrix
+import android.graphics.Rect
 import android.graphics.RectF
+import android.graphics.YuvImage
 import android.util.Log
 import android.view.View
 import androidx.camera.core.Camera
@@ -9,6 +14,8 @@ import com.customcamera.app.engine.CameraContext
 import com.customcamera.app.engine.plugins.UIEvent
 import com.customcamera.app.engine.plugins.UIPlugin
 import com.customcamera.app.crop.CropOverlayView
+import java.io.ByteArrayOutputStream
+import java.nio.ByteBuffer
 
 /**
  * CropPlugin provides pre-shot crop functionality
@@ -121,29 +128,46 @@ class CropPlugin : UIPlugin() {
     }
 
     /**
-     * Apply crop to capture
+     * Apply crop to capture - converts ImageProxy to cropped Bitmap
      */
-    fun applyCropToCapture(image: ImageProxy): ImageProxy {
+    fun applyCropToBitmap(image: ImageProxy): Bitmap? {
         if (!isCropEnabled) {
-            return image
+            return imageProxyToBitmap(image)
         }
 
         Log.d(TAG, "Applying crop to capture: $cropArea")
 
         try {
+            // Convert ImageProxy to Bitmap
+            val fullBitmap = imageProxyToBitmap(image) ?: run {
+                Log.e(TAG, "Failed to convert ImageProxy to Bitmap")
+                return null
+            }
+
             // Calculate actual crop coordinates based on image size
-            val imageWidth = image.width
-            val imageHeight = image.height
+            val imageWidth = fullBitmap.width
+            val imageHeight = fullBitmap.height
 
-            val cropX = (cropArea.left * imageWidth).toInt()
-            val cropY = (cropArea.top * imageHeight).toInt()
-            val cropWidth = ((cropArea.right - cropArea.left) * imageWidth).toInt()
-            val cropHeight = ((cropArea.bottom - cropArea.top) * imageHeight).toInt()
+            val cropX = (cropArea.left * imageWidth).toInt().coerceAtLeast(0)
+            val cropY = (cropArea.top * imageHeight).toInt().coerceAtLeast(0)
+            val cropWidth = ((cropArea.right - cropArea.left) * imageWidth).toInt().coerceAtMost(imageWidth - cropX)
+            val cropHeight = ((cropArea.bottom - cropArea.top) * imageHeight).toInt().coerceAtMost(imageHeight - cropY)
 
-            Log.d(TAG, "Crop coordinates: x=$cropX, y=$cropY, w=$cropWidth, h=$cropHeight")
+            Log.i(TAG, "Crop coordinates: x=$cropX, y=$cropY, w=$cropWidth, h=$cropHeight (from ${imageWidth}x${imageHeight})")
 
-            // Note: In production, you'd actually crop the image here
-            // This would require working with ImageProxy planes and creating a new cropped image
+            // Crop the bitmap
+            val croppedBitmap = Bitmap.createBitmap(
+                fullBitmap,
+                cropX,
+                cropY,
+                cropWidth,
+                cropHeight
+            )
+
+            // Recycle full bitmap to free memory
+            if (fullBitmap != croppedBitmap) {
+                fullBitmap.recycle()
+            }
 
             cameraContext?.debugLogger?.logPlugin(
                 name,
@@ -155,13 +179,104 @@ class CropPlugin : UIPlugin() {
                 )
             )
 
-            return image // Return original for now
+            Log.i(TAG, "✅ Crop applied successfully: ${cropWidth}x${cropHeight}")
+            return croppedBitmap
 
         } catch (e: Exception) {
             Log.e(TAG, "Failed to apply crop", e)
-            return image
+            return imageProxyToBitmap(image)
         }
     }
+
+    /**
+     * Convert ImageProxy to Bitmap
+     */
+    private fun imageProxyToBitmap(image: ImageProxy): Bitmap? {
+        return try {
+            when (image.format) {
+                android.graphics.ImageFormat.JPEG -> {
+                    // JPEG format - direct decode
+                    val buffer = image.planes[0].buffer
+                    val bytes = ByteArray(buffer.remaining())
+                    buffer.get(bytes)
+                    BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+                }
+                android.graphics.ImageFormat.YUV_420_888 -> {
+                    // YUV format - convert to JPEG then decode
+                    yuvImageToBitmap(image)
+                }
+                else -> {
+                    Log.e(TAG, "Unsupported image format: ${image.format}")
+                    null
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to convert ImageProxy to Bitmap", e)
+            null
+        }
+    }
+
+    /**
+     * Convert YUV ImageProxy to Bitmap
+     */
+    private fun yuvImageToBitmap(image: ImageProxy): Bitmap? {
+        return try {
+            val yBuffer = image.planes[0].buffer
+            val uBuffer = image.planes[1].buffer
+            val vBuffer = image.planes[2].buffer
+
+            val ySize = yBuffer.remaining()
+            val uSize = uBuffer.remaining()
+            val vSize = vBuffer.remaining()
+
+            val nv21 = ByteArray(ySize + uSize + vSize)
+
+            // Y plane
+            yBuffer.get(nv21, 0, ySize)
+
+            // U and V planes - interleave to NV21 format
+            val uvPixelStride = image.planes[1].pixelStride
+            if (uvPixelStride == 1) {
+                // Tightly packed
+                vBuffer.get(nv21, ySize, vSize)
+                uBuffer.get(nv21, ySize + vSize, uSize)
+            } else {
+                // Interleaved
+                val uvWidth = image.width / 2
+                val uvHeight = image.height / 2
+                var nv21Index = ySize
+
+                for (row in 0 until uvHeight) {
+                    for (col in 0 until uvWidth) {
+                        val vIndex = row * image.planes[2].rowStride + col * uvPixelStride
+                        val uIndex = row * image.planes[1].rowStride + col * uvPixelStride
+                        nv21[nv21Index++] = vBuffer[vIndex]
+                        nv21[nv21Index++] = uBuffer[uIndex]
+                    }
+                }
+            }
+
+            val yuvImage = YuvImage(nv21, android.graphics.ImageFormat.NV21, image.width, image.height, null)
+            val out = ByteArrayOutputStream()
+            yuvImage.compressToJpeg(Rect(0, 0, image.width, image.height), 100, out)
+            val imageBytes = out.toByteArray()
+
+            BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to convert YUV to Bitmap", e)
+            null
+        }
+    }
+
+    /**
+     * Check if crop is currently enabled
+     */
+    fun isCropEnabled(): Boolean = isCropEnabled
+
+    /**
+     * Get current crop area
+     */
+    fun getCropArea(): RectF = RectF(cropArea)
 
     /**
      * Enable crop mode
@@ -312,6 +427,11 @@ class CropPlugin : UIPlugin() {
             setCropArea(cropArea)
             setAspectRatio(currentAspectRatio)
             setAspectRatioLocked(aspectRatioLocked)
+
+            // Set up callback to sync crop area changes
+            onCropAreaChanged = { newArea ->
+                setCropArea(newArea)
+            }
         }
 
         return cropOverlayView

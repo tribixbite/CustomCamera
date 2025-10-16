@@ -558,27 +558,88 @@ class CameraActivityEngine : AppCompatActivity() {
                 }
             )
         } else {
-            // Single camera capture: Save directly to file
-            imageCapture.takePicture(
-                outputFileOptions,
-                ContextCompat.getMainExecutor(this),
-                object : ImageCapture.OnImageSavedCallback {
-                    override fun onImageSaved(output: ImageCapture.OutputFileResults) {
-                        loadingIndicatorManager.hideLoading()
-                        com.customcamera.app.presentation.EnhancedToast.photoSaved(this@CameraActivityEngine, photoFile.name)
-                        hapticManager.photoCapture()
-                        Log.i(TAG, "Photo saved with engine: ${photoFile.absolutePath}")
-                        animateCaptureButton()
-                    }
+            // Single camera capture
+            // Check if crop is enabled
+            val isCropEnabled = cropPlugin.isEnabled && cropPlugin.isCropEnabled()
 
-                    override fun onError(exception: ImageCaptureException) {
-                        loadingIndicatorManager.hideLoading()
-                        hapticManager.error()
-                        Log.e(TAG, "Photo capture failed with engine", exception)
-                        com.customcamera.app.presentation.EnhancedToast.error(this@CameraActivityEngine, "Photo capture failed")
+            if (isCropEnabled) {
+                Log.i(TAG, "📸 Capturing photo with crop enabled...")
+                // Crop enabled: Capture to memory, apply crop, then save
+                imageCapture.takePicture(
+                    ContextCompat.getMainExecutor(this),
+                    object : ImageCapture.OnImageCapturedCallback() {
+                        override fun onCaptureSuccess(image: ImageProxy) {
+                            lifecycleScope.launch(Dispatchers.IO) {
+                                try {
+                                    // Apply crop and get cropped bitmap
+                                    val croppedBitmap = cropPlugin.applyCropToBitmap(image)
+                                    image.close()
+
+                                    if (croppedBitmap != null) {
+                                        // Save cropped bitmap to file
+                                        photoFile.outputStream().use { out ->
+                                            croppedBitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 95, out)
+                                        }
+                                        croppedBitmap.recycle()
+
+                                        withContext(Dispatchers.Main) {
+                                            loadingIndicatorManager.hideLoading()
+                                            com.customcamera.app.presentation.EnhancedToast.photoSaved(this@CameraActivityEngine, photoFile.name)
+                                            hapticManager.photoCapture()
+                                            Log.i(TAG, "✅ Cropped photo saved: ${photoFile.absolutePath}")
+                                            animateCaptureButton()
+                                        }
+                                    } else {
+                                        withContext(Dispatchers.Main) {
+                                            loadingIndicatorManager.hideLoading()
+                                            hapticManager.error()
+                                            com.customcamera.app.presentation.EnhancedToast.error(this@CameraActivityEngine, "Failed to crop photo")
+                                        }
+                                    }
+                                } catch (e: Exception) {
+                                    Log.e(TAG, "Failed to save cropped photo", e)
+                                    image.close()
+                                    withContext(Dispatchers.Main) {
+                                        loadingIndicatorManager.hideLoading()
+                                        hapticManager.error()
+                                        com.customcamera.app.presentation.EnhancedToast.error(this@CameraActivityEngine, "Photo capture failed")
+                                    }
+                                }
+                            }
+                        }
+
+                        override fun onError(exception: ImageCaptureException) {
+                            loadingIndicatorManager.hideLoading()
+                            hapticManager.error()
+                            Log.e(TAG, "Photo capture failed", exception)
+                            com.customcamera.app.presentation.EnhancedToast.error(this@CameraActivityEngine, "Photo capture failed")
+                        }
                     }
-                }
-            )
+                )
+            } else {
+                // Crop disabled: Save directly to file (faster)
+                Log.i(TAG, "📸 Capturing photo without crop...")
+                imageCapture.takePicture(
+                    outputFileOptions,
+                    ContextCompat.getMainExecutor(this),
+                    object : ImageCapture.OnImageSavedCallback {
+                        override fun onImageSaved(output: ImageCapture.OutputFileResults) {
+                            loadingIndicatorManager.hideLoading()
+                            com.customcamera.app.presentation.EnhancedToast.photoSaved(this@CameraActivityEngine, photoFile.name)
+                            hapticManager.photoCapture()
+                            Log.i(TAG, "Photo saved: ${photoFile.absolutePath}")
+                            animateCaptureButton()
+                        }
+
+                        override fun onError(exception: ImageCaptureException) {
+                            loadingIndicatorManager.hideLoading()
+                            hapticManager.error()
+                            Log.e(TAG, "Photo capture failed", exception)
+                            com.customcamera.app.presentation.EnhancedToast.error(this@CameraActivityEngine, "Photo capture failed")
+                        }
+                    }
+                )
+            }
         }
     }
 
