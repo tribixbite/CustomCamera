@@ -148,6 +148,20 @@ class PluginManager {
     fun getPlugin(name: String): CameraPlugin? = plugins[name]
 
     /**
+     * Get all registered plugins (for UI display)
+     */
+    fun getAllPlugins(): List<CameraPlugin> {
+        return plugins.values.toList().sortedBy { it.priority }
+    }
+
+    /**
+     * Get all user-toggleable plugins (for UI display)
+     */
+    fun getToggleablePlugins(): List<CameraPlugin> {
+        return plugins.values.filter { it.userToggleable }.sortedBy { it.priority }
+    }
+
+    /**
      * Get all plugins of a specific type
      */
     fun <T : CameraPlugin> getPluginsOfType(clazz: Class<T>): List<T> {

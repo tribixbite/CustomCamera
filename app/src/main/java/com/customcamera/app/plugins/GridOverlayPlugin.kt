@@ -18,6 +18,11 @@ import com.customcamera.app.engine.plugins.UIPlugin
 class GridOverlayPlugin : UIPlugin() {
 
     override val name: String = "GridOverlay"
+    override val displayName: String = "Grid Overlay"
+    override val description: String = "Composition grids for better photo framing"
+    override val iconResId: Int = com.customcamera.app.R.drawable.ic_extension
+    override val category: com.customcamera.app.engine.plugins.PluginCategory = com.customcamera.app.engine.plugins.PluginCategory.OVERLAYS
+    override val userToggleable: Boolean = true
     override val version: String = "1.0.0"
     override val priority: Int = 50 // Medium priority for UI
 

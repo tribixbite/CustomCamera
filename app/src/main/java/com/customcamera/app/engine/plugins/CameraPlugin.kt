@@ -17,6 +17,32 @@ abstract class CameraPlugin {
     abstract val name: String
 
     /**
+     * Human-readable display name for UI
+     */
+    open val displayName: String
+        get() = name
+
+    /**
+     * Short description of what this plugin does
+     */
+    open val description: String = "Camera plugin"
+
+    /**
+     * Icon resource ID for this plugin (drawable resource)
+     */
+    open val iconResId: Int = android.R.drawable.ic_menu_camera
+
+    /**
+     * Plugin category for grouping in UI
+     */
+    open val category: PluginCategory = PluginCategory.OTHER
+
+    /**
+     * Whether users can toggle this plugin on/off in UI
+     */
+    open val userToggleable: Boolean = true
+
+    /**
      * Plugin version for compatibility tracking
      */
     open val version: String = "1.0.0"
@@ -238,4 +264,17 @@ sealed class UIEvent {
     data class Touch(val x: Float, val y: Float) : UIEvent()
     data class Gesture(val type: String, val data: Map<String, Any>) : UIEvent()
     data class StateChange(val state: String, val data: Any?) : UIEvent()
+}
+
+/**
+ * Plugin categories for UI organization
+ */
+enum class PluginCategory(val displayName: String) {
+    OVERLAYS("Overlays"),
+    ANALYSIS("Analysis"),
+    CONTROLS("Controls"),
+    EFFECTS("Effects"),
+    AI("AI Features"),
+    CAPTURE("Capture"),
+    OTHER("Other")
 }

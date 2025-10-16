@@ -15,6 +15,7 @@ import androidx.viewbinding.ViewBindings;
 import com.customcamera.app.R;
 import com.customcamera.app.presentation.GestureHintsOverlay;
 import com.customcamera.app.presentation.PerformanceMonitor;
+import com.customcamera.app.ui.PluginDropdownView;
 import java.lang.NullPointerException;
 import java.lang.Override;
 import java.lang.String;
@@ -22,9 +23,6 @@ import java.lang.String;
 public final class ActivityCameraBinding implements ViewBinding {
   @NonNull
   private final FrameLayout rootView;
-
-  @NonNull
-  public final ImageButton barcodeToggleButton;
 
   @NonNull
   public final ImageButton captureButton;
@@ -39,10 +37,7 @@ public final class ActivityCameraBinding implements ViewBinding {
   public final GestureHintsOverlay gestureHintsOverlay;
 
   @NonNull
-  public final ImageButton gridToggleButton;
-
-  @NonNull
-  public final ImageButton manualControlsToggleButton;
+  public final ImageButton masterPluginButton;
 
   @NonNull
   public final ImageButton nightModeButton;
@@ -55,6 +50,9 @@ public final class ActivityCameraBinding implements ViewBinding {
 
   @NonNull
   public final LinearLayout pluginControlsPanel;
+
+  @NonNull
+  public final PluginDropdownView pluginDropdownView;
 
   @NonNull
   public final FrameLayout pluginOverlayContainer;
@@ -71,27 +69,25 @@ public final class ActivityCameraBinding implements ViewBinding {
   @NonNull
   public final ImageButton videoRecordButton;
 
-  private ActivityCameraBinding(@NonNull FrameLayout rootView,
-      @NonNull ImageButton barcodeToggleButton, @NonNull ImageButton captureButton,
+  private ActivityCameraBinding(@NonNull FrameLayout rootView, @NonNull ImageButton captureButton,
       @NonNull ImageButton flashButton, @NonNull ImageButton galleryButton,
-      @NonNull GestureHintsOverlay gestureHintsOverlay, @NonNull ImageButton gridToggleButton,
-      @NonNull ImageButton manualControlsToggleButton, @NonNull ImageButton nightModeButton,
-      @NonNull PerformanceMonitor performanceMonitor, @NonNull ImageButton pipButton,
-      @NonNull LinearLayout pluginControlsPanel, @NonNull FrameLayout pluginOverlayContainer,
+      @NonNull GestureHintsOverlay gestureHintsOverlay, @NonNull ImageButton masterPluginButton,
+      @NonNull ImageButton nightModeButton, @NonNull PerformanceMonitor performanceMonitor,
+      @NonNull ImageButton pipButton, @NonNull LinearLayout pluginControlsPanel,
+      @NonNull PluginDropdownView pluginDropdownView, @NonNull FrameLayout pluginOverlayContainer,
       @NonNull PreviewView previewView, @NonNull ImageButton settingsButton,
       @NonNull ImageButton switchCameraButton, @NonNull ImageButton videoRecordButton) {
     this.rootView = rootView;
-    this.barcodeToggleButton = barcodeToggleButton;
     this.captureButton = captureButton;
     this.flashButton = flashButton;
     this.galleryButton = galleryButton;
     this.gestureHintsOverlay = gestureHintsOverlay;
-    this.gridToggleButton = gridToggleButton;
-    this.manualControlsToggleButton = manualControlsToggleButton;
+    this.masterPluginButton = masterPluginButton;
     this.nightModeButton = nightModeButton;
     this.performanceMonitor = performanceMonitor;
     this.pipButton = pipButton;
     this.pluginControlsPanel = pluginControlsPanel;
+    this.pluginDropdownView = pluginDropdownView;
     this.pluginOverlayContainer = pluginOverlayContainer;
     this.previewView = previewView;
     this.settingsButton = settingsButton;
@@ -126,12 +122,6 @@ public final class ActivityCameraBinding implements ViewBinding {
     // This is done to optimize the compiled bytecode for size and performance.
     int id;
     missingId: {
-      id = R.id.barcodeToggleButton;
-      ImageButton barcodeToggleButton = ViewBindings.findChildViewById(rootView, id);
-      if (barcodeToggleButton == null) {
-        break missingId;
-      }
-
       id = R.id.captureButton;
       ImageButton captureButton = ViewBindings.findChildViewById(rootView, id);
       if (captureButton == null) {
@@ -156,15 +146,9 @@ public final class ActivityCameraBinding implements ViewBinding {
         break missingId;
       }
 
-      id = R.id.gridToggleButton;
-      ImageButton gridToggleButton = ViewBindings.findChildViewById(rootView, id);
-      if (gridToggleButton == null) {
-        break missingId;
-      }
-
-      id = R.id.manualControlsToggleButton;
-      ImageButton manualControlsToggleButton = ViewBindings.findChildViewById(rootView, id);
-      if (manualControlsToggleButton == null) {
+      id = R.id.masterPluginButton;
+      ImageButton masterPluginButton = ViewBindings.findChildViewById(rootView, id);
+      if (masterPluginButton == null) {
         break missingId;
       }
 
@@ -189,6 +173,12 @@ public final class ActivityCameraBinding implements ViewBinding {
       id = R.id.pluginControlsPanel;
       LinearLayout pluginControlsPanel = ViewBindings.findChildViewById(rootView, id);
       if (pluginControlsPanel == null) {
+        break missingId;
+      }
+
+      id = R.id.pluginDropdownView;
+      PluginDropdownView pluginDropdownView = ViewBindings.findChildViewById(rootView, id);
+      if (pluginDropdownView == null) {
         break missingId;
       }
 
@@ -222,11 +212,11 @@ public final class ActivityCameraBinding implements ViewBinding {
         break missingId;
       }
 
-      return new ActivityCameraBinding((FrameLayout) rootView, barcodeToggleButton, captureButton,
-          flashButton, galleryButton, gestureHintsOverlay, gridToggleButton,
-          manualControlsToggleButton, nightModeButton, performanceMonitor, pipButton,
-          pluginControlsPanel, pluginOverlayContainer, previewView, settingsButton,
-          switchCameraButton, videoRecordButton);
+      return new ActivityCameraBinding((FrameLayout) rootView, captureButton, flashButton,
+          galleryButton, gestureHintsOverlay, masterPluginButton, nightModeButton,
+          performanceMonitor, pipButton, pluginControlsPanel, pluginDropdownView,
+          pluginOverlayContainer, previewView, settingsButton, switchCameraButton,
+          videoRecordButton);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

@@ -97,41 +97,27 @@
         android:orientation="vertical"
         android:visibility="visible">
 
+        <!-- Master Plugin Button (Grid Icon) -->
         <ImageButton
-            android:id="@+id/gridToggleButton"
+            android:id="@+id/masterPluginButton"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:layout_marginBottom="12dp"
-            android:background="@drawable/camera_control_background"
+            android:background="@drawable/enhanced_button_background"
             android:src="@drawable/ic_extension"
             android:scaleType="centerInside"
             android:padding="12dp"
-            android:alpha="0.7"
-            android:contentDescription="Toggle Grid Overlay" />
+            android:alpha="1.0"
+            android:contentDescription="Plugins Menu"
+            android:elevation="4dp"
+            android:stateListAnimator="@animator/button_press_scale" />
 
-        <ImageButton
-            android:id="@+id/barcodeToggleButton"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_marginBottom="12dp"
-            android:background="@drawable/camera_control_background"
-            android:src="@drawable/ic_focus"
-            android:scaleType="centerInside"
-            android:padding="12dp"
-            android:alpha="0.7"
-            android:contentDescription="Toggle Barcode Scanning" />
-
-        <ImageButton
-            android:id="@+id/manualControlsToggleButton"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_marginBottom="12dp"
-            android:background="@drawable/camera_control_background"
-            android:src="@drawable/ic_settings"
-            android:scaleType="centerInside"
-            android:padding="12dp"
-            android:alpha="0.7"
-            android:contentDescription="Toggle Manual Controls" />
+        <!-- Plugin Dropdown View (opens below master button) -->
+        <com.customcamera.app.ui.PluginDropdownView
+            android:id="@+id/pluginDropdownView"
+            android:layout_width="280dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp" />
 
     </LinearLayout>
 

@@ -225,6 +225,16 @@ class CameraEngine(
      */
     fun getPlugin(name: String): CameraPlugin? = pluginManager.getPlugin(name)
 
+    /**
+     * Get all registered plugins
+     */
+    fun getAllPlugins(): List<CameraPlugin> = pluginManager.getAllPlugins()
+
+    /**
+     * Get all user-toggleable plugins (for UI display)
+     */
+    fun getToggleablePlugins(): List<CameraPlugin> = pluginManager.getToggleablePlugins()
+
     fun getProvider(): ProcessCameraProvider? = cameraProvider
 
     /**

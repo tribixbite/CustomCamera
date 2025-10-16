@@ -192,10 +192,11 @@ class CameraActivityEngine : AppCompatActivity() {
         setupEnhancedButton(binding.galleryButton) { openGallery() }
         setupEnhancedButton(binding.settingsButton) { openFullSettings() }
 
-        // Wire up new plugin control buttons with enhanced feedback
-        setupEnhancedButton(binding.gridToggleButton) { toggleGrid() }
-        setupEnhancedButton(binding.barcodeToggleButton) { toggleBarcodeScanning() }
-        setupEnhancedButton(binding.manualControlsToggleButton) { toggleManualControlsPanel() }
+        // Wire up master plugin button with dropdown
+        setupEnhancedButton(binding.masterPluginButton) { togglePluginDropdown() }
+
+        // Setup plugin dropdown with toggleable plugins
+        setupPluginDropdown()
 
         // Add gesture controls for features including AI
         var lastTapTime = 0L
@@ -1626,6 +1627,89 @@ class CameraActivityEngine : AppCompatActivity() {
         } catch (e: Exception) {
             Log.e(TAG, "Error toggling crop", e)
             Toast.makeText(this, "Crop toggle failed", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    /**
+     * Setup plugin dropdown with all toggleable plugins
+     */
+    private fun setupPluginDropdown() {
+        try {
+            // Get all toggleable plugins from engine
+            val plugins = cameraEngine.getToggleablePlugins()
+
+            // Populate dropdown with plugins
+            binding.pluginDropdownView.setPlugins(plugins)
+
+            // Handle plugin toggle events
+            binding.pluginDropdownView.onPluginToggled = { plugin, enabled ->
+                handlePluginToggle(plugin, enabled)
+            }
+
+            Log.i(TAG, "Plugin dropdown setup with ${plugins.size} plugins")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error setting up plugin dropdown", e)
+        }
+    }
+
+    /**
+     * Toggle plugin dropdown visibility
+     */
+    private fun togglePluginDropdown() {
+        try {
+            binding.pluginDropdownView.toggle()
+            hapticManager.mediumTap()
+
+            if (binding.pluginDropdownView.isExpanded()) {
+                Log.i(TAG, "Plugin dropdown expanded")
+            } else {
+                Log.i(TAG, "Plugin dropdown collapsed")
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error toggling plugin dropdown", e)
+        }
+    }
+
+    /**
+     * Handle plugin toggle from dropdown menu
+     */
+    private fun handlePluginToggle(plugin: com.customcamera.app.engine.plugins.CameraPlugin, enabled: Boolean) {
+        try {
+            Log.i(TAG, "Plugin '${plugin.name}' toggled: $enabled")
+
+            if (enabled) {
+                plugin.enable()
+                hapticManager.featureActivated()
+                com.customcamera.app.presentation.EnhancedToast.featureActivated(
+                    this@CameraActivityEngine,
+                    plugin.displayName
+                )
+            } else {
+                plugin.disable()
+                hapticManager.featureDeactivated()
+                com.customcamera.app.presentation.EnhancedToast.featureDeactivated(
+                    this@CameraActivityEngine,
+                    plugin.displayName
+                )
+            }
+
+            // Refresh plugin UI overlays if this is a UI plugin
+            if (plugin is com.customcamera.app.engine.plugins.UIPlugin) {
+                lifecycleScope.launch {
+                    binding.pluginOverlayContainer.removeAllViews()
+                    setupPluginUIOverlays()
+                }
+            }
+
+            // Update dropdown to reflect current state
+            binding.pluginDropdownView.updatePluginState(plugin.displayName, plugin.isEnabled)
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Error handling plugin toggle for '${plugin.name}'", e)
+            com.customcamera.app.presentation.EnhancedToast.error(
+                this@CameraActivityEngine,
+                "Failed to toggle ${plugin.displayName}"
+            )
         }
     }
 

@@ -3326,7 +3326,6 @@ id autoComplete
 id autoCompleteToEnd
 id autoCompleteToStart
 id backButton
-id barcodeToggleButton
 id barrier
 id baseline
 id beginOnFirstDraw
@@ -3461,7 +3460,6 @@ id ghost_view_holder
 id gone
 id graph
 id graph_wrap
-id gridToggleButton
 id group_divider
 id grouping
 id groups
@@ -3547,9 +3545,9 @@ id list_item
 id loadingSubtext
 id loadingText
 id m3_side_sheet
-id manualControlsToggleButton
 id marquee
 id masked
+id masterPluginButton
 id match_constraint
 id match_parent
 id material_clock_display
@@ -3663,6 +3661,7 @@ id performanceMonitor
 id pin
 id pipButton
 id pluginControlsPanel
+id pluginDropdownView
 id pluginOverlayContainer
 id position
 id postLayout

@@ -25,6 +25,11 @@ import kotlin.coroutines.resumeWithException
 class BarcodePlugin : ProcessingPlugin() {
 
     override val name: String = "Barcode"
+    override val displayName: String = "Barcode Scanner"
+    override val description: String = "Scan QR codes and barcodes in real-time"
+    override val iconResId: Int = com.customcamera.app.R.drawable.ic_focus
+    override val category: com.customcamera.app.engine.plugins.PluginCategory = com.customcamera.app.engine.plugins.PluginCategory.ANALYSIS
+    override val userToggleable: Boolean = true
     override val version: String = "1.0.0"
     override val priority: Int = 40 // Medium priority for processing
 

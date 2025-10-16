@@ -24,6 +24,11 @@ import java.nio.ByteBuffer
 class CropPlugin : UIPlugin() {
 
     override val name: String = "Crop"
+    override val displayName: String = "Pre-Shot Crop"
+    override val description: String = "Crop photos before capturing"
+    override val iconResId: Int = com.customcamera.app.R.drawable.ic_camera
+    override val category: com.customcamera.app.engine.plugins.PluginCategory = com.customcamera.app.engine.plugins.PluginCategory.CAPTURE
+    override val userToggleable: Boolean = true
     override val version: String = "1.0.0"
     override val priority: Int = 60 // Lower priority for UI overlay
 

@@ -1,5 +1,56 @@
 # CustomCamera - Master Task List & Implementation Plan
 
+## 🎉 PRE-CAPTURE CROP FEATURE COMPLETE (2025-10-16)
+
+**Status**: ✅ Full interactive crop implementation with image processing
+**Build**: v2.0.91 (code 31, 44s, 27MB APK)
+**Commit**: aa1e1eb
+
+### Session Summary (2025-10-16) - Pre-Capture Crop Implementation
+- ✅ **Complete Crop Functionality** - Full image cropping with bitmap processing
+  - Implemented `applyCropToBitmap()` in CropPlugin with YUV_420_888 and JPEG format support
+  - Added `imageProxyToBitmap()` helper for camera format conversion
+  - Added `yuvImageToBitmap()` with proper NV21 format handling and plane interleaving
+  - Bitmap recycling to prevent memory leaks
+  - Normalized crop coordinates (0-1) properly scaled to image dimensions
+
+- ✅ **Interactive Crop UI** - Touch-based crop area adjustment
+  - Added full touch event handling in CropOverlayView
+  - 9 interaction points: 4 corner handles, 4 edge handles, 1 center drag
+  - Rule of thirds grid overlay for composition guidance
+  - Dimmed overlay outside crop area for visual clarity
+  - Aspect ratio constraint support when locked
+  - Callback integration with CropPlugin for state sync
+
+- ✅ **Photo Capture Integration** - Crop applied during capture
+  - Modified `captureRegularPhoto()` to check crop enabled state
+  - Two capture paths: cropped (memory capture + crop + save) and fast path (direct save)
+  - Proper coroutine handling with IO dispatcher for bitmap processing
+  - Loading indicators and user feedback for crop processing
+  - Error handling with fallback to uncropped image
+
+**Technical Achievements**:
+- YUV to JPEG conversion with proper pixel stride and row stride handling
+- Interleaved UV plane processing for NV21 format
+- Bitmap creation, cropping, and recycling for memory efficiency
+- Touch gesture detection with handle-based resizing
+- Real-time crop area updates with visual feedback
+- Aspect ratio enforcement during resize operations
+
+**User Experience**:
+- Quadruple-tap gesture to toggle crop mode
+- Drag handles to adjust crop area
+- Smooth visual feedback with rule of thirds grid
+- Immediate crop application on photo capture
+- Seamless integration with existing camera features
+
+**Code Locations**:
+- `CropPlugin.kt:133-269` - Image conversion and cropping implementation
+- `CropOverlayView.kt:127-278` - Touch handling and gesture detection
+- `CameraActivityEngine.kt` - Photo capture integration with crop support
+
+---
+
 ## 🎉 CRITICAL BUG FIXES COMPLETE (2025-10-10)
 
 **Status**: ✅ Bugs #1, #2, #4 fixed - Settings sync, PiP validation, plugin restoration
