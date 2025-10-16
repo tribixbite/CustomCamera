@@ -3,6 +3,7 @@ package com.customcamera.app.debug
 import android.util.Log
 import androidx.camera.core.UseCase
 import com.customcamera.app.engine.CameraContext
+import java.lang.ref.WeakReference
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -12,8 +13,9 @@ import java.util.concurrent.ConcurrentLinkedQueue
  * of camera API calls and operations.
  */
 class CameraAPIMonitor(
-    private val cameraContext: CameraContext
+    cameraContext: CameraContext
 ) {
+    private val cameraContextRef = WeakReference(cameraContext)
 
     private val apiCallHistory = ConcurrentLinkedQueue<APICall>()
     private val maxHistorySize = 500
@@ -42,7 +44,7 @@ class CameraAPIMonitor(
 
         Log.d(TAG, "📡 CameraProvider.$method - ${formatParams(params)}")
 
-        cameraContext.debugLogger.logCameraAPI(
+        cameraContextRef.get()?.debugLogger?.logCameraAPI(
             "CameraProvider.$method",
             params
         )
@@ -70,7 +72,7 @@ class CameraAPIMonitor(
 
         Log.i(TAG, "🔗 Camera binding - ID: $cameraId, UseCases: ${useCases.size}")
 
-        cameraContext.debugLogger.logCameraBinding(
+        cameraContextRef.get()?.debugLogger?.logCameraBinding(
             cameraId,
             com.customcamera.app.engine.BindingResult(
                 success = true,
@@ -93,7 +95,7 @@ class CameraAPIMonitor(
 
         Log.d(TAG, "🎛️ CameraControl.$action - ${formatParams(params)}")
 
-        cameraContext.debugLogger.logCameraAPI(
+        cameraContextRef.get()?.debugLogger?.logCameraAPI(
             "CameraControl.$action",
             params
         )
@@ -113,7 +115,7 @@ class CameraAPIMonitor(
 
         Log.i(TAG, "📋 Camera characteristics requested for: $cameraId")
 
-        cameraContext.debugLogger.logCameraAPI(
+        cameraContextRef.get()?.debugLogger?.logCameraAPI(
             "getCameraCharacteristics",
             mapOf("cameraId" to cameraId)
         )
@@ -131,7 +133,7 @@ class CameraAPIMonitor(
 
         addAPICall(call)
 
-        cameraContext.debugLogger.logPerformance(
+        cameraContextRef.get()?.debugLogger?.logPerformance(
             "Frame processing tracked",
             0L, // Duration tracked elsewhere
             mapOf("timestamp" to System.currentTimeMillis())

@@ -500,6 +500,9 @@ class CameraEngine(
     fun cleanup() {
         Log.i(TAG, "Cleaning up CameraEngine...")
 
+        // Clear global API monitor to prevent memory leak
+        com.customcamera.app.debug.GlobalAPIMonitor.clearInstance()
+
         cameraProvider?.unbindAll()
         pluginManager.cleanup()
 
@@ -509,6 +512,7 @@ class CameraEngine(
         imageCapture = null
         videoCapture = null
         imageAnalysis = null
+        apiMonitor = null
 
         _isInitialized.value = false
         Log.i(TAG, "✅ CameraEngine cleanup complete")
