@@ -245,7 +245,7 @@ class GridOverlayPlugin : UIPlugin() {
 
         override val descriptionRes: Int = com.customcamera.app.R.string.plugin_grid_overlay_description
 
-        override val iconResId: Int = com.customcamera.app.R.drawable.ic_extension
+        override val iconResId: Int = com.customcamera.app.R.drawable.ic_grid
 
         override val category: com.customcamera.app.engine.plugins.PluginCategory =
             com.customcamera.app.engine.plugins.PluginCategory.OVERLAYS

@@ -21,7 +21,7 @@ class HistogramPlugin : ProcessingPlugin() {
     override val name: String = "Histogram"
     override val displayName: String = "Histogram"
     override val description: String = "Real-time exposure histogram"
-    override val iconResId: Int = com.customcamera.app.R.drawable.ic_info
+    override val iconResId: Int = com.customcamera.app.R.drawable.ic_histogram
     override val category: com.customcamera.app.engine.plugins.PluginCategory = com.customcamera.app.engine.plugins.PluginCategory.ANALYSIS
     override val userToggleable: Boolean = true
     override val version: String = "1.0.0"
@@ -361,7 +361,7 @@ class HistogramPlugin : ProcessingPlugin() {
 
         override val descriptionRes: Int = com.customcamera.app.R.string.plugin_histogram_description
 
-        override val iconResId: Int = com.customcamera.app.R.drawable.ic_info
+        override val iconResId: Int = com.customcamera.app.R.drawable.ic_histogram
 
         override val category: com.customcamera.app.engine.plugins.PluginCategory =
             com.customcamera.app.engine.plugins.PluginCategory.ANALYSIS

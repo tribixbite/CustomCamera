@@ -458,7 +458,7 @@ class BarcodePlugin : ProcessingPlugin() {
 
         override val descriptionRes: Int = com.customcamera.app.R.string.plugin_barcode_description
 
-        override val iconResId: Int = com.customcamera.app.R.drawable.ic_focus
+        override val iconResId: Int = com.customcamera.app.R.drawable.ic_barcode
 
         override val category: com.customcamera.app.engine.plugins.PluginCategory =
             com.customcamera.app.engine.plugins.PluginCategory.ANALYSIS

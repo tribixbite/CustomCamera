@@ -18,7 +18,7 @@ class SharpnessAnalysisPlugin : ProcessingPlugin() {
     override val name: String = "SharpnessAnalysis"
     override val displayName: String = "Sharpness Analysis"
     override val description: String = "Analyze image sharpness and focus"
-    override val iconResId: Int = com.customcamera.app.R.drawable.ic_info
+    override val iconResId: Int = com.customcamera.app.R.drawable.ic_sharpness
     override val category: com.customcamera.app.engine.plugins.PluginCategory = com.customcamera.app.engine.plugins.PluginCategory.ANALYSIS
     override val userToggleable: Boolean = true
     override val version: String = "1.0.0"
@@ -366,7 +366,7 @@ class SharpnessAnalysisPlugin : ProcessingPlugin() {
 
         override val descriptionRes: Int = com.customcamera.app.R.string.plugin_sharpness_analysis_description
 
-        override val iconResId: Int = com.customcamera.app.R.drawable.ic_info
+        override val iconResId: Int = com.customcamera.app.R.drawable.ic_sharpness
 
         override val category: com.customcamera.app.engine.plugins.PluginCategory =
             com.customcamera.app.engine.plugins.PluginCategory.ANALYSIS

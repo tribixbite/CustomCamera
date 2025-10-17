@@ -23,7 +23,7 @@ class AutoFocusPlugin : ControlPlugin() {
     override val name: String = "AutoFocus"
     override val displayName: String = "Auto Focus"
     override val description: String = "Automatic focus control with tap-to-focus"
-    override val iconResId: Int = com.customcamera.app.R.drawable.ic_focus
+    override val iconResId: Int = com.customcamera.app.R.drawable.ic_auto_focus
     override val category: com.customcamera.app.engine.plugins.PluginCategory = com.customcamera.app.engine.plugins.PluginCategory.CONTROLS
     override val userToggleable: Boolean = true
     override val version: String = "1.0.0"
@@ -375,7 +375,7 @@ class AutoFocusPlugin : ControlPlugin() {
 
         override val descriptionRes: Int = com.customcamera.app.R.string.plugin_auto_focus_description
 
-        override val iconResId: Int = com.customcamera.app.R.drawable.ic_focus
+        override val iconResId: Int = com.customcamera.app.R.drawable.ic_auto_focus
 
         override val category: com.customcamera.app.engine.plugins.PluginCategory =
             com.customcamera.app.engine.plugins.PluginCategory.CONTROLS

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Object detection icon - bounding boxes -->
+    <!-- Main bounding box -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:pathData="M4,4 L4,9 M4,4 L9,4 M20,4 L15,4 M20,4 L20,9 M4,20 L4,15 M4,20 L9,20 M20,20 L20,15 M20,20 L15,20"/>
+    <!-- Small detected object box -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.5"
+        android:pathData="M9,10 L9,14 L15,14 L15,10 Z"/>
+    <!-- Scanning line -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1"
+        android:pathData="M7,12 L17,12"/>
+</vector>

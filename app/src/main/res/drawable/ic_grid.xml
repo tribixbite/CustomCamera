@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Grid overlay icon - 3x3 composition grid -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M3,3 L3,21 L21,21 L21,3 Z M4,4 L20,4 L20,20 L4,20 Z" />
+    <!-- Vertical lines -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M9,3 L9,21 M15,3 L15,21"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1"/>
+    <!-- Horizontal lines -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M3,9 L21,9 M3,15 L21,15"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1"/>
+</vector>

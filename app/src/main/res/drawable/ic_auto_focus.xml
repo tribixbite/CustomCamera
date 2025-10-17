@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Auto focus icon - concentric circles with auto indicator -->
+    <!-- Outer ring -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2"
+        android:pathData="M12,12 m-8,0 a8,8 0 1,1 16,0 a8,8 0 1,1 -16,0"/>
+    <!-- Middle ring -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.5"
+        android:pathData="M12,12 m-5,0 a5,5 0 1,1 10,0 a5,5 0 1,1 -10,0"/>
+    <!-- Center dot -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M12,12 m-2,0 a2,2 0 1,1 4,0 a2,2 0 1,1 -4,0"/>
+    <!-- "A" for auto (top right) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M18,6 L19,3 L20,6 M18.5,5 L19.5,5"/>
+</vector>
