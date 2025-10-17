@@ -448,8 +448,31 @@ class RAWCapturePlugin : ControlPlugin() {
         settings.setPluginSetting(name, "bitDepth", rawBitDepth.toString())
     }
 
-    companion object {
+    companion object : com.customcamera.app.engine.plugins.PluginProvider {
         private const val TAG = "RAWCapturePlugin"
+
+        // PluginProvider implementation
+        override val id: String = "raw_capture"
+
+        override val displayNameRes: Int = com.customcamera.app.R.string.plugin_raw_capture_display_name
+
+        override val descriptionRes: Int = com.customcamera.app.R.string.plugin_raw_capture_description
+
+        override val iconResId: Int = com.customcamera.app.R.drawable.ic_camera
+
+        override val category: com.customcamera.app.engine.plugins.PluginCategory =
+            com.customcamera.app.engine.plugins.PluginCategory.CAPTURE
+
+        override val userToggleable: Boolean = true
+
+        override fun isSupported(context: android.content.Context): Boolean {
+            // TODO: Add device capability checking if needed
+            return true
+        }
+
+        override fun create(dependencies: com.customcamera.app.engine.plugins.PluginDependencies): com.customcamera.app.engine.plugins.CameraPlugin {
+            return RAWCapturePlugin()
+        }
     }
 }
 

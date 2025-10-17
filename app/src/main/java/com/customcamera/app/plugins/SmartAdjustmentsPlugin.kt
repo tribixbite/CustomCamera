@@ -738,8 +738,31 @@ class SmartAdjustmentsPlugin : ProcessingPlugin() {
         settings.setPluginSetting(name, "processingInterval", processingInterval.toString())
     }
 
-    companion object {
+    companion object : com.customcamera.app.engine.plugins.PluginProvider {
         private const val TAG = "SmartAdjustmentsPlugin"
+
+        // PluginProvider implementation
+        override val id: String = "smart_adjustments"
+
+        override val displayNameRes: Int = com.customcamera.app.R.string.plugin_smart_adjustments_display_name
+
+        override val descriptionRes: Int = com.customcamera.app.R.string.plugin_smart_adjustments_description
+
+        override val iconResId: Int = com.customcamera.app.R.drawable.ic_settings
+
+        override val category: com.customcamera.app.engine.plugins.PluginCategory =
+            com.customcamera.app.engine.plugins.PluginCategory.AI
+
+        override val userToggleable: Boolean = true
+
+        override fun isSupported(context: android.content.Context): Boolean {
+            // TODO: Add device capability checking if needed
+            return true
+        }
+
+        override fun create(dependencies: com.customcamera.app.engine.plugins.PluginDependencies): com.customcamera.app.engine.plugins.CameraPlugin {
+            return SmartAdjustmentsPlugin()
+        }
     }
 }
 

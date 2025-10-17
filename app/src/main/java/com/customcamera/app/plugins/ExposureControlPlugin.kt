@@ -423,7 +423,30 @@ class ExposureControlPlugin : ControlPlugin() {
         settings.setPluginSetting(name, "exposureLocked", isExposureLocked.toString())
     }
 
-    companion object {
+    companion object : com.customcamera.app.engine.plugins.PluginProvider {
         private const val TAG = "ExposureControlPlugin"
+
+        // PluginProvider implementation
+        override val id: String = "exposure_control"
+
+        override val displayNameRes: Int = com.customcamera.app.R.string.plugin_exposure_control_display_name
+
+        override val descriptionRes: Int = com.customcamera.app.R.string.plugin_exposure_control_description
+
+        override val iconResId: Int = com.customcamera.app.R.drawable.ic_settings
+
+        override val category: com.customcamera.app.engine.plugins.PluginCategory =
+            com.customcamera.app.engine.plugins.PluginCategory.CONTROLS
+
+        override val userToggleable: Boolean = true
+
+        override fun isSupported(context: android.content.Context): Boolean {
+            // TODO: Add device capability checking if needed
+            return true
+        }
+
+        override fun create(dependencies: com.customcamera.app.engine.plugins.PluginDependencies): com.customcamera.app.engine.plugins.CameraPlugin {
+            return ExposureControlPlugin()
+        }
     }
 }

@@ -829,8 +829,31 @@ class SmartScenePlugin : ProcessingPlugin() {
         settings.setPluginSetting(name, "colorVariationThreshold", colorVariationThreshold.toString())
     }
 
-    companion object {
+    companion object : com.customcamera.app.engine.plugins.PluginProvider {
         private const val TAG = "SmartScenePlugin"
+
+        // PluginProvider implementation
+        override val id: String = "smart_scene"
+
+        override val displayNameRes: Int = com.customcamera.app.R.string.plugin_smart_scene_display_name
+
+        override val descriptionRes: Int = com.customcamera.app.R.string.plugin_smart_scene_description
+
+        override val iconResId: Int = com.customcamera.app.R.drawable.ic_camera
+
+        override val category: com.customcamera.app.engine.plugins.PluginCategory =
+            com.customcamera.app.engine.plugins.PluginCategory.AI
+
+        override val userToggleable: Boolean = true
+
+        override fun isSupported(context: android.content.Context): Boolean {
+            // TODO: Add device capability checking if needed
+            return true
+        }
+
+        override fun create(dependencies: com.customcamera.app.engine.plugins.PluginDependencies): com.customcamera.app.engine.plugins.CameraPlugin {
+            return SmartScenePlugin()
+        }
     }
 }
 
