@@ -81,15 +81,15 @@ class CameraActivityEngine : AppCompatActivity() {
     private var camera2Controller: com.customcamera.app.camera2.Camera2Controller? = null
     private var performanceMonitor: com.customcamera.app.monitoring.PerformanceMonitor? = null
 
-    // Plugins
-    private lateinit var autoFocusPlugin: AutoFocusPlugin
-    private lateinit var gridOverlayPlugin: GridOverlayPlugin
-    private lateinit var cameraInfoPlugin: CameraInfoPlugin
-    private lateinit var proControlsPlugin: ProControlsPlugin
-    private lateinit var exposureControlPlugin: ExposureControlPlugin
-    private lateinit var cropPlugin: CropPlugin
-    private lateinit var dualCameraPiPPlugin: DualCameraPiPPlugin
-    private lateinit var advancedVideoRecordingPlugin: AdvancedVideoRecordingPlugin
+    // Plugins (retrieved from CameraEngine via Provider Pattern)
+    private var autoFocusPlugin: AutoFocusPlugin? = null
+    private var gridOverlayPlugin: GridOverlayPlugin? = null
+    private var cameraInfoPlugin: CameraInfoPlugin? = null
+    private var proControlsPlugin: ProControlsPlugin? = null
+    private var exposureControlPlugin: ExposureControlPlugin? = null
+    private var cropPlugin: CropPlugin? = null
+    private var dualCameraPiPPlugin: DualCameraPiPPlugin? = null
+    private var advancedVideoRecordingPlugin: AdvancedVideoRecordingPlugin? = null
 
     // Professional control plugins (temporarily disabled - API migration needed)
     // private lateinit var isoPlugin: AdvancedISOControlPlugin
@@ -265,89 +265,37 @@ class CameraActivityEngine : AppCompatActivity() {
     }
 
     private fun initializeCameraEngine() {
-        Log.i(TAG, "Initializing camera engine and plugins...")
+        Log.i(TAG, "🔌 Initializing camera engine with Provider Pattern...")
 
-        // Create camera engine
-        cameraEngine = CameraEngine(this, this)
+        // Create plugin registry (single source of truth for all plugins)
+        val pluginRegistry = com.customcamera.app.engine.plugins.PluginRegistry(this)
 
-        // Create and register plugins
-        autoFocusPlugin = AutoFocusPlugin()
-        cameraEngine.registerPlugin(autoFocusPlugin)
+        // Create camera engine with registry - plugins auto-register via Provider Pattern
+        cameraEngine = CameraEngine(this, this, pluginRegistry)
 
-        gridOverlayPlugin = GridOverlayPlugin()
-        cameraEngine.registerPlugin(gridOverlayPlugin)
+        // ✅ Provider Pattern Refactoring Complete!
+        // All plugins now auto-register from PluginRegistry using companion object providers.
+        // No more dual registration - just add to PluginRegistry.allProviders list!
+        //
+        // Active plugins (22 total):
+        // - OVERLAYS (1): GridOverlay
+        // - ANALYSIS (7): Barcode, Histogram, CameraInfo, ExposureAnalysis, MotionDetection, QRScanner, SharpnessAnalysis
+        // - CONTROLS (4): AutoFocus, ExposureControl, ManualFocus, ProControls
+        // - AI (3): SmartScene, SmartAdjustments, ObjectDetection
+        // - CAPTURE (7): Crop, DualCameraPiP, RAWCapture, AdvancedVideoRecording, NightMode, HDR
 
-        cameraInfoPlugin = CameraInfoPlugin()
-        cameraEngine.registerPlugin(cameraInfoPlugin)
+        // Get specific plugins that need references for UI interaction
+        autoFocusPlugin = cameraEngine.getPlugin("AutoFocus") as? AutoFocusPlugin
+        gridOverlayPlugin = cameraEngine.getPlugin("GridOverlay") as? GridOverlayPlugin
+        cameraInfoPlugin = cameraEngine.getPlugin("CameraInfo") as? CameraInfoPlugin
+        proControlsPlugin = cameraEngine.getPlugin("ProControls") as? ProControlsPlugin
+        exposureControlPlugin = cameraEngine.getPlugin("ExposureControl") as? ExposureControlPlugin
+        cropPlugin = cameraEngine.getPlugin("Crop") as? CropPlugin
+        dualCameraPiPPlugin = cameraEngine.getPlugin("DualCameraPiP") as? DualCameraPiPPlugin
+        advancedVideoRecordingPlugin = cameraEngine.getPlugin("AdvancedVideoRecording") as? AdvancedVideoRecordingPlugin
 
-        proControlsPlugin = ProControlsPlugin()
-        cameraEngine.registerPlugin(proControlsPlugin)
-
-        exposureControlPlugin = ExposureControlPlugin()
-        cameraEngine.registerPlugin(exposureControlPlugin)
-
-        // Add new plugins from roadmap implementation
-        val manualFocusPlugin = ManualFocusPlugin()
-        cameraEngine.registerPlugin(manualFocusPlugin)
-
-        val histogramPlugin = HistogramPlugin()
-        cameraEngine.registerPlugin(histogramPlugin)
-
-        val barcodePlugin = BarcodePlugin()
-        cameraEngine.registerPlugin(barcodePlugin)
-
-        val qrScannerPlugin = QRScannerPlugin()
-        cameraEngine.registerPlugin(qrScannerPlugin)
-
-        // ✅ Phase 8G AI-Powered Camera Features COMPLETE
-        val smartScenePlugin = SmartScenePlugin()
-        cameraEngine.registerPlugin(smartScenePlugin)
-
-        val objectDetectionPlugin = ObjectDetectionPlugin()
-        cameraEngine.registerPlugin(objectDetectionPlugin)
-
-        val smartAdjustmentsPlugin = SmartAdjustmentsPlugin()
-        cameraEngine.registerPlugin(smartAdjustmentsPlugin)
-        // AI Features: Five-tap for scene detection, six-tap for object detection
-        // See toggleSmartSceneDetection() and toggleObjectDetection() for implementation
-
-        val motionDetectionPlugin = MotionDetectionPlugin()
-        cameraEngine.registerPlugin(motionDetectionPlugin)
-
-        cropPlugin = CropPlugin()
-        cameraEngine.registerPlugin(cropPlugin)
-
-        val nightModePlugin = NightModePlugin()
-        cameraEngine.registerPlugin(nightModePlugin)
-
-        val hdrPlugin = HDRPlugin()
-        cameraEngine.registerPlugin(hdrPlugin)
-
-        dualCameraPiPPlugin = DualCameraPiPPlugin()
-        cameraEngine.registerPlugin(dualCameraPiPPlugin)
-
-        advancedVideoRecordingPlugin = AdvancedVideoRecordingPlugin()
-        cameraEngine.registerPlugin(advancedVideoRecordingPlugin)
-
-        // ✅ Phase 9A RAW Capture & Advanced Image Processing
-        val rawCapturePlugin = RAWCapturePlugin()
-        cameraEngine.registerPlugin(rawCapturePlugin)
-        // RAW/DNG capture with dual RAW+JPEG mode support
-        // See toggleRawCapture() for implementation
-
-        // ✅ Phase 8H Professional Manual Controls COMPLETE
-        // Professional manual controls implemented via Plugin System:
-        // - ProControlsPlugin - Comprehensive professional camera controls
-        // - ManualControlsPluginSimple - Basic manual camera controls
-        // - ExposureControlPlugin - Manual exposure compensation and analysis
-        // - ManualFocusPlugin - Precise manual focus control
-        // - Camera2ISOController, ShutterSpeedController, FocusDistanceController
-        // All manual controls accessible via plugin dropdown menu
-
-        // Note: 6 plugin files in ../disabled_plugins/ are not needed as we have
-        // direct Camera2 integration providing all professional control features
-
-        Log.i(TAG, "✅ Camera engine and plugins initialized (14 core plugins, Phase 8G AI features, Phase 8H manual controls - ALL PHASE 8 COMPLETE)")
+        val registeredCount = cameraEngine.getAllPlugins().size
+        Log.i(TAG, "✅ Camera engine initialized with $registeredCount plugins via Provider Pattern")
     }
 
     private fun startCameraWithEngine() {
@@ -390,7 +338,7 @@ class CameraActivityEngine : AppCompatActivity() {
                 preview?.setSurfaceProvider(binding.previewView.surfaceProvider)
 
                 // Configure autofocus plugin with preview
-                autoFocusPlugin.setPreviewView(binding.previewView)
+                autoFocusPlugin!!.setPreviewView(binding.previewView)
 
                 // Initialize Camera2 controller for manual controls
                 initializeCamera2Controller()
@@ -558,7 +506,7 @@ class CameraActivityEngine : AppCompatActivity() {
         } else {
             // Single camera capture
             // Check if crop is enabled
-            val isCropEnabled = cropPlugin.isEnabled && cropPlugin.isCropEnabled()
+            val isCropEnabled = cropPlugin!!.isEnabled && cropPlugin!!.isCropEnabled()
 
             if (isCropEnabled) {
                 Log.i(TAG, "📸 Capturing photo with crop enabled...")
@@ -570,7 +518,7 @@ class CameraActivityEngine : AppCompatActivity() {
                             lifecycleScope.launch(Dispatchers.IO) {
                                 try {
                                     // Apply crop and get cropped bitmap
-                                    val croppedBitmap = cropPlugin.applyCropToBitmap(image)
+                                    val croppedBitmap = cropPlugin!!.applyCropToBitmap(image)
                                     image.close()
 
                                     if (croppedBitmap != null) {
@@ -791,9 +739,9 @@ class CameraActivityEngine : AppCompatActivity() {
         lifecycleScope.launch {
             try {
                 // Stop video recording if active during camera switch
-                if (advancedVideoRecordingPlugin.isRecording.value) {
+                if (advancedVideoRecordingPlugin!!.isRecording.value) {
                     Log.i(TAG, "Stopping video recording for camera switch")
-                    advancedVideoRecordingPlugin.stopRecording()
+                    advancedVideoRecordingPlugin!!.stopRecording()
                 }
 
                 val availableCameras = cameraEngine.availableCameras.value
@@ -1109,9 +1057,9 @@ class CameraActivityEngine : AppCompatActivity() {
         lifecycleScope.launch {
             try {
                 // Show current camera info and controls status
-                val cameraInfo = cameraInfoPlugin.getCameraInfo()
-                val exposureSettings = exposureControlPlugin.getCurrentSettings()
-                val proControlsSettings = proControlsPlugin.getCurrentSettings()
+                val cameraInfo = cameraInfoPlugin!!.getCameraInfo()
+                val exposureSettings = exposureControlPlugin!!.getCurrentSettings()
+                val proControlsSettings = proControlsPlugin!!.getCurrentSettings()
 
                 val info = buildString {
                     appendLine("=== Camera Information ===")
@@ -1261,14 +1209,14 @@ class CameraActivityEngine : AppCompatActivity() {
 
     private fun toggleGrid() {
         try {
-            if (!::gridOverlayPlugin.isInitialized) {
+            if (gridOverlayPlugin == null) {
                 Log.e(TAG, "Grid plugin not initialized")
                 Toast.makeText(this, "Camera not ready", Toast.LENGTH_SHORT).show()
                 return
             }
 
-            gridOverlayPlugin.toggleGrid()
-            val isVisible = gridOverlayPlugin.isGridVisible()
+            gridOverlayPlugin!!.toggleGrid()
+            val isVisible = gridOverlayPlugin!!.isGridVisible()
 
             // Enhanced feedback
             if (isVisible) {
@@ -1294,15 +1242,15 @@ class CameraActivityEngine : AppCompatActivity() {
 
     private fun toggleCrop() {
         try {
-            if (!::cropPlugin.isInitialized) {
+            if (cropPlugin == null) {
                 Log.e(TAG, "Crop plugin not initialized")
                 Toast.makeText(this, "Camera not ready", Toast.LENGTH_SHORT).show()
                 return
             }
 
             // Toggle crop mode
-            if (cropPlugin.isEnabled) {
-                cropPlugin.disableCrop()
+            if (cropPlugin!!.isEnabled) {
+                cropPlugin!!.disableCrop()
 
                 // Refresh plugin UI overlays
                 lifecycleScope.launch {
@@ -1317,7 +1265,7 @@ class CameraActivityEngine : AppCompatActivity() {
                 ).show()
                 Log.i(TAG, "Crop mode disabled")
             } else {
-                cropPlugin.enableCrop()
+                cropPlugin!!.enableCrop()
                 Toast.makeText(
                     this,
                     "Crop mode enabled - drag to adjust crop area",
@@ -1417,11 +1365,11 @@ class CameraActivityEngine : AppCompatActivity() {
     private suspend fun demonstrateExposureControl() {
         try {
             // Show current exposure
-            val currentEV = exposureControlPlugin.getCurrentEV()
+            val currentEV = exposureControlPlugin!!.getCurrentEV()
             Log.i(TAG, "Current exposure: ${currentEV}EV")
 
             // Perform exposure analysis
-            val analysis = exposureControlPlugin.analyzeExposure()
+            val analysis = exposureControlPlugin!!.analyzeExposure()
             analysis?.let {
                 Log.i(TAG, "Exposure analysis: $it")
 
@@ -1435,15 +1383,15 @@ class CameraActivityEngine : AppCompatActivity() {
             }
 
             // Demonstrate manual exposure adjustment (small change)
-            val currentIndex = exposureControlPlugin.getCurrentSettings()["currentExposureIndex"] as Int
+            val currentIndex = exposureControlPlugin!!.getCurrentSettings()["currentExposureIndex"] as Int
             val testIndex = (currentIndex + 1).coerceIn(-2, 2) // Small adjustment
 
-            exposureControlPlugin.setExposureCompensation(testIndex)
+            exposureControlPlugin!!.setExposureCompensation(testIndex)
             Log.i(TAG, "Demonstrated exposure adjustment to index: $testIndex")
 
             // Reset back after a moment
             kotlinx.coroutines.delay(2000)
-            exposureControlPlugin.setExposureCompensation(currentIndex)
+            exposureControlPlugin!!.setExposureCompensation(currentIndex)
             Log.i(TAG, "Reset exposure to original: $currentIndex")
 
         } catch (e: Exception) {
@@ -1835,7 +1783,7 @@ class CameraActivityEngine : AppCompatActivity() {
                 customData = mapOf(
                     "nightMode" to isNightModeEnabled,
                     "pipMode" to isPiPEnabled,
-                    "gridEnabled" to gridOverlayPlugin.isGridVisible(),
+                    "gridEnabled" to gridOverlayPlugin!!.isGridVisible(),
                     "timestamp" to timestamp,
                     "app" to "CustomCamera"
                 )
@@ -2017,14 +1965,14 @@ class CameraActivityEngine : AppCompatActivity() {
             val overlayContainer = binding.pluginOverlayContainer
 
             // Create and add grid overlay UI
-            val gridView: View? = gridOverlayPlugin.createUIView(cameraContext)
+            val gridView: View? = gridOverlayPlugin!!.createUIView(cameraContext)
             if (gridView != null) {
                 overlayContainer.addView(gridView)
                 Log.i(TAG, "Added grid overlay to UI container")
             }
 
             // Create and add crop overlay UI
-            val cropView: View? = cropPlugin.createUIView(cameraContext)
+            val cropView: View? = cropPlugin!!.createUIView(cameraContext)
             if (cropView != null) {
                 overlayContainer.addView(cropView)
                 Log.i(TAG, "Added crop overlay to UI container")
@@ -2052,11 +2000,11 @@ class CameraActivityEngine : AppCompatActivity() {
 
             // Update grid overlay visibility based on setting
             val gridEnabled = settingsManager.isPluginEnabled("GridOverlay")
-            if (gridEnabled != gridOverlayPlugin.isGridVisible()) {
+            if (gridEnabled != gridOverlayPlugin!!.isGridVisible()) {
                 if (gridEnabled) {
-                    gridOverlayPlugin.showGrid()
+                    gridOverlayPlugin!!.showGrid()
                 } else {
-                    gridOverlayPlugin.hideGrid()
+                    gridOverlayPlugin!!.hideGrid()
                 }
                 Log.i(TAG, "Grid overlay updated from settings: $gridEnabled")
             }
@@ -2116,14 +2064,14 @@ class CameraActivityEngine : AppCompatActivity() {
     private fun setupDualCameraPiP() {
         try {
             // Set up main preview view for PiP plugin
-            dualCameraPiPPlugin.setupMainPreview(binding.previewView)
+            dualCameraPiPPlugin!!.setupMainPreview(binding.previewView)
 
             // Check if PiP should be enabled from settings
             val settingsManager = com.customcamera.app.engine.SettingsManager(this)
             val pipEnabled = settingsManager.isPluginEnabled("DualCameraPiP")
 
             if (pipEnabled) {
-                dualCameraPiPPlugin.setPiPEnabled(true)
+                dualCameraPiPPlugin!!.setPiPEnabled(true)
             }
 
             // Set up gesture detection for PiP toggle
@@ -2150,7 +2098,7 @@ class CameraActivityEngine : AppCompatActivity() {
     private fun toggleDualCameraPiP() {
         try {
             // Check if plugin is initialized
-            if (!::dualCameraPiPPlugin.isInitialized) {
+            if (dualCameraPiPPlugin == null) {
                 Log.e(TAG, "PiP plugin not initialized")
                 Toast.makeText(this, "PiP not available", Toast.LENGTH_SHORT).show()
                 return
@@ -2160,7 +2108,7 @@ class CameraActivityEngine : AppCompatActivity() {
             val cameraManager = getSystemService(android.hardware.camera2.CameraManager::class.java)
             val cameraCount = cameraManager?.cameraIdList?.size ?: 0
 
-            if (cameraCount < 2 && !dualCameraPiPPlugin.isPiPEnabled.value) {
+            if (cameraCount < 2 && !dualCameraPiPPlugin!!.isPiPEnabled.value) {
                 Log.w(TAG, "PiP requires at least 2 cameras, found: $cameraCount")
                 Toast.makeText(
                     this,
@@ -2171,7 +2119,7 @@ class CameraActivityEngine : AppCompatActivity() {
             }
 
             // Toggle PiP state
-            val wasEnabled = dualCameraPiPPlugin.togglePiP()
+            val wasEnabled = dualCameraPiPPlugin!!.togglePiP()
 
             val message = if (wasEnabled) {
                 "Dual camera PiP enabled"
@@ -2240,6 +2188,12 @@ class CameraActivityEngine : AppCompatActivity() {
     private fun toggleVideoRecording() {
         try {
             val plugin = advancedVideoRecordingPlugin
+            if (plugin == null) {
+                Log.e(TAG, "Video recording plugin not available")
+                Toast.makeText(this, "Video recording not available", Toast.LENGTH_SHORT).show()
+                return
+            }
+
             Log.i(TAG, "Toggling video recording, current state: ${plugin.isRecording.value}")
 
             if (plugin.isRecording.value) {

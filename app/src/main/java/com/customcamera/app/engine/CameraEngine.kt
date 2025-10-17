@@ -29,7 +29,8 @@ import kotlinx.coroutines.flow.asStateFlow
  */
 class CameraEngine(
     private val context: Context,
-    private val lifecycleOwner: LifecycleOwner
+    private val lifecycleOwner: LifecycleOwner,
+    private val pluginRegistry: com.customcamera.app.engine.plugins.PluginRegistry
 ) {
     private var cameraProvider: ProcessCameraProvider? = null
     private var camera: Camera? = null
@@ -116,6 +117,9 @@ class CameraEngine(
             )
             pluginManager.initialize(cameraContext)
 
+            // Auto-register plugins from registry using Provider Pattern
+            initializePluginsFromRegistry(cameraContext)
+
             _isInitialized.value = true
             Log.i(TAG, "✅ CameraEngine initialized successfully")
             Result.success(Unit)
@@ -123,6 +127,55 @@ class CameraEngine(
         } catch (e: Exception) {
             Log.e(TAG, "❌ CameraEngine initialization failed", e)
             Result.failure(e)
+        }
+    }
+
+    /**
+     * Initialize and register plugins from PluginRegistry using Provider Pattern.
+     *
+     * This method automatically:
+     * 1. Gets all supported plugin providers from the registry
+     * 2. Creates plugin dependencies (context, debugLogger)
+     * 3. Creates plugin instances using provider.create()
+     * 4. Registers them with the plugin manager
+     *
+     * This eliminates the need for manual plugin instantiation in CameraActivityEngine.
+     */
+    private fun initializePluginsFromRegistry(cameraContext: CameraContext) {
+        Log.i(TAG, "🔌 Initializing plugins from registry...")
+
+        try {
+            // Create plugin dependencies for provider instantiation
+            val dependencies = com.customcamera.app.engine.plugins.PluginDependencies(
+                context = cameraContext.context,
+                debugLogger = cameraContext.debugLogger
+            )
+
+            // Get all supported providers from registry
+            val supportedProviders = pluginRegistry.getSupportedProviders()
+            Log.i(TAG, "Found ${supportedProviders.size} supported plugin providers")
+
+            // Create and register each plugin
+            supportedProviders.forEach { provider ->
+                try {
+                    // Create plugin instance using provider
+                    val plugin = provider.create(dependencies)
+
+                    // Register with plugin manager
+                    pluginManager.registerPlugin(plugin)
+
+                    Log.d(TAG, "✅ Registered plugin: ${provider.id} (${plugin.name})")
+
+                } catch (e: Exception) {
+                    Log.e(TAG, "❌ Failed to create/register plugin: ${provider.id}", e)
+                }
+            }
+
+            val registeredCount = pluginManager.getAllPlugins().size
+            Log.i(TAG, "✅ Successfully registered $registeredCount plugins from registry")
+
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Failed to initialize plugins from registry", e)
         }
     }
 

@@ -1,15 +1,29 @@
 package com.customcamera.app.engine.plugins
 
+import android.content.Context
 import com.customcamera.app.plugins.*
 
 /**
- * Central registry of all available camera plugins.
- * Provides static access to plugin metadata for settings UI generation.
+ * Central registry of all available camera plugins using Provider Pattern.
+ *
+ * **Single Source of Truth**: Each plugin defines its own metadata via companion object.
+ * This registry simply maintains the list of plugin providers.
+ *
+ * **Usage**:
+ * ```kotlin
+ * val registry = PluginRegistry(context)
+ * val supportedPlugins = registry.getSupportedProviders()
+ * val dependencies = PluginDependencies(context, debugLogger)
+ * supportedPlugins.forEach { provider ->
+ *     val plugin = provider.create(dependencies)
+ *     pluginManager.registerPlugin(plugin)
+ * }
+ * ```
  */
-object PluginRegistry {
+class PluginRegistry(private val context: Context) {
 
     /**
-     * Plugin metadata for UI generation
+     * Plugin metadata for UI generation (backward compatibility)
      */
     data class PluginInfo(
         val name: String,
@@ -21,217 +35,129 @@ object PluginRegistry {
     )
 
     /**
-     * Get all registered plugins' metadata
-     * This list should match the plugins registered in CameraActivityEngine
+     * Complete list of all plugin providers.
+     *
+     * **Adding a New Plugin**:
+     * 1. Create plugin class with companion object implementing PluginProvider
+     * 2. Add companion object reference to this list
+     * 3. Done! Everything else auto-generates
      */
-    fun getAllPlugins(): List<PluginInfo> {
-        return listOf(
-            // Overlays category
-            PluginInfo(
-                name = "GridOverlay",
-                displayName = "Grid Overlay",
-                description = "Composition grids for better photo framing",
-                iconResId = com.customcamera.app.R.drawable.ic_extension,
-                category = PluginCategory.OVERLAYS,
-                userToggleable = true
-            ),
-            PluginInfo(
-                name = "Crop",
-                displayName = "Pre-Shot Crop",
-                description = "Crop photos before capturing",
-                iconResId = com.customcamera.app.R.drawable.ic_camera,
-                category = PluginCategory.CAPTURE,
-                userToggleable = true
-            ),
+    private val allProviders: List<PluginProvider> = listOf(
+        // OVERLAYS (1)
+        GridOverlayPlugin,
 
-            // Analysis category
-            PluginInfo(
-                name = "Barcode",
-                displayName = "Barcode Scanner",
-                description = "Scan QR codes and barcodes in real-time",
-                iconResId = com.customcamera.app.R.drawable.ic_focus,
-                category = PluginCategory.ANALYSIS,
-                userToggleable = true
-            ),
-            PluginInfo(
-                name = "Histogram",
-                displayName = "Histogram",
-                description = "Real-time exposure histogram",
-                iconResId = com.customcamera.app.R.drawable.ic_info,
-                category = PluginCategory.ANALYSIS,
-                userToggleable = true
-            ),
-            PluginInfo(
-                name = "CameraInfo",
-                displayName = "Camera Info",
-                description = "Real-time camera information display",
-                iconResId = com.customcamera.app.R.drawable.ic_info,
-                category = PluginCategory.ANALYSIS,
-                userToggleable = true
-            ),
-            PluginInfo(
-                name = "ExposureAnalysis",
-                displayName = "Exposure Analysis",
-                description = "Analyze and optimize exposure",
-                iconResId = com.customcamera.app.R.drawable.ic_info,
-                category = PluginCategory.ANALYSIS,
-                userToggleable = true
-            ),
-            PluginInfo(
-                name = "MotionDetection",
-                displayName = "Motion Detection",
-                description = "Detect motion and trigger capture",
-                iconResId = com.customcamera.app.R.drawable.ic_focus,
-                category = PluginCategory.ANALYSIS,
-                userToggleable = true
-            ),
-            PluginInfo(
-                name = "QRScanner",
-                displayName = "QR Scanner",
-                description = "Specialized QR code scanning",
-                iconResId = com.customcamera.app.R.drawable.ic_focus,
-                category = PluginCategory.ANALYSIS,
-                userToggleable = true
-            ),
-            PluginInfo(
-                name = "SharpnessAnalysis",
-                displayName = "Sharpness Analysis",
-                description = "Analyze image sharpness and focus",
-                iconResId = com.customcamera.app.R.drawable.ic_info,
-                category = PluginCategory.ANALYSIS,
-                userToggleable = true
-            ),
+        // ANALYSIS (7)
+        BarcodePlugin,
+        HistogramPlugin,
+        CameraInfoPlugin,
+        ExposureAnalysisPlugin,
+        MotionDetectionPlugin,
+        QRScannerPlugin,
+        SharpnessAnalysisPlugin,
 
-            // Controls category
-            PluginInfo(
-                name = "AutoFocus",
-                displayName = "Auto Focus",
-                description = "Automatic focus control with tap-to-focus",
-                iconResId = com.customcamera.app.R.drawable.ic_focus,
-                category = PluginCategory.CONTROLS,
-                userToggleable = true
-            ),
-            PluginInfo(
-                name = "ExposureControl",
-                displayName = "Exposure Control",
-                description = "Manual exposure compensation and analysis",
-                iconResId = com.customcamera.app.R.drawable.ic_settings,
-                category = PluginCategory.CONTROLS,
-                userToggleable = true
-            ),
-            PluginInfo(
-                name = "ManualFocus",
-                displayName = "Manual Focus",
-                description = "Precise manual focus control",
-                iconResId = com.customcamera.app.R.drawable.ic_focus,
-                category = PluginCategory.CONTROLS,
-                userToggleable = true
-            ),
-            PluginInfo(
-                name = "ProControls",
-                displayName = "Pro Controls",
-                description = "Professional manual camera controls",
-                iconResId = com.customcamera.app.R.drawable.ic_settings,
-                category = PluginCategory.CONTROLS,
-                userToggleable = true
-            ),
-            PluginInfo(
-                name = "ManualControls",
-                displayName = "Manual Controls",
-                description = "Basic manual camera controls",
-                iconResId = com.customcamera.app.R.drawable.ic_settings,
-                category = PluginCategory.CONTROLS,
-                userToggleable = true
-            ),
+        // CONTROLS (4)
+        AutoFocusPlugin,
+        ExposureControlPlugin,
+        ManualFocusPlugin,
+        ProControlsPlugin,
 
-            // AI Features category
-            PluginInfo(
-                name = "SmartScene",
-                displayName = "Smart Scene",
-                description = "AI-powered scene detection",
-                iconResId = com.customcamera.app.R.drawable.ic_camera,
-                category = PluginCategory.AI,
-                userToggleable = true
-            ),
-            PluginInfo(
-                name = "SmartAdjustments",
-                displayName = "Smart Adjustments",
-                description = "AI-based camera parameter optimization",
-                iconResId = com.customcamera.app.R.drawable.ic_settings,
-                category = PluginCategory.AI,
-                userToggleable = true
-            ),
-            PluginInfo(
-                name = "ObjectDetection",
-                displayName = "Object Detection",
-                description = "Real-time object recognition",
-                iconResId = com.customcamera.app.R.drawable.ic_focus,
-                category = PluginCategory.AI,
-                userToggleable = true
-            ),
+        // AI (3)
+        SmartScenePlugin,
+        SmartAdjustmentsPlugin,
+        ObjectDetectionPlugin,
 
-            // Capture category
-            PluginInfo(
-                name = "DualCameraPiP",
-                displayName = "Dual Camera PiP",
-                description = "Picture-in-picture with dual cameras",
-                iconResId = com.customcamera.app.R.drawable.ic_pip,
-                category = PluginCategory.CAPTURE,
-                userToggleable = true
-            ),
-            PluginInfo(
-                name = "RAWCapture",
-                displayName = "RAW Capture",
-                description = "Capture photos in DNG/RAW format",
-                iconResId = com.customcamera.app.R.drawable.ic_camera,
-                category = PluginCategory.CAPTURE,
-                userToggleable = true
-            ),
-            PluginInfo(
-                name = "AdvancedVideoRecording",
-                displayName = "Advanced Video",
-                description = "Professional video recording features",
-                iconResId = com.customcamera.app.R.drawable.ic_videocam,
-                category = PluginCategory.CAPTURE,
-                userToggleable = true
-            ),
-            PluginInfo(
-                name = "NightMode",
-                displayName = "Night Mode",
-                description = "Low-light and long exposure photography",
-                iconResId = com.customcamera.app.R.drawable.ic_night_mode,
-                category = PluginCategory.CAPTURE,
-                userToggleable = true
-            ),
-            PluginInfo(
-                name = "HDR",
-                displayName = "HDR Mode",
-                description = "High dynamic range photography",
-                iconResId = com.customcamera.app.R.drawable.ic_camera,
-                category = PluginCategory.CAPTURE,
-                userToggleable = true
-            )
-        )
+        // CAPTURE (7)
+        CropPlugin,
+        DualCameraPiPPlugin,
+        RAWCapturePlugin,
+        AdvancedVideoRecordingPlugin,
+        NightModePlugin,
+        HDRPlugin
+    )
+
+    /**
+     * Get all registered plugin providers
+     */
+    fun getAllProviders(): List<PluginProvider> {
+        return allProviders
     }
 
     /**
-     * Get only user-toggleable plugins
+     * Get only supported plugin providers (based on device capabilities)
+     */
+    fun getSupportedProviders(): List<PluginProvider> {
+        return allProviders.filter { provider ->
+            provider.isSupported(context)
+        }
+    }
+
+    /**
+     * Get supported and user-toggleable providers
+     */
+    fun getToggleableProviders(): List<PluginProvider> {
+        return getSupportedProviders().filter { it.userToggleable }
+    }
+
+    /**
+     * Get providers grouped by category
+     */
+    fun getProvidersByCategory(): Map<PluginCategory, List<PluginProvider>> {
+        return getToggleableProviders().groupBy { it.category }
+    }
+
+    /**
+     * Get provider by ID
+     */
+    fun getProviderById(id: String): PluginProvider? {
+        return allProviders.find { it.id == id }
+    }
+
+    // ============================================================
+    // Backward Compatibility Methods for UI
+    // ============================================================
+
+    /**
+     * Get all plugins' metadata (backward compatibility)
+     * Converts PluginProvider metadata to PluginInfo for existing UI code
+     */
+    fun getAllPlugins(): List<PluginInfo> {
+        return allProviders.map { provider ->
+            PluginInfo(
+                name = provider.id,
+                displayName = context.getString(provider.displayNameRes),
+                description = context.getString(provider.descriptionRes),
+                iconResId = provider.iconResId,
+                category = provider.category,
+                userToggleable = provider.userToggleable
+            )
+        }
+    }
+
+    /**
+     * Get only user-toggleable plugins (backward compatibility)
      */
     fun getToggleablePlugins(): List<PluginInfo> {
         return getAllPlugins().filter { it.userToggleable }
     }
 
     /**
-     * Get plugins grouped by category
+     * Get plugins grouped by category (backward compatibility)
      */
     fun getPluginsByCategory(): Map<PluginCategory, List<PluginInfo>> {
         return getToggleablePlugins().groupBy { it.category }
     }
 
     /**
-     * Get plugin info by name
+     * Get plugin info by name (backward compatibility)
      */
     fun getPluginInfo(name: String): PluginInfo? {
         return getAllPlugins().find { it.name == name }
+    }
+
+    companion object {
+        /**
+         * Total number of registered plugins
+         */
+        fun getTotalPluginCount(): Int = 22 // Updated as plugins are added
     }
 }

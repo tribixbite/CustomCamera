@@ -17,6 +17,7 @@ import kotlinx.coroutines.launch
 class SimpleSettingsActivity : AppCompatActivity() {
 
     private lateinit var settingsManager: SettingsManager
+    private lateinit var pluginRegistry: PluginRegistry
     private lateinit var settingsContainer: LinearLayout
     private var availableCameras: List<Pair<Int, String>> = emptyList()
 
@@ -40,6 +41,7 @@ class SimpleSettingsActivity : AppCompatActivity() {
         // Initialize settings safely
         try {
             settingsManager = SettingsManager(this)
+            pluginRegistry = PluginRegistry(this)
 
             // Detect available cameras asynchronously
             lifecycleScope.launch {
@@ -398,7 +400,7 @@ class SimpleSettingsActivity : AppCompatActivity() {
      */
     private fun addPluginSettings() {
         try {
-            val pluginsByCategory = PluginRegistry.getPluginsByCategory()
+            val pluginsByCategory = pluginRegistry.getPluginsByCategory()
 
             // Category display names
             val categoryNames = mapOf(
