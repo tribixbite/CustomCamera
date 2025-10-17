@@ -235,8 +235,31 @@ class GridOverlayPlugin : UIPlugin() {
         cameraContext?.settingsManager?.setPluginSetting(name, "gridType", gridType.name)
     }
 
-    companion object {
+    companion object : com.customcamera.app.engine.plugins.PluginProvider {
         private const val TAG = "GridOverlayPlugin"
+
+        // PluginProvider implementation
+        override val id: String = "grid_overlay"
+
+        override val displayNameRes: Int = com.customcamera.app.R.string.plugin_grid_overlay_display_name
+
+        override val descriptionRes: Int = com.customcamera.app.R.string.plugin_grid_overlay_description
+
+        override val iconResId: Int = com.customcamera.app.R.drawable.ic_extension
+
+        override val category: com.customcamera.app.engine.plugins.PluginCategory =
+            com.customcamera.app.engine.plugins.PluginCategory.OVERLAYS
+
+        override val userToggleable: Boolean = true
+
+        override fun isSupported(context: Context): Boolean {
+            // Grid overlay is supported on all devices (no special hardware needed)
+            return true
+        }
+
+        override fun create(dependencies: com.customcamera.app.engine.plugins.PluginDependencies): com.customcamera.app.engine.plugins.CameraPlugin {
+            return GridOverlayPlugin()
+        }
     }
 }
 

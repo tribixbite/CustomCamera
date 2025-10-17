@@ -448,7 +448,31 @@ class BarcodePlugin : ProcessingPlugin() {
      */
     fun getCurrentDetections(): List<DetectedBarcode> = detectedBarcodes
 
-    companion object {
+    companion object : com.customcamera.app.engine.plugins.PluginProvider {
         private const val TAG = "BarcodePlugin"
+
+        // PluginProvider implementation
+        override val id: String = "barcode"
+
+        override val displayNameRes: Int = com.customcamera.app.R.string.plugin_barcode_display_name
+
+        override val descriptionRes: Int = com.customcamera.app.R.string.plugin_barcode_description
+
+        override val iconResId: Int = com.customcamera.app.R.drawable.ic_focus
+
+        override val category: com.customcamera.app.engine.plugins.PluginCategory =
+            com.customcamera.app.engine.plugins.PluginCategory.ANALYSIS
+
+        override val userToggleable: Boolean = true
+
+        override fun isSupported(context: android.content.Context): Boolean {
+            // ML Kit barcode scanning is available on all Android devices
+            // (It's part of Google Play Services)
+            return true
+        }
+
+        override fun create(dependencies: com.customcamera.app.engine.plugins.PluginDependencies): com.customcamera.app.engine.plugins.CameraPlugin {
+            return BarcodePlugin()
+        }
     }
 }

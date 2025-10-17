@@ -365,7 +365,31 @@ class AutoFocusPlugin : ControlPlugin() {
         Log.i(TAG, "Loaded settings: mode=$autoFocusMode, tapToFocus=$tapToFocusEnabled")
     }
 
-    companion object {
+    companion object : com.customcamera.app.engine.plugins.PluginProvider {
         private const val TAG = "AutoFocusPlugin"
+
+        // PluginProvider implementation
+        override val id: String = "auto_focus"
+
+        override val displayNameRes: Int = com.customcamera.app.R.string.plugin_auto_focus_display_name
+
+        override val descriptionRes: Int = com.customcamera.app.R.string.plugin_auto_focus_description
+
+        override val iconResId: Int = com.customcamera.app.R.drawable.ic_focus
+
+        override val category: com.customcamera.app.engine.plugins.PluginCategory =
+            com.customcamera.app.engine.plugins.PluginCategory.CONTROLS
+
+        override val userToggleable: Boolean = true
+
+        override fun isSupported(context: android.content.Context): Boolean {
+            // Autofocus is a basic capability available on all Android cameras
+            // CameraX handles fallback to fixed focus if AF not available
+            return true
+        }
+
+        override fun create(dependencies: com.customcamera.app.engine.plugins.PluginDependencies): com.customcamera.app.engine.plugins.CameraPlugin {
+            return AutoFocusPlugin()
+        }
     }
 }
