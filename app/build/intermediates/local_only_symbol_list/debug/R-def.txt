@@ -65,10 +65,13 @@ drawable loading_background
 id aboutButton
 id backButton
 id cameraButtonsContainer
+id camera_name
+id camera_radio
 id captureButton
 id captureProgressBar
 id captureProgressSubtext
 id captureProgressText
+id category_title
 id continueButton
 id debugLogButton
 id exitButton
@@ -88,6 +91,10 @@ id pipButton
 id pluginControlsPanel
 id pluginDropdownView
 id pluginOverlayContainer
+id plugin_description
+id plugin_icon
+id plugin_name
+id plugin_toggle
 id previewView
 id progressSpinner
 id quickCameraButton
@@ -105,6 +112,7 @@ id settingTitle
 id settingValue
 id settingsButton
 id settingsRecyclerView
+id settings_recyclerview
 id skipButton
 id statusText
 id switchCameraButton
@@ -115,7 +123,11 @@ layout activity_camera
 layout activity_camera_selection
 layout activity_main
 layout activity_settings
+layout activity_simple_settings_recyclerview
 layout capture_progress_overlay
+layout item_camera_selection
+layout item_category_header
+layout item_plugin_setting
 layout item_settings_button
 layout item_settings_dropdown
 layout item_settings_header

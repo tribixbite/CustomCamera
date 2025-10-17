@@ -3341,12 +3341,15 @@ id buttonPanel
 id cache_measures
 id callMeasure
 id cameraButtonsContainer
+id camera_name
+id camera_radio
 id cancel_button
 id captureButton
 id captureProgressBar
 id captureProgressSubtext
 id captureProgressText
 id carryVelocity
+id category_title
 id center
 id centerCrop
 id centerInside
@@ -3663,6 +3666,10 @@ id pipButton
 id pluginControlsPanel
 id pluginDropdownView
 id pluginOverlayContainer
+id plugin_description
+id plugin_icon
+id plugin_name
+id plugin_toggle
 id position
 id postLayout
 id pressed
@@ -3719,6 +3726,7 @@ id settingTitle
 id settingValue
 id settingsButton
 id settingsRecyclerView
+id settings_recyclerview
 id sharedValueSet
 id sharedValueUnset
 id shortcut
@@ -3952,6 +3960,7 @@ layout activity_camera
 layout activity_camera_selection
 layout activity_main
 layout activity_settings
+layout activity_simple_settings_recyclerview
 layout capture_progress_overlay
 layout custom_dialog
 layout design_bottom_navigation_item
@@ -3971,6 +3980,9 @@ layout design_text_input_end_icon
 layout design_text_input_start_icon
 layout ime_base_split_test_activity
 layout ime_secondary_split_test_activity
+layout item_camera_selection
+layout item_category_header
+layout item_plugin_setting
 layout item_settings_button
 layout item_settings_dropdown
 layout item_settings_header
