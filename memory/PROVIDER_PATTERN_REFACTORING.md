@@ -277,9 +277,79 @@ Eliminate dual registration by implementing Provider Pattern where each plugin d
 
 ---
 
+### Phase 8: UI/UX Modernization & Plugin Visibility Control ⏸️ PENDING
+**Status**: Waiting for Phase 7
+**Estimated Time**: 4-6 hours (design + implementation)
+
+**Objective**: Modernize settings and plugin UI, fix dropdown issues, implement plugin visibility control
+
+#### Tasks:
+- [ ] 8.1 Settings Screen Redesign
+  - [ ] Add proper toolbar with back/exit button (Material3 TopAppBar)
+  - [ ] Improve category headers visual hierarchy (bold, larger text, dividers)
+  - [ ] Consistent terminology (use "Plugins" everywhere, remove "Features" confusion)
+  - [ ] Better spacing and padding (Material3 spacing guidelines)
+  - [ ] Modern card-based layout for plugin sections
+  - [ ] Add subtle category icons for better visual scanning
+
+- [ ] 8.2 Fix Plugin Dropdown UI Issues
+  - [ ] Fix dropdown floating/positioning issues (currently "floats weirdly to the left")
+  - [ ] Improve expanded dropdown appearance (currently "looks terrible")
+  - [ ] Add smooth expand/collapse animations
+  - [ ] Better styling (rounded corners, proper shadows, Material3 elevation)
+  - [ ] Proper alignment with container edges
+
+- [ ] 8.3 Plugin Visibility Control System
+  - [ ] Add `showInDropdown: Boolean` property to PluginProvider interface
+  - [ ] Add `showInSettings: Boolean` property to PluginProvider interface
+  - [ ] Update all plugin metadata with visibility preferences
+  - [ ] Logic: Night mode/barcode have dedicated buttons → showInDropdown = false
+  - [ ] Logic: Overflow plugins (crop, etc.) → showInDropdown = true
+  - [ ] Update PluginDropdownView to filter based on showInDropdown
+  - [ ] Update SimpleSettingsActivity to filter based on showInSettings
+
+- [ ] 8.4 Remove Dual Activation Methods
+  - [ ] Identify plugins with both dedicated buttons AND dropdown entries
+  - [ ] Keep dedicated buttons for: Night mode, Barcode, common features
+  - [ ] Move to dropdown only: Crop, less-used analysis tools, advanced features
+  - [ ] Update plugin metadata accordingly
+
+- [ ] 8.5 Integrate Crop Plugin (Currently Orphaned)
+  - [ ] Add CropPlugin to PluginRegistry metadata
+  - [ ] Add Crop to plugin dropdown (overflow section)
+  - [ ] Implement toggle handler in CameraActivityEngine
+  - [ ] Test crop activation and interactive overlay
+  - [ ] Add gesture hint for crop (if not already present)
+
+- [ ] 8.6 Testing & Polish
+  - [ ] Test settings screen on various screen sizes
+  - [ ] Verify dropdown appearance in all states (collapsed, expanded, scrolling)
+  - [ ] Confirm plugin visibility control works correctly
+  - [ ] Verify no plugins have dual activation
+  - [ ] Test crop plugin activation and functionality
+  - [ ] Check Material3 theme consistency
+
+**Deliverables**:
+- Modernized settings screen with proper navigation
+- Fixed plugin dropdown with better UI/UX
+- Plugin visibility control system implemented
+- Single activation method per plugin
+- Crop plugin properly integrated
+- Better visual clarity and consistency
+
+**Current Issues Being Fixed**:
+- Settings screen lacks navigation (no back button)
+- Plugin dropdown positioning and appearance problems
+- Terminology inconsistency ("plugins" vs "features")
+- Dual activation methods (dedicated buttons + dropdown)
+- Crop plugin exists but isn't integrated
+- Poor visual hierarchy in settings
+
+---
+
 ## 📊 Progress Tracking
 
-### Overall Progress: 14% (1/7 phases complete)
+### Overall Progress: 12.5% (1/8 phases complete)
 ```
 Phase 1: Foundation & Interfaces         [██████████] 100% ✅
 Phase 2: Example Implementations         [░░░░░░░░░░] 0%
@@ -288,6 +358,7 @@ Phase 4: Registry & Engine Refactoring   [░░░░░░░░░░] 0%
 Phase 5: UI Updates & Testing            [░░░░░░░░░░] 0%
 Phase 6: Performance (RecyclerView)      [░░░░░░░░░░] 0%
 Phase 7: Icon Improvements               [░░░░░░░░░░] 0%
+Phase 8: UI/UX Modernization             [░░░░░░░░░░] 0%
 ```
 
 ### Latest Update: 2025-10-16
@@ -298,14 +369,15 @@ Phase 7: Icon Improvements               [░░░░░░░░░░] 0%
 - Clean build with zero errors ✅
 
 ### Time Estimates
-- **Phase 1**: 1-2 hours
+- **Phase 1**: 1-2 hours ✅ COMPLETE (actual: 1.5 hours)
 - **Phase 2**: 2-3 hours
 - **Phase 3**: 3-4 hours
 - **Phase 4**: 2 hours
 - **Phase 5**: 2 hours
 - **Phase 6**: 3-4 hours
 - **Phase 7**: 4-6 hours
-- **Total**: 17-25 hours (2-3 days of focused work)
+- **Phase 8**: 4-6 hours
+- **Total**: 21-31 hours (3-4 days of focused work)
 
 ---
 
