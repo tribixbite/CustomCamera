@@ -3678,7 +3678,6 @@ id performance
 id performanceMonitor
 id pin
 id pipButton
-id pluginControlsPanel
 id pluginDropdownView
 id pluginOverlayContainer
 id plugin_description

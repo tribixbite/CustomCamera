@@ -41,29 +41,51 @@ class PluginDropdownView @JvmOverloads constructor(
     init {
         orientation = VERTICAL
 
-        // Create container for plugin items
+        // Create container for plugin items with Material3 card styling
         contentContainer = LinearLayout(context).apply {
             orientation = VERTICAL
             layoutParams = LayoutParams(
                 LayoutParams.MATCH_PARENT,
                 LayoutParams.WRAP_CONTENT
             )
-            // Apply Material3-style background
-            setBackgroundColor(Color.parseColor("#1F1F1F"))
+            // Apply Material3-style background matching settings cards
+            setBackgroundColor(Color.parseColor("#1E1E1E"))
             setPadding(
-                dpToPx(8),
-                dpToPx(8),
-                dpToPx(8),
+                dpToPx(12),
+                dpToPx(12),
+                dpToPx(12),
                 dpToPx(12)
             )
-            elevation = dpToPx(8).toFloat()
+            // Material3 elevation
+            elevation = dpToPx(4).toFloat()
+
+            // Rounded corners (Material3 standard)
+            clipToOutline = true
+            outlineProvider = android.view.ViewOutlineProvider.BACKGROUND
 
             // Initially hidden
             visibility = GONE
             alpha = 0f
+            scaleY = 0.9f // Start slightly scaled down for animation
         }
 
         addView(contentContainer)
+
+        // Set rounded corner background drawable
+        setCardBackground()
+    }
+
+    /**
+     * Apply rounded corner background with stroke (Material3 card style)
+     */
+    private fun setCardBackground() {
+        val drawable = android.graphics.drawable.GradientDrawable().apply {
+            shape = android.graphics.drawable.GradientDrawable.RECTANGLE
+            cornerRadius = dpToPx(12).toFloat()
+            setColor(Color.parseColor("#1E1E1E"))
+            setStroke(dpToPx(1), Color.parseColor("#2A2A2A"))
+        }
+        contentContainer.background = drawable
     }
 
     /**
@@ -129,7 +151,7 @@ class PluginDropdownView @JvmOverloads constructor(
     }
 
     /**
-     * Create individual plugin item view
+     * Create individual plugin item view (Material3 card style)
      */
     private fun createPluginItem(plugin: CameraPlugin): View {
         val itemLayout = LinearLayout(context).apply {
@@ -140,22 +162,60 @@ class PluginDropdownView @JvmOverloads constructor(
             ).apply {
                 setMargins(0, dpToPx(4), 0, dpToPx(4))
             }
-            setPadding(dpToPx(12), dpToPx(8), dpToPx(12), dpToPx(8))
+            setPadding(dpToPx(12), dpToPx(10), dpToPx(12), dpToPx(10))
             gravity = Gravity.CENTER_VERTICAL
 
-            // Rounded background
-            background = ContextCompat.getDrawable(context, R.drawable.enhanced_button_background)
+            // Material3 card-style background with rounded corners
+            background = createItemBackground()
             isClickable = true
             isFocusable = true
+
+            // Add ripple effect for touch feedback
+            foreground = android.graphics.drawable.RippleDrawable(
+                android.content.res.ColorStateList.valueOf(Color.parseColor("#33FFFFFF")),
+                null,
+                createRippleMask()
+            )
         }
 
-        // Plugin icon
+        return buildPluginItemContent(itemLayout, plugin)
+    }
+
+    /**
+     * Create Material3-style background for plugin item
+     */
+    private fun createItemBackground(): android.graphics.drawable.Drawable {
+        return android.graphics.drawable.GradientDrawable().apply {
+            shape = android.graphics.drawable.GradientDrawable.RECTANGLE
+            cornerRadius = dpToPx(8).toFloat()
+            setColor(Color.parseColor("#252525"))
+        }
+    }
+
+    /**
+     * Create ripple mask for touch feedback
+     */
+    private fun createRippleMask(): android.graphics.drawable.Drawable {
+        return android.graphics.drawable.GradientDrawable().apply {
+            shape = android.graphics.drawable.GradientDrawable.RECTANGLE
+            cornerRadius = dpToPx(8).toFloat()
+            setColor(Color.WHITE)
+        }
+    }
+
+    /**
+     * Build plugin item content (icon, text, switch)
+     */
+    private fun buildPluginItemContent(itemLayout: LinearLayout, plugin: CameraPlugin): View {
+
+        // Plugin icon with primary color tint
         val iconView = ImageView(context).apply {
             layoutParams = LayoutParams(dpToPx(24), dpToPx(24)).apply {
                 marginEnd = dpToPx(12)
             }
             setImageResource(plugin.iconResId)
-            setColorFilter(Color.WHITE)
+            // Apply primary color tint like settings cards
+            setColorFilter(ContextCompat.getColor(context, R.color.md_theme_primary))
         }
         itemLayout.addView(iconView)
 
@@ -165,33 +225,36 @@ class PluginDropdownView @JvmOverloads constructor(
             layoutParams = LayoutParams(0, LayoutParams.WRAP_CONTENT, 1f)
         }
 
-        // Plugin name
+        // Plugin name with sans-serif-medium
         val nameView = TextView(context).apply {
             text = plugin.displayName
             textSize = 14f
             setTextColor(Color.WHITE)
-            typeface = android.graphics.Typeface.DEFAULT_BOLD
+            typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.NORMAL)
         }
         infoLayout.addView(nameView)
 
-        // Plugin description
+        // Plugin description with better color
         val descView = TextView(context).apply {
             text = plugin.description
             textSize = 11f
-            setTextColor(Color.parseColor("#CCCCCC"))
-            maxLines = 1
+            setTextColor(Color.parseColor("#B0B0B0"))
+            maxLines = 2
             ellipsize = android.text.TextUtils.TruncateAt.END
+            setLineSpacing(0f, 1.2f)
         }
         infoLayout.addView(descView)
 
         itemLayout.addView(infoLayout)
 
-        // Toggle switch
+        // Toggle switch with Material styling
         val toggleSwitch = Switch(context).apply {
             layoutParams = LayoutParams(
                 LayoutParams.WRAP_CONTENT,
                 LayoutParams.WRAP_CONTENT
-            )
+            ).apply {
+                marginStart = dpToPx(12)
+            }
             isChecked = plugin.isEnabled
 
             // Handle toggle change
@@ -221,7 +284,7 @@ class PluginDropdownView @JvmOverloads constructor(
     }
 
     /**
-     * Expand the dropdown
+     * Expand the dropdown with smooth Material3-style animation
      */
     fun expand() {
         if (isExpanded) return
@@ -229,29 +292,31 @@ class PluginDropdownView @JvmOverloads constructor(
         isExpanded = true
         contentContainer.visibility = VISIBLE
 
-        // Animate alpha and slide down
+        // Smooth expand animation: alpha + scale + slide
         contentContainer.animate()
             .alpha(1f)
+            .scaleY(1f)
             .translationY(0f)
-            .setDuration(200)
-            .setInterpolator(AccelerateDecelerateInterpolator())
+            .setDuration(250)
+            .setInterpolator(android.view.animation.DecelerateInterpolator(1.5f))
             .start()
     }
 
     /**
-     * Collapse the dropdown
+     * Collapse the dropdown with smooth Material3-style animation
      */
     fun collapse() {
         if (!isExpanded) return
 
         isExpanded = false
 
-        // Animate alpha and slide up
+        // Smooth collapse animation: alpha + scale + slide
         contentContainer.animate()
             .alpha(0f)
-            .translationY(-dpToPx(10).toFloat())
-            .setDuration(150)
-            .setInterpolator(AccelerateDecelerateInterpolator())
+            .scaleY(0.9f)
+            .translationY(-dpToPx(8).toFloat())
+            .setDuration(200)
+            .setInterpolator(android.view.animation.AccelerateInterpolator(1.2f))
             .withEndAction {
                 contentContainer.visibility = GONE
             }

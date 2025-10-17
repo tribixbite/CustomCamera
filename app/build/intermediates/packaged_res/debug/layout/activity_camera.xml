@@ -87,39 +87,31 @@
 
     </LinearLayout>
 
-    <!-- Plugin Controls Panel (right side) -->
-    <LinearLayout
-        android:id="@+id/pluginControlsPanel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+    <!-- Master Plugin Button (right side) -->
+    <ImageButton
+        android:id="@+id/masterPluginButton"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
         android:layout_gravity="center_vertical|end"
         android:layout_marginEnd="16dp"
-        android:orientation="vertical"
-        android:visibility="visible">
+        android:background="@drawable/enhanced_button_background"
+        android:src="@drawable/ic_extension"
+        android:scaleType="centerInside"
+        android:padding="12dp"
+        android:alpha="1.0"
+        android:contentDescription="Plugins Menu"
+        android:elevation="4dp"
+        android:stateListAnimator="@animator/button_press_scale" />
 
-        <!-- Master Plugin Button (Grid Icon) -->
-        <ImageButton
-            android:id="@+id/masterPluginButton"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:background="@drawable/enhanced_button_background"
-            android:src="@drawable/ic_extension"
-            android:scaleType="centerInside"
-            android:padding="12dp"
-            android:alpha="1.0"
-            android:contentDescription="Plugins Menu"
-            android:elevation="4dp"
-            android:stateListAnimator="@animator/button_press_scale" />
-
-        <!-- Plugin Dropdown View (opens below master button) -->
-        <com.customcamera.app.ui.PluginDropdownView
-            android:id="@+id/pluginDropdownView"
-            android:layout_width="280dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:layout_marginEnd="8dp" />
-
-    </LinearLayout>
+    <!-- Plugin Dropdown View (positioned below master button) -->
+    <com.customcamera.app.ui.PluginDropdownView
+        android:id="@+id/pluginDropdownView"
+        android:layout_width="300dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:layout_marginTop="240dp"
+        android:layout_marginEnd="12dp"
+        android:elevation="8dp" />
 
     <!-- Bottom Controls (SOTA Modern Design) -->
     <LinearLayout

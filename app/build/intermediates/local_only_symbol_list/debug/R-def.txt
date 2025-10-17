@@ -103,7 +103,6 @@ id nightModeButton
 id openCameraButton
 id performanceMonitor
 id pipButton
-id pluginControlsPanel
 id pluginDropdownView
 id pluginOverlayContainer
 id plugin_description

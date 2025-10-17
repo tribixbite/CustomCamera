@@ -6,7 +6,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
-import android.widget.LinearLayout;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.camera.view.PreviewView;
@@ -49,9 +48,6 @@ public final class ActivityCameraBinding implements ViewBinding {
   public final ImageButton pipButton;
 
   @NonNull
-  public final LinearLayout pluginControlsPanel;
-
-  @NonNull
   public final PluginDropdownView pluginDropdownView;
 
   @NonNull
@@ -73,10 +69,10 @@ public final class ActivityCameraBinding implements ViewBinding {
       @NonNull ImageButton flashButton, @NonNull ImageButton galleryButton,
       @NonNull GestureHintsOverlay gestureHintsOverlay, @NonNull ImageButton masterPluginButton,
       @NonNull ImageButton nightModeButton, @NonNull PerformanceMonitor performanceMonitor,
-      @NonNull ImageButton pipButton, @NonNull LinearLayout pluginControlsPanel,
-      @NonNull PluginDropdownView pluginDropdownView, @NonNull FrameLayout pluginOverlayContainer,
-      @NonNull PreviewView previewView, @NonNull ImageButton settingsButton,
-      @NonNull ImageButton switchCameraButton, @NonNull ImageButton videoRecordButton) {
+      @NonNull ImageButton pipButton, @NonNull PluginDropdownView pluginDropdownView,
+      @NonNull FrameLayout pluginOverlayContainer, @NonNull PreviewView previewView,
+      @NonNull ImageButton settingsButton, @NonNull ImageButton switchCameraButton,
+      @NonNull ImageButton videoRecordButton) {
     this.rootView = rootView;
     this.captureButton = captureButton;
     this.flashButton = flashButton;
@@ -86,7 +82,6 @@ public final class ActivityCameraBinding implements ViewBinding {
     this.nightModeButton = nightModeButton;
     this.performanceMonitor = performanceMonitor;
     this.pipButton = pipButton;
-    this.pluginControlsPanel = pluginControlsPanel;
     this.pluginDropdownView = pluginDropdownView;
     this.pluginOverlayContainer = pluginOverlayContainer;
     this.previewView = previewView;
@@ -170,12 +165,6 @@ public final class ActivityCameraBinding implements ViewBinding {
         break missingId;
       }
 
-      id = R.id.pluginControlsPanel;
-      LinearLayout pluginControlsPanel = ViewBindings.findChildViewById(rootView, id);
-      if (pluginControlsPanel == null) {
-        break missingId;
-      }
-
       id = R.id.pluginDropdownView;
       PluginDropdownView pluginDropdownView = ViewBindings.findChildViewById(rootView, id);
       if (pluginDropdownView == null) {
@@ -214,9 +203,8 @@ public final class ActivityCameraBinding implements ViewBinding {
 
       return new ActivityCameraBinding((FrameLayout) rootView, captureButton, flashButton,
           galleryButton, gestureHintsOverlay, masterPluginButton, nightModeButton,
-          performanceMonitor, pipButton, pluginControlsPanel, pluginDropdownView,
-          pluginOverlayContainer, previewView, settingsButton, switchCameraButton,
-          videoRecordButton);
+          performanceMonitor, pipButton, pluginDropdownView, pluginOverlayContainer, previewView,
+          settingsButton, switchCameraButton, videoRecordButton);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));
