@@ -11,6 +11,7 @@ import com.customcamera.app.engine.plugins.UIPlugin
 import com.customcamera.app.video.VideoControlsOverlay
 import com.customcamera.app.video.VideoQualityManager
 import com.customcamera.app.video.VideoRecordingManager
+import com.customcamera.app.video.VideoStabilizationManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -35,6 +36,7 @@ class AdvancedVideoRecordingPlugin : UIPlugin() {
     private var videoControlsOverlay: VideoControlsOverlay? = null
     private var videoQualityManager: VideoQualityManager? = null
     private var videoRecordingManager: VideoRecordingManager? = null
+    private var videoStabilizationManager: VideoStabilizationManager? = null
 
     // Recording state management
     private val _isRecording = MutableStateFlow(false)
@@ -63,6 +65,15 @@ class AdvancedVideoRecordingPlugin : UIPlugin() {
     val stabilizationEnabled: StateFlow<Boolean> = _stabilizationEnabled.asStateFlow()
     val audioRecordingEnabled: StateFlow<Boolean> = _audioRecordingEnabled.asStateFlow()
 
+    // Video stabilization state
+    private val _stabilizationMode = MutableStateFlow(VideoStabilizationManager.StabilizationMode.HYBRID)
+    private val _stabilizationStrength = MutableStateFlow(0.7f) // Default strength: 70%
+    private val _stabilizationSupported = MutableStateFlow(false)
+
+    val stabilizationMode: StateFlow<VideoStabilizationManager.StabilizationMode> = _stabilizationMode.asStateFlow()
+    val stabilizationStrength: StateFlow<Float> = _stabilizationStrength.asStateFlow()
+    val stabilizationSupported: StateFlow<Boolean> = _stabilizationSupported.asStateFlow()
+
     // Current recording session
     private var activeRecording: Recording? = null
     private var recordingStartTime: Long = 0
@@ -75,6 +86,17 @@ class AdvancedVideoRecordingPlugin : UIPlugin() {
         // Initialize video managers
         videoQualityManager = VideoQualityManager(context.context)
         videoRecordingManager = VideoRecordingManager(context.context)
+        videoStabilizationManager = VideoStabilizationManager(context.context)
+
+        // Check hardware stabilization support
+        val stabilizationSupported = videoStabilizationManager?.initialize() ?: false
+        _stabilizationSupported.value = stabilizationSupported
+
+        if (stabilizationSupported) {
+            Log.i(TAG, "✅ Hardware-accelerated video stabilization available")
+        } else {
+            Log.w(TAG, "⚠️ Hardware stabilization not available, software fallback will be used")
+        }
 
         // Load supported video qualities
         _availableQualities.value = videoQualityManager?.getSupportedQualities() ?: emptyList()
@@ -88,6 +110,9 @@ class AdvancedVideoRecordingPlugin : UIPlugin() {
                 "availableQualities" to _availableQualities.value.size,
                 "defaultQuality" to _currentQuality.value.name,
                 "stabilizationEnabled" to _stabilizationEnabled.value,
+                "stabilizationSupported" to stabilizationSupported,
+                "stabilizationMode" to _stabilizationMode.value.name,
+                "stabilizationStrength" to _stabilizationStrength.value,
                 "audioEnabled" to _audioRecordingEnabled.value
             )
         )
@@ -159,6 +184,21 @@ class AdvancedVideoRecordingPlugin : UIPlugin() {
             _isRecording.value = true
             recordingStartTime = System.currentTimeMillis()
 
+            // Start video stabilization if enabled
+            if (_stabilizationEnabled.value && _stabilizationSupported.value) {
+                val stabilizationConfig = VideoStabilizationManager.StabilizationConfig(
+                    mode = _stabilizationMode.value,
+                    strength = _stabilizationStrength.value,
+                    smoothness = 0.5f,
+                    cropFactor = 0.1f,
+                    enableHorizonLeveling = true,
+                    enableRollingShutterCorrection = true,
+                    adaptiveStrength = true
+                )
+                videoStabilizationManager?.startStabilization(stabilizationConfig)
+                Log.i(TAG, "📹 Video stabilization started: mode=${_stabilizationMode.value}, strength=${_stabilizationStrength.value}")
+            }
+
             Log.i(TAG, "✅ Video recording started")
 
             cameraContext?.debugLogger?.logPlugin(
@@ -167,7 +207,9 @@ class AdvancedVideoRecordingPlugin : UIPlugin() {
                 mapOf(
                     "quality" to _currentQuality.value.name,
                     "audioEnabled" to _audioRecordingEnabled.value,
-                    "stabilizationEnabled" to _stabilizationEnabled.value
+                    "stabilizationEnabled" to _stabilizationEnabled.value,
+                    "stabilizationMode" to _stabilizationMode.value.name,
+                    "stabilizationStrength" to _stabilizationStrength.value
                 )
             )
 
@@ -184,6 +226,10 @@ class AdvancedVideoRecordingPlugin : UIPlugin() {
      */
     fun stopRecording(): Result<Unit> {
         return try {
+            // Stop stabilization
+            videoStabilizationManager?.stopStabilization()
+            Log.i(TAG, "📹 Video stabilization stopped")
+
             activeRecording?.stop()
             activeRecording = null
 
@@ -302,6 +348,64 @@ class AdvancedVideoRecordingPlugin : UIPlugin() {
     }
 
     /**
+     * Set stabilization mode
+     */
+    fun setStabilizationMode(mode: VideoStabilizationManager.StabilizationMode) {
+        if (_stabilizationMode.value != mode) {
+            _stabilizationMode.value = mode
+            saveSettings()
+            Log.i(TAG, "Stabilization mode set to: ${mode.name}")
+
+            // Update active stabilization if currently recording
+            if (_isRecording.value && _stabilizationEnabled.value) {
+                val config = VideoStabilizationManager.StabilizationConfig(
+                    mode = mode,
+                    strength = _stabilizationStrength.value,
+                    smoothness = 0.5f,
+                    cropFactor = 0.1f,
+                    enableHorizonLeveling = true,
+                    enableRollingShutterCorrection = true,
+                    adaptiveStrength = true
+                )
+                videoStabilizationManager?.updateConfig(config)
+            }
+        }
+    }
+
+    /**
+     * Set stabilization strength (0.0 - 1.0)
+     */
+    fun setStabilizationStrength(strength: Float) {
+        val clampedStrength = strength.coerceIn(0.0f, 1.0f)
+        if (_stabilizationStrength.value != clampedStrength) {
+            _stabilizationStrength.value = clampedStrength
+            saveSettings()
+            Log.i(TAG, "Stabilization strength set to: ${(clampedStrength * 100).toInt()}%")
+
+            // Update active stabilization if currently recording
+            if (_isRecording.value && _stabilizationEnabled.value) {
+                val config = VideoStabilizationManager.StabilizationConfig(
+                    mode = _stabilizationMode.value,
+                    strength = clampedStrength,
+                    smoothness = 0.5f,
+                    cropFactor = 0.1f,
+                    enableHorizonLeveling = true,
+                    enableRollingShutterCorrection = true,
+                    adaptiveStrength = true
+                )
+                videoStabilizationManager?.updateConfig(config)
+            }
+        }
+    }
+
+    /**
+     * Get stabilization status
+     */
+    fun getStabilizationStatus(): VideoStabilizationManager.StabilizationStatus? {
+        return videoStabilizationManager?.getStabilizationStatus()
+    }
+
+    /**
      * Toggle audio recording
      */
     fun setAudioRecordingEnabled(enabled: Boolean) {
@@ -323,6 +427,9 @@ class AdvancedVideoRecordingPlugin : UIPlugin() {
             "manualShutterEnabled" to _manualShutterEnabled.value,
             "manualFocusEnabled" to _manualFocusEnabled.value,
             "stabilizationEnabled" to _stabilizationEnabled.value,
+            "stabilizationSupported" to _stabilizationSupported.value,
+            "stabilizationMode" to _stabilizationMode.value.name,
+            "stabilizationStrength" to _stabilizationStrength.value,
             "audioEnabled" to _audioRecordingEnabled.value,
             "availableQualities" to _availableQualities.value.map { it.name }
         )
@@ -334,6 +441,10 @@ class AdvancedVideoRecordingPlugin : UIPlugin() {
         if (_isRecording.value) {
             stopRecording()
         }
+
+        // Clean up stabilization manager
+        videoStabilizationManager?.cleanup()
+        videoStabilizationManager = null
 
         videoControlsOverlay = null
         videoQualityManager = null
@@ -425,7 +536,21 @@ class AdvancedVideoRecordingPlugin : UIPlugin() {
             _stabilizationEnabled.value = settings.getPluginSetting(name, "stabilization", "true").toBoolean()
             _audioRecordingEnabled.value = settings.getPluginSetting(name, "audioRecording", "true").toBoolean()
 
-            Log.i(TAG, "Settings loaded: quality=${_currentQuality.value.name}")
+            // Load stabilization settings
+            val stabilizationModeName = settings.getPluginSetting(
+                name,
+                "stabilizationMode",
+                VideoStabilizationManager.StabilizationMode.HYBRID.name
+            )
+            _stabilizationMode.value = try {
+                VideoStabilizationManager.StabilizationMode.valueOf(stabilizationModeName)
+            } catch (e: IllegalArgumentException) {
+                VideoStabilizationManager.StabilizationMode.HYBRID
+            }
+
+            _stabilizationStrength.value = settings.getPluginSetting(name, "stabilizationStrength", "0.7").toFloat()
+
+            Log.i(TAG, "Settings loaded: quality=${_currentQuality.value.name}, stabilization=${_stabilizationMode.value.name} @ ${(_stabilizationStrength.value * 100).toInt()}%")
         } catch (e: Exception) {
             Log.w(TAG, "Failed to load settings, using defaults", e)
         }
@@ -443,6 +568,10 @@ class AdvancedVideoRecordingPlugin : UIPlugin() {
         settings.setPluginSetting(name, "manualFocus", _manualFocusEnabled.value.toString())
         settings.setPluginSetting(name, "stabilization", _stabilizationEnabled.value.toString())
         settings.setPluginSetting(name, "audioRecording", _audioRecordingEnabled.value.toString())
+
+        // Save stabilization settings
+        settings.setPluginSetting(name, "stabilizationMode", _stabilizationMode.value.name)
+        settings.setPluginSetting(name, "stabilizationStrength", _stabilizationStrength.value.toString())
     }
 
     companion object : com.customcamera.app.engine.plugins.PluginProvider {
