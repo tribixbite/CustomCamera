@@ -1,54 +1,76 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:padding="16dp"
-    android:gravity="center_vertical"
+    android:layout_marginStart="12dp"
+    android:layout_marginEnd="12dp"
+    android:layout_marginTop="4dp"
+    android:layout_marginBottom="4dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="0dp"
+    app:cardBackgroundColor="#1E1E1E"
+    app:strokeWidth="1dp"
+    app:strokeColor="#2A2A2A"
     android:clickable="true"
-    android:focusable="true"
-    android:background="?attr/selectableItemBackground">
-
-    <ImageView
-        android:id="@+id/plugin_icon"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
-        android:layout_marginEnd="16dp"
-        android:src="@drawable/ic_extension"
-        android:contentDescription="Plugin icon" />
+    android:focusable="true">
 
     <LinearLayout
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:orientation="vertical">
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:gravity="center_vertical">
 
-        <TextView
-            android:id="@+id/plugin_name"
+        <!-- Plugin Icon with tint -->
+        <ImageView
+            android:id="@+id/plugin_icon"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginEnd="16dp"
+            android:src="@drawable/ic_extension"
+            android:tint="?attr/colorPrimary"
+            android:contentDescription="Plugin icon" />
+
+        <!-- Plugin Info -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/plugin_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Plugin Name"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp"
+                android:fontFamily="sans-serif-medium" />
+
+            <TextView
+                android:id="@+id/plugin_description"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Plugin description"
+                android:textColor="#B0B0B0"
+                android:textSize="13sp"
+                android:maxLines="2"
+                android:ellipsize="end"
+                android:lineSpacingMultiplier="1.2" />
+
+        </LinearLayout>
+
+        <!-- Material Switch -->
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/plugin_toggle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Plugin Name"
-            android:textColor="#000000"
-            android:textSize="16sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/plugin_description"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="Plugin description"
-            android:textColor="#666666"
-            android:textSize="14sp"
-            android:maxLines="2"
-            android:ellipsize="end" />
+            android:layout_marginStart="16dp"
+            app:thumbTint="@android:color/white"
+            app:trackTint="?attr/colorPrimary" />
 
     </LinearLayout>
 
-    <Switch
-        android:id="@+id/plugin_toggle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp" />
-
-</LinearLayout>
+</com.google.android.material.card.MaterialCardView>

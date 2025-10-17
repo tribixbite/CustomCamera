@@ -4,19 +4,28 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:paddingStart="16dp"
-    android:paddingTop="16dp"
+    android:paddingTop="24dp"
     android:paddingEnd="16dp"
-    android:paddingBottom="8dp">
+    android:paddingBottom="12dp"
+    android:background="#121212">
 
     <TextView
         android:id="@+id/category_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Category"
-        android:textColor="#000000"
-        android:textSize="14sp"
+        android:textColor="?attr/colorPrimary"
+        android:textSize="13sp"
         android:textStyle="bold"
         android:textAllCaps="true"
-        android:letterSpacing="0.05" />
+        android:letterSpacing="0.1"
+        android:fontFamily="sans-serif-medium" />
+
+    <!-- Divider line under category -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="8dp"
+        android:background="#2A2A2A" />
 
 </LinearLayout>

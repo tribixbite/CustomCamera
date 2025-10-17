@@ -200,6 +200,45 @@ interface PluginProvider {
      * **Example**: `true` for most plugins
      */
     val userToggleable: Boolean
+        get() = true // Default: user toggleable
+
+    /**
+     * Whether this plugin should appear in the camera dropdown menu.
+     *
+     * **true**: Plugin appears in overflow dropdown for quick activation
+     * **false**: Plugin only available through settings screen
+     *
+     * **Use true for**:
+     * - Plugins without dedicated UI buttons
+     * - Features users might want during capture (crop, motion detection)
+     * - Overflow/secondary features
+     *
+     * **Use false for**:
+     * - Plugins with dedicated camera interface buttons (night mode, barcode with button)
+     * - Auto-active plugins (auto focus, exposure control)
+     * - Plugins best configured in settings first
+     *
+     * **Example**: `true` for CropPlugin, `false` for plugins with dedicated buttons
+     */
+    val showInDropdown: Boolean
+        get() = false // Default: not in dropdown
+
+    /**
+     * Whether this plugin should appear in the settings screen.
+     *
+     * **true**: Plugin appears in settings list for configuration
+     * **false**: Plugin hidden from settings (runtime-only)
+     *
+     * Most plugins should be `true` to allow user configuration.
+     *
+     * **Use false only for**:
+     * - Internal/system plugins not meant for user interaction
+     * - Debug-only plugins
+     *
+     * **Example**: `true` for 99% of plugins
+     */
+    val showInSettings: Boolean
+        get() = true // Default: show in settings
 
     /**
      * Checks if this plugin is supported on the current device.
