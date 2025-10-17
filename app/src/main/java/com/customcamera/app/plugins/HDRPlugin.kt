@@ -375,6 +375,8 @@ class HDRPlugin : ProcessingPlugin() {
 
         override val userToggleable: Boolean = true
 
+        override val showInDropdown: Boolean = true
+
         override fun isSupported(context: android.content.Context): Boolean {
             // TODO: Add device capability checking if needed
             return true

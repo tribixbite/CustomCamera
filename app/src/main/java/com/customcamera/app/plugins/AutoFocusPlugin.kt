@@ -382,6 +382,8 @@ class AutoFocusPlugin : ControlPlugin() {
 
         override val userToggleable: Boolean = true
 
+        override val showInDropdown: Boolean = false
+
         override fun isSupported(context: android.content.Context): Boolean {
             // Autofocus is a basic capability available on all Android cameras
             // CameraX handles fallback to fixed focus if AF not available

@@ -49,6 +49,7 @@ class CameraActivityEngine : AppCompatActivity() {
 
     private lateinit var binding: ActivityCameraBinding
     private lateinit var cameraEngine: CameraEngine
+    private lateinit var pluginRegistry: com.customcamera.app.engine.plugins.PluginRegistry
 
     private var cameraIndex: Int = 0
     @Volatile private var isFlashOn: Boolean = false
@@ -268,7 +269,7 @@ class CameraActivityEngine : AppCompatActivity() {
         Log.i(TAG, "🔌 Initializing camera engine with Provider Pattern...")
 
         // Create plugin registry (single source of truth for all plugins)
-        val pluginRegistry = com.customcamera.app.engine.plugins.PluginRegistry(this)
+        pluginRegistry = com.customcamera.app.engine.plugins.PluginRegistry(this)
 
         // Create camera engine with registry - plugins auto-register via Provider Pattern
         cameraEngine = CameraEngine(this, this, pluginRegistry)
@@ -1280,24 +1281,46 @@ class CameraActivityEngine : AppCompatActivity() {
     }
 
     /**
-     * Setup plugin dropdown with all toggleable plugins
+     * Setup plugin dropdown with filtered plugins that have showInDropdown = true
      */
     private fun setupPluginDropdown() {
+        Log.i(TAG, "📋 Setting up plugin dropdown menu...")
+
         try {
-            // Get all toggleable plugins from engine
-            val plugins = cameraEngine.getToggleablePlugins()
+            // Get all supported plugin providers from registry
+            val allProviders = pluginRegistry.getSupportedProviders()
+            Log.d(TAG, "Found ${allProviders.size} supported providers")
 
-            // Populate dropdown with plugins
-            binding.pluginDropdownView.setPlugins(plugins)
+            // Filter providers that are user-toggleable AND should show in dropdown
+            val dropdownProviders = allProviders.filter { provider ->
+                provider.userToggleable && provider.showInDropdown
+            }
 
-            // Handle plugin toggle events
+            Log.i(TAG, "Filtered to ${dropdownProviders.size} dropdown providers (showInDropdown=true)")
+
+            // Get actual plugin instances for each provider
+            val dropdownPlugins = dropdownProviders.mapNotNull { provider ->
+                cameraEngine.getPlugin(provider.id)
+            }
+
+            Log.i(TAG, "Found ${dropdownPlugins.size} plugin instances for dropdown")
+            dropdownPlugins.forEach { plugin ->
+                Log.d(TAG, "  - ${plugin.name} (${plugin.displayName})")
+            }
+
+            // Pass plugins to dropdown view
+            binding.pluginDropdownView.setPlugins(dropdownPlugins)
+
+            // Set up toggle callback
             binding.pluginDropdownView.onPluginToggled = { plugin, enabled ->
                 handlePluginToggle(plugin, enabled)
             }
 
-            Log.i(TAG, "Plugin dropdown setup with ${plugins.size} plugins")
+            Log.i(TAG, "✅ Plugin dropdown configured successfully")
+
         } catch (e: Exception) {
-            Log.e(TAG, "Error setting up plugin dropdown", e)
+            Log.e(TAG, "❌ Failed to setup plugin dropdown", e)
+            Toast.makeText(this, "Plugin menu setup failed", Toast.LENGTH_SHORT).show()
         }
     }
 

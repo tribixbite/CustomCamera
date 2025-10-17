@@ -465,6 +465,8 @@ class BarcodePlugin : ProcessingPlugin() {
 
         override val userToggleable: Boolean = true
 
+        override val showInDropdown: Boolean = true
+
         override fun isSupported(context: android.content.Context): Boolean {
             // ML Kit barcode scanning is available on all Android devices
             // (It's part of Google Play Services)

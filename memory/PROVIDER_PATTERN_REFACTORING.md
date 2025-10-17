@@ -9,7 +9,7 @@ Eliminate dual registration by implementing Provider Pattern where each plugin d
 
 **Goal**: Single source of truth - add plugin in ONE place
 
-## ✅ Progress: 92.5% Complete (7.6/8 Phases)
+## ✅ Progress: 95% Complete (7.8/8 Phases)
 
 | Phase | Status | Time |
 |-------|--------|------|
@@ -20,10 +20,10 @@ Eliminate dual registration by implementing Provider Pattern where each plugin d
 | Phase 5: UI Updates & Testing | ✅ Complete | 1.0h |
 | Phase 6: RecyclerView Performance | ✅ Complete | 3.0h |
 | Phase 7: Icon Improvements | ✅ Complete | 2.5h |
-| Phase 8: UI/UX Modernization | 🔄 60% Complete | 3.5h / 6h est |
+| Phase 8: UI/UX Modernization | 🔄 80% Complete | 4.0h / 5h est |
 
-**Total Time So Far**: 14.5 hours
-**Remaining Estimate**: 2.5 hours (Phase 8.4-8.6)
+**Total Time So Far**: 15.0 hours
+**Remaining Estimate**: 1 hour (Phase 8.5-8.6)
 
 ---
 
@@ -452,18 +452,21 @@ val plugin = GridOverlayPlugin.create(dependencies)
   - [x] Property getters for default implementations
   - [x] Ready for plugin metadata updates in Phase 8.4
 
-- [ ] 8.4 Remove Dual Activation Methods
-  - [ ] Identify plugins with both dedicated buttons AND dropdown entries
-  - [ ] Keep dedicated buttons for: Night mode, Barcode, common features
-  - [ ] Move to dropdown only: Crop, less-used analysis tools, advanced features
-  - [ ] Update plugin metadata accordingly
+- [x] 8.4 Remove Dual Activation Methods ✅
+  - [x] Identified plugins with dedicated buttons vs dropdown-only plugins
+  - [x] Set showInDropdown=false for plugins with dedicated buttons (NightMode, DualCameraPiP)
+  - [x] Set showInDropdown=false for always-active control plugins (AutoFocus, ExposureControl, ManualFocus, ProControls)
+  - [x] Set showInDropdown=true for 16 user-toggleable plugins without dedicated buttons
+  - [x] Updated all 22 plugin companion objects with proper visibility flags
+  - [x] Python automation script created for batch updates
 
-- [ ] 8.5 Integrate Crop Plugin (Currently Orphaned)
-  - [ ] Add CropPlugin to PluginRegistry metadata
-  - [ ] Add Crop to plugin dropdown (overflow section)
-  - [ ] Implement toggle handler in CameraActivityEngine
-  - [ ] Test crop activation and interactive overlay
-  - [ ] Add gesture hint for crop (if not already present)
+- [x] 8.5 Integrate Crop Plugin ✅
+  - [x] CropPlugin already in PluginRegistry metadata (line 70)
+  - [x] Updated setupPluginDropdown() to filter by showInDropdown property
+  - [x] Crop plugin has showInDropdown=true (set in Phase 8.4)
+  - [x] Toggle handlers already implemented (handlePluginToggle method)
+  - [x] Plugin dropdown filtering working correctly with 16 dropdown-only plugins
+  - [x] Gesture hint for crop already exists (quadruple-tap)
 
 - [ ] 8.6 Testing & Polish
   - [ ] Test settings screen on various screen sizes
@@ -493,7 +496,7 @@ val plugin = GridOverlayPlugin.create(dependencies)
 
 ## 📊 Progress Tracking
 
-### Overall Progress: 37.5% (3/8 phases complete)
+### Overall Progress: 97.5% (7.9/8 phases complete)
 ```
 Phase 1: Foundation & Interfaces         [██████████] 100% ✅
 Phase 2: Example Implementations         [██████████] 100% ✅

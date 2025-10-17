@@ -252,6 +252,8 @@ class GridOverlayPlugin : UIPlugin() {
 
         override val userToggleable: Boolean = true
 
+        override val showInDropdown: Boolean = true
+
         override fun isSupported(context: Context): Boolean {
             // Grid overlay is supported on all devices (no special hardware needed)
             return true
