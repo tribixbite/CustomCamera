@@ -41,6 +41,9 @@ class VideoControlsOverlay @JvmOverloads constructor(
     private lateinit var focusToggle: ToggleButton
     private lateinit var stabilizationToggle: ToggleButton
     private lateinit var audioToggle: ToggleButton
+    private lateinit var stabilizationModeSpinner: Spinner
+    private lateinit var stabilizationStrengthSeekBar: SeekBar
+    private lateinit var stabilizationStrengthLabel: TextView
 
     // Animation and visual state
     private var recordingAnimation: ObjectAnimator? = null
@@ -288,7 +291,77 @@ class VideoControlsOverlay @JvmOverloads constructor(
             controlsGrid.addView(row2)
             controlsGrid.addView(row3)
 
+            // Stabilization Mode Selector
+            val stabilizationModeContainer = LinearLayout(context).apply {
+                orientation = LinearLayout.VERTICAL
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    setMargins(0, 16, 0, 8)
+                }
+            }
+
+            val stabilizationModeLabel = TextView(context).apply {
+                text = "Stabilization Mode"
+                textSize = 14f
+                setTextColor(Color.WHITE)
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    setMargins(0, 0, 0, 8)
+                }
+            }
+
+            stabilizationModeSpinner = Spinner(context).apply {
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                )
+            }
+
+            stabilizationModeContainer.addView(stabilizationModeLabel)
+            stabilizationModeContainer.addView(stabilizationModeSpinner)
+
+            // Stabilization Strength Control
+            val stabilizationStrengthContainer = LinearLayout(context).apply {
+                orientation = LinearLayout.VERTICAL
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    setMargins(0, 8, 0, 0)
+                }
+            }
+
+            stabilizationStrengthLabel = TextView(context).apply {
+                text = "Stabilization Strength: 70%"
+                textSize = 14f
+                setTextColor(Color.WHITE)
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    setMargins(0, 0, 0, 8)
+                }
+            }
+
+            stabilizationStrengthSeekBar = SeekBar(context).apply {
+                max = 100
+                progress = 70
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                )
+            }
+
+            stabilizationStrengthContainer.addView(stabilizationStrengthLabel)
+            stabilizationStrengthContainer.addView(stabilizationStrengthSeekBar)
+
             addView(controlsGrid)
+            addView(stabilizationModeContainer)
+            addView(stabilizationStrengthContainer)
         }
     }
 
@@ -314,6 +387,9 @@ class VideoControlsOverlay @JvmOverloads constructor(
         // Set up quality spinner
         setupQualitySpinner()
 
+        // Set up stabilization controls
+        setupStabilizationControls()
+
         // Set up long press on controls panel to toggle visibility
         manualControlsPanel.setOnLongClickListener {
             toggleManualControls()
@@ -335,6 +411,37 @@ class VideoControlsOverlay @JvmOverloads constructor(
 
             override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
+    }
+
+    private fun setupStabilizationControls() {
+        // Set up stabilization mode spinner
+        val modes = VideoStabilizationManager.StabilizationMode.values().map { it.name }
+        val adapter = ArrayAdapter(context, android.R.layout.simple_spinner_item, modes)
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        stabilizationModeSpinner.adapter = adapter
+
+        stabilizationModeSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                val selectedMode = VideoStabilizationManager.StabilizationMode.values()[position]
+                videoPlugin?.setStabilizationMode(selectedMode)
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
+        }
+
+        // Set up stabilization strength SeekBar
+        stabilizationStrengthSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                if (fromUser) {
+                    val strength = progress / 100.0f
+                    videoPlugin?.setStabilizationStrength(strength)
+                    stabilizationStrengthLabel.text = "Stabilization Strength: ${progress}%"
+                }
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+        })
     }
 
     private fun setupPluginObservers() {
@@ -379,6 +486,19 @@ class VideoControlsOverlay @JvmOverloads constructor(
         if (qualityIndex >= 0) {
             qualitySpinner.setSelection(qualityIndex)
         }
+
+        // Update stabilization mode spinner
+        val currentMode = plugin.stabilizationMode.value
+        val modeIndex = VideoStabilizationManager.StabilizationMode.values().indexOf(currentMode)
+        if (modeIndex >= 0) {
+            stabilizationModeSpinner.setSelection(modeIndex)
+        }
+
+        // Update stabilization strength SeekBar
+        val currentStrength = plugin.stabilizationStrength.value
+        val strengthPercent = (currentStrength * 100).toInt()
+        stabilizationStrengthSeekBar.progress = strengthPercent
+        stabilizationStrengthLabel.text = "Stabilization Strength: ${strengthPercent}%"
     }
 
     private fun updateRecordingState(isRecording: Boolean) {
