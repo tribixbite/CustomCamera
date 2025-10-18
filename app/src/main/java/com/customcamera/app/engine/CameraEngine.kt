@@ -566,6 +566,11 @@ class CameraEngine(
         // Clear global API monitor to prevent memory leak
         com.customcamera.app.debug.GlobalAPIMonitor.clearInstance()
 
+        // CRITICAL: Clear Preview SurfaceProvider before unbinding
+        // This breaks the reference chain: Preview -> SurfaceProvider -> PreviewView -> Activity
+        preview?.setSurfaceProvider(null)
+        Log.i(TAG, "Cleared Preview SurfaceProvider to prevent memory leak")
+
         cameraProvider?.unbindAll()
         pluginManager.cleanup()
 

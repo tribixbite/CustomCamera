@@ -1936,8 +1936,12 @@ class CameraActivityEngine : AppCompatActivity() {
     }
 
     override fun onDestroy() {
-        super.onDestroy()
-        Log.i(TAG, "Cleaning up camera engine...")
+        Log.i(TAG, "🧹 Starting cleanup in onDestroy()...")
+
+        // CRITICAL: Cleanup CameraEngine FIRST to unbind all use cases
+        // This breaks Preview -> SurfaceProvider -> PreviewView -> Activity reference chain
+        cameraEngine.cleanup()
+        Log.i(TAG, "✅ CameraEngine cleanup complete")
 
         // Remove dynamically added views to prevent memory leaks
         barcodeOverlayView?.let {
@@ -1968,7 +1972,8 @@ class CameraActivityEngine : AppCompatActivity() {
         camera2Controller = null
         performanceMonitor = null
 
-        cameraEngine.cleanup()
+        super.onDestroy()
+        Log.i(TAG, "✅ Activity cleanup complete")
     }
 
     /**
