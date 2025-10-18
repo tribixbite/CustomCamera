@@ -696,12 +696,16 @@ app/src/main/res/
 ## Features To Implement 🚧
 
 ### Phase 9 Advanced Features
-- [ ] **Phase 9B: Real-Time Video Stabilization**
-  - Hardware-accelerated stabilization detection
-  - Software fallback for older devices
-  - Stabilization strength control
+- [x] **Phase 9B: Real-Time Video Stabilization** ✅ COMPLETE (2025-10-17)
+  - ✅ Hardware-accelerated stabilization detection
+  - ✅ Software fallback for older devices
+  - ✅ Stabilization strength control (0-100%)
+  - ✅ 9 specialized stabilization modes
+  - ✅ Full UI integration with persistence
+  - ✅ Comprehensive documentation (VIDEO_STABILIZATION_GUIDE.md)
+  - **Status**: Production-ready, version 2.1.0 (build 31)
 
-- [ ] **Phase 9D: Advanced UI Polish**
+- [ ] **Phase 9D: Advanced UI Polish** (Future)
   - Enhanced settings UI with categories
   - Camera preview thumbnails in selection
   - Smooth transitions and animations
@@ -1242,26 +1246,30 @@ All UX components are standalone and ready for integration into CameraActivityEn
 - **Error Handling**: Comprehensive fallback mechanisms for settings failures
 - **Code Quality**: Clean build with proper exception handling
 
-## ✅ PHASE 8C COMPLETED: Custom Pre-Shot Crop System
+## ✅ PHASE 8C COMPLETED: Custom Pre-Shot Crop System ✅
 
 ### ✅ Implementation Complete
-- **CropPlugin Integration**: Fully integrated with CameraActivityEngine
-- **UI Controls**: Quadruple tap gesture to toggle crop mode
+- **CropPlugin Integration**: Fully integrated with CameraActivityEngine + Plugin Dropdown
+- **UI Controls**: Quadruple tap gesture OR plugin dropdown toggle
 - **Interactive Crop**: Drag to adjust crop area with visual overlay
 - **Aspect Ratios**: Support for Free, 1:1, 4:3, 3:2, 16:9, 9:16 ratios
 - **Settings Persistence**: Crop preferences saved across sessions
+- **Provider Pattern**: Integrated with PluginRegistry (showInDropdown=true)
+- **Status**: Production-ready, fully functional
 
 ### User Guide
 **How to use Crop Mode:**
-1. **Enable**: Tap camera preview 4 times quickly
+1. **Enable**: Tap camera preview 4 times quickly OR use plugin dropdown menu
 2. **Adjust**: Drag crop overlay to resize and position
-3. **Disable**: Tap camera preview 4 times again
+3. **Disable**: Tap camera preview 4 times again OR toggle in plugin menu
 4. **Capture**: Take photos with crop area applied
 
 **Gesture Controls:**
 - **Double Tap**: Toggle grid overlay
 - **Triple Tap**: Toggle barcode scanning
 - **Quadruple Tap**: Toggle crop mode
+- **Five Tap**: Toggle smart scene detection
+- **Six Tap**: Toggle object detection
 
 ## ✅ SESSION COMPLETED: PiP Concurrent Camera + UseCase Limit Fix (2025-10-14)
 
