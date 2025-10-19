@@ -6,6 +6,27 @@ Modern Kotlin camera app with Samsung/Google-style floating UI, robust camera se
 **Technology Stack**: Kotlin, CameraX, Material3, ViewBinding, Provider Pattern Plugin Architecture
 **Architecture Pattern**: Clean Android + CameraEngine + Plugin System + StateFlow Reactive
 
+## Feature Specifications
+
+Complete technical specifications for all implemented features:
+
+### Core Systems
+- **[Core Camera System](specs/core-camera-system.md)** - Camera detection, capture, modes, lifecycle management
+- **[Plugin System](specs/plugin-system.md)** - Provider Pattern architecture, plugin lifecycle, registry
+
+### User Experience
+- **[UX Interaction System](specs/ux-interaction-system.md)** - Gestures, haptics, hints, performance monitor, demo showcase
+
+### Advanced Features
+- **[Advanced Capture](specs/advanced-capture-features.md)** - HDR, Night Mode, Dual Camera PiP, RAW/DNG capture
+- **[AI-Powered Features](specs/ai-powered-features.md)** - Scene detection, object recognition, smart adjustments
+
+### Development & Quality
+- **[Testing Infrastructure](specs/testing-infrastructure.md)** - Test framework, mocks, UI tests, coverage
+- **[CI/CD Automation](specs/cicd-automation.md)** - GitHub Actions pipeline, automated releases
+
+For spec template and new feature planning, see **[SPEC_TEMPLATE.md](specs/SPEC_TEMPLATE.md)**
+
 ## Directory Structure
 
 ### Core Source Files
