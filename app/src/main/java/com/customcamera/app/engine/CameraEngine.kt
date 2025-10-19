@@ -214,31 +214,17 @@ class CameraEngine(
                 success = true
             )
 
-            // Add camera state observer
-            camera?.cameraInfo?.cameraState?.observe(lifecycleOwner) { state ->
-                when (state.type) {
-                    androidx.camera.core.CameraState.Type.OPEN -> {
-                        apiMonitor?.logCameraState("camera_${config.cameraIndex}", "OPEN")
-                        Log.i(TAG, "✅ Camera OPEN - camera_${config.cameraIndex}")
-                    }
-                    androidx.camera.core.CameraState.Type.OPENING -> {
-                        apiMonitor?.logCameraState("camera_${config.cameraIndex}", "OPENING")
-                        Log.d(TAG, "⏳ Camera OPENING - camera_${config.cameraIndex}")
-                    }
-                    androidx.camera.core.CameraState.Type.CLOSING -> {
-                        apiMonitor?.logCameraState("camera_${config.cameraIndex}", "CLOSING")
-                        Log.d(TAG, "⏳ Camera CLOSING - camera_${config.cameraIndex}")
-                    }
-                    androidx.camera.core.CameraState.Type.CLOSED -> {
-                        apiMonitor?.logCameraState("camera_${config.cameraIndex}", "CLOSED")
-                        Log.i(TAG, "⏸️ Camera CLOSED - camera_${config.cameraIndex}")
-                    }
-                    else -> {
-                        Log.w(TAG, "Unknown camera state: ${state.type}")
-                    }
-                }
+            // Log initial camera state (snapshot at bind time)
+            val currentState = camera?.cameraInfo?.cameraState?.value
+            currentState?.let { state ->
+                apiMonitor?.logCameraState(
+                    "camera_${config.cameraIndex}",
+                    state.type.name,
+                    mapOf("atBindTime" to true)
+                )
+                Log.i(TAG, "Camera initial state: ${state.type.name}")
 
-                // Log any errors
+                // Log any errors present at bind time
                 state.error?.let { error ->
                     val errorDetails = mapOf(
                         "errorCode" to error.code,
@@ -251,10 +237,11 @@ class CameraEngine(
                             androidx.camera.core.CameraState.ERROR_CAMERA_FATAL_ERROR -> "CAMERA_FATAL"
                             androidx.camera.core.CameraState.ERROR_DO_NOT_DISTURB_MODE_ENABLED -> "DO_NOT_DISTURB"
                             else -> "UNKNOWN"
-                        }
+                        },
+                        "atBindTime" to true
                     )
                     apiMonitor?.logCameraState("camera_${config.cameraIndex}", "ERROR", errorDetails)
-                    Log.e(TAG, "❌ Camera ERROR - camera_${config.cameraIndex}: ${errorDetails["errorType"]}, Code: ${error.code}")
+                    Log.e(TAG, "❌ Camera ERROR at bind time - camera_${config.cameraIndex}: ${errorDetails["errorType"]}, Code: ${error.code}")
                 }
             }
 
