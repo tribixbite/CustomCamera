@@ -132,9 +132,18 @@ class CameraActivityEngine : AppCompatActivity() {
         // Set fullscreen flags
         setupFullscreen()
 
-        // Get camera index from intent
-        cameraIndex = intent.getIntExtra(CameraSelectionActivity.EXTRA_CAMERA_INDEX, 0)
-        Log.i(TAG, "Using camera index: $cameraIndex")
+        // Get camera index from intent, fallback to saved settings
+        val intentCameraIndex = intent.getIntExtra(CameraSelectionActivity.EXTRA_CAMERA_INDEX, -1)
+        if (intentCameraIndex != -1) {
+            // Use camera from intent (CameraSelectionActivity)
+            cameraIndex = intentCameraIndex
+            Log.i(TAG, "Using camera index from intent: $cameraIndex")
+        } else {
+            // Fallback to saved default camera from settings
+            val tempSettings = com.customcamera.app.engine.SettingsManager(this)
+            cameraIndex = tempSettings.defaultCameraIndex.value
+            Log.i(TAG, "Using camera index from settings: $cameraIndex")
+        }
 
         // Initialize UI enhancement components
         loadingIndicatorManager = LoadingIndicatorManager(this)
@@ -194,8 +203,8 @@ class CameraActivityEngine : AppCompatActivity() {
         // Wire up master plugin button with dropdown
         setupEnhancedButton(binding.masterPluginButton) { togglePluginDropdown() }
 
-        // Setup plugin dropdown with toggleable plugins
-        setupPluginDropdown()
+        // Note: setupPluginDropdown() called AFTER camera engine initialization
+        // See line ~290 after CameraEngine construction
 
         // Add gesture controls for features including AI
         var lastTapTime = 0L
@@ -297,6 +306,8 @@ class CameraActivityEngine : AppCompatActivity() {
 
         val registeredCount = cameraEngine.getAllPlugins().size
         Log.i(TAG, "✅ Camera engine initialized with $registeredCount plugins via Provider Pattern")
+
+        // Note: setupPluginDropdown() called in startCameraWithEngine() after async initialize()
     }
 
     private fun startCameraWithEngine() {
@@ -317,6 +328,9 @@ class CameraActivityEngine : AppCompatActivity() {
                     handleCameraError("Camera engine initialization failed: ${initResult.exceptionOrNull()?.message}")
                     return@launch
                 }
+
+                // Setup plugin dropdown AFTER async initialize() completes (plugins now registered)
+                setupPluginDropdown()
 
                 // Create camera configuration
                 val config = CameraConfig(
@@ -1291,23 +1305,26 @@ class CameraActivityEngine : AppCompatActivity() {
         Log.i(TAG, "📋 Setting up plugin dropdown menu...")
 
         try {
-            // Get all supported plugin providers from registry
-            val allProviders = pluginRegistry.getSupportedProviders()
-            Log.d(TAG, "Found ${allProviders.size} supported providers")
+            // Get all registered plugin instances from CameraEngine
+            val allPlugins = cameraEngine.getAllPlugins()
+            Log.d(TAG, "Found ${allPlugins.size} registered plugins")
 
-            // Filter providers that are user-toggleable AND should show in dropdown
-            val dropdownProviders = allProviders.filter { provider ->
-                provider.userToggleable && provider.showInDropdown
+            // Plugins excluded from dropdown (have dedicated UI buttons)
+            val excludedPlugins = setOf(
+                "NightMode",        // Has dedicated button
+                "DualCameraPiP",    // Has dedicated button
+                "AutoFocus",        // Always active (no toggle)
+                "ExposureControl",  // Always active (no toggle)
+                "ManualFocus",      // Always active (no toggle)
+                "ProControls"       // Always active (no toggle)
+            )
+
+            // Filter plugins: user-toggleable AND not excluded
+            val dropdownPlugins = allPlugins.filter { plugin ->
+                plugin.userToggleable && !excludedPlugins.contains(plugin.name)
             }
 
-            Log.i(TAG, "Filtered to ${dropdownProviders.size} dropdown providers (showInDropdown=true)")
-
-            // Get actual plugin instances for each provider
-            val dropdownPlugins = dropdownProviders.mapNotNull { provider ->
-                cameraEngine.getPlugin(provider.id)
-            }
-
-            Log.i(TAG, "Found ${dropdownPlugins.size} plugin instances for dropdown")
+            Log.i(TAG, "Filtered to ${dropdownPlugins.size} dropdown plugins (excluding dedicated buttons)")
             dropdownPlugins.forEach { plugin ->
                 Log.d(TAG, "  - ${plugin.name} (${plugin.displayName})")
             }
