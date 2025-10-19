@@ -137,21 +137,59 @@ class CameraSelectionActivity : AppCompatActivity() {
     
     private fun setupCameraButtons() {
         binding.cameraButtonsContainer.removeAllViews()
-        
+
         if (availableCameras.isEmpty()) {
             showNoCamerasMessage()
             return
         }
-        
+
+        var successfulCameras = 0
+
         availableCameras.forEachIndexed { index, cameraInfo ->
-            val button = createCameraButton(index, cameraInfo)
-            binding.cameraButtonsContainer.addView(button)
+            try {
+                val button = createCameraButton(index, cameraInfo)
+                binding.cameraButtonsContainer.addView(button)
+                successfulCameras++
+            } catch (e: Exception) {
+                Log.e(TAG, "⚠️ Failed to create button for camera $index - camera may be faulty", e)
+                // Add error button to show camera exists but is broken
+                val errorButton = android.widget.Button(this).apply {
+                    text = "⚠️ Camera $index\n(Hardware Error)\nTap for details"
+                    textSize = 14f
+                    setPadding(24, 32, 24, 32)
+                    setBackgroundColor(0x44FF0000) // Semi-transparent red
+                    setTextColor(0xFFFFFFFF.toInt())
+                    setOnClickListener {
+                        android.widget.Toast.makeText(
+                            this@CameraSelectionActivity,
+                            "Camera $index hardware error:\n${e.message}\n\nThis camera cannot be used. Try other cameras.",
+                            android.widget.Toast.LENGTH_LONG
+                        ).show()
+                    }
+                }
+                val params = android.widget.LinearLayout.LayoutParams(
+                    android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
+                    android.widget.LinearLayout.LayoutParams.WRAP_CONTENT
+                )
+                params.setMargins(8, 12, 8, 12)
+                errorButton.layoutParams = params
+                binding.cameraButtonsContainer.addView(errorButton)
+            }
         }
-        
-        // Auto-select camera 2 if available, otherwise first camera
-        if (availableCameras.isNotEmpty()) {
-            selectedCameraIndex = if (availableCameras.size > 2) 2 else 0
-            Log.i(TAG, "Auto-selected camera $selectedCameraIndex (default: camera 2)")
+
+        // Show message if all cameras failed
+        if (successfulCameras == 0) {
+            Log.e(TAG, "❌ All cameras failed enumeration - possible hardware issue")
+            showNoCamerasMessage()
+            return
+        }
+
+        Log.i(TAG, "✅ Successfully enumerated $successfulCameras/${availableCameras.size} cameras")
+
+        // Auto-select first working camera
+        if (successfulCameras > 0) {
+            selectedCameraIndex = 0 // Start with first camera
+            Log.i(TAG, "Auto-selected camera $selectedCameraIndex")
             updateButtonSelection()
         }
     }
@@ -159,21 +197,43 @@ class CameraSelectionActivity : AppCompatActivity() {
     private fun createCameraButton(index: Int, cameraInfo: androidx.camera.core.CameraInfo): android.widget.Button {
         val button = android.widget.Button(this)
 
-        val cameraType = when (cameraInfo.lensFacing) {
-            androidx.camera.core.CameraSelector.LENS_FACING_FRONT -> "Front Camera"
-            androidx.camera.core.CameraSelector.LENS_FACING_BACK -> "Back Camera"
-            else -> "External Camera"
+        // Graceful error handling for each camera property
+        val cameraType = try {
+            when (cameraInfo.lensFacing) {
+                androidx.camera.core.CameraSelector.LENS_FACING_FRONT -> "Front Camera"
+                androidx.camera.core.CameraSelector.LENS_FACING_BACK -> "Back Camera"
+                else -> "External Camera"
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to get lens facing for camera $index", e)
+            "Unknown Camera"
         }
 
-        val cameraIcon = when (cameraInfo.lensFacing) {
-            androidx.camera.core.CameraSelector.LENS_FACING_FRONT -> "🤳"
-            androidx.camera.core.CameraSelector.LENS_FACING_BACK -> "📷"
-            else -> "📹"
+        val cameraIcon = try {
+            when (cameraInfo.lensFacing) {
+                androidx.camera.core.CameraSelector.LENS_FACING_FRONT -> "🤳"
+                androidx.camera.core.CameraSelector.LENS_FACING_BACK -> "📷"
+                else -> "📹"
+            }
+        } catch (e: Exception) {
+            "📷"
         }
 
-        val hasFlash = if (cameraInfo.hasFlashUnit()) " ⚡" else ""
+        val hasFlash = try {
+            if (cameraInfo.hasFlashUnit()) " ⚡" else ""
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to check flash for camera $index", e)
+            ""
+        }
 
-        button.text = "$cameraIcon Camera $index\n$cameraType$hasFlash\n${cameraInfo.sensorRotationDegrees}° rotation"
+        val rotation = try {
+            "${cameraInfo.sensorRotationDegrees}° rotation"
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to get rotation for camera $index", e)
+            "rotation unknown"
+        }
+
+        button.text = "$cameraIcon Camera $index\n$cameraType$hasFlash\n$rotation"
         button.textSize = 14f
         button.setPadding(24, 32, 24, 32)
 

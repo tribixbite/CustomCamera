@@ -561,19 +561,34 @@ class CameraEngine(
      * Clean up resources and plugins
      */
     fun cleanup() {
-        Log.i(TAG, "Cleaning up CameraEngine...")
+        Log.i(TAG, "🧹 Cleaning up CameraEngine...")
 
         // Clear global API monitor to prevent memory leak
         com.customcamera.app.debug.GlobalAPIMonitor.clearInstance()
 
-        // CRITICAL: Clear Preview SurfaceProvider before unbinding
-        // This breaks the reference chain: Preview -> SurfaceProvider -> PreviewView -> Activity
-        preview?.setSurfaceProvider(null)
-        Log.i(TAG, "Cleared Preview SurfaceProvider to prevent memory leak")
+        // CRITICAL: Unbind all use cases FIRST
+        // This triggers CameraX to properly clean up all internal callbacks and SurfaceRequests
+        try {
+            cameraProvider?.unbindAll()
+            Log.i(TAG, "✅ Unbound all use cases from CameraProvider")
+        } catch (e: Exception) {
+            Log.e(TAG, "⚠️ Error unbinding use cases", e)
+        }
 
-        cameraProvider?.unbindAll()
+        // CRITICAL: Clear Preview SurfaceProvider AFTER unbinding
+        // This breaks remaining reference: Preview -> SurfaceProvider -> PreviewView -> Activity
+        // Note: SurfaceRequest keeps transformationInfoListener even after unbind
+        try {
+            preview?.setSurfaceProvider(null)
+            Log.i(TAG, "✅ Cleared Preview SurfaceProvider")
+        } catch (e: Exception) {
+            Log.e(TAG, "⚠️ Error clearing SurfaceProvider", e)
+        }
+
+        // Clean up plugin references
         pluginManager.cleanup()
 
+        // Null out all references to allow GC
         camera = null
         cameraProvider = null
         preview = null
