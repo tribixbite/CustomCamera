@@ -3,6 +3,9 @@ package com.customcamera.app
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.hardware.camera2.CameraAccessException
+import android.hardware.camera2.CameraCharacteristics
+import android.hardware.camera2.CameraManager
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -16,6 +19,9 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.customcamera.app.databinding.ActivitySimpleSettingsRecyclerviewBinding
+import com.customcamera.app.debug.CameraAPIMonitor
+import com.customcamera.app.debug.CameraResetManager
+import com.customcamera.app.engine.CameraContext
 import com.customcamera.app.engine.DebugLogger
 import com.customcamera.app.engine.SettingsManager
 import com.customcamera.app.engine.plugins.PluginCategory
@@ -37,6 +43,9 @@ class SimpleSettingsActivity : AppCompatActivity() {
     private lateinit var pluginRegistry: PluginRegistry
     private lateinit var settingsAdapter: SettingsAdapter
     private lateinit var debugLogger: DebugLogger
+    private lateinit var cameraManager: CameraManager
+    private var cameraAPIMonitor: CameraAPIMonitor? = null
+    private var cameraResetManager: CameraResetManager? = null
     private var availableCameras: List<Pair<Int, String>> = emptyList()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -59,6 +68,31 @@ class SimpleSettingsActivity : AppCompatActivity() {
             settingsManager = SettingsManager(this)
             pluginRegistry = PluginRegistry(this)
             debugLogger = DebugLogger()
+
+            // Initialize Camera2 manager for detailed characteristics
+            cameraManager = getSystemService(Context.CAMERA_SERVICE) as CameraManager
+
+            // Get global API monitor instance
+            cameraAPIMonitor = com.customcamera.app.debug.GlobalAPIMonitor.getInstance()
+
+            // Initialize camera reset manager (requires CameraContext)
+            lifecycleScope.launch {
+                try {
+                    val cameraProvider = ProcessCameraProvider.getInstance(this@SimpleSettingsActivity).get()
+                    val cameraContext = CameraContext(
+                        context = this@SimpleSettingsActivity,
+                        cameraProvider = cameraProvider,
+                        debugLogger = debugLogger,
+                        settingsManager = settingsManager,
+                        cameraEngine = null,  // No active camera engine in settings
+                        apiMonitor = cameraAPIMonitor
+                    )
+                    cameraResetManager = CameraResetManager(cameraContext)
+                    Log.i(TAG, "Camera reset manager initialized")
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to initialize camera reset manager", e)
+                }
+            }
 
             // Setup RecyclerView
             setupRecyclerView()
@@ -395,6 +429,21 @@ class SimpleSettingsActivity : AppCompatActivity() {
                 title = "Reset to Defaults",
                 description = "Reset all settings to default values"
             ))
+            items.add(SettingsListItem.ButtonItem(
+                key = "view_api_log",
+                title = "View API Call Log",
+                description = "View camera API calls and performance metrics"
+            ))
+            items.add(SettingsListItem.ButtonItem(
+                key = "reset_camera_system",
+                title = "Reset Camera System",
+                description = "Reinitialize camera provider (fixes stuck cameras)"
+            ))
+            items.add(SettingsListItem.ButtonItem(
+                key = "flush_camera_queue",
+                title = "Flush Camera Queue",
+                description = "Clear camera operation queue (fixes delayed operations)"
+            ))
             items.add(SettingsListItem.SectionDivider)
 
             // Plugin Browser & Management Section
@@ -527,6 +576,10 @@ class SimpleSettingsActivity : AppCompatActivity() {
             "show_camera_info" -> showCameraSystemInfo()
             "export_settings" -> exportSettings()
             "reset_settings" -> resetSettings()
+            // Debug system buttons
+            "view_api_log" -> viewAPICallLog()
+            "reset_camera_system" -> resetCameraSystem()
+            "flush_camera_queue" -> flushCameraQueue()
             // Plugin management buttons
             "browse_plugins" -> launchPluginBrowser()
             "import_plugin" -> launchPluginImporter()
@@ -607,6 +660,7 @@ class SimpleSettingsActivity : AppCompatActivity() {
             try {
                 val cameraProvider = ProcessCameraProvider.getInstance(this@SimpleSettingsActivity).get()
                 val cameras = cameraProvider.availableCameraInfos
+                val cameraIds = cameraManager.cameraIdList
 
                 val cameraDetails = cameras.mapIndexed { index, cameraInfo ->
                     val facing = when (cameraInfo.lensFacing) {
@@ -625,23 +679,78 @@ class SimpleSettingsActivity : AppCompatActivity() {
                         "${state.exposureCompensationRange.lower} to ${state.exposureCompensationRange.upper} (step: ${state.exposureCompensationStep})"
                     } catch (e: Exception) { "N/A" }
 
-                    // Get torch support
-                    val hasTorch = try { cameraInfo.hasFlashUnit() } catch (e: Exception) { false }
+                    // Camera2 characteristics
+                    val camera2Info = StringBuilder()
+                    if (index < cameraIds.size) {
+                        try {
+                            val characteristics = cameraManager.getCameraCharacteristics(cameraIds[index])
 
-                    // Get focus modes (requires Camera2CameraInfo)
-                    val focusModes = try {
-                        androidx.camera.camera2.interop.Camera2CameraInfo.from(cameraInfo)
-                        "Available"
-                    } catch (e: Exception) { "Unknown" }
+                            // Sensor physical size
+                            val sensorSize = characteristics.get(CameraCharacteristics.SENSOR_INFO_PHYSICAL_SIZE)
+                            if (sensorSize != null) {
+                                camera2Info.append("\n  Sensor Size: ${String.format("%.2f", sensorSize.width)}mm × ${String.format("%.2f", sensorSize.height)}mm")
+                            }
+
+                            // Sensor resolution
+                            val activeArraySize = characteristics.get(CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE)
+                            if (activeArraySize != null) {
+                                camera2Info.append("\n  Sensor Resolution: ${activeArraySize.width()} × ${activeArraySize.height()}")
+                            }
+
+                            // Focal length
+                            val focalLengths = characteristics.get(CameraCharacteristics.LENS_INFO_AVAILABLE_FOCAL_LENGTHS)
+                            if (focalLengths != null && focalLengths.isNotEmpty()) {
+                                camera2Info.append("\n  Focal Length: ${focalLengths.joinToString(", ")}mm")
+                            }
+
+                            // ISO range
+                            val isoRange = characteristics.get(CameraCharacteristics.SENSOR_INFO_SENSITIVITY_RANGE)
+                            if (isoRange != null) {
+                                camera2Info.append("\n  ISO Range: ${isoRange.lower} - ${isoRange.upper}")
+                            }
+
+                            // Exposure time range
+                            val exposureTimeRange = characteristics.get(CameraCharacteristics.SENSOR_INFO_EXPOSURE_TIME_RANGE)
+                            if (exposureTimeRange != null) {
+                                val minMs = exposureTimeRange.lower / 1_000_000.0
+                                val maxMs = exposureTimeRange.upper / 1_000_000.0
+                                camera2Info.append("\n  Exposure Time: ${String.format("%.3f", minMs)}ms - ${String.format("%.1f", maxMs)}ms")
+                            }
+
+                            // Hardware level
+                            val hardwareLevel = characteristics.get(CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL)
+                            val levelName = when (hardwareLevel) {
+                                CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_LEGACY -> "Legacy"
+                                CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_LIMITED -> "Limited"
+                                CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_FULL -> "Full"
+                                CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_3 -> "Level 3"
+                                CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_EXTERNAL -> "External"
+                                else -> "Unknown"
+                            }
+                            camera2Info.append("\n  Hardware Level: $levelName")
+
+                            // Max digital zoom
+                            val maxDigitalZoom = characteristics.get(CameraCharacteristics.SCALER_AVAILABLE_MAX_DIGITAL_ZOOM)
+                            if (maxDigitalZoom != null) {
+                                camera2Info.append("\n  Max Digital Zoom: ${String.format("%.1f", maxDigitalZoom)}x")
+                            }
+
+                            // Focus modes
+                            val afModes = characteristics.get(CameraCharacteristics.CONTROL_AF_AVAILABLE_MODES)
+                            if (afModes != null) {
+                                camera2Info.append("\n  Focus Modes: ${afModes.size} available")
+                            }
+                        } catch (e: CameraAccessException) {
+                            Log.e(TAG, "Error getting Camera2 characteristics for camera $index", e)
+                        }
+                    }
 
                     """
                     Camera $index ($facing):
                       Flash Unit: ${if (hasFlash) "Yes" else "No"}
-                      Torch: ${if (hasTorch) "Yes" else "No"}
                       Sensor Rotation: ${rotation}°
                       Zoom Range: $minZoom - $maxZoom
-                      Exposure Compensation: $exposureRange
-                      Focus Modes: $focusModes
+                      Exposure Compensation: $exposureRange$camera2Info
                     """.trimIndent()
                 }.joinToString("\n\n")
 
@@ -926,6 +1035,107 @@ class SimpleSettingsActivity : AppCompatActivity() {
             .setMessage(details)
             .setPositiveButton("OK", null)
             .show()
+    }
+
+    /**
+     * View Camera API call log from CameraAPIMonitor
+     */
+    private fun viewAPICallLog() {
+        lifecycleScope.launch {
+            try {
+                val logData = cameraAPIMonitor?.let { monitor ->
+                    val report = monitor.generateDebugReport()
+                    val stats = monitor.getAPICallStats()
+
+                    if ((stats["totalCalls"] as? Int) ?: 0 > 0) {
+                        report
+                    } else {
+                        "No API calls tracked yet.\n\nAPI calls are tracked when camera is active."
+                    }
+                } ?: "No active camera session detected.\n\nAPI monitor is available when camera engine is running."
+
+                AlertDialog.Builder(this@SimpleSettingsActivity)
+                    .setTitle("Camera API Call Log")
+                    .setMessage(logData)
+                    .setPositiveButton("Copy to Clipboard") { _, _ ->
+                        val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                        val clip = ClipData.newPlainText("API Call Log", logData)
+                        clipboard.setPrimaryClip(clip)
+                        Toast.makeText(this@SimpleSettingsActivity, "API log copied", Toast.LENGTH_SHORT).show()
+                    }
+                    .setNegativeButton("Close", null)
+                    .show()
+
+                Log.i(TAG, "API Call Log:\n$logData")
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to view API call log", e)
+                Toast.makeText(this@SimpleSettingsActivity, "API log error: ${e.message}", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    /**
+     * Reset camera system using CameraResetManager
+     */
+    private fun resetCameraSystem() {
+        lifecycleScope.launch {
+            try {
+                if (cameraResetManager == null) {
+                    Toast.makeText(this@SimpleSettingsActivity, "Camera reset manager not initialized", Toast.LENGTH_SHORT).show()
+                    return@launch
+                }
+
+                Toast.makeText(this@SimpleSettingsActivity, "Resetting camera system...", Toast.LENGTH_SHORT).show()
+                Log.i(TAG, "Initiating camera system reset")
+
+                val success = cameraResetManager!!.reinitializeCameraProvider()
+
+                if (success) {
+                    Toast.makeText(this@SimpleSettingsActivity, "✅ Camera system reset complete", Toast.LENGTH_LONG).show()
+                    Log.i(TAG, "Camera system reset successful")
+                } else {
+                    Toast.makeText(this@SimpleSettingsActivity, "⚠️ Camera reset completed with warnings", Toast.LENGTH_LONG).show()
+                    Log.w(TAG, "Camera reset completed with warnings")
+                }
+
+                debugLogger.logInfo("Camera system reset", mapOf("success" to success), "System")
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to reset camera system", e)
+                Toast.makeText(this@SimpleSettingsActivity, "Reset failed: ${e.message}", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    /**
+     * Flush camera queue using CameraResetManager
+     */
+    private fun flushCameraQueue() {
+        lifecycleScope.launch {
+            try {
+                if (cameraResetManager == null) {
+                    Toast.makeText(this@SimpleSettingsActivity, "Camera reset manager not initialized", Toast.LENGTH_SHORT).show()
+                    return@launch
+                }
+
+                Toast.makeText(this@SimpleSettingsActivity, "Flushing camera queue...", Toast.LENGTH_SHORT).show()
+                Log.i(TAG, "Initiating camera queue flush")
+
+                val success = cameraResetManager!!.flushCameraQueue()
+
+                if (success) {
+                    Toast.makeText(this@SimpleSettingsActivity, "✅ Camera queue flushed successfully", Toast.LENGTH_LONG).show()
+                    Log.i(TAG, "Camera queue flush successful")
+                } else {
+                    Toast.makeText(this@SimpleSettingsActivity, "⚠️ Camera queue flush completed with warnings", Toast.LENGTH_LONG).show()
+                    Log.w(TAG, "Camera queue flush completed with warnings")
+                }
+
+                debugLogger.logInfo("Camera queue flushed", mapOf("success" to success), "System")
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to flush camera queue", e)
+                Toast.makeText(this@SimpleSettingsActivity, "Flush failed: ${e.message}", Toast.LENGTH_LONG).show()
+            }
+        }
     }
 
     companion object {
