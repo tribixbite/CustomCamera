@@ -3,597 +3,101 @@
 ## Project Overview
 Modern Kotlin camera app with Samsung/Google-style floating UI, robust camera selection, and full plugin system integration for advanced features.
 
-**Status**: Provider Pattern Refactoring Complete ✅ (2025-10-17)
+**Status**: Production-Ready ✅ (Provider Pattern Refactoring Complete 2025-10-17)
 **Technology**: Kotlin, CameraX, Material3, ViewBinding, Provider Pattern Plugin Architecture
-**Architecture**: Clean Android + CameraEngine + 20 Active Plugins + Modern UI/UX + CI/CD + Automated Testing
+**Current Version**: 2.1.0 (build 31)
 
-**Latest Achievement**: Phase 8 UI/UX Modernization complete - All 8 phases of Provider Pattern refactoring finished in 16 hours!
+## Quick Navigation
+
+### Essential Documentation
+- **Task Management**: `memory/todo.md` - **ALWAYS CHECK FIRST**
+- **Architecture**: `docs/ARCHITECTURE.md` - System design, directory structure, data flows
+- **Session History**: `docs/SESSION_HISTORY.md` - Completed work and implementation details
+- **Build Guide**: See "Build Commands" section below
+- **Feature Specs**: See "Features Implemented" section below
+
+### Development Documentation
+- **Provider Pattern Refactoring**: `memory/PROVIDER_PATTERN_REFACTORING.md`
+- **Phase 8 Summary**: `PHASE8_SUMMARY.md`
+- **Video Stabilization Guide**: `VIDEO_STABILIZATION_GUIDE.md`
+- **Conference Demo Guide**: `CONFERENCE_DEMO_GUIDE.md`
+- **UX Improvements**: `memory/UX_IMPROVEMENTS.md`
+- **PiP Implementation**: `memory/PIP.md`
+- **Test Documentation**: `app/src/test/README_TESTS.md`
 
 ## Build Commands
-- `./build-and-install.sh`: **Automated build with app stop/uninstall** (recommended)
-- `./build-and-install.sh clean`: Clean build with app cleanup
-- `./gradlew assembleDebug`: Build debug APK only
-- `./gradlew clean assembleDebug`: Clean build only
-- `adb install -r app/build/outputs/apk/debug/app-debug.apk`: Manual install
-- `adb logcat -d | grep "customcamera\|CameraActivity\|CameraSelection"`: Check app logs
 
-**Note**: `build-and-install.sh` now automatically stops and uninstalls the existing app before building to prevent file locking issues.
-
-## Task Management
-
-### MASTER TASK LIST
-**All tasks are tracked in `memory/todo.md` - ALWAYS check and update this file**
-
-Current status:
-- **✅ Plugin System Integrated**: CameraActivityEngine with 18+ plugins active
-- **✅ Settings System**: StateFlow reactive architecture (no broadcasts)
-- **✅ All Critical Issues Fixed**: Code review findings resolved
-- **Architecture**: Full CameraEngine plugin system operational
-- **Next Priority**: Continue Phase 9 advanced features (see memory/todo.md)
-
-### Quick Task Reference
-**Before each session**: Review `memory/todo.md` for current priorities
-**During development**: Update task completion status in `memory/todo.md`
-**Session end**: Commit progress and update `memory/todo.md` with new findings
-
-## ✅ SESSION COMPLETED: Automatic GitHub Releases + Memory Leak Fixes (2025-10-16)
-
-### ✅ Implementation Complete
-**User Requests**:
-1. "make the built apks show up as releases. dont forget to enable write perm for the workflow"
-2. "fix our mem leaks: 2 leaks at GlobalAPIMonitor.instance"
-
-### What Was Built
-
-**1. Automatic GitHub Releases**
-- Added `permissions: contents:write, packages:write` to workflow
-- Created `create-release` job that runs after successful builds on main branch
-- Downloads both debug and release APK artifacts
-- Reads version from `app/version.properties` file
-- Creates timestamped releases: `v{MAJOR}.{MINOR}.{PATCH}-build{CODE}-{TIMESTAMP}`
-- Uploads both APKs to release with descriptive notes
-- Includes commit message in release description
-
-**2. Memory Leak Fixes**
-- **Leak #1 - GlobalAPIMonitor chain**:
-  - Changed `CameraAPIMonitor` to use `WeakReference<CameraContext>`
-  - All 5 `cameraContext` usages → `cameraContextRef.get()?.`
-  - Added `GlobalAPIMonitor.clearInstance()` in `CameraEngine.cleanup()`
-  - Nulled out `apiMonitor` reference in cleanup
-
-- **Leak #2 - Coroutine leaks**:
-  - Already handled correctly via `lifecycleScope` (auto-cancels on destroy)
-  - No changes needed
-
-### GitHub Release Example
-```
-Title: CustomCamera v2.0.90 (Build 30)
-Tag: v2.0.90-build30-20251016-050632
-Assets:
-  - app-debug.apk (Debug build with logging)
-  - app-release-unsigned.apk (Release build)
-```
-
-**Release URL**: https://github.com/tribixbite/CustomCamera/releases
-
-### Build Status
-- ✅ Workflow runs on every main branch push
-- ✅ Creates release with proper version tagging
-- ✅ Both APKs uploaded to releases
-- ✅ Memory leaks fixed (LeakCanary should show no leaks)
-- Build Time: ~7 minutes (including release creation)
-
-### Files Modified
-- ✅ `.github/workflows/ci.yml` - Added permissions, create-release job, version extraction
-- ✅ `app/src/main/java/com/customcamera/app/debug/CameraAPIMonitor.kt` - WeakReference
-- ✅ `app/src/main/java/com/customcamera/app/engine/CameraEngine.kt` - clearInstance() call
-- ✅ `gradle.properties` - Commented AAPT2 override for CI compatibility
-
-### Commits
-1. `7f0fc94` - Memory leak fixes (WeakReference, clearInstance)
-2. `40a9602` - Automatic GitHub releases workflow
-3. `5358f49` - AAPT2 path fix for CI
-4. `4166bb7` - Version extraction fix (read from version.properties)
-
----
-
-## ✅ SESSION COMPLETED: GitHub Actions CI/CD Fix (2025-10-15)
-
-### ✅ Implementation Complete
-**User Request**: "ensure gh is creating apk on every push u can use gh cli tool"
-
-**Problem**: GitHub Actions workflow failing with error: "This request has been automatically failed because it uses a deprecated version of `actions/upload-artifact: v3`"
-
-**Root Cause**: GitHub deprecated and shut down v3 of upload-artifact action on 2024-04-16
-
-**Fix Applied**:
-Updated all 7 instances of `actions/upload-artifact@v3` to `@v4` in `.github/workflows/ci.yml`:
-1. build job - test results (line 51)
-2. build job - debug APK (line 62)
-3. lint job (line 91)
-4. instrumented-tests job (line 126)
-5. code-coverage job (line 163)
-6. release-build job (line 193)
-7. performance-tests job (line 223)
-
-**Status**: ✅ Artifact uploads working with v4
-- No more deprecation errors
-- Workflow triggers on every push to main/develop
-- APK artifacts uploaded successfully
-- Test results uploaded successfully
-
-**Build Status**:
-- Commit: cf35352
-- Status: Artifact upload fixed ✅
-- Note: Unit test failures exist (separate issue, not related to artifact upload)
-
-**Investigation Notes**:
-Before this fix, user reported "cameras are both broken" which turned out to be false alarm:
-- Reviewed last 4 commits - no camera initialization code touched
-- Checked device via ADB - camera working perfectly:
-  ```
-  Found 4 available cameras
-  CameraEngine initialized successfully
-  Camera bound successfully
-  Successfully switched to concurrent camera mode
-  ```
-
-**Minor Bug Fixes in captureScreenFallback()**:
-1. Added missing `animateCaptureButton()` call after successful capture (commit 689af74)
-2. Changed `hapticManager.success()` to `hapticManager.photoCapture()` for correct vibration pattern
-
----
-
-## ✅ SESSION COMPLETED: Comprehensive Automated Test System (2025-10-15)
-
-### ✅ Implementation Complete
-**User Request**: "the automated test system should be something youre extremely proud of"
-
-**Goal**: Create world-class automated testing infrastructure with plugin testing framework, mock utilities, and comprehensive test coverage
-
-### What Was Built
-
-**1. Plugin Test Framework** (`testing/PluginTestFramework.kt`)
-- Comprehensive plugin testing utilities
-- Lifecycle verification (`testPluginLifecycle`)
-- Processing performance measurement (`measurePluginPerformance`)
-- Concurrency testing (`testPluginConcurrency`)
-- P95/P99 performance metrics
-- Assertion helpers for all result types
-
-**2. Test Image Factory** (`testing/TestImageFactory.kt`)
-- Mock ImageProxy generation with YUV planes
-- Test bitmap creation with patterns
-- Brightness and gradient generators
-- Object-specific bitmaps (face, barcode, text)
-- Edge case image generation
-- Batch image creation for load testing
-
-**3. Mock Camera Context** (`testing/SimpleMockCameraContext.kt`)
-- Factory methods for creating test CameraContext
-- Configurable mock dependencies
-- Support for isolated plugin testing
-- No real Android framework dependencies required
-
-**4. Test Infrastructure**
-- Added comprehensive test dependencies (JUnit, Mockito, Coroutines Test)
-- Updated build.gradle with testing libraries
-- Created extensive test documentation (`app/src/test/README_TESTS.md`)
-
-**5. Example Tests**
-- `TestImageFactoryTest.kt` - Utility testing
-- Demonstrates framework capabilities
-- Performance benchmarking examples
-- Concurrency testing patterns
-
-### Test Framework Capabilities
-
-**Plugin Lifecycle Testing**:
-```kotlin
-val result = testFramework.testPluginLifecycle(plugin, context, camera)
-result.assertSuccess()
-result.assertContainsStep("INIT_SUCCESS")
-result.assertCompletesWithin(1000ms)
-```
-
-**Performance Measurement**:
-```kotlin
-val metrics = testFramework.measurePluginPerformance(plugin, mockImage, iterations = 100)
-metrics.assertAverageWithinMs(50)
-metrics.assertP95WithinMs(75)
-metrics.assertSuccessRate(0.95f)
-println(metrics) // Detailed performance report
-```
-
-**Concurrency Testing**:
-```kotlin
-val result = testFramework.testPluginConcurrency(plugin, mockImages, threads = 4)
-result.assertAllCompleted()
-result.assertNoErrors()
-result.assertSuccessRate(0.9f)
-```
-
-### Test Documentation
-**Complete testing guide**: `app/src/test/README_TESTS.md`
-- Architecture overview
-- Writing new tests
-- Running tests
-- Performance testing
-- Best practices
-- CI/CD integration (planned)
-
-### Running Tests
+### Recommended Build Script
 ```bash
-./gradlew test                      # Run all tests
-./gradlew test --tests "MyTest"     # Run specific test
-./gradlew testDebugUnitTestCoverage # With coverage
+./build-and-install.sh              # Automated build with app stop/uninstall
+./build-and-install.sh clean        # Clean build with app cleanup
 ```
 
-### Build Status
-- **Dependencies Added**: JUnit 4.13.2, Mockito 5.3.1, Coroutines Test 1.7.3
-- **Framework**: Fully functional with assertion helpers
-- **Tests Created**: Image factory, plugin examples
-- **Status**: Production-ready test infrastructure ✅
+**Note**: Script automatically stops and uninstalls existing app before building to prevent file locking issues.
 
-### Complete Test Infrastructure Delivered
-
-**✅ Plugin Unit Tests**:
-- GridOverlayPluginTest (8 tests)
-- AutoFocusPluginTest (5 tests)
-- Framework ready for all 18+ plugins
-
-**✅ UI Tests (Espresso)**:
-- MainActivityUITest (5 tests)
-- CameraActivityUITest (12 tests)
-- Full interface validation
-
-**✅ Instrumented Tests**:
-- CameraFunctionalityTest (6 tests)
-- Real device camera validation
-- Permission handling
-
-**✅ Memory Leak Detection**:
-- LeakCanary integration
-- MemoryLeakTest (5 tests)
-- Automatic debug monitoring
-
-**✅ CI/CD Pipeline**:
-- 8-job GitHub Actions workflow
-- Automated testing, building, coverage
-- Security scanning
-
-**Total**: 38+ automated tests across all categories
-
----
-
-## ✅ SESSION COMPLETED: Conference-Ready UX/UI Polish (2025-10-15)
-
-### ✅ Implementation Complete
-**User Request**: "if you were going to present this application at an android developer conference tomorrow what changes would you want to make to ensure beautiful functionality design and performance? implement them."
-
-**Goal**: Transform app into conference-ready demo with professional UX, performance monitoring, and interactive presentation features
-
-### What Was Built
-
-**1. Demo Showcase System** (`presentation/DemoShowcaseManager.kt`)
-- Interactive feature highlights with spotlight overlay
-- 5-step guided tour (PiP, Gestures, AI, Pro Controls, Night Mode)
-- Dark overlay with animated spotlights
-- Professional annotations and descriptions
-- Tap-to-advance flow
-- **Activation**: 7-tap gesture
-
-**2. Performance Monitor** (`presentation/PerformanceMonitor.kt`)
-- Real-time FPS display with color coding (green/yellow/red)
-- Average processing time tracking
-- Memory usage monitoring
-- Active plugin count
-- Live FPS graph (60-sample history)
-- Translucent overlay for demos
-- **Use**: Show during heavy processing demos
-
-**3. Enhanced Haptic Feedback** (`presentation/EnhancedHapticManager.kt`)
-- Sophisticated vibration patterns:
-  - Light tap (10ms) - button presses
-  - Medium tap (15ms) - feature toggles
-  - Strong tap (25ms) - important actions
-  - Photo shutter (50ms burst) - camera feel
-  - Success (ascending pattern)
-  - Error (triple buzz)
-  - Warning (double pulse)
-  - Video toggle (dual pulse)
-- Compatible with Android 8+ VibrationEffect API
-
-**4. Gesture Hints Overlay** (`presentation/GestureHintsOverlay.kt`)
-- First-run tutorial system
-- Pulsing animated circles showing tap locations
-- Color-coded gesture indicators:
-  - 2× tap (Cyan) - Grid
-  - 3× tap (Yellow) - Barcode
-  - 4× tap (Green) - Crop
-  - Pinch (White) - Zoom
-  - Long press (Magenta) - AI status
-- Auto-shows on first launch
-- **Activation**: 6-tap gesture
-
-**5. Enhanced Toast Notifications** (`presentation/EnhancedToast.kt`)
-- Professional toast system with icons and colors:
-  - ✓ Success (Green) - Photo saved, features enabled
-  - ✖ Error (Red) - Failures, errors
-  - ⚠ Warning (Yellow) - Warnings, cautions
-  - ℹ Info (Blue) - Information, hints
-- Rounded corners with borders
-- Consistent styling throughout
-- Special toasts for photo/video/dual camera
-
-### Integration Changes
-
-**CameraActivityEngine.kt**:
-- Added manager initialization for all presentation systems
-- Replaced plain Toast with EnhancedToast throughout
-- Added haptic feedback to photo capture (shutter feel)
-- Added haptic feedback to feature toggles (activated/deactivated patterns)
-- Added haptic feedback to errors (triple buzz)
-- Gesture system extended:
-  - 6-tap: Toggle gesture hints
-  - 7-tap: Toggle demo showcase mode
-
-**activity_camera.xml**:
-- Added GestureHintsOverlay view
-- Added PerformanceMonitor view
-- Proper z-ordering for overlays
-
-### Gesture Controls Reference
-| Taps | Feature | Haptic |
-|------|---------|--------|
-| 2× | Grid overlay | Medium |
-| 3× | Barcode scanning | Medium |
-| 4× | Pre-shot crop | Medium |
-| 5× | Smart scene detection | Medium |
-| 6× | **Gesture hints overlay** | Medium |
-| 7× | **Demo showcase mode** | Success |
-| Long press | AI features status | Long press |
-
-### User Experience Improvements
-
-**Multi-Sensory Feedback**:
-- Visual: Enhanced toasts with icons and colors
-- Haptic: Contextual vibration patterns
-- Audio: Implicit through haptics
-
-**Feature Discovery**:
-- Gesture hints auto-show on first run
-- Demo showcase explains each feature
-- Clear visual feedback for all actions
-- Consistent interaction patterns
-
-**Performance**:
-- Monitor shows FPS, processing time, memory
-- Graph visualizes performance over time
-- Color-coded metrics (green/yellow/red)
-- Transparent overlay doesn't obstruct view
-
-### Conference Demo Flow
-
-**Opening**:
-1. Launch app → beautiful main screen
-2. Select camera → smooth transition
-3. Activate gesture hints (6-tap) → show tutorial
-4. Explain gesture system
-
-**Core Features**:
-1. Grid overlay (2-tap) - composition guides
-2. Barcode scanning (3-tap) - real-time QR
-3. Crop mode (4-tap) - pre-shot cropping
-4. Smart scene (5-tap) - AI detection
-
-**Advanced**:
-1. Dual camera PiP - concurrent feeds + composite photo
-2. Professional controls - ISO, shutter, focus
-3. Night mode - long exposure + multi-frame
-
-**Technical Deep Dive**:
-1. Demo showcase (7-tap) - interactive guide
-2. Performance monitor - show metrics
-3. Plugin system - architecture explanation
-4. Haptic patterns - multi-sensory UX
-
-### Build Status
-- Build Time: 12s
-- APK Size: ~27MB
-- Warnings: Minor (deprecated flags, unused parameters)
-- Status: Conference-ready for live presentation
-
-### Files Created
-- ✅ `presentation/DemoShowcaseManager.kt` - Interactive showcase system
-- ✅ `presentation/PerformanceMonitor.kt` - Real-time metrics display
-- ✅ `presentation/EnhancedHapticManager.kt` - Sophisticated haptic patterns
-- ✅ `presentation/GestureHintsOverlay.kt` - First-run tutorial system
-- ✅ `presentation/EnhancedToast.kt` - Professional notifications
-- ✅ `CONFERENCE_DEMO_GUIDE.md` - Complete presentation guide
-
-### Key Improvements for Conference
-- **Professional UX**: Material Design 3, smooth animations, consistent feedback
-- **Feature Discovery**: Gesture hints, demo showcase, clear visual cues
-- **Performance**: Real-time monitoring, FPS graphs, efficiency metrics
-- **Interactive Demo**: 7-tap showcase mode with spotlights and annotations
-- **Multi-Sensory**: Visual + haptic + contextual feedback
-- **Error Handling**: Enhanced toasts with icons, haptic error patterns
-- **Code Quality**: Clean architecture, proper separation, type-safe
-
-### Demo Talking Points
-- Modern Android best practices (CameraX, StateFlow, Material3)
-- Plugin architecture with 18+ active plugins
-- Concurrent camera API usage (Android 11+)
-- Zero memory leaks (proper ImageProxy cleanup)
-- 60fps performance target maintained
-- Professional multi-sensory UX
-- Clean code architecture
-
-**Next Steps**: Practice demo flow, charge device, prepare QR codes, rehearse multi-tap timing
-
-## ✅ CODE QUALITY AUDIT (2025-10-10)
-
-### Audit Summary
-**Status**: Full codebase audit completed - A+ quality verified across all core components
-
-**Components Audited**: 28 major components including all activities, services, intents, views, managers, and plugins
-
-### ✅ Verified A+ Quality Components
-
-**Activities (9 total):**
-- ✅ MainActivity - Excellent modern implementation with accessibility, animations, proper error handling
-- ✅ CameraActivityEngine - Robust plugin system integration with 18+ plugins, professional quality
-- ✅ CameraSelectionActivity - Polished camera detection and selection UI with animations
-- ✅ SettingsActivity - Comprehensive settings with RecyclerView and proper architecture
-- ✅ SimpleSettingsActivity - Clean StateFlow integration, proper reactive architecture
-- ✅ GalleryActivity - Working media display with proper FileProvider integration
-- ✅ DebugActivity - Comprehensive debug tools and monitoring interfaces
-- ⚠️ CameraActivity - **DEPRECATED** with clear documentation (use CameraActivityEngine)
-
-**Custom Views (4 total):**
-- ✅ BarcodeOverlayView - Professional overlay rendering with proper Paint management
-- ✅ CropOverlayView - Clean passive display controlled by CropPlugin (intentionally no gesture handling)
-- ✅ HistogramView - Real-time histogram rendering
-- ✅ PiPOverlayView - Dual camera coordination overlay
-
-**Core Systems:**
-- ✅ SettingsManager - Excellent StateFlow reactive architecture, type-safe persistence
-- ✅ PluginManager - Robust lifecycle management, concurrent execution, priority sorting
-- ✅ FileProvider - Properly configured for photo/video sharing
-- ✅ Intent System - Clean navigation flow with proper extras handling
-- ✅ Permission Handling - Modern Activity Result API implementation
-
-**Managers (30+ verified):**
-- ✅ AI Managers (8 total) - ML Kit integration, scene detection, object recognition
-- ✅ Video Managers (8 total) - Recording, stabilization, codec management
-- ✅ Hardware Managers (5 total) - Multi-camera, depth sensors, calibration
-- ✅ UI Managers (5 total) - Animations, themes, transitions, loading indicators
-- ✅ Performance Managers - Battery optimization, memory management
-
-**Plugins (18+ verified):**
-- ✅ All core plugins properly implemented with lifecycle management
-- ✅ Sequential processing prevents resource exhaustion
-- ✅ Proper ImageProxy cleanup - no memory leaks
-
-### 🔧 Fixes Applied During Audit
-
-1. **SimpleSettingsActivity (Lines 129-132)**
-   - ❌ **Found**: Broadcast code remnant from pre-StateFlow architecture
-   - ✅ **Fixed**: Removed broadcast, using StateFlow reactive updates
-
-2. **CameraActivity.kt**
-   - ❌ **Found**: Undocumented legacy code, confusing status
-   - ✅ **Fixed**: Added comprehensive deprecation notice, clear documentation pointing to CameraActivityEngine
-
-3. **CropOverlayView**
-   - ✅ **Verified**: Intentionally passive display (gesture handling in CameraActivityEngine)
-   - ✅ **No changes needed** - design is correct
-
-### 📊 Quality Metrics
-
-**Code Quality**: A+
-- Modern Kotlin with proper null safety
-- ViewBinding throughout
-- Proper lifecycle management
-- Comprehensive error handling
-- Accessibility support
-- Material3 theming
-
-**Architecture Quality**: A+
-- Clean separation of concerns
-- Plugin system for extensibility
-- StateFlow reactive architecture
-- Proper dependency injection
-- No circular dependencies
-
-**Performance**: A+
-- Proper coroutine usage
-- Sequential plugin processing
-- Memory leak prevention (ImageProxy cleanup)
-- Battery optimization
-- Efficient camera resource management
-
-**Maintainability**: A+
-- Clear documentation
-- Consistent naming conventions
-- Modular design
-- Comprehensive logging
-- Type-safe APIs
-
-## Technical Debt
-- ✅ ~~Deprecated systemUiVisibility warnings~~ FIXED (WindowInsetsController)
-- ✅ ~~Broadcast remnants in SimpleSettingsActivity~~ FIXED (Pure StateFlow)
-- ✅ ~~Undocumented legacy CameraActivity~~ FIXED (Deprecation notice added)
-- ✅ ~~Text visibility issues in Settings/Debug screens~~ FIXED (2025-10-10)
-- ✅ ~~Build errors in UX components~~ FIXED (2025-10-10)
-- ViewBinding could be further leveraged for type safety
-- Error handling could be more granular with custom exceptions
-- Camera selection screen UI could be more polished
-
-## Architecture
-
-### Core Files
-```
-app/src/main/java/com/customcamera/app/
-├── MainActivity.kt                    # App entry point with camera launch
-├── CameraSelectionActivity.kt        # Camera detection and selection UI
-├── CameraActivityEngine.kt           # ✅ PRIMARY: Full plugin system camera
-├── CameraActivity.kt                  # Legacy: Basic camera (unused)
-├── SimpleSettingsActivity.kt         # ✅ Settings with StateFlow
-├── GalleryActivity.kt                # ✅ Photo/video gallery
-└── engine/
-    ├── CameraEngine.kt               # ✅ Central camera coordinator
-    ├── SettingsManager.kt            # ✅ Reactive StateFlow settings
-    └── plugins/
-        ├── PluginManager.kt          # ✅ Plugin registration & lifecycle
-        └── CameraPlugin.kt           # ✅ Base plugin classes
+### Manual Build Commands
+```bash
+./gradlew assembleDebug                                      # Build debug APK only
+./gradlew clean assembleDebug                                # Clean build only
+adb install -r app/build/outputs/apk/debug/app-debug.apk   # Manual install
+adb logcat -d | grep "customcamera\|CameraActivity"         # Check app logs
 ```
 
-### Layout Files
-```
-app/src/main/res/layout/
-├── activity_main.xml                 # Simple launcher with camera button
-├── activity_camera_selection.xml     # Camera detection and selection UI
-├── activity_camera.xml              # Modern floating camera interface
-└── [Future layouts]
-    ├── activity_settings.xml         # Camera settings screen
-    └── item_camera_option.xml        # Camera selection list item
+### Test Commands
+```bash
+./gradlew test                                  # Run all tests
+./gradlew test --tests "MyTest"                # Run specific test
+./gradlew testDebugUnitTestCoverage            # With coverage
 ```
 
-### Resources
-```
-app/src/main/res/
-├── drawable/                         # UI graphics and icons
-├── values/
-│   ├── strings.xml                   # App text resources
-│   ├── colors.xml                    # Material3 color scheme
-│   └── themes.xml                    # Material3 theme configuration
-└── mipmap-*/                         # App launcher icons
-```
+## Current Status
 
-## Features Implemented ✅
+### ✅ Completed Major Features
+- **Plugin System**: 20+ active plugins with Provider Pattern
+- **Settings System**: StateFlow reactive architecture (no broadcasts)
+- **Dual Camera PiP**: Concurrent camera mode with photo compositing
+- **Video Stabilization**: Hardware + software fallback (9 modes)
+- **AI Features**: Scene detection, object recognition, smart adjustments
+- **Professional Controls**: ISO, shutter speed, focus distance, zoom
+- **Advanced Capture**: HDR, Night Mode, RAW/DNG, Long Exposure
+- **UX Polish**: Haptic feedback, gesture hints, demo showcase, performance monitor
+- **CI/CD**: Automated testing, building, releases on GitHub
+- **Test Infrastructure**: 38+ automated tests across all categories
+
+### Current Development Focus
+See `memory/todo.md` for active tasks and priorities.
+
+### Known Issues
+See `memory/todo.md` for current issues and technical debt.
+
+## Features Implemented
 
 ### ✅ Camera Core
-- [x] Camera detection and enumeration
-- [x] Permission handling with modern Activity Result API
+- [x] Camera detection and enumeration (4 cameras on test device)
+- [x] Permission handling (modern Activity Result API)
 - [x] CameraX integration with lifecycle management
 - [x] Photo capture with timestamp naming
 - [x] Camera switching between available cameras
 - [x] Flash control with state management
-- [x] **Plugin System Architecture** - 18+ plugins integrated
-- [x] **Advanced Video Recording** - Quality control, duration tracking
-- [x] **RAW/DNG Capture** - Camera2 interop for RAW photos
+- [x] Plugin System Architecture (20+ plugins)
+- [x] Advanced Video Recording (quality control, duration tracking)
+- [x] RAW/DNG Capture (Camera2 interop)
+- [x] Dual Camera PiP (concurrent camera mode)
+- [x] Video Stabilization (hardware + software, 9 modes)
 
 ### ✅ UI/UX
 - [x] Material3 theme integration
 - [x] Samsung/Google-style floating UI design
 - [x] Fullscreen immersive camera experience
 - [x] Smooth button animations (scale, rotation)
-- [x] Auto-selection of first camera for better UX
 - [x] Modern Kotlin with ViewBinding
-- [x] **Gesture Controls** - Double-tap grid, triple-tap barcode, quadruple-tap crop
-- [x] **Professional Manual Controls** - ISO, shutter speed, focus distance, zoom
+- [x] Gesture Controls (multi-tap + pinch + long-press)
+- [x] Professional Manual Controls (ISO, shutter, focus, zoom)
+- [x] Enhanced Haptic Feedback (contextual vibration patterns)
+- [x] Gesture Hints Overlay (first-run tutorial)
+- [x] Demo Showcase Mode (conference presentation)
+- [x] Performance Monitor (real-time FPS/memory)
+- [x] Enhanced Toast Notifications (icons + colors)
 
 ### ✅ Error Handling
 - [x] Graceful permission denial handling
@@ -601,972 +105,228 @@ app/src/main/res/
 - [x] Camera binding failure recovery
 - [x] No cameras available scenario
 - [x] Comprehensive logging for debugging
-- [x] **Sequential Plugin Processing** - Prevents resource exhaustion
-- [x] **Proper ImageProxy Cleanup** - No memory leaks
+- [x] Sequential Plugin Processing (prevents resource exhaustion)
+- [x] Proper ImageProxy Cleanup (no memory leaks)
+- [x] Smart Error Recovery (intelligent error analysis)
 
-### ✅ Plugin System (18+ Active Plugins)
+### ✅ Plugin System (20+ Active Plugins)
 
 **Core Plugins:**
-- [x] **GridOverlayPlugin** - Composition grids (rule of thirds, 9x3, golden ratio)
-- [x] **AutoFocusPlugin** - Automatic focus management
-- [x] **CropPlugin** - Pre-shot crop with aspect ratio control
-- [x] **ProControlsPlugin** - Professional camera controls
-- [x] **ExposureControlPlugin** - Exposure compensation
+- GridOverlayPlugin - Composition grids (rule of thirds, 9x3, golden ratio)
+- AutoFocusPlugin - Automatic focus management
+- CropPlugin - Pre-shot crop with aspect ratio control
+- ProControlsPlugin - Professional camera controls
+- ExposureControlPlugin - Exposure compensation
 
 **Analysis & Detection:**
-- [x] **BarcodePlugin** - QR/barcode scanning with ML Kit
-- [x] **QRScannerPlugin** - Dedicated QR code scanning
-- [x] **HistogramPlugin** - Real-time histogram display
-- [x] **MotionDetectionPlugin** - Motion-based capture
+- BarcodePlugin - QR/barcode scanning with ML Kit
+- QRScannerPlugin - Dedicated QR code scanning
+- HistogramPlugin - Real-time histogram display
+- MotionDetectionPlugin - Motion-based capture
 
-**AI-Powered Features (Phase 8G):**
-- [x] **SmartScenePlugin** - AI scene detection (landscapes, portraits, etc.)
-- [x] **ObjectDetectionPlugin** - Real-time object recognition
-- [x] **SmartAdjustmentsPlugin** - AI-powered auto-adjustments
+**AI-Powered Features:**
+- SmartScenePlugin - AI scene detection (landscapes, portraits, etc.)
+- ObjectDetectionPlugin - Real-time object recognition
+- SmartAdjustmentsPlugin - AI-powered auto-adjustments
 
 **Advanced Capture:**
-- [x] **HDRPlugin** - High dynamic range photography
-- [x] **NightModePlugin** - Low-light optimization
-- [x] **DualCameraPiPPlugin** - Picture-in-picture dual camera
-- [x] **AdvancedVideoRecordingPlugin** - Professional video features
-- [x] **RAWCapturePlugin** - DNG/RAW photo capture
-- [x] **ManualFocusPlugin** - Manual focus control
+- HDRPlugin - High dynamic range photography
+- NightModePlugin - Low-light optimization
+- DualCameraPiPPlugin - Picture-in-picture dual camera
+- AdvancedVideoRecordingPlugin - Professional video features
+- RAWCapturePlugin - DNG/RAW photo capture
+- ManualFocusPlugin - Manual focus control
 
-**Gesture Controls:**
-- Double-tap: Toggle grid overlay
-- Triple-tap: Toggle barcode scanning
-- Quadruple-tap: Toggle crop mode
-- Five-tap: Toggle smart scene detection
-- Six-tap: Toggle object detection
-- Pinch: Zoom control
-- Long-press preview: Show AI features status
+**Visibility Configuration:**
+- **Dropdown Menu (15)**: GridOverlay, Barcode, Histogram, CameraInfo, ExposureAnalysis, MotionDetection, QRScanner, SharpnessAnalysis, SmartScene, SmartAdjustments, ObjectDetection, Crop, RAWCapture, AdvancedVideoRecording, HDR
+- **Always Active (6)**: NightMode, DualCameraPiP (dedicated buttons), AutoFocus, ExposureControl, ManualFocus, ProControls
 
-## ✨ UX IMPROVEMENTS (2025-10-10) - READY FOR INTEGRATION
-
-### Professional UX Enhancement Components
-
-**Status**: 6 new components implemented - Production-ready for integration
-**Documentation**: `memory/UX_IMPROVEMENTS.md` (full integration guide)
-
-#### 1. Quick Settings Drawer
-**File**: `ui/QuickSettingsDrawer.kt`
-- Slide-out drawer for instant access to common settings
-- Grid toggle, barcode toggle, flash modes, camera switch
-- 70% screen width with smooth animations
-- No need to leave camera interface
-
-#### 2. Photo Preview Overlay
-**File**: `ui/PhotoPreviewOverlay.kt`
-- Instant full-screen preview after capture
-- Quick actions: Share, Delete, Close
-- FileProvider integration for secure sharing
-- Professional review workflow
-
-#### 3. Active Features Indicator
-**File**: `ui/ActiveFeaturesIndicator.kt`
-- Top-center badge showing active modes
-- Displays: Grid, Barcode, HDR, Night, Pro, Crop, Stabilization, AI
-- Auto-show/hide based on active features
-- Clear visual feedback for user awareness
-
-#### 4. Gesture Tutorial Overlay
-**File**: `ui/GestureTutorialOverlay.kt`
-- First-run tutorial explaining all gestures
-- Comprehensive gesture guide (double tap through six taps)
-- "Don't show again" with SharedPreferences
-- Reduces learning curve significantly
-
-#### 5. Enhanced Capture Feedback
-**File**: `ui/EnhancedCaptureFeedback.kt`
-- Multi-sensory feedback: Visual flash + Haptic vibration + Button animation
-- Different patterns for photo/video start/stop
-- VibrationEffect support for modern devices
-- Professional camera-like experience
-
-#### 6. Smart Error Recovery
-**File**: `ui/SmartErrorRecovery.kt`
-- Intelligent error analysis with context-specific messages
-- Handles all camera exceptions gracefully
-- Actionable recovery options (Retry, Settings, Storage check)
-- User-friendly icons and descriptions
-
-**Integration Priority**: High - These components significantly improve UX
-**See**: `memory/UX_IMPROVEMENTS.md` for complete integration guide
-
-## Features To Implement 🚧
-
-### Phase 9 Advanced Features
-- [x] **Phase 9B: Real-Time Video Stabilization** ✅ COMPLETE (2025-10-17)
-  - ✅ Hardware-accelerated stabilization detection
-  - ✅ Software fallback for older devices
-  - ✅ Stabilization strength control (0-100%)
-  - ✅ 9 specialized stabilization modes
-  - ✅ Full UI integration with persistence
-  - ✅ Comprehensive documentation (VIDEO_STABILIZATION_GUIDE.md)
-  - **Status**: Production-ready, version 2.1.0 (build 31)
-
-- [ ] **Phase 9D: Advanced UI Polish** (Future)
-  - Enhanced settings UI with categories
-  - Camera preview thumbnails in selection
-  - Smooth transitions and animations
-  - Loading indicators for all operations
-
-### UI Enhancements
-- [ ] **Camera Selection UI Polish**
-  - Add camera preview thumbnails to selection buttons
-  - Better visual indication of selected camera
-  - Smooth transitions between selection and camera
-
-- [ ] **Settings Screen**
-  - Camera resolution options
-  - Photo quality settings
-  - Timer functionality
-  - Grid overlay toggle
-
-- [ ] **Gallery Integration**
-  - In-app photo gallery
-  - Last photo preview in camera interface
-  - Photo sharing capabilities
-  - Photo metadata display
-
-### Advanced Features
-- [ ] **Night Mode**
-  - Low-light optimization
-  - Extended exposure for better night photos
-  - Night mode UI indicators
-
-- [ ] **Portrait Mode**
-  - Depth-based background blur
-  - Portrait lighting effects
-  - Bokeh intensity control
-
-- [ ] **Pro Mode**
-  - Manual camera controls (ISO, shutter speed)
-  - Histogram display
-  - RAW photo capture option
-
-## Key Functions Reference
-
-### CameraActivity.kt
-- `onCreate()`: Activity initialization and layout setup
-- `startCamera()`: Camera provider initialization
-- `bindCameraUseCases()`: Preview and capture use case binding
-- `selectCamera()`: Camera selection logic with fallback ⚠️ **NEEDS FIX**
-- `createCameraSelectorForIndex()`: Specific camera selector creation
-- `capturePhoto()`: Photo capture with file handling
-- `switchCamera()`: Runtime camera switching
-- `toggleFlash()`: Flash control with state management
-- `handleCameraError()`: Error recovery and user feedback
-
-### CameraSelectionActivity.kt
-- `detectAvailableCameras()`: Camera enumeration and validation
-- `setupCameraButtons()`: Dynamic UI creation for camera options
-- `createCameraButton()`: Individual camera selection button
-- `updateButtonSelection()`: Visual selection state management
-
-### Critical Data Flow
-```
-MainActivity → CameraSelectionActivity → CameraActivityEngine (✅ PRIMARY)
-     ↓              ↓                             ↓
-Launch camera → Select camera index → Initialize CameraEngine with plugins
-                     ↓                             ↓
-               Pass via Intent extras ──────> Register 18+ plugins
-               Key: EXTRA_CAMERA_INDEX (Int)      ↓
-                                            Setup plugin lifecycle & UI
-```
+### Gesture Controls Reference
+| Gesture | Feature | Haptic Feedback |
+|---------|---------|-----------------|
+| 2× tap | Grid overlay | Medium |
+| 3× tap | Barcode scanning | Medium |
+| 4× tap | Pre-shot crop | Medium |
+| 5× tap | Smart scene detection | Medium |
+| 6× tap | Gesture hints overlay | Medium |
+| 7× tap | Demo showcase mode | Success |
+| Pinch | Zoom control | - |
+| Long-press preview | AI features status | Long-press |
 
 ## Development Workflow
 
-### Session Startup
+### Session Startup Protocol
 1. `cd ~/git/swype/CustomCamera`
 2. Check current status: `git status`
-3. Review active issues in this CLAUDE.md
-4. Focus on highest priority items first
-
-### Testing Workflow
-1. Make code changes
-2. `./gradlew assembleDebug`
-3. `adb install -r app/build/outputs/apk/debug/app-debug.apk`
-4. Test on device
-5. `adb logcat -d | grep "customcamera"` for debugging
-
-### Debugging Camera Issues
-1. Check logs for camera enumeration: "Available cameras: X"
-2. Verify intent passing: "Intent extra value: X"
-3. Trace camera selector creation: "Creating camera selector for index X"
-4. Confirm camera binding: "Camera bound successfully"
-
-## Known Working Components
-- ✅ Project builds successfully with Kotlin + CameraX
-- ✅ Camera permission handling works correctly
-- ✅ Camera enumeration detects all available cameras
-- ✅ UI layouts inflate without theme conflicts
-- ✅ Basic camera preview and capture functionality
-- ✅ Floating UI design matches modern camera apps
-- ✅ Error handling prevents crashes
-
-## ✅ SESSION COMPLETED: Pinch-to-Zoom Fix (2025-10-13)
-
-### ✅ Bug Identified & Fixed
-**Problem**: Pinch-to-zoom gesture not working in camera interface
-
-**Root Cause**: Touch listener in setupPinchToZoom() (CameraActivityEngine.kt:1466-1511) was calling `scaleGestureDetector.onTouchEvent()` but ignoring its return value, causing:
-- Events not properly consumed by ScaleGestureDetector
-- Tap gesture logic always running, even during pinch
-- Multi-touch pinch events conflicting with single-touch tap detection
-
-**Debug Process**: Used zen MCP with Gemini-2.5-Pro for systematic investigation:
-- Step 1: Identified touch listener return value bug
-- Step 2: Traced execution path and confirmed hypothesis
-- Step 3: Verified bug with concrete code evidence (CERTAIN confidence)
-
-**Fix Applied**:
-```kotlin
-// Check if ScaleGestureDetector handled event first
-val scaleHandled = scaleGestureDetector?.onTouchEvent(event) == true
-if (scaleHandled) {
-    return@setOnTouchListener true  // Consume event properly
-}
-
-// Only process taps for single-touch events
-if (event.pointerCount > 1) {
-    return@setOnTouchListener false
-}
-```
-
-**Changes**:
-- ✅ ScaleGestureDetector return value now properly checked
-- ✅ Events consumed correctly when pinch detected
-- ✅ Tap processing skipped during multi-touch gestures
-- ✅ No gesture conflicts between pinch and tap
-
-**Build Status**:
-- Build Time: 22s
-- Version: 2.0.43 (code 27)
-- APK Size: ~27MB
-- Status: Ready for testing
-
-**Test**: Pinch-to-zoom should now work correctly in camera preview
-
-## ✅ SESSION COMPLETED: PiP Window Fix (2025-10-14)
-
-### ✅ Three Critical Bugs Identified & Fixed
-**Problem**: PiP (Picture-in-Picture) window showing as blank transparent rectangle instead of camera feed
-
-**Root Causes Found**:
-1. **Transparent Background Bug** (PiPOverlayView.kt:75)
-   - PreviewView had `setBackgroundColor(Color.TRANSPARENT)`
-   - Made the camera surface invisible
-
-2. **View Layout Timing Bug** (DualCameraPiPPlugin.kt:312)
-   - Camera was bound immediately after creating overlay
-   - View hadn't been measured/laid out yet (0x0 dimensions)
-   - Camera bound to unmeasured PreviewView with no surface ready
-
-3. **🔴 CRITICAL: ProcessCameraProvider Conflict** (DualCameraCoordinator.kt:64 + DualCameraPiPPlugin.kt:67)
-   - DualCameraCoordinator created its own ProcessCameraProvider instance
-   - CameraEngine had a separate ProcessCameraProvider instance
-   - **You can't bind cameras through different provider instances**
-   - Main camera bound to CameraEngine's provider, PiP camera bound to coordinator's provider = CONFLICT
-   - This was the actual root cause preventing camera binding
-
-**Fixes Applied**:
-
-**Fix 1 - Remove Transparent Background**:
-```kotlin
-// Before (WRONG):
-setBackgroundColor(Color.TRANSPARENT)
-
-// After (CORRECT):
-// Note: No background color set - let the camera feed be visible
-```
-
-**Fix 2 - Wait for View Layout**:
-```kotlin
-// Before (WRONG):
-applyCameraConfiguration() // Called immediately
-
-// After (CORRECT):
-pipOverlayView?.viewTreeObserver?.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
-    override fun onGlobalLayout() {
-        pipOverlayView?.viewTreeObserver?.removeOnGlobalLayoutListener(this)
-        Log.i(TAG, "PiP overlay laid out: ${pipOverlayView!!.width}x${pipOverlayView!!.height}")
-        applyCameraConfiguration() // Now called after layout
-    }
-})
-```
-
-**Fix 3 - Share Single ProcessCameraProvider** (THE CRITICAL FIX):
-```kotlin
-// DualCameraCoordinator.kt - Before (WRONG):
-init {
-    initializeCameraProvider() // Creates SEPARATE provider
-}
-private fun initializeCameraProvider() {
-    val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
-    cameraProvider = cameraProviderFuture.get() // SEPARATE INSTANCE
-}
-
-// DualCameraCoordinator.kt - After (CORRECT):
-init {
-    // Provider will be set via setProvider() method
-}
-fun setProvider(provider: ProcessCameraProvider) {
-    cameraProvider = provider // SHARED INSTANCE
-}
-
-// DualCameraPiPPlugin.kt - After (CORRECT):
-val provider = context.cameraEngine?.getProvider() // Get CameraEngine's provider
-if (provider != null) {
-    dualCameraCoordinator?.setProvider(provider) // Share it!
-}
-```
-
-**Changes**:
-- ✅ Removed transparent background from PreviewView
-- ✅ Camera binding waits for view to be measured and laid out
-- ✅ ViewTreeObserver ensures proper timing
-- ✅ PreviewView has proper dimensions when camera binds
-- ✅ Surface provider ready when camera starts
-- ✅ **DualCameraCoordinator and CameraEngine share single ProcessCameraProvider**
-- ✅ **Both main and PiP cameras bound through same provider instance**
-- ✅ **No provider conflicts - cameras can coexist**
-
-**Build Status**:
-- Build Time: 8s
-- APK Size: ~27MB
-- Commits: 3 (transparent bg, layout timing, provider sharing)
-- Status: Ready for testing
-
-**Test**: PiP window should now display the secondary camera feed with proper dimensions and visible content
-
-**Technical Notes**:
-- ProcessCameraProvider.getInstance() returns the same singleton per context
-- But you must use the same reference for binding multiple cameras
-- Creating separate coordinator with separate init = separate reference = conflict
-- Solution: Share the exact same provider instance between all camera operations
-
-## ✅ SESSION COMPLETED: Dual Camera Photo Capture (2025-10-14)
-
-### ✅ Implementation Complete
-**User Request**: "im seeing both feeds from main and pip, can we capture both when photo is taken"
-
-**What Was Built**:
-1. **✅ PiP Overlay Position API** - Added `getPiPOverlayRect()` to DualCameraPiPPlugin
-   - Returns normalized coordinates (0-1) for compositor
-   - Calculates position based on PiPPosition and PiPSize settings
-   - Handles all 8 position variants (corners, centers, etc.)
-
-2. **✅ Dual Camera Capture Logic** - Modified `captureRegularPhoto()` in CameraActivityEngine
-   - Detects concurrent camera mode automatically
-   - Captures main image in memory (not directly to file)
-   - Retrieves latest PiP frame from CameraEngine
-   - Gets PiP overlay position from plugin
-   - Uses DualCameraCompositor to composite both images
-   - Graceful fallback to single image if PiP unavailable
-
-3. **✅ Helper Methods** - Added `saveSingleImage()` for fallback scenario
-   - Converts ImageProxy to bytes and saves to file
-   - Proper resource cleanup with image.close()
-
-**Technical Details**:
-```kotlin
-// Detection logic in captureRegularPhoto()
-val isDualCamera = cameraEngine.getCurrentMode() is CameraMode.Concurrent
-                   && cameraEngine.hasPipFrame()
-
-if (isDualCamera) {
-    // Capture in memory, composite with PiP, then save
-    imageCapture.takePicture(executor, OnImageCapturedCallback {
-        val pipFrame = cameraEngine.getLatestPipFrame()
-        val pipRect = pipPlugin?.getPiPOverlayRect()
-        DualCameraCompositor.compositeImages(main, pip, rect, file)
-    })
-} else {
-    // Single camera: Save directly to file
-    imageCapture.takePicture(outputFileOptions, OnImageSavedCallback {
-        // Normal save flow
-    })
-}
-```
-
-**User Feedback**:
-- "Dual camera photo saved: [filename]" when both cameras captured
-- "Photo saved: [filename]" for single camera mode
-- "PiP frame not available, saving main image only" on fallback
-- "Dual camera capture failed" on errors
-
-**Changes**:
-- ✅ `DualCameraPiPPlugin.kt`: Added getPiPOverlayRect() method
-- ✅ `CameraActivityEngine.kt`: Modified captureRegularPhoto() with mode detection
-- ✅ `CameraActivityEngine.kt`: Added saveSingleImage() helper method
-- ✅ `CameraActivityEngine.kt`: Added CameraMode import
-- ✅ Clean build in 13s with minor unused parameter warnings
-
-**Build Status**:
-- Build Time: 13s
-- APK Size: ~27MB
-- Warnings: Minor (unused parameters in timestamp)
-- Status: Production-ready for device testing
-
-**Test Instructions**:
-1. Enable PiP mode (Settings → Dual Camera PiP → Enable)
-2. Position and size PiP overlay as desired
-3. Take photo using capture button
-4. Check saved photo - should show main image with PiP overlay composited
-5. PiP overlay should be at same position/size as on screen preview
-6. Verify rounded corners and white border on PiP overlay
-
-**Integration Notes**:
-- Uses existing DualCameraCompositor utility (created in previous session)
-- Integrates with PiP frame capture system (ImageAnalysis on PiP camera)
-- Compatible with all existing photo capture features (HDR, Night Mode, etc.)
-- Future enhancement: Could also add dual camera support to captureLongExposurePhoto()
-
-## ✅ SESSION COMPLETED: PixelCopy Window Capture Fallback (2025-10-15)
-
-### ✅ Implementation Complete
-**Technical Guidance**: Use `PixelCopy.request(window, ...)` to capture camera surfaces
-
-**What Was Built**:
-1. **✅ PixelCopy Window Capture** - Capture entire window including both camera surfaces
-   - Uses `PixelCopy.request(window, bitmap, callback, handler)`
-   - Captures SurfaceView/TextureView camera feeds correctly
-   - Single API call captures both main and PiP cameras simultaneously
-   - Hardware-accelerated capture (GPU-based)
-   - No view drawing issues - captures actual camera buffers
-
-2. **✅ Clean Implementation** - Proper async handling
-   - API 26+ check (Android 8.0+)
-   - Callback-based success/failure handling
-   - Automatic bitmap recycling after save
-   - Main/IO dispatcher coordination
-   - Comprehensive error feedback
-
-3. **✅ Two-Tier Fallback Chain** - Automatic progression
-   - Tier 1: Dual camera composite (YUV plane compositing) - tries first
-   - Tier 2: PixelCopy window capture - if composite fails, captures window
-   - No user permission dialogs needed
-
-**Technical Implementation**:
-```kotlin
-// PixelCopy window capture approach
-private fun captureScreenFallback(photoFile: File) {
-    // Check API level (requires Android 8.0+)
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-        // Show error - API 26+ required
-        return
-    }
-
-    lifecycleScope.launch(Dispatchers.Main) {
-        try {
-            Log.i(TAG, "📸 Capturing window with PixelCopy (both camera surfaces)")
-
-            // Create bitmap for entire window
-            val width = window.decorView.width
-            val height = window.decorView.height
-            val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-
-            // Use PixelCopy to capture window including camera surfaces
-            PixelCopy.request(
-                window,
-                bitmap,
-                { copyResult ->
-                    lifecycleScope.launch(Dispatchers.IO) {
-                        try {
-                            if (copyResult == PixelCopy.SUCCESS) {
-                                Log.i(TAG, "✅ PixelCopy successful: ${bitmap.width}x${bitmap.height}")
-
-                                // Save bitmap
-                                photoFile.outputStream().use { out ->
-                                    bitmap.compress(Bitmap.CompressFormat.JPEG, 95, out)
-                                }
-
-                                // Success feedback on main thread
-                                withContext(Dispatchers.Main) {
-                                    loadingIndicatorManager.hideLoading()
-                                    hapticManager.success()
-                                    EnhancedToast.success(
-                                        this@CameraActivityEngine,
-                                        "Dual camera photo saved: ${photoFile.name}"
-                                    )
-                                }
-                            } else {
-                                Log.e(TAG, "❌ PixelCopy failed with result: $copyResult")
-                                // Error feedback...
-                            }
-                        } finally {
-                            bitmap.recycle()
-                        }
-                    }
-                },
-                Handler(Looper.getMainLooper())
-            )
-        } catch (e: Exception) {
-            Log.e(TAG, "Screen capture setup failed", e)
-            // Error handling...
-        }
-    }
-}
-```
-
-**Fallback Triggers**:
-- `pipImage == null` → PixelCopy window capture
-- `compositeImages() returns false` → PixelCopy window capture
-- `Exception thrown` → PixelCopy window capture
-
-**User Feedback**:
-- Toast notification: "Dual camera photo saved: [filename]"
-- Logging: "📸 Capturing window with PixelCopy (both camera surfaces)"
-- Haptic feedback: Photo capture vibration
-- Visual: Capture button animation
-
-**Changes**:
-- ✅ `CameraActivityEngine.kt`: Implemented PixelCopy.request(window, ...) for dual camera fallback
-- ✅ Removed MediaProjection approach (no permission dialogs needed)
-- ✅ Removed separate PreviewView.bitmap + Canvas stitch approach
-- ✅ API 26+ check (Android 8.0+)
-- ✅ Callback-based async handling with proper thread coordination
-- ✅ Automatic bitmap recycling after save
-- ✅ Clean build in 14s with minor warnings
-
-**Build Status**:
-- Build Time: 14s
-- APK Size: ~27MB
-- Warnings: Minor (unused parameters only)
-- Status: **Ready for device testing**
-
-**Test Instructions**:
-1. Enable PiP mode (Settings → Dual Camera PiP)
-2. Take photo with dual camera active
-3. YUV composite will try to work first
-4. **When YUV composite fails**: Automatic fallback to PixelCopy
-5. Entire window captured (including both camera surfaces)
-6. No blank views - captures actual camera buffers
-7. Verify photo shows main + PiP at exact on-screen positions
-8. Toast shows: "Dual camera photo saved: [filename]"
-
-**Technical Notes**:
-- **PixelCopy.request**: Android framework API for capturing window content
-- Hardware-accelerated (GPU-based) capture
-- Captures SurfaceView/TextureView camera feeds correctly
-- API 26+ required (Android 8.0+, Oct 2017)
-- No permission dialogs (uses existing camera permission)
-- Captures at display resolution (what user sees on screen)
-- Single API call captures both cameras simultaneously
-- Callback executes on main thread handler
-- Bitmap saved on IO dispatcher
-- 100% confidence this approach works ✅
-
-**Why This Approach**:
-- **Technically correct solution** - bypasses view drawing limitations
-- Camera surfaces (SurfaceView/TextureView) bypass normal view rendering
-- PixelCopy is designed specifically for this use case
-- No blank views issues
-- No complex coordinate calculations needed
-- Single capture instead of separate + stitch
-- Hardware-accelerated for performance
-- Ready for immediate testing
-
-**Integration Status**:
-- ✅ Integrated with dual camera capture flow
-- ✅ Both cameras captured simultaneously
-- ✅ User feedback implemented
-- ✅ Error handling complete
-- ✅ Ready for zoo testing
-
-## ✅ SESSION COMPLETED: UX Improvements & Bug Fixes (2025-10-10)
-
-### ✅ Major Achievements
-1. **✅ 6 Professional UX Components Implemented** - Production-ready enhancement features
-2. **✅ Text Visibility Issues Resolved** - Fixed white text on white background in Settings/Debug
-3. **✅ Build Errors Fixed** - All compilation errors in new UX components resolved
-4. **✅ Exception System Enhanced** - Added missing camera exception classes
-
-### ✅ UX Components Delivered
-- **QuickSettingsDrawer.kt** - Slide-out drawer for instant settings access (70% screen width)
-- **PhotoPreviewOverlay.kt** - Full-screen photo preview with Share/Delete/Close actions
-- **ActiveFeaturesIndicator.kt** - Top-center badges showing active camera modes
-- **GestureTutorialOverlay.kt** - First-run tutorial with "don't show again" preference
-- **EnhancedCaptureFeedback.kt** - Multi-sensory feedback (visual + haptic + animation)
-- **SmartErrorRecovery.kt** - Intelligent error analysis with actionable recovery options
-
-### ✅ Bug Fixes Applied
-1. **SimpleSettingsActivity.kt** - Added black text color to all programmatically created TextViews
-2. **DebugActivity.kt** - Fixed text visibility in all sections (titles, camera info, logs)
-3. **GestureTutorialOverlay.kt** - Added default parameter to addTitle() method
-4. **SmartErrorRecovery.kt** - Changed ErrorInfo and ErrorAction from private to public
-5. **CameraExceptions.kt** - Added CameraConfigurationException, CaptureFailedException, NoCamerasAvailableException
-
-### ✅ Build Status
-- **Build Time**: 49s
-- **APK Size**: ~27MB
-- **Warnings**: Minor (unused parameters, deprecated APIs)
-- **Errors**: Zero
-- **Status**: Production-ready for device testing
-
-### 📋 Integration Next Steps
-All UX components are standalone and ready for integration into CameraActivityEngine. See `memory/UX_IMPROVEMENTS.md` for complete integration guide.
-
-## ✅ SESSION COMPLETED: Plugin System Integration (2025-10-09)
-
-### ✅ Major Achievement: Full Plugin System Operational
-1. **✅ CameraActivityEngine Integration** - All app flows now use full plugin system
-2. **✅ Settings StateFlow Migration** - Removed broadcast mechanism, pure reactive architecture
-3. **✅ 18+ Plugins Active** - All core, AI, and advanced plugins operational
-4. **✅ Build Success** - 19s build, 27MB APK, zero warnings
-
-### ✅ Technical Implementation
-- **MainActivity.kt**: Changed `Intent(this, CameraActivity::class.java)` → `CameraActivityEngine`
-- **CameraSelectionActivity.kt**: Updated all launch paths to use CameraActivityEngine
-- **SimpleSettingsActivity.kt**: Removed `sendBroadcast()`, now uses StateFlow directly
-- **Plugin Lifecycle**: Full initialization with CameraEngine.registerPlugin()
-- **Gesture Controls**: All multi-tap gestures working (double through six-tap)
-
-### ✅ Plugin System Architecture
-- **CameraEngine**: Central coordinator initializing all plugins
-- **PluginManager**: Sequential processing prevents resource exhaustion
-- **StateFlow Settings**: Type-safe reactive configuration
-- **UIPlugin Integration**: Grid, crop, barcode overlays working
-- **ProcessingPlugin Integration**: AI scene detection, object recognition
-- **ControlPlugin Integration**: Professional manual controls
-
-## ✅ PREVIOUS SESSION COMPLETED (2025-09-20)
-
-### ✅ Critical Issues Resolved
-1. **✅ Settings Screen Crashes Fixed** - Added missing `openFullSettings()` function
-2. **✅ Plugin UI Integration Complete** - All plugin buttons visible and functional
-3. **✅ Plugin Management System Working** - Browser, import, export fully implemented
-4. **✅ Build Success** - Clean compilation with 26MB APK ready
-
-### ✅ Technical Achievements
-- **UI Button Integration**: All camera interface buttons properly wired to handlers
-- **Settings Navigation**: Long-press settings button opens comprehensive SettingsActivity
-- **Plugin Controls**: Grid, barcode, manual controls buttons visible and functional
-- **Error Handling**: Comprehensive fallback mechanisms for settings failures
-- **Code Quality**: Clean build with proper exception handling
-
-## ✅ PHASE 8C COMPLETED: Custom Pre-Shot Crop System ✅
-
-### ✅ Implementation Complete
-- **CropPlugin Integration**: Fully integrated with CameraActivityEngine + Plugin Dropdown
-- **UI Controls**: Quadruple tap gesture OR plugin dropdown toggle
-- **Interactive Crop**: Drag to adjust crop area with visual overlay
-- **Aspect Ratios**: Support for Free, 1:1, 4:3, 3:2, 16:9, 9:16 ratios
-- **Settings Persistence**: Crop preferences saved across sessions
-- **Provider Pattern**: Integrated with PluginRegistry (showInDropdown=true)
-- **Status**: Production-ready, fully functional
-
-### User Guide
-**How to use Crop Mode:**
-1. **Enable**: Tap camera preview 4 times quickly OR use plugin dropdown menu
-2. **Adjust**: Drag crop overlay to resize and position
-3. **Disable**: Tap camera preview 4 times again OR toggle in plugin menu
-4. **Capture**: Take photos with crop area applied
-
-**Gesture Controls:**
-- **Double Tap**: Toggle grid overlay
-- **Triple Tap**: Toggle barcode scanning
-- **Quadruple Tap**: Toggle crop mode
-- **Five Tap**: Toggle smart scene detection
-- **Six Tap**: Toggle object detection
-
-## ✅ SESSION COMPLETED: PiP Concurrent Camera + UseCase Limit Fix (2025-10-14)
-
-### ✅ Implementation Complete
-1. **✅ ConcurrentCameraCapability.kt** - Hardware capability detection
-2. **✅ CameraMode.kt** - Sealed class for Single/Concurrent modes
-3. **✅ CameraEngine Concurrent Mode** - Full CameraX 1.3+ API implementation
-4. **✅ DualCameraPiPPlugin Integration** - Complete mode switching integration
-5. **✅ Build Success** - Clean compilation (11s build time, 27MB APK)
-
-### Technical Achievements
-- **CameraX 1.3 Concurrent Camera API**: Properly implemented using `ConcurrentCamera.SingleCameraConfig`
-- **UseCaseGroup Builder**: Main camera with all plugins + PiP camera with preview only
-- **Lifecycle Conflict RESOLVED**: Uses single `bindToLifecycle()` call with both camera configs
-- **Mode Switching**: Seamless transition between Single and Concurrent camera modes
-- **Error Handling**: Graceful fallback to single camera on failure
-- **Capability Detection**: Hardware validation before attempting concurrent mode
-- **User Feedback**: Toast messages for unsupported devices
-
-### Implementation Details
-**CameraEngine.switchToConcurrentMode()**:
-```kotlin
-val primaryConfig = ConcurrentCamera.SingleCameraConfig(
-    mainSelector, mainUseCaseGroup, lifecycleOwner
-)
-val secondaryConfig = ConcurrentCamera.SingleCameraConfig(
-    pipSelector, pipUseCaseGroup, lifecycleOwner
-)
-concurrentCamera = provider.bindToLifecycle(
-    listOf(primaryConfig, secondaryConfig)
-)
-```
-
-### Build Status
-- ✅ Clean compilation with CameraX 1.3.1
-- ✅ Proper imports for `ConcurrentCamera` and `UseCaseGroup`
-- ✅ No lifecycle conflicts - uses correct API pattern
-- ✅ UseCase limit fix applied - max 2 per camera
-- ✅ Ready for device testing
-
-### Critical Bug Fixes
-
-**Bug #1: UseCase Limit**
-- **Problem**: "no supported surface combination" error on device
-- **Root Cause**: Main camera was binding 4 use cases (Preview + ImageCapture + VideoCapture + ImageAnalysis)
-- **CameraX Limit**: Concurrent cameras support **maximum 2 UseCases per camera**
-- **Solution**: Main camera limited to Preview + ImageCapture (2 UseCases) ✅
-
-**Bug #2: Main Camera Preview Connection**
-- **Problem**: Main camera showed blank screen (PiP worked fine)
-- **Root Cause**: Main camera Preview use case wasn't connected to PreviewView
-- **Missing**: `setSurfaceProvider()` call for main camera preview
-- **Solution**: Added mainPreviewView parameter and connected surface provider ✅
-
-**State Preservation**:
-- Video and ImageAnalysis states saved before entering PiP mode
-- Automatically restored when exiting PiP mode
-- Better error logging for troubleshooting
-
-### Files Modified
-- ✅ Created: `ConcurrentCameraCapability.kt` - Hardware detection
-- ✅ Created: `CameraMode.kt` - State management
-- ✅ Modified: `CameraEngine.kt` - Full concurrent camera implementation
-- ✅ Modified: `DualCameraPiPPlugin.kt` - Mode switching integration
-- ✅ Updated: `memory/PIP.md` - Implementation status
-
-## ✅ SESSION COMPLETED: Video Recording & PiP Bug Fixes (2025-10-15)
-
-### ✅ Problems & Solutions
-**User Report 1**: "it says failed to start recording" when trying to record video
-**User Report 2**: "when i disable pip the main camera freezes"
-
-**Three Root Causes Found**:
-
-**Issue 1: PiP Mode Conflict**
-- PiP (concurrent camera) mode disables VideoCapture UseCase to stay within 2 UseCase limit
-- When user enabled PiP and tried to record video, videoCapture was null
-- AdvancedVideoRecordingPlugin.startRecording() failed with null VideoCapture
-
-**Issue 2: Missing RECORD_AUDIO Permission**
-- Video recording with audio requires RECORD_AUDIO permission
-- App only requested CAMERA permission at runtime
-- Recording failed when trying to enable audio without permission
-
-**Issue 3: Preview Freeze on PiP Disable**
-- When disabling PiP, camera switches from concurrent to single mode
-- switchToSingleMode() creates new Preview UseCase and binds it
-- But doesn't reconnect Preview to PreviewView's surface provider
-- Camera is bound but has no display surface = frozen preview
-
-**Fixes Applied**:
-
-**Fix 1 - Disable Video in PiP Mode**:
-```kotlin
-private fun updateVideoButtonState() {
-    val currentMode = cameraEngine.getCurrentMode()
-    val isVideoAvailable = currentMode is CameraMode.Single
-
-    binding.videoRecordButton.apply {
-        isEnabled = isVideoAvailable
-        alpha = if (isVideoAvailable) 1.0f else 0.5f
-    }
-}
-```
-
-**Fix 2 - Request Audio Permission**:
-```kotlin
-// CameraSelectionActivity.kt
-private val requestPermissionsLauncher = registerForActivityResult(
-    ActivityResultContracts.RequestMultiplePermissions()
-) { permissions ->
-    val cameraGranted = permissions[Manifest.permission.CAMERA] ?: false
-    val audioGranted = permissions[Manifest.permission.RECORD_AUDIO] ?: false
-    // Handle both permissions
-}
-```
-
-**Fix 3 - Reconnect Preview After PiP Disable**:
-```kotlin
-// CameraActivityEngine.kt - toggleDualCameraPiP()
-if (!wasEnabled) {  // PiP was just disabled
-    lifecycleScope.launch(Dispatchers.Main) {
-        val preview = cameraEngine.getPreview()
-        preview?.setSurfaceProvider(binding.previewView.surfaceProvider)
-        Log.i(TAG, "Preview reconnected after disabling PiP")
-    }
-}
-```
-
-**Changes**:
-- ✅ Video button disabled (grayed out at 50% opacity) when PiP is active
-- ✅ Clear user message: "Video recording unavailable in PiP mode. Disable PiP to record video."
-- ✅ Added null check for VideoCapture before attempting recording
-- ✅ Button auto-enables when switching back to single camera mode
-- ✅ Both CAMERA and RECORD_AUDIO permissions now requested on app start
-- ✅ Permission check before enabling audio in video recording
-- ✅ Video records without audio if permission denied (with warning logged)
-- ✅ User feedback if microphone permission is denied
-- ✅ Preview reconnects to PreviewView when PiP is disabled
-- ✅ Camera preview no longer freezes after disabling PiP
-- ✅ Smooth transition between concurrent and single camera modes
-
-**Build Status**:
-- Build Time: 5s
-- Status: Production-ready
-- Test:
-  1. Uninstall app, reinstall to test permission prompts
-  2. Test video recording in single camera mode
-  3. Enable PiP → Disable PiP → Verify preview doesn't freeze
-
-## ✅ SESSION CONTINUED: Dual Camera Photo Capture Fix (2025-10-15)
-
-### ✅ Problem & Solution
-**User Report**: "dual camera capture failed"
-
-**Root Cause**:
-- YUV_420_888 to Bitmap conversion in DualCameraCompositor was incorrect
-- Did not handle row stride and pixel stride properly
-- Wrong plane order and incorrect NV21 format creation
-- UV planes were not properly interleaved
-
-**Fix Applied**:
-```kotlin
-// Correct YUV plane handling
-val yPlane = planes[0]  // Y
-val uPlane = planes[1]  // U
-val vPlane = planes[2]  // V
-
-// Handle stride-based copying
-if (uvPixelStride == 1) {
-    // Tightly packed - bulk copy
-    vBuffer.get(nv21, ySize, vSize)
-    uBuffer.get(nv21, ySize + vSize, uSize)
-} else {
-    // Interleaved - manual copy with stride
-    for (row/col in UV dimensions) {
-        nv21[nv21Index++] = vBuffer[vIndex]
-        nv21[nv21Index++] = uBuffer[uIndex]
-    }
-}
-```
-
-**Changes**:
-- ✅ Correct YUV_420_888 plane order (Y, U, V)
-- ✅ Proper row stride and pixel stride handling
-- ✅ Correct NV21 format (Y + interleaved VU)
-- ✅ Handles both tightly-packed and interleaved UV data
-- ✅ Added detailed stride logging for debugging
-- ✅ Dual camera composite photos now work correctly
-
-**Build**: 32s, production-ready
-
-## ✅ SESSION CONTINUED: Gesture Controls & UI Fixes (2025-10-15)
-
-### ✅ Three More Issues Fixed
-
-**Issue 1: Gesture Controls Off-By-One Error**
-- Gestures were triggering wrong features (2x was grid when it should be at tapCount 2, not 1)
-- **Fix**: Corrected tap count logic - now properly counts: 2=grid, 3=barcode, 4=crop, 5=scene, 6=object
-
-**Issue 2: "Tap Anywhere to Dismiss" Not Working**
-- GestureHintsOverlay showed message but had no touch listener
-- **Fix**: Added `setOnClickListener` to dismiss overlay on tap
-
-**Issue 3: Dual Camera Debug Logging**
-- Added comprehensive logging to YUV conversion for debugging
-- Buffer position resets, bounds checking, byte count logging
-- **Note**: Need device logs to diagnose further
-
-**Changes**:
-- ✅ Double tap (2x) → Grid overlay
-- ✅ Triple tap (3x) → Barcode scanning
-- ✅ Quadruple tap (4x) → Crop mode
-- ✅ Five tap (5x) → Smart scene detection
-- ✅ Six tap (6x) → Object detection
-- ✅ Gesture hints overlay dismisses on tap
-- ✅ Enhanced logging for dual camera debugging
-
-**Build**: 22s, production-ready
-
-## Next Session Priorities
-1. **Get Device Logs**: Need `adb logcat` output when dual camera capture fails
-2. **Device Testing**: Test gesture controls (2x/3x/4x taps)
-3. **Verify Dismiss**: Check that gesture hints overlay dismisses on tap
-4. **Test All Fixes**: Video recording, PiP toggle, dual camera capture
-3. **Test Dual Photo Capture**: Verify composite photos with PiP overlay work
-4. **Phase 9B**: Real-time video stabilization (hardware + software fallback)
-5. **Phase 9D**: Advanced UI polish (enhanced settings, animations, loading indicators)
-6. **Optional Cleanup**: Remove unused CameraActivity.kt (legacy)
-
-## Camera Selection Status
-✅ Camera selection system is working correctly with CameraActivityEngine. The Intent-based camera index passing is properly integrated with the plugin system initialization.
-
-## Session Workflow
-
-### Before Each Session
-1. **Check Master Task List**: `cat memory/todo.md` - Review critical issues and priorities
-2. **Review Current Status**: Check git log and current app state
-3. **Focus on P0 Issues**: Always tackle critical blockers first
-
-### During Development
-1. **Update Progress**: Mark completed tasks in `memory/todo.md`
-2. **Document Findings**: Add new issues/tasks as discovered
-3. **Test Frequently**: Build, install, and test changes immediately
-
-### Session End
-1. **Update todo.md**: Mark progress and add new tasks
+3. **Review master task list**: `cat memory/todo.md` - **CRITICAL: ALWAYS CHECK FIRST**
+4. Focus on highest priority P0 issues first
+
+### Development Cycle
+1. **Plan**: Update `memory/todo.md` with tasks
+2. **Code**: Make changes with proper error handling
+3. **Build**: `./build-and-install.sh`
+4. **Test**: Test on device with `adb logcat -d | grep "customcamera"`
+5. **Document**: Update `memory/todo.md` with progress
+6. **Commit**: Conventional commits with descriptive messages
+
+### Session End Protocol
+1. **Update Tasks**: Mark progress in `memory/todo.md`
 2. **Commit Changes**: Descriptive commit messages
-3. **Update Documentation**: Refresh this CLAUDE.md if needed
+3. **Update CLAUDE.md**: Only if major architecture changes (rare)
 
 ### Emergency Session Recovery
-If lost or confused, run:
+If lost or confused:
 ```bash
 cd ~/git/swype/CustomCamera
-cat CLAUDE.md && echo "====" && cat memory/todo.md | head -50
+cat memory/todo.md | head -50        # Current tasks and priorities
+cat docs/ARCHITECTURE.md | head -100  # System overview
+git status                           # Current git state
+git log --oneline -10                # Recent commits
 ```
 
+## Architecture Quick Reference
+
+### Primary Camera Activity
+`CameraActivityEngine.kt` - Full plugin system camera (PRIMARY)
+⚠️ `CameraActivity.kt` - DEPRECATED legacy camera (unused)
+
+### Data Flow
+```
+MainActivity → CameraSelectionActivity → CameraActivityEngine
+     ↓              ↓                             ↓
+Launch        Select camera index       Initialize CameraEngine
+                     ↓                             ↓
+              Pass via Intent           Register 20+ plugins
+              (EXTRA_CAMERA_INDEX)               ↓
+                                         Setup plugin lifecycle
+```
+
+### Core Systems
+- **CameraEngine**: Central camera coordinator
+- **PluginManager**: Plugin registration & lifecycle
+- **SettingsManager**: Reactive StateFlow settings
+- **PluginRegistry**: Single source of truth for plugins
+
+See `docs/ARCHITECTURE.md` for complete system design.
+
+## Key Function Reference
+
+### CameraActivityEngine.kt (Primary)
+- `onCreate()`: Activity initialization
+- `setupCamera()`: Camera engine initialization
+- `captureRegularPhoto()`: Photo capture (with dual camera support)
+- `toggleDualCameraPiP()`: Enable/disable PiP mode
+- `setupPinchToZoom()`: Zoom gesture handling
+- `setupGestureControls()`: Multi-tap gesture system
+
+### CameraEngine.kt
+- `initialize()`: Engine setup with plugin registration
+- `bindCamera()`: Camera binding with use cases
+- `switchToConcurrentMode()`: Enable dual camera PiP
+- `switchToSingleMode()`: Disable dual camera PiP
+- `cleanup()`: Resource cleanup and memory leak prevention
+
+### PluginManager.kt
+- `registerPlugin()`: Plugin registration
+- `processImage()`: Sequential image processing pipeline
+- `enablePlugin()` / `disablePlugin()`: Plugin lifecycle
+
+See `docs/ARCHITECTURE.md` for complete function reference.
+
+## Debugging Reference
+
+### Camera Issues
+```bash
+# Check logs for camera enumeration
+adb logcat -d | grep "Available cameras"
+
+# Verify intent passing
+adb logcat -d | grep "Intent extra value"
+
+# Trace camera binding
+adb logcat -d | grep "Camera bound successfully"
+
+# Monitor plugin execution
+adb logcat -d | grep "Plugin"
+```
+
+### Common Issues
+- **Camera not starting**: Check permissions, camera enumeration logs
+- **Gestures not working**: Verify tap count logic, check touch event logs
+- **PiP issues**: Check concurrent camera capability, UseCase limit (max 2 per camera)
+- **Video recording fails**: Check PiP mode (video disabled in PiP), audio permission
+
+## Spec-Driven Development
+
+### Adding New Features
+1. **Define Spec**: Create spec document in `docs/specs/`
+2. **Update Architecture**: Modify `docs/ARCHITECTURE.md` if needed
+3. **Plan Tasks**: Add to `memory/todo.md`
+4. **Implement**: Follow architecture patterns
+5. **Test**: Add tests to test infrastructure
+6. **Document**: Update relevant docs
+
+### Plugin Development Pattern
+1. **Create Provider**: Implement `PluginProvider` interface
+2. **Register**: Add to `PluginRegistry`
+3. **Implement Plugin**: Extend appropriate base class (UI/Processing/Control)
+4. **Configure Visibility**: Set `showInDropdown`, `showInSettings`
+5. **Add Tests**: Unit tests + integration tests
+6. **Document**: Add to architecture docs
+
+### Settings Addition Pattern
+1. **Define Setting**: Add to `SettingsManager` data class
+2. **Create UI**: Add to appropriate settings screen
+3. **Wire StateFlow**: Connect UI to reactive state
+4. **Persist**: Ensure SharedPreferences backing
+5. **Test**: Verify reactive updates work
+
+## Quality Standards
+
+### Code Quality Requirements
+- Modern Kotlin with proper null safety
+- ViewBinding throughout
+- Proper lifecycle management
+- Comprehensive error handling
+- Accessibility support
+- Material3 theming
+
+### Architecture Requirements
+- Clean separation of concerns
+- Provider Pattern for plugins
+- StateFlow reactive architecture
+- No circular dependencies
+- Proper dependency injection
+
+### Performance Requirements
+- Proper coroutine usage
+- Sequential plugin processing
+- Memory leak prevention (ImageProxy cleanup)
+- Battery optimization
+- Target 60fps for camera preview
+
+### Testing Requirements
+- Unit tests for new plugins
+- UI tests for new screens
+- Integration tests for new flows
+- Memory leak tests for new components
+
+## External Resources
+
+### GitHub Repository
+**URL**: https://github.com/tribixbite/CustomCamera
+**Releases**: https://github.com/tribixbite/CustomCamera/releases
+**CI/CD**: `.github/workflows/ci.yml` - 8-job workflow
+
+### Release Strategy
+- Automatic releases on main branch push
+- Version format: `v{MAJOR}.{MINOR}.{PATCH}-build{CODE}-{TIMESTAMP}`
+- Both debug and release APKs uploaded
+- Release notes include commit messages
+
 ---
-*Last Updated: 2025-10-10*
-*Current Status: UX improvements implemented, text visibility and build errors fixed*
-*Next Session: Integrate UX components into CameraActivityEngine or continue Phase 9 features*
-*Master Task List: memory/todo.md (ALWAYS CHECK FIRST)*
-## ✅ PROVIDER PATTERN REFACTORING COMPLETE (2025-10-17)
 
-### All 8 Phases Finished ✅
-
-**Status**: Provider Pattern refactoring successfully completed across all components
-**Total Time**: 16.0 hours over 3 days
-**Build Status**: Clean build in 9s with zero errors
-
-**Phase Summary**:
-1. ✅ Foundation & Interfaces (1.5h)
-2. ✅ Example Implementations (0.5h)
-3. ✅ Batch Migration - 18 plugins (0.5h)
-4. ✅ Registry & Engine Refactoring (2.0h)
-5. ✅ UI Updates & Testing (1.0h)
-6. ✅ RecyclerView Performance (3.0h)
-7. ✅ Icon Improvements (2.5h)
-8. ✅ UI/UX Modernization (5.0h)
-
-**Key Deliverables**:
-- ✅ 20 active plugins using Provider Pattern
-- ✅ Single source of truth (PluginRegistry)
-- ✅ Plugin visibility control (showInDropdown/showInSettings)
-- ✅ Modern Material3 UI/UX
-- ✅ Smart plugin dropdown filtering (15 plugins shown, 6 excluded)
-- ✅ No dual activation methods
-- ✅ Clean, maintainable architecture
-
-**Plugin Breakdown**:
-- **Dropdown Menu (15)**: GridOverlay, Barcode, Histogram, CameraInfo, ExposureAnalysis, MotionDetection, QRScanner, SharpnessAnalysis, SmartScene, SmartAdjustments, ObjectDetection, Crop, RAWCapture, AdvancedVideoRecording, HDR
-- **Excluded (6)**: NightMode, DualCameraPiP (dedicated buttons), AutoFocus, ExposureControl, ManualFocus, ProControls (always-active)
-
-**Documentation**:
-- Full refactoring plan: `memory/PROVIDER_PATTERN_REFACTORING.md`
-- Phase 8 summary: `PHASE8_SUMMARY.md`
-- All progress tracked and documented
-
----
-
+**Last Updated**: 2025-10-19
+**Current Focus**: See `memory/todo.md` for active development priorities
+**For Detailed History**: See `docs/SESSION_HISTORY.md`
+**For System Design**: See `docs/ARCHITECTURE.md`
