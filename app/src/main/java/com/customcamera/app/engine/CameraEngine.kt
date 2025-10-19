@@ -207,11 +207,56 @@ class CameraEngine(
                 *useCases.toTypedArray()
             )
 
-            // Log camera binding operation
+            // Log successful camera binding
             apiMonitor?.logCameraBinding(
                 cameraId = "camera_${config.cameraIndex}",
-                useCases = useCases
+                useCases = useCases,
+                success = true
             )
+
+            // Add camera state observer
+            camera?.cameraInfo?.cameraState?.observe(lifecycleOwner) { state ->
+                when (state.type) {
+                    androidx.camera.core.CameraState.Type.OPEN -> {
+                        apiMonitor?.logCameraState("camera_${config.cameraIndex}", "OPEN")
+                        Log.i(TAG, "✅ Camera OPEN - camera_${config.cameraIndex}")
+                    }
+                    androidx.camera.core.CameraState.Type.OPENING -> {
+                        apiMonitor?.logCameraState("camera_${config.cameraIndex}", "OPENING")
+                        Log.d(TAG, "⏳ Camera OPENING - camera_${config.cameraIndex}")
+                    }
+                    androidx.camera.core.CameraState.Type.CLOSING -> {
+                        apiMonitor?.logCameraState("camera_${config.cameraIndex}", "CLOSING")
+                        Log.d(TAG, "⏳ Camera CLOSING - camera_${config.cameraIndex}")
+                    }
+                    androidx.camera.core.CameraState.Type.CLOSED -> {
+                        apiMonitor?.logCameraState("camera_${config.cameraIndex}", "CLOSED")
+                        Log.i(TAG, "⏸️ Camera CLOSED - camera_${config.cameraIndex}")
+                    }
+                    else -> {
+                        Log.w(TAG, "Unknown camera state: ${state.type}")
+                    }
+                }
+
+                // Log any errors
+                state.error?.let { error ->
+                    val errorDetails = mapOf(
+                        "errorCode" to error.code,
+                        "errorType" to when (error.code) {
+                            androidx.camera.core.CameraState.ERROR_STREAM_CONFIG -> "STREAM_CONFIG"
+                            androidx.camera.core.CameraState.ERROR_CAMERA_IN_USE -> "CAMERA_IN_USE"
+                            androidx.camera.core.CameraState.ERROR_MAX_CAMERAS_IN_USE -> "MAX_CAMERAS_IN_USE"
+                            androidx.camera.core.CameraState.ERROR_OTHER_RECOVERABLE_ERROR -> "OTHER_RECOVERABLE"
+                            androidx.camera.core.CameraState.ERROR_CAMERA_DISABLED -> "CAMERA_DISABLED"
+                            androidx.camera.core.CameraState.ERROR_CAMERA_FATAL_ERROR -> "CAMERA_FATAL"
+                            androidx.camera.core.CameraState.ERROR_DO_NOT_DISTURB_MODE_ENABLED -> "DO_NOT_DISTURB"
+                            else -> "UNKNOWN"
+                        }
+                    )
+                    apiMonitor?.logCameraState("camera_${config.cameraIndex}", "ERROR", errorDetails)
+                    Log.e(TAG, "❌ Camera ERROR - camera_${config.cameraIndex}: ${errorDetails["errorType"]}, Code: ${error.code}")
+                }
+            }
 
             // Notify plugins that camera is ready
             pluginManager.onCameraReady(camera!!)
@@ -220,6 +265,15 @@ class CameraEngine(
             Result.success(camera!!)
 
         } catch (e: Exception) {
+            // Log failed camera binding with error details
+            apiMonitor?.logCameraBinding(
+                cameraId = "camera_${config.cameraIndex}",
+                useCases = emptyList(),
+                success = false,
+                error = "${e.javaClass.simpleName}: ${e.message}"
+            )
+            apiMonitor?.logError("camera_${config.cameraIndex}", "bindCamera", e)
+
             Log.e(TAG, "❌ Camera binding failed", e)
             Result.failure(e)
         }

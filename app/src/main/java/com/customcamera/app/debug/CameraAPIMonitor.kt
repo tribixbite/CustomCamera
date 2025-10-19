@@ -53,30 +53,40 @@ class CameraAPIMonitor(
     /**
      * Log camera binding operations
      */
-    fun logCameraBinding(cameraId: String, useCases: List<UseCase>) {
+    fun logCameraBinding(cameraId: String, useCases: List<UseCase>, success: Boolean = true, error: String? = null) {
         val startTime = System.currentTimeMillis()
 
-        val params = mapOf(
+        val params = mutableMapOf<String, Any>(
             "cameraId" to cameraId,
             "useCaseCount" to useCases.size,
             "useCases" to useCases.map { it.javaClass.simpleName }
         )
 
+        if (error != null) {
+            params["error"] = error
+        }
+
         val call = APICall(
             timestamp = startTime,
             method = "bindToLifecycle",
-            params = params
+            params = params,
+            success = success
         )
 
         addAPICall(call)
 
-        Log.i(TAG, "🔗 Camera binding - ID: $cameraId, UseCases: ${useCases.size}")
+        if (success) {
+            Log.i(TAG, "🔗 Camera binding SUCCESS - ID: $cameraId, UseCases: ${useCases.size}")
+        } else {
+            Log.e(TAG, "❌ Camera binding FAILED - ID: $cameraId, Error: $error")
+        }
 
         cameraContextRef.get()?.debugLogger?.logCameraBinding(
             cameraId,
             com.customcamera.app.engine.BindingResult(
-                success = true,
-                useCases = useCases.map { it.javaClass.simpleName }
+                success = success,
+                useCases = useCases.map { it.javaClass.simpleName },
+                error = error
             )
         )
     }
@@ -138,6 +148,123 @@ class CameraAPIMonitor(
             0L, // Duration tracked elsewhere
             mapOf("timestamp" to System.currentTimeMillis())
         )
+    }
+
+    /**
+     * Log preview surface provider state
+     */
+    fun logPreviewState(cameraId: String, state: String, details: Map<String, Any> = emptyMap()) {
+        val params = mutableMapOf<String, Any>(
+            "cameraId" to cameraId,
+            "state" to state
+        )
+        params.putAll(details)
+
+        val call = APICall(
+            timestamp = System.currentTimeMillis(),
+            method = "Preview.$state",
+            params = params,
+            success = state != "ERROR"
+        )
+
+        addAPICall(call)
+
+        Log.d(TAG, "📺 Preview.$state - Camera: $cameraId, Details: $details")
+
+        cameraContextRef.get()?.debugLogger?.logCameraAPI(
+            "Preview.$state",
+            params
+        )
+    }
+
+    /**
+     * Log camera state changes
+     */
+    fun logCameraState(cameraId: String, state: String, details: Map<String, Any> = emptyMap()) {
+        val params = mutableMapOf<String, Any>(
+            "cameraId" to cameraId,
+            "state" to state
+        )
+        params.putAll(details)
+
+        val call = APICall(
+            timestamp = System.currentTimeMillis(),
+            method = "CameraState.$state",
+            params = params,
+            success = state !in listOf("ERROR", "CLOSED")
+        )
+
+        addAPICall(call)
+
+        val emoji = when (state) {
+            "OPEN" -> "✅"
+            "CLOSED" -> "⏸️"
+            "OPENING" -> "⏳"
+            "CLOSING" -> "⏳"
+            "ERROR" -> "❌"
+            else -> "📸"
+        }
+
+        Log.i(TAG, "$emoji CameraState.$state - Camera: $cameraId, Details: $details")
+
+        cameraContextRef.get()?.debugLogger?.logCameraAPI(
+            "CameraState.$state",
+            params
+        )
+    }
+
+    /**
+     * Log camera errors
+     */
+    fun logError(cameraId: String, operation: String, error: Throwable) {
+        val params = mapOf(
+            "cameraId" to cameraId,
+            "operation" to operation,
+            "errorType" to error.javaClass.simpleName,
+            "errorMessage" to (error.message ?: "Unknown error"),
+            "stackTrace" to error.stackTrace.take(5).joinToString("\n") { "  at $it" }
+        )
+
+        val call = APICall(
+            timestamp = System.currentTimeMillis(),
+            method = "ERROR.$operation",
+            params = params,
+            success = false
+        )
+
+        addAPICall(call)
+
+        Log.e(TAG, "❌ Camera error in $operation - Camera: $cameraId", error)
+
+        cameraContextRef.get()?.debugLogger?.logError(
+            "Camera $operation failed",
+            error,
+            params
+        )
+    }
+
+    /**
+     * Log frame delivery
+     */
+    fun logFrameDelivery(cameraId: String, frameNumber: Int, timestamp: Long) {
+        // Only log every 30th frame to avoid spam
+        if (frameNumber % 30 == 0) {
+            val params = mapOf(
+                "cameraId" to cameraId,
+                "frameNumber" to frameNumber,
+                "timestamp" to timestamp
+            )
+
+            val call = APICall(
+                timestamp = System.currentTimeMillis(),
+                method = "frameDelivered",
+                params = params
+            )
+
+            addAPICall(call)
+
+            Log.v(TAG, "🎞️ Frame delivered - Camera: $cameraId, Frame: $frameNumber")
+        }
     }
 
     /**
