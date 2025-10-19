@@ -1,21 +1,31 @@
 package com.customcamera.app
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.MenuItem
 import android.widget.*
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.camera.core.CameraSelector
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.customcamera.app.databinding.ActivitySimpleSettingsRecyclerviewBinding
+import com.customcamera.app.engine.DebugLogger
 import com.customcamera.app.engine.SettingsManager
 import com.customcamera.app.engine.plugins.PluginCategory
 import com.customcamera.app.engine.plugins.PluginRegistry
 import com.customcamera.app.ui.settings.SettingsAdapter
 import com.customcamera.app.ui.settings.SettingsListItem
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 /**
  * Settings activity with RecyclerView for smooth scrolling performance
@@ -26,6 +36,7 @@ class SimpleSettingsActivity : AppCompatActivity() {
     private lateinit var settingsManager: SettingsManager
     private lateinit var pluginRegistry: PluginRegistry
     private lateinit var settingsAdapter: SettingsAdapter
+    private lateinit var debugLogger: DebugLogger
     private var availableCameras: List<Pair<Int, String>> = emptyList()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -47,6 +58,7 @@ class SimpleSettingsActivity : AppCompatActivity() {
         try {
             settingsManager = SettingsManager(this)
             pluginRegistry = PluginRegistry(this)
+            debugLogger = DebugLogger()
 
             // Setup RecyclerView
             setupRecyclerView()
@@ -513,36 +525,41 @@ class SimpleSettingsActivity : AppCompatActivity() {
     private fun showDebugLog() {
         lifecycleScope.launch {
             try {
-                // Get debug info from system
-                val logcatProcess = Runtime.getRuntime().exec("logcat -d -t 50 *:W")
-                val logOutput = logcatProcess.inputStream.bufferedReader().readText()
+                val logStats = debugLogger.getLogStats()
+                val recentEntries = debugLogger.getLogEntries(limit = 50)
 
                 val debugInfo = """
-                    === CustomCamera Debug Log ===
-                    Recent Warnings/Errors (last 50):
+                    === Debug Log Statistics ===
+                    Total entries: ${logStats.totalEntries}
+                    Level counts: ${logStats.levelCounts}
+                    Category counts: ${logStats.categoryCounts}
 
-                    $logOutput
+                    Time range:
+                    Oldest: ${logStats.oldestEntry?.let { formatTimestamp(it) } ?: "N/A"}
+                    Newest: ${logStats.newestEntry?.let { formatTimestamp(it) } ?: "N/A"}
 
-                    === Settings Info ===
-                    Photo Quality: ${settingsManager.photoQuality.value}
-                    Video Quality: ${settingsManager.getVideoQuality()}
-                    Debug Logging: ${settingsManager.debugLogging.value}
-                    RAW Capture: ${settingsManager.getRawCapture()}
+                    === Recent Entries (${recentEntries.size}) ===
+                    ${recentEntries.joinToString("\n") {
+                        "${formatTimestamp(it.timestamp)} [${it.level}] ${it.tag}: ${it.message}"
+                    }}
                 """.trimIndent()
 
-                Log.i(TAG, debugInfo)
+                Log.i(TAG, "Debug log info:\n$debugInfo")
 
-                // Show dialog with debug info
-                androidx.appcompat.app.AlertDialog.Builder(this@SimpleSettingsActivity)
+                AlertDialog.Builder(this@SimpleSettingsActivity)
                     .setTitle("Debug Log")
-                    .setMessage("Debug information logged to logcat.\n\nUse 'adb logcat -d | grep CustomCamera' to view full logs.")
-                    .setPositiveButton("OK", null)
-                    .setNeutralButton("Copy to Clipboard") { _, _ ->
-                        val clipboard = getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-                        val clip = android.content.ClipData.newPlainText("Debug Log", debugInfo)
+                    .setMessage("Total: ${logStats.totalEntries} entries\nShowing last ${recentEntries.size} entries\n\n" +
+                        "Level counts:\n${logStats.levelCounts.entries.joinToString("\n") { "  ${it.key}: ${it.value}" }}\n\n" +
+                        "Category counts:\n${logStats.categoryCounts.entries.filter { it.value > 0 }.joinToString("\n") { "  ${it.key}: ${it.value}" }}\n\n" +
+                        "Tap 'Copy Full Log' to get detailed entries.")
+                    .setPositiveButton("Copy Full Log") { _, _ ->
+                        val fullLog = debugLogger.exportDebugLog(includeDetails = true)
+                        val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                        val clip = ClipData.newPlainText("Debug Log", fullLog)
                         clipboard.setPrimaryClip(clip)
-                        Toast.makeText(this@SimpleSettingsActivity, "Debug log copied", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@SimpleSettingsActivity, "Full debug log copied to clipboard", Toast.LENGTH_SHORT).show()
                     }
+                    .setNegativeButton("Close", null)
                     .show()
 
             } catch (e: Exception) {
@@ -550,6 +567,10 @@ class SimpleSettingsActivity : AppCompatActivity() {
                 Toast.makeText(this@SimpleSettingsActivity, "Debug log error: ${e.message}", Toast.LENGTH_LONG).show()
             }
         }
+    }
+
+    private fun formatTimestamp(timestamp: Long): String {
+        return SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.getDefault()).format(Date(timestamp))
     }
 
     private fun showCameraSystemInfo() {
@@ -560,46 +581,81 @@ class SimpleSettingsActivity : AppCompatActivity() {
 
                 val cameraDetails = cameras.mapIndexed { index, cameraInfo ->
                     val facing = when (cameraInfo.lensFacing) {
-                        androidx.camera.core.CameraSelector.LENS_FACING_FRONT -> "Front"
-                        androidx.camera.core.CameraSelector.LENS_FACING_BACK -> "Back"
+                        CameraSelector.LENS_FACING_FRONT -> "Front"
+                        CameraSelector.LENS_FACING_BACK -> "Back"
                         else -> "External"
                     }
                     val hasFlash = try { cameraInfo.hasFlashUnit() } catch (e: Exception) { false }
                     val rotation = try { cameraInfo.sensorRotationDegrees } catch (e: Exception) { 0 }
+                    val minZoom = try { cameraInfo.zoomState.value?.minZoomRatio?.toString() ?: "N/A" } catch (e: Exception) { "N/A" }
+                    val maxZoom = try { cameraInfo.zoomState.value?.maxZoomRatio?.toString() ?: "N/A" } catch (e: Exception) { "N/A" }
+
+                    // Get exposure compensation range
+                    val exposureRange = try {
+                        val state = cameraInfo.exposureState
+                        "${state.exposureCompensationRange.lower} to ${state.exposureCompensationRange.upper} (step: ${state.exposureCompensationStep})"
+                    } catch (e: Exception) { "N/A" }
+
+                    // Get torch support
+                    val hasTorch = try { cameraInfo.hasFlashUnit() } catch (e: Exception) { false }
+
+                    // Get focus modes (requires Camera2CameraInfo)
+                    val focusModes = try {
+                        androidx.camera.camera2.interop.Camera2CameraInfo.from(cameraInfo)
+                        "Available"
+                    } catch (e: Exception) { "Unknown" }
 
                     """
                     Camera $index ($facing):
-                      Flash: ${if (hasFlash) "Yes" else "No"}
-                      Rotation: ${rotation}°
-                      Zoom: ${try { cameraInfo.zoomState.value?.minZoomRatio } catch (e: Exception) { "N/A" }} - ${try { cameraInfo.zoomState.value?.maxZoomRatio } catch (e: Exception) { "N/A" }}
+                      Flash Unit: ${if (hasFlash) "Yes" else "No"}
+                      Torch: ${if (hasTorch) "Yes" else "No"}
+                      Sensor Rotation: ${rotation}°
+                      Zoom Range: $minZoom - $maxZoom
+                      Exposure Compensation: $exposureRange
+                      Focus Modes: $focusModes
                     """.trimIndent()
                 }.joinToString("\n\n")
+
+                // Get enabled plugins count
+                val enabledPluginsCount = pluginRegistry.getSupportedProviders().count {
+                    settingsManager.isPluginEnabled(it.id)
+                }
 
                 val systemInfo = """
                     === Camera System Details ===
                     Total Cameras: ${cameras.size}
+                    Default Camera: ${settingsManager.defaultCameraIndex.value}
 
                     $cameraDetails
 
                     === Device Info ===
-                    Model: ${android.os.Build.MODEL}
-                    Android: ${android.os.Build.VERSION.RELEASE} (API ${android.os.Build.VERSION.SDK_INT})
+                    Manufacturer: ${Build.MANUFACTURER}
+                    Model: ${Build.MODEL}
+                    Device: ${Build.DEVICE}
+                    Android: ${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})
                     CameraX Version: 1.3.1
+
+                    === App Configuration ===
+                    Enabled Plugins: $enabledPluginsCount
+                    Photo Quality: ${settingsManager.photoQuality.value}%
+                    Video Quality: ${settingsManager.getVideoQuality()}
+                    Debug Logging: ${if (settingsManager.debugLogging.value) "Enabled" else "Disabled"}
+                    RAW Capture: ${if (settingsManager.getRawCapture()) "Enabled" else "Disabled"}
                 """.trimIndent()
 
                 Log.i(TAG, systemInfo)
 
-                // Show dialog
-                androidx.appcompat.app.AlertDialog.Builder(this@SimpleSettingsActivity)
+                // Show dialog with scrollable view for long content
+                AlertDialog.Builder(this@SimpleSettingsActivity)
                     .setTitle("Camera System Details")
                     .setMessage(systemInfo)
-                    .setPositiveButton("OK", null)
-                    .setNeutralButton("Copy to Clipboard") { _, _ ->
-                        val clipboard = getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-                        val clip = android.content.ClipData.newPlainText("Camera Info", systemInfo)
+                    .setPositiveButton("Copy to Clipboard") { _, _ ->
+                        val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                        val clip = ClipData.newPlainText("Camera Info", systemInfo)
                         clipboard.setPrimaryClip(clip)
-                        Toast.makeText(this@SimpleSettingsActivity, "Camera info copied", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@SimpleSettingsActivity, "Camera info copied to clipboard", Toast.LENGTH_SHORT).show()
                     }
+                    .setNegativeButton("Close", null)
                     .show()
 
             } catch (e: Exception) {
@@ -613,32 +669,36 @@ class SimpleSettingsActivity : AppCompatActivity() {
         lifecycleScope.launch {
             try {
                 val settings = settingsManager.exportSettings()
+                val debugData = debugLogger.exportDebugLog(includeDetails = false)
 
                 val exportData = """
                     === CustomCamera Settings Export ===
-                    Generated: ${java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault()).format(java.util.Date())}
+                    Generated: ${SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date())}
 
                     === Settings (${settings.size} items) ===
-                    ${settings.entries.joinToString("\n") { "${it.key} = ${it.value}" }}
+                    ${settings.entries.sortedBy { it.key }.joinToString("\n") { "${it.key} = ${it.value}" }}
 
-                    === Enabled Plugins ===
+                    === Enabled Plugins (${pluginRegistry.getSupportedProviders().count { settingsManager.isPluginEnabled(it.id) }}) ===
                     ${pluginRegistry.getSupportedProviders().filter {
                         settingsManager.isPluginEnabled(it.id)
                     }.joinToString("\n") { "• ${it.id}" }}
+
+                    === Recent Debug Log ===
+                    $debugData
                 """.trimIndent()
 
                 Log.i(TAG, "Settings exported:\n$exportData")
 
-                androidx.appcompat.app.AlertDialog.Builder(this@SimpleSettingsActivity)
+                AlertDialog.Builder(this@SimpleSettingsActivity)
                     .setTitle("Settings Exported")
-                    .setMessage("Settings exported to logcat.\n\nUse 'adb logcat -d | grep \"Settings exported\"' to view.")
-                    .setPositiveButton("OK", null)
-                    .setNeutralButton("Copy to Clipboard") { _, _ ->
-                        val clipboard = getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-                        val clip = android.content.ClipData.newPlainText("Settings", exportData)
+                    .setMessage("Settings, enabled plugins, and debug log exported.\n\nTap 'Copy to Clipboard' to copy all data.")
+                    .setPositiveButton("Copy to Clipboard") { _, _ ->
+                        val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                        val clip = ClipData.newPlainText("Settings Export", exportData)
                         clipboard.setPrimaryClip(clip)
-                        Toast.makeText(this@SimpleSettingsActivity, "Settings copied", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@SimpleSettingsActivity, "Export copied to clipboard", Toast.LENGTH_SHORT).show()
                     }
+                    .setNegativeButton("Close", null)
                     .show()
 
             } catch (e: Exception) {
