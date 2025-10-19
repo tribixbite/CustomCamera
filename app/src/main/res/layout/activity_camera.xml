@@ -103,14 +103,15 @@
         android:elevation="4dp"
         android:stateListAnimator="@animator/button_press_scale" />
 
-    <!-- Plugin Dropdown View (positioned below master button) -->
+    <!-- Plugin Dropdown View (positioned below master button with max height) -->
     <com.customcamera.app.ui.PluginDropdownView
         android:id="@+id/pluginDropdownView"
-        android:layout_width="300dp"
+        android:layout_width="320dp"
         android:layout_height="wrap_content"
-        android:layout_gravity="end"
-        android:layout_marginTop="240dp"
+        android:layout_gravity="end|top"
+        android:layout_marginTop="200dp"
         android:layout_marginEnd="12dp"
+        android:layout_marginBottom="100dp"
         android:elevation="8dp" />
 
     <!-- Bottom Controls (SOTA Modern Design) -->

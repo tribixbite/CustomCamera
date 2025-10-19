@@ -31,6 +31,8 @@ class PluginDropdownView @JvmOverloads constructor(
 
     private var isExpanded = false
     private val contentContainer: LinearLayout
+    private val scrollView: ScrollView
+    private val headerView: LinearLayout
     private val pluginItems = mutableListOf<View>()
 
     /**
@@ -38,11 +40,16 @@ class PluginDropdownView @JvmOverloads constructor(
      */
     var onPluginToggled: ((plugin: CameraPlugin, enabled: Boolean) -> Unit)? = null
 
+    /**
+     * Callback when close button is clicked
+     */
+    var onCloseClicked: (() -> Unit)? = null
+
     init {
         orientation = VERTICAL
 
-        // Create container for plugin items with Material3 card styling
-        contentContainer = LinearLayout(context).apply {
+        // Create outer container with header + scrollable content
+        val outerContainer = LinearLayout(context).apply {
             orientation = VERTICAL
             layoutParams = LayoutParams(
                 LayoutParams.MATCH_PARENT,
@@ -50,12 +57,6 @@ class PluginDropdownView @JvmOverloads constructor(
             )
             // Apply Material3-style background matching settings cards
             setBackgroundColor(Color.parseColor("#1E1E1E"))
-            setPadding(
-                dpToPx(12),
-                dpToPx(12),
-                dpToPx(12),
-                dpToPx(12)
-            )
             // Material3 elevation
             elevation = dpToPx(4).toFloat()
 
@@ -69,23 +70,102 @@ class PluginDropdownView @JvmOverloads constructor(
             scaleY = 0.9f // Start slightly scaled down for animation
         }
 
-        addView(contentContainer)
+        // Create header with title and close button
+        headerView = LinearLayout(context).apply {
+            orientation = HORIZONTAL
+            layoutParams = LayoutParams(
+                LayoutParams.MATCH_PARENT,
+                LayoutParams.WRAP_CONTENT
+            )
+            setPadding(dpToPx(16), dpToPx(12), dpToPx(12), dpToPx(12))
+            gravity = Gravity.CENTER_VERTICAL
+        }
+
+        // Header title
+        val titleView = TextView(context).apply {
+            text = "Plugins"
+            textSize = 16f
+            setTextColor(Color.WHITE)
+            typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.NORMAL)
+            layoutParams = LayoutParams(0, LayoutParams.WRAP_CONTENT, 1f)
+        }
+        headerView.addView(titleView)
+
+        // Close button
+        val closeButton = ImageButton(context).apply {
+            layoutParams = LayoutParams(dpToPx(32), dpToPx(32))
+            setImageResource(android.R.drawable.ic_menu_close_clear_cancel)
+            background = createRoundButtonBackground()
+            setColorFilter(Color.WHITE)
+            setPadding(dpToPx(6), dpToPx(6), dpToPx(6), dpToPx(6))
+            scaleType = ImageView.ScaleType.FIT_CENTER
+            setOnClickListener {
+                onCloseClicked?.invoke()
+                collapse()
+            }
+        }
+        headerView.addView(closeButton)
+
+        outerContainer.addView(headerView)
+
+        // Create ScrollView to prevent off-screen issues
+        scrollView = ScrollView(context).apply {
+            layoutParams = LayoutParams(
+                LayoutParams.MATCH_PARENT,
+                LayoutParams.WRAP_CONTENT
+            ).apply {
+                // Max height: 500dp or 60% of screen height (whichever is smaller)
+                val maxHeight = minOf(dpToPx(500), (context.resources.displayMetrics.heightPixels * 0.6).toInt())
+                height = maxHeight
+            }
+            isVerticalScrollBarEnabled = true
+        }
+
+        // Create container for plugin items (now inside ScrollView)
+        contentContainer = LinearLayout(context).apply {
+            orientation = VERTICAL
+            layoutParams = LayoutParams(
+                LayoutParams.MATCH_PARENT,
+                LayoutParams.WRAP_CONTENT
+            )
+            setPadding(
+                dpToPx(12),
+                dpToPx(8),
+                dpToPx(12),
+                dpToPx(12)
+            )
+        }
+
+        scrollView.addView(contentContainer)
+        outerContainer.addView(scrollView)
+
+        addView(outerContainer)
 
         // Set rounded corner background drawable
-        setCardBackground()
+        setCardBackground(outerContainer)
     }
 
     /**
      * Apply rounded corner background with stroke (Material3 card style)
      */
-    private fun setCardBackground() {
+    private fun setCardBackground(container: View) {
         val drawable = android.graphics.drawable.GradientDrawable().apply {
             shape = android.graphics.drawable.GradientDrawable.RECTANGLE
             cornerRadius = dpToPx(12).toFloat()
             setColor(Color.parseColor("#1E1E1E"))
             setStroke(dpToPx(1), Color.parseColor("#2A2A2A"))
         }
-        contentContainer.background = drawable
+        container.background = drawable
+    }
+
+    /**
+     * Create rounded background for close button
+     */
+    private fun createRoundButtonBackground(): android.graphics.drawable.Drawable {
+        return android.graphics.drawable.GradientDrawable().apply {
+            shape = android.graphics.drawable.GradientDrawable.OVAL
+            setColor(Color.parseColor("#333333"))
+        }
     }
 
     /**
@@ -290,10 +370,11 @@ class PluginDropdownView @JvmOverloads constructor(
         if (isExpanded) return
 
         isExpanded = true
-        contentContainer.visibility = VISIBLE
+        val outerContainer = getChildAt(0)
+        outerContainer.visibility = VISIBLE
 
         // Smooth expand animation: alpha + scale + slide
-        contentContainer.animate()
+        outerContainer.animate()
             .alpha(1f)
             .scaleY(1f)
             .translationY(0f)
@@ -309,16 +390,17 @@ class PluginDropdownView @JvmOverloads constructor(
         if (!isExpanded) return
 
         isExpanded = false
+        val outerContainer = getChildAt(0)
 
         // Smooth collapse animation: alpha + scale + slide
-        contentContainer.animate()
+        outerContainer.animate()
             .alpha(0f)
             .scaleY(0.9f)
             .translationY(-dpToPx(8).toFloat())
             .setDuration(200)
             .setInterpolator(android.view.animation.AccelerateInterpolator(1.2f))
             .withEndAction {
-                contentContainer.visibility = GONE
+                outerContainer.visibility = GONE
             }
             .start()
     }
