@@ -69,6 +69,58 @@ sealed class SettingsListItem {
     object SectionDivider : SettingsListItem()
 
     /**
+     * Switch/Toggle setting item (e.g., "Enable Grid Overlay")
+     */
+    data class SwitchItem(
+        val key: String,           // Settings key for persistence
+        val title: String,         // Display title
+        val description: String,   // Description/subtitle
+        val isChecked: Boolean     // Current state
+    ) : SettingsListItem()
+
+    /**
+     * Dropdown/Spinner setting item (e.g., "Photo Resolution")
+     */
+    data class DropdownItem(
+        val key: String,                               // Settings key
+        val title: String,                             // Display title
+        val description: String,                       // Description/subtitle
+        val options: List<Pair<String, String>>,      // (Display name, value) pairs
+        val currentValue: String                       // Currently selected value
+    ) : SettingsListItem()
+
+    /**
+     * Slider/SeekBar setting item (e.g., "Photo Quality: 1-100%")
+     */
+    data class SliderItem(
+        val key: String,           // Settings key
+        val title: String,         // Display title
+        val description: String,   // Description/subtitle
+        val min: Int,              // Minimum value
+        val max: Int,              // Maximum value
+        val currentValue: Int      // Current value
+    ) : SettingsListItem()
+
+    /**
+     * Info/Read-only display item (e.g., "App Version: 2.0.1")
+     */
+    data class InfoItem(
+        val key: String,           // Identifier
+        val title: String,         // Display title
+        val description: String,   // Description/subtitle
+        val value: String          // Current value (read-only)
+    ) : SettingsListItem()
+
+    /**
+     * Button/Action item (e.g., "Check for Updates")
+     */
+    data class ButtonItem(
+        val key: String,           // Action identifier
+        val title: String,         // Button text
+        val description: String    // Description/subtitle
+    ) : SettingsListItem()
+
+    /**
      * Companion object with view type constants
      */
     companion object {
@@ -76,6 +128,11 @@ sealed class SettingsListItem {
         const val VIEW_TYPE_CAMERA_ITEM = 1
         const val VIEW_TYPE_PLUGIN_ITEM = 2
         const val VIEW_TYPE_SECTION_DIVIDER = 3
+        const val VIEW_TYPE_SWITCH_ITEM = 4
+        const val VIEW_TYPE_DROPDOWN_ITEM = 5
+        const val VIEW_TYPE_SLIDER_ITEM = 6
+        const val VIEW_TYPE_INFO_ITEM = 7
+        const val VIEW_TYPE_BUTTON_ITEM = 8
     }
 }
 

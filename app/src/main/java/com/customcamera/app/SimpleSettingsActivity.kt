@@ -117,6 +117,18 @@ class SimpleSettingsActivity : AppCompatActivity() {
                     Toast.LENGTH_SHORT
                 ).show()
                 Log.i(TAG, "$pluginId plugin changed to: $isEnabled")
+            },
+            onSwitchToggled = { key, value ->
+                handleSwitchToggle(key, value)
+            },
+            onDropdownChanged = { key, value ->
+                handleDropdownChange(key, value)
+            },
+            onSliderChanged = { key, value ->
+                handleSliderChange(key, value)
+            },
+            onButtonClicked = { key ->
+                handleButtonClick(key)
             }
         )
 
@@ -151,6 +163,78 @@ class SimpleSettingsActivity : AppCompatActivity() {
 
                 items.add(SettingsListItem.SectionDivider)
             }
+
+            // Photo Settings Section
+            items.add(SettingsListItem.CategoryHeader("Photo Settings"))
+            items.add(SettingsListItem.SliderItem(
+                key = "photo_quality",
+                title = "Photo Quality",
+                description = "JPEG compression quality (1-100%)",
+                min = 1,
+                max = 100,
+                currentValue = settingsManager.photoQuality.value
+            ))
+            items.add(SettingsListItem.DropdownItem(
+                key = "photo_resolution",
+                title = "Photo Resolution",
+                description = "Resolution for captured photos",
+                options = listOf(
+                    "Auto" to "auto",
+                    "4K (4096×3072)" to "4k",
+                    "Full HD (1920×1080)" to "1080p",
+                    "HD (1280×720)" to "720p"
+                ),
+                currentValue = settingsManager.getPhotoResolution()
+            ))
+            items.add(SettingsListItem.SwitchItem(
+                key = "grid_overlay",
+                title = "Grid Overlay Default",
+                description = "Show composition grid by default on app start",
+                isChecked = settingsManager.gridOverlay.value
+            ))
+            items.add(SettingsListItem.SectionDivider)
+
+            // Video Settings Section
+            items.add(SettingsListItem.CategoryHeader("Video Settings"))
+            items.add(SettingsListItem.DropdownItem(
+                key = "video_quality",
+                title = "Video Quality",
+                description = "Resolution for video recording",
+                options = listOf(
+                    "4K UHD (3840×2160)" to "4k",
+                    "Full HD (1920×1080)" to "1080p",
+                    "HD (1280×720)" to "720p"
+                ),
+                currentValue = settingsManager.getVideoQuality()
+            ))
+            items.add(SettingsListItem.SwitchItem(
+                key = "video_stabilization",
+                title = "Video Stabilization",
+                description = "Enable electronic image stabilization",
+                isChecked = settingsManager.getVideoStabilization()
+            ))
+            items.add(SettingsListItem.SectionDivider)
+
+            // Focus Settings Section
+            items.add(SettingsListItem.CategoryHeader("Focus Settings"))
+            items.add(SettingsListItem.DropdownItem(
+                key = "auto_focus_mode",
+                title = "Auto Focus Mode",
+                description = "Default focus behavior",
+                options = listOf(
+                    "Continuous" to "continuous",
+                    "Single Shot" to "single",
+                    "Manual" to "manual"
+                ),
+                currentValue = settingsManager.getAutoFocusMode()
+            ))
+            items.add(SettingsListItem.SwitchItem(
+                key = "tap_to_focus",
+                title = "Tap to Focus",
+                description = "Enable tap-to-focus functionality",
+                isChecked = settingsManager.getTapToFocus()
+            ))
+            items.add(SettingsListItem.SectionDivider)
 
             // Plugin Settings grouped by category
             val pluginsByCategory = pluginRegistry.getPluginsByCategory()
@@ -194,6 +278,61 @@ class SimpleSettingsActivity : AppCompatActivity() {
                 items.add(SettingsListItem.SectionDivider)
             }
 
+            // Advanced Settings Section
+            items.add(SettingsListItem.CategoryHeader("Advanced Settings"))
+            items.add(SettingsListItem.SwitchItem(
+                key = "debug_logging",
+                title = "Debug Logging",
+                description = "Enable verbose logging for troubleshooting",
+                isChecked = settingsManager.debugLogging.value
+            ))
+            items.add(SettingsListItem.SwitchItem(
+                key = "performance_monitoring",
+                title = "Performance Monitoring",
+                description = "Track plugin performance metrics",
+                isChecked = settingsManager.getPerformanceMonitoring()
+            ))
+            items.add(SettingsListItem.SwitchItem(
+                key = "raw_capture",
+                title = "RAW Capture",
+                description = "Enable RAW photo format (if supported)",
+                isChecked = settingsManager.getRawCapture()
+            ))
+            items.add(SettingsListItem.SectionDivider)
+
+            // About Section
+            try {
+                val packageInfo = packageManager.getPackageInfo(packageName, 0)
+                val versionName = packageInfo.versionName ?: "Unknown"
+                val versionCode = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+                    packageInfo.longVersionCode.toString()
+                } else {
+                    @Suppress("DEPRECATION")
+                    packageInfo.versionCode.toString()
+                }
+
+                items.add(SettingsListItem.CategoryHeader("About CustomCamera"))
+                items.add(SettingsListItem.InfoItem(
+                    key = "app_version",
+                    title = "Version",
+                    description = "Current app version",
+                    value = versionName
+                ))
+                items.add(SettingsListItem.InfoItem(
+                    key = "app_build",
+                    title = "Build Code",
+                    description = "Internal build number",
+                    value = versionCode
+                ))
+                items.add(SettingsListItem.ButtonItem(
+                    key = "check_updates",
+                    title = "Check for Updates",
+                    description = "Check GitHub for latest version"
+                ))
+            } catch (e: Exception) {
+                Log.e(TAG, "Error getting package info", e)
+            }
+
             // Submit to adapter
             settingsAdapter.submitList(items)
 
@@ -212,6 +351,73 @@ class SimpleSettingsActivity : AppCompatActivity() {
                 true
             }
             else -> super.onOptionsItemSelected(item)
+        }
+    }
+
+    // ========================================================================
+    // Setting Handlers
+    // ========================================================================
+
+    private fun handleSwitchToggle(key: String, value: Boolean) {
+        when (key) {
+            "grid_overlay" -> settingsManager.setGridOverlay(value)
+            "tap_to_focus" -> settingsManager.setTapToFocus(value)
+            "video_stabilization" -> settingsManager.setVideoStabilization(value)
+            "debug_logging" -> settingsManager.setDebugLogging(value)
+            "performance_monitoring" -> settingsManager.setPerformanceMonitoring(value)
+            "raw_capture" -> settingsManager.setRawCapture(value)
+            "camera_info_overlay" -> settingsManager.setCameraInfoOverlay(value)
+            "histogram_overlay" -> settingsManager.setHistogramOverlay(value)
+            "exposure_lock" -> settingsManager.setPluginSetting("ExposureControl", "exposureLocked", value.toString())
+            "manual_controls_enabled" -> settingsManager.setPluginSetting("ProControls", "manualModeEnabled", value.toString())
+            else -> Log.w(TAG, "Unknown switch key: $key")
+        }
+        Toast.makeText(this, "Setting updated", Toast.LENGTH_SHORT).show()
+        Log.i(TAG, "Switch setting changed: $key = $value")
+    }
+
+    private fun handleDropdownChange(key: String, value: String) {
+        when (key) {
+            "photo_resolution" -> settingsManager.setPhotoResolution(value)
+            "video_quality" -> settingsManager.setVideoQuality(value)
+            "auto_focus_mode" -> settingsManager.setAutoFocusMode(value)
+            "grid_type" -> settingsManager.setPluginSetting("GridOverlay", "gridType", value)
+            else -> Log.w(TAG, "Unknown dropdown key: $key")
+        }
+        Toast.makeText(this, "Setting updated", Toast.LENGTH_SHORT).show()
+        Log.i(TAG, "Dropdown setting changed: $key = $value")
+    }
+
+    private fun handleSliderChange(key: String, value: Int) {
+        when (key) {
+            "photo_quality" -> settingsManager.setPhotoQuality(value)
+            "default_exposure" -> settingsManager.setPluginSetting("ExposureControl", "exposureIndex", value.toString())
+            "processing_interval" -> settingsManager.setPluginSetting("CameraInfo", "processingInterval", value.toString())
+            else -> Log.w(TAG, "Unknown slider key: $key")
+        }
+        Toast.makeText(this, "Setting updated", Toast.LENGTH_SHORT).show()
+        Log.i(TAG, "Slider setting changed: $key = $value")
+    }
+
+    private fun handleButtonClick(key: String) {
+        when (key) {
+            "check_updates" -> openGitHubReleases()
+            else -> {
+                Log.w(TAG, "Unknown button key: $key")
+                Toast.makeText(this, "Feature not yet implemented", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun openGitHubReleases() {
+        try {
+            val intent = android.content.Intent(android.content.Intent.ACTION_VIEW).apply {
+                data = android.net.Uri.parse("https://github.com/tribixbite/CustomCamera/releases")
+            }
+            startActivity(intent)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to open GitHub releases", e)
+            Toast.makeText(this, "Could not open browser", Toast.LENGTH_SHORT).show()
         }
     }
 
