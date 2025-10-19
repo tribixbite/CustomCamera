@@ -338,8 +338,12 @@ class CameraActivityEngine : AppCompatActivity() {
                 val preview = cameraEngine.getPreview()
                 preview?.setSurfaceProvider(binding.previewView.surfaceProvider)
 
-                // Configure autofocus plugin with preview
-                autoFocusPlugin!!.setPreviewView(binding.previewView)
+                // Configure autofocus plugin with preview (with null check)
+                if (autoFocusPlugin != null) {
+                    autoFocusPlugin!!.setPreviewView(binding.previewView)
+                } else {
+                    Log.w(TAG, "⚠️ AutoFocus plugin not initialized, skipping preview setup")
+                }
 
                 // Initialize Camera2 controller for manual controls
                 initializeCamera2Controller()
@@ -1992,18 +1996,26 @@ class CameraActivityEngine : AppCompatActivity() {
             // Get the plugin overlay container
             val overlayContainer = binding.pluginOverlayContainer
 
-            // Create and add grid overlay UI
-            val gridView: View? = gridOverlayPlugin!!.createUIView(cameraContext)
-            if (gridView != null) {
-                overlayContainer.addView(gridView)
-                Log.i(TAG, "Added grid overlay to UI container")
+            // Create and add grid overlay UI (with null check)
+            if (gridOverlayPlugin != null) {
+                val gridView: View? = gridOverlayPlugin!!.createUIView(cameraContext)
+                if (gridView != null) {
+                    overlayContainer.addView(gridView)
+                    Log.i(TAG, "Added grid overlay to UI container")
+                }
+            } else {
+                Log.w(TAG, "⚠️ Grid overlay plugin not initialized, skipping UI setup")
             }
 
-            // Create and add crop overlay UI
-            val cropView: View? = cropPlugin!!.createUIView(cameraContext)
-            if (cropView != null) {
-                overlayContainer.addView(cropView)
-                Log.i(TAG, "Added crop overlay to UI container")
+            // Create and add crop overlay UI (with null check)
+            if (cropPlugin != null) {
+                val cropView: View? = cropPlugin!!.createUIView(cameraContext)
+                if (cropView != null) {
+                    overlayContainer.addView(cropView)
+                    Log.i(TAG, "Added crop overlay to UI container")
+                }
+            } else {
+                Log.w(TAG, "⚠️ Crop plugin not initialized, skipping UI setup")
             }
 
             // Barcode is ProcessingPlugin, not UIPlugin - doesn't have visual overlay
@@ -2026,15 +2038,19 @@ class CameraActivityEngine : AppCompatActivity() {
         try {
             val settingsManager = com.customcamera.app.engine.SettingsManager(this)
 
-            // Update grid overlay visibility based on setting
-            val gridEnabled = settingsManager.isPluginEnabled("GridOverlay")
-            if (gridEnabled != gridOverlayPlugin!!.isGridVisible()) {
-                if (gridEnabled) {
-                    gridOverlayPlugin!!.showGrid()
-                } else {
-                    gridOverlayPlugin!!.hideGrid()
+            // Update grid overlay visibility based on setting (with null check)
+            if (gridOverlayPlugin != null) {
+                val gridEnabled = settingsManager.isPluginEnabled("GridOverlay")
+                if (gridEnabled != gridOverlayPlugin!!.isGridVisible()) {
+                    if (gridEnabled) {
+                        gridOverlayPlugin!!.showGrid()
+                    } else {
+                        gridOverlayPlugin!!.hideGrid()
+                    }
+                    Log.i(TAG, "Grid overlay updated from settings: $gridEnabled")
                 }
-                Log.i(TAG, "Grid overlay updated from settings: $gridEnabled")
+            } else {
+                Log.w(TAG, "⚠️ Grid overlay plugin not initialized, skipping settings update")
             }
 
             // Update barcode scanning state from settings

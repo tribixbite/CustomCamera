@@ -440,7 +440,15 @@ class DualCameraPiPPlugin : UIPlugin() {
     private fun disablePiPMode() {
         Log.i(TAG, "Disabling PiP mode...")
         removePiPOverlay()
-        cameraContext?.cameraEngine?.switchToSingleMode()
+
+        // Only switch to single mode if NOT in cleanup phase
+        // During cleanup, the lifecycle is already destroyed
+        try {
+            cameraContext?.cameraEngine?.switchToSingleMode()
+        } catch (e: IllegalArgumentException) {
+            // Lifecycle already destroyed during cleanup - this is expected
+            Log.d(TAG, "Skipping switchToSingleMode during cleanup (lifecycle destroyed)")
+        }
 
         cameraContext?.debugLogger?.logPlugin(
             name,

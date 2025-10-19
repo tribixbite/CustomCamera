@@ -130,7 +130,7 @@ class SettingsAdapter(
         private val icon: ImageView = view.findViewById(R.id.plugin_icon)
         private val name: TextView = view.findViewById(R.id.plugin_name)
         private val description: TextView = view.findViewById(R.id.plugin_description)
-        private val toggle: Switch = view.findViewById(R.id.plugin_toggle)
+        private val toggle: com.google.android.material.switchmaterial.SwitchMaterial = view.findViewById(R.id.plugin_toggle)
 
         fun bind(item: SettingsListItem.PluginItem, onToggled: (String, Boolean) -> Unit) {
             icon.setImageResource(item.iconResId)
