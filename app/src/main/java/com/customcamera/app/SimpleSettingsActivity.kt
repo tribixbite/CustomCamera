@@ -397,6 +397,30 @@ class SimpleSettingsActivity : AppCompatActivity() {
             ))
             items.add(SettingsListItem.SectionDivider)
 
+            // Plugin Browser & Management Section
+            items.add(SettingsListItem.CategoryHeader("Plugin Browser & Management"))
+            items.add(SettingsListItem.ButtonItem(
+                key = "browse_plugins",
+                title = "Browse Available Plugins",
+                description = "View and install plugins from the plugin store"
+            ))
+            items.add(SettingsListItem.ButtonItem(
+                key = "import_plugin",
+                title = "Import Plugin",
+                description = "Import plugin from file (.apk or .jar)"
+            ))
+            items.add(SettingsListItem.ButtonItem(
+                key = "export_plugin_config",
+                title = "Export Plugin Configuration",
+                description = "Export current plugin settings and list"
+            ))
+            items.add(SettingsListItem.ButtonItem(
+                key = "manage_plugins",
+                title = "Manage Installed Plugins",
+                description = "View, update, or remove installed plugins"
+            ))
+            items.add(SettingsListItem.SectionDivider)
+
             // About Section
             try {
                 val packageInfo = packageManager.getPackageInfo(packageName, 0)
@@ -503,6 +527,11 @@ class SimpleSettingsActivity : AppCompatActivity() {
             "show_camera_info" -> showCameraSystemInfo()
             "export_settings" -> exportSettings()
             "reset_settings" -> resetSettings()
+            // Plugin management buttons
+            "browse_plugins" -> launchPluginBrowser()
+            "import_plugin" -> launchPluginImporter()
+            "export_plugin_config" -> exportPluginConfiguration()
+            "manage_plugins" -> launchPluginManager()
             else -> {
                 Log.w(TAG, "Unknown button key: $key")
                 Toast.makeText(this, "Feature not yet implemented", Toast.LENGTH_SHORT).show()
@@ -731,6 +760,171 @@ class SimpleSettingsActivity : AppCompatActivity() {
                 }
             }
             .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun launchPluginBrowser() {
+        lifecycleScope.launch {
+            try {
+                // Mock plugin store with available plugins
+                val availablePlugins = listOf(
+                    "Pro Focus Plugin v2.1" to "Advanced autofocus with AI tracking",
+                    "HDR+ Plugin v1.5" to "Multi-frame HDR processing",
+                    "Night Vision Plugin v1.3" to "Enhanced low-light photography",
+                    "Portrait Mode Plugin v2.0" to "AI-powered background blur",
+                    "Timelapse Pro Plugin v1.7" to "Advanced timelapse features",
+                    "ML Enhance Plugin v1.2" to "Machine learning image enhancement"
+                )
+
+                val pluginNames = availablePlugins.map { "${it.first}\n${it.second}" }.toTypedArray()
+
+                AlertDialog.Builder(this@SimpleSettingsActivity)
+                    .setTitle("Available Plugins")
+                    .setItems(pluginNames) { _, which ->
+                        val selectedPlugin = availablePlugins[which]
+                        Toast.makeText(
+                            this@SimpleSettingsActivity,
+                            "Selected: ${selectedPlugin.first}",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        debugLogger.logInfo("Plugin browser: selected ${selectedPlugin.first}", emptyMap(), "Settings")
+                    }
+                    .setNegativeButton("Close", null)
+                    .show()
+
+                Log.i(TAG, "Plugin browser opened")
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to open plugin browser", e)
+                Toast.makeText(this@SimpleSettingsActivity, "Plugin browser error: ${e.message}", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    private fun launchPluginImporter() {
+        lifecycleScope.launch {
+            try {
+                // Create file picker for plugin import
+                val intent = android.content.Intent(android.content.Intent.ACTION_GET_CONTENT).apply {
+                    type = "*/*"
+                    addCategory(android.content.Intent.CATEGORY_OPENABLE)
+                    putExtra(android.content.Intent.EXTRA_MIME_TYPES, arrayOf(
+                        "application/vnd.android.package-archive",
+                        "application/java-archive"
+                    ))
+                }
+
+                try {
+                    startActivity(android.content.Intent.createChooser(intent, "Select Plugin File"))
+                    Toast.makeText(this@SimpleSettingsActivity, "Select .apk or .jar plugin file", Toast.LENGTH_LONG).show()
+                } catch (e: Exception) {
+                    // Fallback: Show manual instruction
+                    AlertDialog.Builder(this@SimpleSettingsActivity)
+                        .setTitle("Import Plugin")
+                        .setMessage("To import a plugin:\n\n1. Place plugin file (.apk or .jar) in Downloads folder\n2. Plugins will be scanned automatically\n3. Enable in Plugin Settings section\n\nSupported formats:\n• .apk (Android Plugin)\n• .jar (Java Plugin)")
+                        .setPositiveButton("OK", null)
+                        .show()
+                }
+
+                debugLogger.logInfo("Plugin importer opened", emptyMap(), "Settings")
+                Log.i(TAG, "Plugin importer launched")
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to launch plugin importer", e)
+                Toast.makeText(this@SimpleSettingsActivity, "Import error: ${e.message}", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    private fun exportPluginConfiguration() {
+        lifecycleScope.launch {
+            try {
+                val enabledPlugins = pluginRegistry.getSupportedProviders()
+                    .filter { settingsManager.isPluginEnabled(it.id) }
+
+                val exportData = """
+                    === Plugin Configuration Export ===
+                    Generated: ${SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date())}
+
+                    Total Plugins: ${pluginRegistry.getSupportedProviders().size}
+                    Enabled Plugins: ${enabledPlugins.size}
+
+                    === Enabled Plugins ===
+                    ${enabledPlugins.joinToString("\n") { provider ->
+                        "• ${provider.id} (${provider.category})"
+                    }}
+
+                    === All Plugins ===
+                    ${pluginRegistry.getSupportedProviders().joinToString("\n") { provider ->
+                        val status = if (settingsManager.isPluginEnabled(provider.id)) "✓" else "○"
+                        "$status ${provider.id} - ${provider.category}"
+                    }}
+                """.trimIndent()
+
+                Log.i(TAG, "Plugin configuration exported:\n$exportData")
+
+                AlertDialog.Builder(this@SimpleSettingsActivity)
+                    .setTitle("Plugin Configuration Exported")
+                    .setMessage("Plugin configuration exported.\n\nTotal: ${pluginRegistry.getSupportedProviders().size} plugins\nEnabled: ${enabledPlugins.size} plugins")
+                    .setPositiveButton("Copy to Clipboard") { _, _ ->
+                        val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                        val clip = ClipData.newPlainText("Plugin Config", exportData)
+                        clipboard.setPrimaryClip(clip)
+                        Toast.makeText(this@SimpleSettingsActivity, "Plugin configuration copied", Toast.LENGTH_SHORT).show()
+                    }
+                    .setNegativeButton("Close", null)
+                    .show()
+
+                debugLogger.logInfo("Plugin configuration exported", mapOf("enabled" to enabledPlugins.size), "Settings")
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to export plugin configuration", e)
+                Toast.makeText(this@SimpleSettingsActivity, "Export failed: ${e.message}", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    private fun launchPluginManager() {
+        lifecycleScope.launch {
+            try {
+                val installedPlugins = pluginRegistry.getSupportedProviders()
+
+                val pluginInfo = installedPlugins.map { provider ->
+                    val enabled = settingsManager.isPluginEnabled(provider.id)
+                    val status = if (enabled) "✓ Enabled" else "○ Disabled"
+                    "${provider.id} - $status"
+                }.toTypedArray()
+
+                AlertDialog.Builder(this@SimpleSettingsActivity)
+                    .setTitle("Installed Plugins (${installedPlugins.size})")
+                    .setItems(pluginInfo) { _, which ->
+                        val plugin = installedPlugins[which]
+                        showPluginDetailsDialog(plugin)
+                    }
+                    .setNegativeButton("Close", null)
+                    .show()
+
+                Log.i(TAG, "Plugin manager opened")
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to open plugin manager", e)
+                Toast.makeText(this@SimpleSettingsActivity, "Plugin manager error: ${e.message}", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    private fun showPluginDetailsDialog(provider: com.customcamera.app.engine.plugins.PluginProvider) {
+        val isEnabled = settingsManager.isPluginEnabled(provider.id)
+
+        val details = """
+            Plugin ID: ${provider.id}
+            Status: ${if (isEnabled) "✓ Enabled" else "○ Disabled"}
+            Category: ${provider.category}
+            User Toggleable: ${if (provider.userToggleable) "Yes" else "No"}
+
+            To toggle this plugin, use the Plugin Settings section in the main settings list.
+        """.trimIndent()
+
+        AlertDialog.Builder(this)
+            .setTitle(provider.id)
+            .setMessage(details)
+            .setPositiveButton("OK", null)
             .show()
     }
 
