@@ -3,7 +3,7 @@
 ## Testing Requirements
 Each setting requires **2 tests minimum**:
 1. **Manual functional test** - Verify UI behavior works correctly
-2. **Automated unit test** - Verify persistence and state management
+2. **Automated instrumented test** - Verify persistence on real device (requires SharedPreferences)
 
 ## Settings Inventory (18 functional settings)
 
@@ -217,21 +217,42 @@ Create test files in `app/src/test/java/com/customcamera/app/settings/`:
 9. `AdvancedSettingsTest.kt` - Debug, performance, interval, RAW tests
 10. `PluginPersistenceTest.kt` - All 22 plugin enable/disable tests
 
-### Test Template
+### Instrumented Test Template (androidTest directory)
 ```kotlin
-@Test
-fun testSettingNamePersistence() {
-    // Set value
-    settingsManager.setSettingName(testValue)
+@RunWith(AndroidJUnit4::class)
+class SettingsInstrumentedTest {
 
-    // Verify StateFlow updated
-    assertEquals(testValue, settingsManager.settingName.value)
+    private lateinit var context: Context
+    private lateinit var settingsManager: SettingsManager
+    private lateinit var preferences: SharedPreferences
 
-    // Verify SharedPreferences persisted
-    val preferences = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
-    assertEquals(testValue, preferences.getType("KEY_SETTING_NAME", defaultValue))
+    @Before
+    fun setup() {
+        context = ApplicationProvider.getApplicationContext()
+        settingsManager = SettingsManager(context)
+        preferences = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
+        preferences.edit().clear().apply() // Clear before each test
+    }
+
+    @Test
+    fun testSettingNamePersistence() = runBlocking {
+        // Set value
+        settingsManager.setSettingName(testValue)
+
+        // Verify StateFlow updated
+        assertEquals(testValue, settingsManager.settingName.first())
+
+        // Verify SharedPreferences persisted
+        assertEquals(testValue, preferences.getType("KEY_SETTING_NAME", defaultValue))
+
+        // Simulate app restart
+        val newSettingsManager = SettingsManager(context)
+        assertEquals(testValue, newSettingsManager.settingName.first())
+    }
 }
 ```
+
+**Important**: Place instrumented tests in `app/src/androidTest/java/` directory, not `app/src/test/java/`.
 
 ---
 

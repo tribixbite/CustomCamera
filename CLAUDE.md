@@ -10,7 +10,8 @@ Modern Kotlin camera app with Samsung/Google-style floating UI, robust camera se
 ## Quick Navigation
 
 ### Essential Documentation
-- **Task Management**: `memory/todo.md` - **ALWAYS CHECK FIRST**
+- **🔥 ACTIVE TODOS**: `memory/ACTIVE_TODOS.md` - **CHECK FIRST FOR CURRENT WORK**
+- **Task Management**: `memory/todo.md` - Historical task tracking
 - **Architecture**: `docs/ARCHITECTURE.md` - System design, directory structure, data flows
 - **Session History**: `docs/SESSION_HISTORY.md` - Completed work and implementation details
 - **Build Guide**: See "Build Commands" section below
