@@ -232,8 +232,8 @@ Settings → Debug & System Info → View API Call Log
 5. Settings require INSTRUMENTED tests on device (SharedPreferences dependency)
 
 **Open Questions**:
-1. Is MotionDetectionPlugin continuous monitoring or motion-triggered capture?
-2. Is CropPlugin a persistent frame or pre-shot crop setup?
+1. ✅ MotionDetectionPlugin: CONFIRMED continuous monitoring (toggle OK)
+2. ✅ CropPlugin: CONFIRMED persistent frame (toggle OK)
 3. Is DualCameraPiPPlugin toggle redundant with dedicated PiP button?
 4. Should BarcodePlugin and QRScannerPlugin be action buttons?
 
