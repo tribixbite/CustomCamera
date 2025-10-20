@@ -24,6 +24,8 @@ Modern Kotlin camera app with Samsung/Google-style floating UI, robust camera se
 - **UX Improvements**: `memory/UX_IMPROVEMENTS.md`
 - **PiP Implementation**: `memory/PIP.md`
 - **Test Documentation**: `app/src/test/README_TESTS.md`
+- **Settings Testing**: `memory/SETTINGS_TESTING_CHECKLIST.md` - **CHECK FOR MANUAL TESTING**
+- **Plugin UI Audit**: `memory/PLUGIN_UI_AUDIT.md` - Toggle vs Action button analysis
 
 ## Build Commands
 
