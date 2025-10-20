@@ -149,8 +149,8 @@ class DiagnosticOverlay @JvmOverloads constructor(
 
         // Log event
         logEvent("$stateIcon Camera $cameraId: ${state.type.name}")
-        if (state.error != null) {
-            logEvent("  ❌ Error: ${state.error.code}")
+        state.error?.let { error ->
+            logEvent("  ❌ Error: ${error.code}")
         }
     }
 

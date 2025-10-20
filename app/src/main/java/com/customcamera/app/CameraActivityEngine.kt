@@ -1913,6 +1913,20 @@ class CameraActivityEngine : AppCompatActivity() {
 
             if (settingsDefaultCamera != cameraIndex) {
                 Log.i(TAG, "Camera selection changed in settings: $cameraIndex → $settingsDefaultCamera")
+
+                // TRUE ROOT CAUSE FIX: Don't switch camera if it's already in the process of opening
+                // This prevents rapid sequential camera binds that cause cameras to close immediately
+                val currentCameraState = cameraEngine.getCurrentCameraState()
+                if (currentCameraState != null &&
+                    (currentCameraState == androidx.camera.core.CameraState.Type.OPENING ||
+                     currentCameraState == androidx.camera.core.CameraState.Type.PENDING_OPEN)) {
+                    Log.w(TAG, "⚠️ Camera is currently opening (state=$currentCameraState), deferring switch to $settingsDefaultCamera")
+                    Log.w(TAG, "   This prevents premature camera closure. Switch will occur on next resume.")
+                    // Update cameraIndex so next resume won't trigger another switch attempt
+                    cameraIndex = settingsDefaultCamera
+                    return
+                }
+
                 cameraIndex = settingsDefaultCamera
 
                 // Reinitialize camera with new index

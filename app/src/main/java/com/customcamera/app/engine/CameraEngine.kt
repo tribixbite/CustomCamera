@@ -388,6 +388,14 @@ class CameraEngine(
     fun getCurrentCameraSelector(): CameraSelector? = currentCameraSelector
 
     /**
+     * Get current camera state (CLOSED, OPENING, OPEN, etc.)
+     * Used to prevent premature camera switches during initialization
+     */
+    fun getCurrentCameraState(): androidx.camera.core.CameraState.Type? {
+        return camera?.cameraInfo?.cameraState?.value?.type
+    }
+
+    /**
      * Get plugin by name
      */
     fun getPlugin(name: String): CameraPlugin? = pluginManager.getPlugin(name)
