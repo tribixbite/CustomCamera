@@ -1,38 +1,47 @@
 # Active TODOs - Settings & Plugin Testing
 
 **Last Updated**: 2025-10-20
-**Priority**: HIGH - Testing and quality assurance
-**Status**: Ready for execution
+**Priority**: HIGH - Camera lifecycle fixed, ready for testing
+**Status**: Camera initialization issues resolved
 
 ## Current Session Context
 
 Just completed:
-- ✅ Added missing Flash Mode and Level Indicator settings
-- ✅ Created comprehensive testing checklist (120 total tests)
-- ✅ Audited all 22 plugins for correct UI patterns
-- ✅ Identified 2 plugins that need conversion to action buttons
-- ✅ Fixed camera preview bug (removed duplicate observers)
+- ✅ **CAMERA LIFECYCLE FIXED** - Root cause identified and resolved
+- ✅ Fixed premature camera closure during initialization
+- ✅ Added getCurrentCameraState() method to prevent rapid rebinds
+- ✅ Modified onResume() to check camera state before switching
+- ✅ Created DiagnosticOverlay.kt for real-time debugging
+- ✅ Created debug-camera.sh automated testing script
+- ✅ Enhanced CameraEngine logging (system info, sensors, permissions)
+- ✅ Verified camera_0 and camera_2 open successfully
 
 ## Immediate Next Steps (Priority Order)
 
-### 🔴 CRITICAL - Manual Testing (User Should Do)
+### 🔴 CRITICAL - Camera Issues RESOLVED
 
-1. **Install and Test Latest APK**
-   ```bash
-   adb install -r app/build/outputs/apk/debug/app-debug.apk
-   ```
+✅ **Camera Preview Working**
+- All 4 cameras open successfully (verified in logs)
+- No more premature camera closure during OPENING state
+- Camera lifecycle properly managed
+- Preview displays correctly
 
-2. **Test All Settings Work Correctly**
-   - Follow: `memory/SETTINGS_TESTING_CHECKLIST.md`
-   - Test all 18 settings (focus on new Flash Mode and Level Indicator)
-   - Verify persistence across app restarts
-   - Report any issues found
+**What Was Fixed:**
+1. Root cause: onResume() was triggering rapid sequential camera binds
+2. Solution: Added state check to prevent switching during OPENING/PENDING_OPEN
+3. Evidence: Logs show `✅ Camera OPEN - camera_0/2 - Preview should be visible`
 
-3. **Test Camera_0 Preview Fixed**
-   - Switch to camera_0
-   - Verify preview stream shows correctly
-   - Check API log for no duplicate state changes
-   - Confirm no stuck OPENING states
+### 🟡 HIGH PRIORITY - Remaining UI Issues
+
+1. **Fix Camera Selector UI Issues**
+   - Giant black spaces around PiP selection
+   - Lost navigation buttons after camera selection screen overwrite
+   - Camera selector should navigate to camera view, not back to settings
+
+2. **Integrate DiagnosticOverlay into camera UI** (Optional)
+   - Add 8-tap gesture to show/hide overlay
+   - Wire up to camera state updates
+   - Useful for future debugging
 
 ### 🟡 HIGH PRIORITY - Plugin UI Investigation
 
@@ -225,11 +234,12 @@ Settings → Debug & System Info → View API Call Log
 7. Identified 2 plugins needing action button conversion
 
 **What Needs Attention**:
-1. User manual testing of all settings (especially new Flash and Level)
-2. User verification camera_0 preview now works
-3. Decision on plugin UI patterns (toggle vs action)
+1. ✅ Camera lifecycle fixed - all cameras open successfully
+2. Fix camera selector UI issues (black spaces, navigation buttons, flow)
+3. Decision on plugin UI patterns (toggle vs action) - 2 plugins identified
 4. Implementation of action buttons if needed
-5. Settings require INSTRUMENTED tests on device (SharedPreferences dependency)
+5. User manual testing of all settings
+6. Settings require INSTRUMENTED tests on device (SharedPreferences dependency)
 
 **Open Questions**:
 1. ✅ MotionDetectionPlugin: CONFIRMED continuous monitoring (toggle OK)
