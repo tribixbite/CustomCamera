@@ -280,6 +280,18 @@ class SimpleSettingsActivity : AppCompatActivity() {
                 description = "Show composition grid by default on app start",
                 isChecked = settingsManager.gridOverlay.value
             ))
+            items.add(SettingsListItem.DropdownItem(
+                key = "flash_mode",
+                title = "Flash Mode",
+                description = "Default flash behavior",
+                options = listOf(
+                    "Auto" to "auto",
+                    "On" to "on",
+                    "Off" to "off",
+                    "Torch" to "torch"
+                ),
+                currentValue = settingsManager.flashMode.value
+            ))
             items.add(SettingsListItem.SectionDivider)
 
             // Video Settings Section
@@ -392,6 +404,12 @@ class SimpleSettingsActivity : AppCompatActivity() {
                 title = "Histogram Overlay",
                 description = "Show exposure histogram",
                 isChecked = settingsManager.getHistogramOverlay()
+            ))
+            items.add(SettingsListItem.SwitchItem(
+                key = "level_indicator",
+                title = "Level Indicator",
+                description = "Show horizon level indicator for straight shots",
+                isChecked = settingsManager.getLevelIndicator()
             ))
             items.add(SettingsListItem.SectionDivider)
 
@@ -580,6 +598,7 @@ class SimpleSettingsActivity : AppCompatActivity() {
             "raw_capture" -> settingsManager.setRawCapture(value)
             "camera_info_overlay" -> settingsManager.setCameraInfoOverlay(value)
             "histogram_overlay" -> settingsManager.setHistogramOverlay(value)
+            "level_indicator" -> settingsManager.setLevelIndicator(value)
             "exposure_lock" -> settingsManager.setPluginSetting("ExposureControl", "exposureLocked", value.toString())
             "manual_controls_enabled" -> settingsManager.setPluginSetting("ProControls", "manualModeEnabled", value.toString())
             else -> Log.w(TAG, "Unknown switch key: $key")
@@ -593,6 +612,7 @@ class SimpleSettingsActivity : AppCompatActivity() {
             "photo_resolution" -> settingsManager.setPhotoResolution(value)
             "video_quality" -> settingsManager.setVideoQuality(value)
             "auto_focus_mode" -> settingsManager.setAutoFocusMode(value)
+            "flash_mode" -> settingsManager.setFlashMode(value)
             "grid_type" -> settingsManager.setPluginSetting("GridOverlay", "gridType", value)
             else -> Log.w(TAG, "Unknown dropdown key: $key")
         }
