@@ -63,17 +63,15 @@
 
 #### 3. MotionDetectionPlugin
 - **Current**: Toggle in dropdown
-- **Question**: Is this continuous motion monitoring or motion-triggered capture?
-- **If Continuous**: Keep as toggle (monitors motion and highlights)
-- **If One-Shot**: Convert to action button ("Capture on Motion")
-- **Decision Needed**: Check plugin implementation
+- **Investigation Result**: ✅ CONTINUOUS monitoring (processes frames continuously, tracks motion history, generates predictions)
+- **Decision**: ✅ **KEEP AS TOGGLE** - Correct implementation
+- **Evidence**: Maintains motionHistory (100 frames), tracks currentMotionLevel/stillnessDuration continuously, provides real-time motion analysis
 
 #### 4. CropPlugin
 - **Current**: Toggle in dropdown
-- **Question**: Is this persistent crop frame or pre-capture crop setup?
-- **If Persistent Frame**: Keep as toggle (shows crop frame continuously)
-- **If Pre-Shot Setup**: Convert to action button ("Set Crop Area")
-- **Decision Needed**: Check plugin implementation
+- **Investigation Result**: ✅ PERSISTENT crop frame overlay (shows interactive crop area continuously)
+- **Decision**: ✅ **KEEP AS TOGGLE** - Correct implementation
+- **Evidence**: Creates persistent CropOverlayView, isCropEnabled boolean controls continuous display, crop settings persist across camera switches
 
 #### 5. DualCameraPiPPlugin
 - **Current**: Toggle in dropdown + dedicated PiP button in camera UI
@@ -153,13 +151,14 @@ fun stopAction() {
 ## Summary
 
 - **22 total plugins**
-- **17 correctly implemented as toggles** ✅
+- **19 correctly implemented as toggles** ✅ (includes Motion and Crop after investigation)
 - **2 should definitely be actions** ❌ (Barcode, QRScanner)
-- **3 need investigation** ⚠️ (Motion, Crop, PiP toggle)
+- **1 needs investigation** ⚠️ (DualCameraPiP toggle redundancy)
 
 **Next Steps**:
-1. Investigate the 3 questionable plugins
-2. Implement action buttons for Barcode and QRScanner
-3. Update plugin provider interfaces
-4. Add dedicated action buttons to camera UI
-5. Write tests for new action button behaviors
+1. ✅ Investigate Motion and Crop plugins (confirmed as toggles)
+2. Investigate DualCameraPiPPlugin toggle redundancy
+3. Implement action buttons for Barcode and QRScanner (if user confirms)
+4. Update plugin provider interfaces
+5. Add dedicated action buttons to camera UI
+6. Write tests for new action button behaviors
