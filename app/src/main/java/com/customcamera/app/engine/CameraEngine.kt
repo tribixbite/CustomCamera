@@ -71,7 +71,18 @@ class CameraEngine(
      */
     suspend fun initialize(): Result<Unit> {
         return try {
-            Log.i(TAG, "Initializing CameraEngine...")
+            Log.i(TAG, "========================================")
+            Log.i(TAG, "🚀 Initializing CameraEngine...")
+            Log.i(TAG, "========================================")
+
+            // Log device and system information
+            logSystemInfo()
+
+            // Log all available sensors (important for Samsung AI Manager detection)
+            logAvailableSensors()
+
+            // Log permissions status
+            logPermissionsStatus()
 
             val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
             cameraProvider = cameraProviderFuture.get()
@@ -79,7 +90,17 @@ class CameraEngine(
             // Detect available cameras
             val cameras = cameraProvider?.availableCameraInfos ?: emptyList()
             _availableCameras.value = cameras
-            Log.i(TAG, "Found ${cameras.size} available cameras")
+            Log.i(TAG, "📷 Found ${cameras.size} available cameras")
+
+            // Log detailed camera info
+            cameras.forEachIndexed { index, cameraInfo ->
+                val lensFacing = when (cameraInfo.lensFacing) {
+                    CameraSelector.LENS_FACING_BACK -> "BACK"
+                    CameraSelector.LENS_FACING_FRONT -> "FRONT"
+                    else -> "UNKNOWN"
+                }
+                Log.i(TAG, "   Camera $index: $lensFacing - $cameraInfo")
+            }
 
             // Create API monitor for debugging
             this.apiMonitor = com.customcamera.app.debug.CameraAPIMonitor(
@@ -222,7 +243,7 @@ class CameraEngine(
                     state.type.name,
                     mapOf("atBindTime" to true)
                 )
-                Log.i(TAG, "Camera initial state: ${state.type.name}")
+                Log.i(TAG, "📸 Camera initial state: ${state.type.name}")
 
                 // Log any errors present at bind time
                 state.error?.let { error ->
@@ -242,6 +263,58 @@ class CameraEngine(
                     )
                     apiMonitor?.logCameraState("camera_${config.cameraIndex}", "ERROR", errorDetails)
                     Log.e(TAG, "❌ Camera ERROR at bind time - camera_${config.cameraIndex}: ${errorDetails["errorType"]}, Code: ${error.code}")
+                }
+            }
+
+            // Observe camera state changes to track CLOSED → OPEN transition
+            camera?.cameraInfo?.cameraState?.observe(lifecycleOwner) { state ->
+                val stateDetails = mutableMapOf<String, Any>(
+                    "stateType" to state.type.name,
+                    "timestamp" to System.currentTimeMillis()
+                )
+
+                Log.i(TAG, "🔄 Camera state changed: ${state.type.name} for camera_${config.cameraIndex}")
+
+                state.error?.let { error ->
+                    val errorType = when (error.code) {
+                        androidx.camera.core.CameraState.ERROR_STREAM_CONFIG -> "STREAM_CONFIG"
+                        androidx.camera.core.CameraState.ERROR_CAMERA_IN_USE -> "CAMERA_IN_USE"
+                        androidx.camera.core.CameraState.ERROR_MAX_CAMERAS_IN_USE -> "MAX_CAMERAS_IN_USE"
+                        androidx.camera.core.CameraState.ERROR_OTHER_RECOVERABLE_ERROR -> "OTHER_RECOVERABLE"
+                        androidx.camera.core.CameraState.ERROR_CAMERA_DISABLED -> "CAMERA_DISABLED"
+                        androidx.camera.core.CameraState.ERROR_CAMERA_FATAL_ERROR -> "CAMERA_FATAL"
+                        androidx.camera.core.CameraState.ERROR_DO_NOT_DISTURB_MODE_ENABLED -> "DO_NOT_DISTURB"
+                        else -> "UNKNOWN"
+                    }
+                    stateDetails["errorCode"] = error.code
+                    stateDetails["errorType"] = errorType
+                    stateDetails["errorCause"] = error.cause?.toString() ?: "no cause"
+
+                    Log.e(TAG, "❌ Camera ERROR: $errorType (code=${error.code}) - camera_${config.cameraIndex}")
+                    Log.e(TAG, "   Error cause: ${error.cause}")
+
+                    apiMonitor?.logCameraState("camera_${config.cameraIndex}", "ERROR", stateDetails)
+                } ?: run {
+                    // No error, just state change
+                    apiMonitor?.logCameraState("camera_${config.cameraIndex}", state.type.name, stateDetails)
+
+                    when (state.type) {
+                        androidx.camera.core.CameraState.Type.PENDING_OPEN -> {
+                            Log.i(TAG, "⏳ Camera PENDING_OPEN - camera_${config.cameraIndex}")
+                        }
+                        androidx.camera.core.CameraState.Type.OPENING -> {
+                            Log.i(TAG, "🔓 Camera OPENING - camera_${config.cameraIndex}")
+                        }
+                        androidx.camera.core.CameraState.Type.OPEN -> {
+                            Log.i(TAG, "✅ Camera OPEN - camera_${config.cameraIndex} - Preview should be visible")
+                        }
+                        androidx.camera.core.CameraState.Type.CLOSING -> {
+                            Log.i(TAG, "🔒 Camera CLOSING - camera_${config.cameraIndex}")
+                        }
+                        androidx.camera.core.CameraState.Type.CLOSED -> {
+                            Log.w(TAG, "⚠️ Camera CLOSED - camera_${config.cameraIndex} - This may indicate camera startup failure")
+                        }
+                    }
                 }
             }
 
@@ -698,6 +771,75 @@ class CameraEngine(
         }
 
         return useCases
+    }
+
+    /**
+     * Log comprehensive system information for debugging
+     */
+    private fun logSystemInfo() {
+        Log.i(TAG, "📱 Device: ${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL}")
+        Log.i(TAG, "   Android: ${android.os.Build.VERSION.RELEASE} (SDK ${android.os.Build.VERSION.SDK_INT})")
+        Log.i(TAG, "   Build: ${android.os.Build.DISPLAY}")
+    }
+
+    /**
+     * Log all available sensors (critical for Samsung AI Manager issues)
+     */
+    private fun logAvailableSensors() {
+        val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as? android.hardware.SensorManager
+        if (sensorManager == null) {
+            Log.e(TAG, "❌ SensorManager not available!")
+            return
+        }
+
+        val allSensors = sensorManager.getSensorList(android.hardware.Sensor.TYPE_ALL)
+        Log.i(TAG, "🔬 Available sensors: ${allSensors.size} total")
+
+        // Check for critical sensors
+        val magnetometer = sensorManager.getDefaultSensor(android.hardware.Sensor.TYPE_MAGNETIC_FIELD)
+        val accelerometer = sensorManager.getDefaultSensor(android.hardware.Sensor.TYPE_ACCELEROMETER)
+        val gyroscope = sensorManager.getDefaultSensor(android.hardware.Sensor.TYPE_GYROSCOPE)
+
+        Log.i(TAG, "   Magnetometer: ${if (magnetometer != null) "✅ Available (${magnetometer.name})" else "❌ NOT AVAILABLE - May cause Samsung AI Manager issues!"}")
+        Log.i(TAG, "   Accelerometer: ${if (accelerometer != null) "✅ Available (${accelerometer.name})" else "❌ NOT AVAILABLE"}")
+        Log.i(TAG, "   Gyroscope: ${if (gyroscope != null) "✅ Available (${gyroscope.name})" else "⚠️ Not available"}")
+
+        // List all sensors for complete diagnosis
+        allSensors.forEach { sensor ->
+            Log.d(TAG, "      - ${sensor.name} (type=${sensor.type}, vendor=${sensor.vendor})")
+        }
+    }
+
+    /**
+     * Log permissions status
+     */
+    private fun logPermissionsStatus() {
+        val cameraPermission = androidx.core.content.ContextCompat.checkSelfPermission(
+            context,
+            android.Manifest.permission.CAMERA
+        ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+
+        val audioPermission = androidx.core.content.ContextCompat.checkSelfPermission(
+            context,
+            android.Manifest.permission.RECORD_AUDIO
+        ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+
+        val storagePermission = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            androidx.core.content.ContextCompat.checkSelfPermission(
+                context,
+                android.Manifest.permission.READ_MEDIA_IMAGES
+            ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+        } else {
+            androidx.core.content.ContextCompat.checkSelfPermission(
+                context,
+                android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+            ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+        }
+
+        Log.i(TAG, "🔐 Permissions:")
+        Log.i(TAG, "   Camera: ${if (cameraPermission) "✅ Granted" else "❌ DENIED - Camera will not work!"}")
+        Log.i(TAG, "   Audio: ${if (audioPermission) "✅ Granted" else "⚠️ Denied (video recording disabled)"}")
+        Log.i(TAG, "   Storage: ${if (storagePermission) "✅ Granted" else "⚠️ Denied (save may fail)"}")
     }
 
     companion object {
