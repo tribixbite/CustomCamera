@@ -25,7 +25,7 @@ import com.customcamera.app.R
  * - Action buttons
  */
 class SettingsAdapter(
-    private val onCameraSelected: (Int) -> Unit,
+    private val onCameraSelected: (cameraIndex: Int, isPipCamera: Boolean) -> Unit,
     private val onPluginToggled: (String, Boolean) -> Unit,
     private val onSwitchToggled: (String, Boolean) -> Unit = { _, _ -> },
     private val onDropdownChanged: (String, String) -> Unit = { _, _ -> },
@@ -143,16 +143,16 @@ class SettingsAdapter(
         private val radioButton: RadioButton = view.findViewById(R.id.camera_radio)
         private val cameraName: TextView = view.findViewById(R.id.camera_name)
 
-        fun bind(item: SettingsListItem.CameraItem, onSelected: (Int) -> Unit) {
+        fun bind(item: SettingsListItem.CameraItem, onSelected: (Int, Boolean) -> Unit) {
             cameraName.text = item.cameraName
             radioButton.isChecked = item.isSelected
 
             itemView.setOnClickListener {
-                onSelected(item.cameraIndex)
+                onSelected(item.cameraIndex, item.isPipCamera)
             }
 
             radioButton.setOnClickListener {
-                onSelected(item.cameraIndex)
+                onSelected(item.cameraIndex, item.isPipCamera)
             }
         }
     }

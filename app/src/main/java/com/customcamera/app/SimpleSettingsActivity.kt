@@ -140,14 +140,30 @@ class SimpleSettingsActivity : AppCompatActivity() {
     private fun setupRecyclerView() {
         // Create adapter with callbacks
         settingsAdapter = SettingsAdapter(
-            onCameraSelected = { cameraIndex ->
-                settingsManager.setDefaultCameraIndex(cameraIndex)
-                Toast.makeText(
-                    this,
-                    "Main camera set to: ${availableCameras.getOrNull(cameraIndex)?.second ?: "Camera $cameraIndex"}",
-                    Toast.LENGTH_SHORT
-                ).show()
-                Log.i(TAG, "Main camera changed to index: $cameraIndex")
+            onCameraSelected = { cameraIndex, isPipCamera ->
+                if (isPipCamera) {
+                    // PiP camera selection
+                    settingsManager.setPipCameraIndex(cameraIndex)
+                    Toast.makeText(
+                        this,
+                        "PiP camera set to: ${availableCameras.getOrNull(cameraIndex)?.second ?: "Camera $cameraIndex"}",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    Log.i(TAG, "PiP camera changed to index: $cameraIndex")
+                    // Rebuild list to update selection state
+                    buildAndSubmitSettingsList()
+                } else {
+                    // Main camera selection
+                    settingsManager.setDefaultCameraIndex(cameraIndex)
+                    Toast.makeText(
+                        this,
+                        "Main camera set to: ${availableCameras.getOrNull(cameraIndex)?.second ?: "Camera $cameraIndex"}",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    Log.i(TAG, "Main camera changed to index: $cameraIndex")
+                    // Rebuild list to update selection state
+                    buildAndSubmitSettingsList()
+                }
             },
             onPluginToggled = { pluginId, isEnabled ->
                 settingsManager.setPluginEnabled(pluginId, isEnabled)
@@ -192,9 +208,9 @@ class SimpleSettingsActivity : AppCompatActivity() {
         try {
             val items = mutableListOf<SettingsListItem>()
 
-            // Camera Selection Section
+            // Main Camera Selection Section
             if (availableCameras.isNotEmpty()) {
-                items.add(SettingsListItem.CategoryHeader("Camera Selection"))
+                items.add(SettingsListItem.CategoryHeader("Main Camera Selection"))
 
                 val selectedCameraIndex = settingsManager.defaultCameraIndex.value
                 availableCameras.forEach { (index, name) ->
@@ -203,6 +219,32 @@ class SimpleSettingsActivity : AppCompatActivity() {
                             cameraIndex = index,
                             cameraName = name,
                             isSelected = index == selectedCameraIndex
+                        )
+                    )
+                }
+
+                items.add(SettingsListItem.SectionDivider)
+            }
+
+            // Dual Camera PiP Settings Section
+            if (availableCameras.size >= 2) {
+                items.add(SettingsListItem.CategoryHeader("Dual Camera (PiP) Settings"))
+
+                items.add(SettingsListItem.InfoItem(
+                    key = "pip_camera_info",
+                    title = "PiP Camera Selection",
+                    description = "Select the camera to use for Picture-in-Picture mode",
+                    value = "Front camera recommended for PiP when main is back camera"
+                ))
+
+                val selectedPipCameraIndex = settingsManager.pipCameraIndex.value
+                availableCameras.forEach { (index, name) ->
+                    items.add(
+                        SettingsListItem.CameraItem(
+                            cameraIndex = index,
+                            cameraName = "$name (PiP)",
+                            isSelected = index == selectedPipCameraIndex,
+                            isPipCamera = true  // Mark as PiP camera item
                         )
                     )
                 }

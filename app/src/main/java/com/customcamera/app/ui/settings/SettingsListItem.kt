@@ -27,7 +27,8 @@ sealed class SettingsListItem {
     data class CameraItem(
         val cameraIndex: Int,
         val cameraName: String,
-        val isSelected: Boolean
+        val isSelected: Boolean,
+        val isPipCamera: Boolean = false  // True for PiP camera selection, false for main camera
     ) : SettingsListItem()
 
     /**
