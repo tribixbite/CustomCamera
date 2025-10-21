@@ -5,17 +5,19 @@
 Comprehensive automated test system for the CustomCamera application, covering unit tests, integration tests, performance tests, and plugin-specific testing.
 
 **Test Statistics:**
-- **175+ automated tests** across multiple categories
+- **209+ automated tests** across multiple categories
 - **158 settings tests** covering all SettingsManager functionality
-- **17 plugin tests** (DiagnosticOverlayPlugin)
+- **34 plugin persistence tests** for all 23 plugins
+- **17 plugin lifecycle tests** (DiagnosticOverlayPlugin)
 - Full StateFlow reactivity testing
 - Comprehensive persistence verification
 - Stress tests and edge case coverage
 
 **Test Coverage:**
-- ✅ Plugin lifecycle and processing
+- ✅ Plugin lifecycle and processing (51 tests)
 - ✅ Camera engine integration
 - ✅ Settings reactive architecture (158 tests)
+- ✅ Plugin persistence (34 tests)
 - ✅ Performance benchmarks
 - ✅ Concurrency testing
 - ✅ Edge case handling
@@ -95,6 +97,20 @@ Coverage:
 - Edge cases (empty strings, special chars, long strings)
 - Settings independence
 - Concurrent modification safety
+
+**PluginPersistenceTest** (`engine/PluginPersistenceTest.kt`) - 34 comprehensive tests
+- **Individual Plugin Tests** (22 tests) - Enable/disable persistence for all 23 plugins
+- **Plugin State Tests** (5 tests) - Default states, all plugins, mixed states, independence
+- **Plugin Settings Tests** (5 tests) - Settings isolation, defaults, empty strings
+- **Stress Tests** (3 tests) - Rapid changes, many settings, recreation persistence
+
+Coverage:
+- Enable/disable state persistence for all plugins
+- Plugin-specific settings isolation
+- Default enabled state verification (true)
+- Persistence across SettingsManager instances
+- Concurrent plugin configurations
+- Settings key isolation between plugins
 
 ### Integration Tests
 
