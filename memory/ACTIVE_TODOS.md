@@ -1,47 +1,56 @@
 # Active TODOs - Settings & Plugin Testing
 
-**Last Updated**: 2025-10-20
-**Priority**: HIGH - Camera lifecycle fixed, ready for testing
-**Status**: Camera initialization issues resolved
+**Last Updated**: 2025-10-21
+**Priority**: MEDIUM - Core camera issues resolved, forensics complete
+**Status**: Camera working, diagnostic tools integrated, ready for feature work
 
 ## Current Session Context
 
 Just completed:
-- ✅ **CAMERA LIFECYCLE FIXED** - Root cause identified and resolved
+- ✅ **CAMERA SYSTEM-WIDE FIX** - Identified Bixby Vision Framework dependency
+- ✅ **FORENSIC ANALYSIS** - Root cause: OIS driver requires DL interface libraries
 - ✅ Fixed premature camera closure during initialization
 - ✅ Added getCurrentCameraState() method to prevent rapid rebinds
-- ✅ Modified onResume() to check camera state before switching
 - ✅ Created DiagnosticOverlay.kt for real-time debugging
+- ✅ **INTEGRATED DiagnosticOverlay** - 8-tap gesture to show/hide overlay
+- ✅ Wired diagnostic overlay to camera state updates
 - ✅ Created debug-camera.sh automated testing script
 - ✅ Enhanced CameraEngine logging (system info, sensors, permissions)
-- ✅ Verified camera_0 and camera_2 open successfully
+- ✅ Documented camera fix in CAMERA_FIX_FORENSICS.md
+- ✅ All 4 cameras verified working system-wide
 
 ## Immediate Next Steps (Priority Order)
 
-### 🔴 CRITICAL - Camera Issues RESOLVED
+### ✅ CAMERA ISSUES RESOLVED
 
-✅ **Camera Preview Working**
-- All 4 cameras open successfully (verified in logs)
-- No more premature camera closure during OPENING state
-- Camera lifecycle properly managed
-- Preview displays correctly
+**System-Wide Camera Fix:**
+- Enabled `com.samsung.android.bixbyvision.framework` (provides OIS libraries)
+- Enabled `com.samsung.android.bixby.agent` (supporting AI services)
+- All 4 cameras now working in all apps
 
-**What Was Fixed:**
-1. Root cause: onResume() was triggering rapid sequential camera binds
-2. Solution: Added state check to prevent switching during OPENING/PENDING_OPEN
-3. Evidence: Logs show `✅ Camera OPEN - camera_0/2 - Preview should be visible`
+**App-Specific Camera Lifecycle Fix:**
+- Added getCurrentCameraState() check to prevent rapid rebinds
+- Modified onResume() to check camera state before switching
+- Cameras now properly transition CLOSED → OPENING → OPEN
 
-### 🟡 HIGH PRIORITY - Remaining UI Issues
+**Diagnostic Tools Created:**
+- DiagnosticOverlay integrated with 8-tap gesture toggle
+- debug-camera.sh automated testing script
+- Enhanced logging in CameraEngine
+- CAMERA_FIX_FORENSICS.md documentation
 
-1. **Fix Camera Selector UI Issues**
-   - Giant black spaces around PiP selection
-   - Lost navigation buttons after camera selection screen overwrite
-   - Camera selector should navigate to camera view, not back to settings
+### 🟡 HIGH PRIORITY - Feature Testing & Polish
 
-2. **Integrate DiagnosticOverlay into camera UI** (Optional)
-   - Add 8-tap gesture to show/hide overlay
-   - Wire up to camera state updates
-   - Useful for future debugging
+1. **Test DiagnosticOverlay Integration**
+   - Install latest APK
+   - Test 8-tap gesture to show/hide overlay
+   - Verify camera state, sensor info, permissions display correctly
+   - Check event log shows camera lifecycle events
+
+2. **Camera Selector UI Review** (if issues exist)
+   - Check for black spaces around UI elements
+   - Verify navigation buttons work correctly
+   - Confirm navigation flows to camera view
 
 ### 🟡 HIGH PRIORITY - Plugin UI Investigation
 
