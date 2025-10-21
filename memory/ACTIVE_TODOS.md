@@ -241,9 +241,11 @@ Settings → Debug & System Info → View API Call Log
 2. ✅ **DiagnosticOverlay Plugin** - Moved from 8-tap gesture to plugin dropdown (23 plugins total)
 3. ✅ Created CAMERA_FIX_FORENSICS.md documentation
 4. ✅ Added DEBUG plugin category
-5. Previous session: Found and fixed camera_0 preview bug (duplicate observers)
-6. Previous session: Added Flash Mode and Level Indicator settings
-7. Previous session: Created 120-test comprehensive testing framework
+5. ✅ **Plugin UI Investigation** - Completed all investigations (Motion, Crop, DualCameraPiP)
+6. ✅ **DiagnosticOverlayPluginTest** - Created 17 comprehensive test cases
+7. ✅ Updated PLUGIN_UI_AUDIT.md with investigation results
+8. Previous session: Found and fixed camera_0 preview bug (duplicate observers)
+9. Previous session: Added Flash Mode and Level Indicator settings
 
 **What Needs Attention**:
 1. ✅ Camera lifecycle fixed - all cameras open successfully
