@@ -75,15 +75,17 @@ Just completed:
    - Add action buttons to CameraActivityEngine UI
    - Implement trigger methods for scanning mode
 
-### ✅ AUTOMATED TESTING - Core Settings Complete
+### ✅ AUTOMATED TESTING - All Settings Tests Complete
 
-7. **Automated Tests for Settings** (106 tests created)
+7. **Automated Tests for Settings** (158 tests created - COMPLETE)
    - ✅ CameraSelectionTest.kt (17 tests) - Camera index persistence
    - ✅ PhotoSettingsTest.kt (22 tests) - Quality and resolution
    - ✅ FlashSettingsTest.kt (24 tests) - Flash mode cycling
    - ✅ VideoSettingsTest.kt (22 tests) - Quality and stabilization
    - ✅ FocusSettingsTest.kt (21 tests) - Auto focus and tap-to-focus
-   - **Remaining**: Grid/Overlays, Manual Controls, Advanced Settings tests
+   - ✅ GridOverlaysTest.kt (28 tests) - Grid, camera info, histogram, level indicator
+   - ✅ AdvancedSettingsTest.kt (24 tests) - Debug logging, performance, RAW capture
+   - All SettingsManager settings covered with comprehensive test cases
 
 8. **Write Automated Tests for Plugins** (44 tests total)
    - Create `PluginPersistenceTest.kt`
@@ -246,7 +248,10 @@ Settings → Debug & System Info → View API Call Log
 4. ✅ Added DEBUG plugin category
 5. ✅ **Plugin UI Investigation** - Completed all investigations (Motion, Crop, DualCameraPiP)
 6. ✅ **DiagnosticOverlayPluginTest** - Created 17 comprehensive test cases
-7. ✅ **Settings Tests** - Created 106 tests across 5 test files (Camera, Photo, Flash, Video, Focus)
+7. ✅ **Settings Tests Complete** - Created 158 tests across 7 test files
+   - CameraSelectionTest (17), PhotoSettingsTest (22), FlashSettingsTest (24)
+   - VideoSettingsTest (22), FocusSettingsTest (21)
+   - GridOverlaysTest (28), AdvancedSettingsTest (24)
 8. ✅ Updated PLUGIN_UI_AUDIT.md with investigation results
 9. Previous session: Found and fixed camera_0 preview bug (duplicate observers)
 10. Previous session: Added Flash Mode and Level Indicator settings
