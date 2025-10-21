@@ -75,12 +75,15 @@ Just completed:
    - Add action buttons to CameraActivityEngine UI
    - Implement trigger methods for scanning mode
 
-### 🔵 LOW PRIORITY - Automated Testing
+### ✅ AUTOMATED TESTING - Core Settings Complete
 
-7. **Write Automated Tests for Settings** (80 tests total)
-   - Create test files in `app/src/test/java/com/customcamera/app/settings/`
-   - Use template from `SETTINGS_TESTING_CHECKLIST.md`
-   - Priority order: Photo/Video → Focus → Grid/Overlays → Advanced
+7. **Automated Tests for Settings** (106 tests created)
+   - ✅ CameraSelectionTest.kt (17 tests) - Camera index persistence
+   - ✅ PhotoSettingsTest.kt (22 tests) - Quality and resolution
+   - ✅ FlashSettingsTest.kt (24 tests) - Flash mode cycling
+   - ✅ VideoSettingsTest.kt (22 tests) - Quality and stabilization
+   - ✅ FocusSettingsTest.kt (21 tests) - Auto focus and tap-to-focus
+   - **Remaining**: Grid/Overlays, Manual Controls, Advanced Settings tests
 
 8. **Write Automated Tests for Plugins** (44 tests total)
    - Create `PluginPersistenceTest.kt`
@@ -243,9 +246,10 @@ Settings → Debug & System Info → View API Call Log
 4. ✅ Added DEBUG plugin category
 5. ✅ **Plugin UI Investigation** - Completed all investigations (Motion, Crop, DualCameraPiP)
 6. ✅ **DiagnosticOverlayPluginTest** - Created 17 comprehensive test cases
-7. ✅ Updated PLUGIN_UI_AUDIT.md with investigation results
-8. Previous session: Found and fixed camera_0 preview bug (duplicate observers)
-9. Previous session: Added Flash Mode and Level Indicator settings
+7. ✅ **Settings Tests** - Created 106 tests across 5 test files (Camera, Photo, Flash, Video, Focus)
+8. ✅ Updated PLUGIN_UI_AUDIT.md with investigation results
+9. Previous session: Found and fixed camera_0 preview bug (duplicate observers)
+10. Previous session: Added Flash Mode and Level Indicator settings
 
 **What Needs Attention**:
 1. ✅ Camera lifecycle fixed - all cameras open successfully
