@@ -53,17 +53,19 @@ Just completed:
    - Verify navigation buttons work correctly
    - Confirm navigation flows to camera view
 
-### 🟡 HIGH PRIORITY - Plugin UI Investigation
+### ✅ PLUGIN UI INVESTIGATION COMPLETE
 
-4. **Investigate Questionable Plugins** (see `memory/PLUGIN_UI_AUDIT.md`)
-   - Check if **MotionDetectionPlugin** is continuous or one-shot
-   - Check if **CropPlugin** is persistent frame or pre-shot setup
-   - Check if **DualCameraPiPPlugin** toggle is redundant
+4. **Plugin Investigation Results** (see `memory/PLUGIN_UI_AUDIT.md`)
+   - ✅ **MotionDetectionPlugin** - Confirmed continuous monitoring (toggle correct)
+   - ✅ **CropPlugin** - Confirmed persistent frame overlay (toggle correct)
+   - ✅ **DualCameraPiPPlugin** - Already excluded from dropdown (dedicated button only)
+   - ✅ **DiagnosticOverlayPlugin** - Added to DEBUG category (toggle correct)
 
-5. **Decide on Plugin UI Patterns**
-   - BarcodePlugin: Convert to action button? ❌ (definitely action-based)
-   - QRScannerPlugin: Convert to action button? ❌ (definitely action-based)
-   - Others: Keep as toggles or convert based on investigation
+5. **Plugin UI Decision Point**
+   - ❓ **BarcodePlugin**: Currently toggle, should be action button?
+   - ❓ **QRScannerPlugin**: Currently toggle, should be action button?
+   - Both are action-based (one-shot scan) not continuous monitoring
+   - **Decision needed**: Keep as toggles or convert to action buttons?
 
 ### 🟢 MEDIUM PRIORITY - Code Changes
 

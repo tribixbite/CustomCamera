@@ -74,11 +74,11 @@
 - **Evidence**: Creates persistent CropOverlayView, isCropEnabled boolean controls continuous display, crop settings persist across camera switches
 
 #### 5. DualCameraPiPPlugin
-- **Current**: Toggle in dropdown + dedicated PiP button in camera UI
-- **Question**: Is the toggle redundant with the dedicated button?
-- **If Redundant**: Remove from dropdown (use dedicated button only)
-- **If Different**: Document the difference clearly
-- **Decision Needed**: Check if both are needed
+- **Current**: ✅ Excluded from dropdown + dedicated PiP button in camera UI
+- **Investigation Result**: ✅ ALREADY EXCLUDED from dropdown (in excludedPlugins list)
+- **Decision**: ✅ **CORRECT IMPLEMENTATION** - Uses dedicated button only
+- **Evidence**: Line 1322 in CameraActivityEngine.kt excludes "DualCameraPiP" from dropdown, dedicated pipButton uses toggleDualCameraPiP() function
+- **Status**: No changes needed - already properly implemented
 
 ## Recommended Changes
 
@@ -150,15 +150,20 @@ fun stopAction() {
 
 ## Summary
 
-- **22 total plugins**
-- **19 correctly implemented as toggles** ✅ (includes Motion and Crop after investigation)
-- **2 should definitely be actions** ❌ (Barcode, QRScanner)
-- **1 needs investigation** ⚠️ (DualCameraPiP toggle redundancy)
+- **23 total plugins** (updated with DiagnosticOverlay)
+- **20 correctly implemented** ✅ (includes Motion, Crop, DualCameraPiP after investigation)
+- **2 should be actions** ❌ (Barcode, QRScanner)
+
+**Investigation Results**:
+1. ✅ **MotionDetectionPlugin** - Confirmed continuous monitoring (toggle correct)
+2. ✅ **CropPlugin** - Confirmed persistent frame overlay (toggle correct)
+3. ✅ **DualCameraPiPPlugin** - Already excluded from dropdown, uses dedicated button only
+4. ✅ **DiagnosticOverlayPlugin** - Added to DEBUG category (toggle correct)
 
 **Next Steps**:
 1. ✅ Investigate Motion and Crop plugins (confirmed as toggles)
-2. Investigate DualCameraPiPPlugin toggle redundancy
-3. Implement action buttons for Barcode and QRScanner (if user confirms)
-4. Update plugin provider interfaces
-5. Add dedicated action buttons to camera UI
-6. Write tests for new action button behaviors
+2. ✅ Investigate DualCameraPiPPlugin toggle redundancy (already excluded)
+3. **Decision needed**: Implement action buttons for Barcode and QRScanner?
+4. If implementing: Update plugin provider interfaces
+5. If implementing: Add dedicated action buttons to camera UI
+6. If implementing: Write tests for new action button behaviors
