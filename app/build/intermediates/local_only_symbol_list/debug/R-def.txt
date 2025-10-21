@@ -89,6 +89,7 @@ id captureProgressText
 id category_title
 id continueButton
 id debugLogButton
+id diagnosticOverlay
 id exitButton
 id exportSettingsButton
 id flashButton

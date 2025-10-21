@@ -247,7 +247,13 @@ class CameraActivityEngine : AppCompatActivity() {
                             hapticManager.success()
                             com.customcamera.app.presentation.EnhancedToast.success(this@CameraActivityEngine, "Demo mode activated!")
                         }
-                        tapCount = 0 // Reset after seven-tap
+                    }
+                    7 -> {
+                        // Eight-tap - toggle diagnostic overlay
+                        binding.diagnosticOverlay.toggle()
+                        hapticManager.mediumTap()
+                        com.customcamera.app.presentation.EnhancedToast.info(this@CameraActivityEngine, "Diagnostic overlay toggled")
+                        tapCount = 0 // Reset after eight-tap
                     }
                     else -> tapCount = 0
                 }
@@ -394,6 +400,13 @@ class CameraActivityEngine : AppCompatActivity() {
 
                 // Hide enhanced loading indicator
                 loadingIndicatorManager.hideLoading()
+
+                // Initialize diagnostic overlay with current camera state and sensor info
+                binding.diagnosticOverlay.updateSensorInfo()
+                camera?.cameraInfo?.cameraState?.value?.let { state ->
+                    binding.diagnosticOverlay.updateCameraState("camera_$cameraIndex", state)
+                }
+                binding.diagnosticOverlay.logLifecycleEvent("Camera initialized successfully")
 
                 Log.i(TAG, "✅ Camera started successfully with engine")
 

@@ -12,6 +12,7 @@ import androidx.camera.view.PreviewView;
 import androidx.viewbinding.ViewBinding;
 import androidx.viewbinding.ViewBindings;
 import com.customcamera.app.R;
+import com.customcamera.app.debug.DiagnosticOverlay;
 import com.customcamera.app.presentation.GestureHintsOverlay;
 import com.customcamera.app.presentation.PerformanceMonitor;
 import com.customcamera.app.ui.PluginDropdownView;
@@ -25,6 +26,9 @@ public final class ActivityCameraBinding implements ViewBinding {
 
   @NonNull
   public final ImageButton captureButton;
+
+  @NonNull
+  public final DiagnosticOverlay diagnosticOverlay;
 
   @NonNull
   public final ImageButton flashButton;
@@ -66,15 +70,16 @@ public final class ActivityCameraBinding implements ViewBinding {
   public final ImageButton videoRecordButton;
 
   private ActivityCameraBinding(@NonNull FrameLayout rootView, @NonNull ImageButton captureButton,
-      @NonNull ImageButton flashButton, @NonNull ImageButton galleryButton,
-      @NonNull GestureHintsOverlay gestureHintsOverlay, @NonNull ImageButton masterPluginButton,
-      @NonNull ImageButton nightModeButton, @NonNull PerformanceMonitor performanceMonitor,
-      @NonNull ImageButton pipButton, @NonNull PluginDropdownView pluginDropdownView,
-      @NonNull FrameLayout pluginOverlayContainer, @NonNull PreviewView previewView,
-      @NonNull ImageButton settingsButton, @NonNull ImageButton switchCameraButton,
-      @NonNull ImageButton videoRecordButton) {
+      @NonNull DiagnosticOverlay diagnosticOverlay, @NonNull ImageButton flashButton,
+      @NonNull ImageButton galleryButton, @NonNull GestureHintsOverlay gestureHintsOverlay,
+      @NonNull ImageButton masterPluginButton, @NonNull ImageButton nightModeButton,
+      @NonNull PerformanceMonitor performanceMonitor, @NonNull ImageButton pipButton,
+      @NonNull PluginDropdownView pluginDropdownView, @NonNull FrameLayout pluginOverlayContainer,
+      @NonNull PreviewView previewView, @NonNull ImageButton settingsButton,
+      @NonNull ImageButton switchCameraButton, @NonNull ImageButton videoRecordButton) {
     this.rootView = rootView;
     this.captureButton = captureButton;
+    this.diagnosticOverlay = diagnosticOverlay;
     this.flashButton = flashButton;
     this.galleryButton = galleryButton;
     this.gestureHintsOverlay = gestureHintsOverlay;
@@ -120,6 +125,12 @@ public final class ActivityCameraBinding implements ViewBinding {
       id = R.id.captureButton;
       ImageButton captureButton = ViewBindings.findChildViewById(rootView, id);
       if (captureButton == null) {
+        break missingId;
+      }
+
+      id = R.id.diagnosticOverlay;
+      DiagnosticOverlay diagnosticOverlay = ViewBindings.findChildViewById(rootView, id);
+      if (diagnosticOverlay == null) {
         break missingId;
       }
 
@@ -201,8 +212,8 @@ public final class ActivityCameraBinding implements ViewBinding {
         break missingId;
       }
 
-      return new ActivityCameraBinding((FrameLayout) rootView, captureButton, flashButton,
-          galleryButton, gestureHintsOverlay, masterPluginButton, nightModeButton,
+      return new ActivityCameraBinding((FrameLayout) rootView, captureButton, diagnosticOverlay,
+          flashButton, galleryButton, gestureHintsOverlay, masterPluginButton, nightModeButton,
           performanceMonitor, pipButton, pluginDropdownView, pluginOverlayContainer, previewView,
           settingsButton, switchCameraButton, videoRecordButton);
     }

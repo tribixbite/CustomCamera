@@ -175,4 +175,11 @@
         android:layout_height="match_parent"
         android:visibility="gone" />
 
+    <!-- Diagnostic Overlay (8-tap to toggle) -->
+    <com.customcamera.app.debug.DiagnosticOverlay
+        android:id="@+id/diagnosticOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone" />
+
 </FrameLayout>
