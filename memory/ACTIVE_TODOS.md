@@ -42,11 +42,12 @@ Just completed:
 ### 🟡 HIGH PRIORITY - Feature Testing & Polish
 
 1. **Test DiagnosticOverlay Integration**
-   - Install latest APK
-   - ✅ Moved from 8-tap gesture to plugin dropdown (v2.1.21)
-   - Test plugin dropdown toggle to show/hide overlay
-   - Verify camera state, sensor info, permissions display correctly
-   - Check event log shows camera lifecycle events
+   - ✅ Built APK v2.1.22-build.32 ready for installation
+   - ✅ Moved from 8-tap gesture to plugin dropdown (v2.1.22)
+   - ⏳ **READY FOR MANUAL TESTING** - Install APK and test:
+     - Plugin dropdown toggle to show/hide overlay
+     - Verify camera state, sensor info, permissions display correctly
+     - Check event log shows camera lifecycle events
 
 2. **Camera Selector UI Review** (if issues exist)
    - Check for black spaces around UI elements
