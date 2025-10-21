@@ -34,7 +34,7 @@ Just completed:
 - Cameras now properly transition CLOSED → OPENING → OPEN
 
 **Diagnostic Tools Created:**
-- DiagnosticOverlay integrated with 8-tap gesture toggle
+- ✅ DiagnosticOverlay integrated with plugin dropdown (was 8-tap gesture)
 - debug-camera.sh automated testing script
 - Enhanced logging in CameraEngine
 - CAMERA_FIX_FORENSICS.md documentation
@@ -43,7 +43,8 @@ Just completed:
 
 1. **Test DiagnosticOverlay Integration**
    - Install latest APK
-   - Test 8-tap gesture to show/hide overlay
+   - ✅ Moved from 8-tap gesture to plugin dropdown (v2.1.21)
+   - Test plugin dropdown toggle to show/hide overlay
    - Verify camera state, sensor info, permissions display correctly
    - Check event log shows camera lifecycle events
 
@@ -234,13 +235,13 @@ Settings → Debug & System Info → View API Call Log
 ## Notes for Next Session
 
 **What Was Done This Session**:
-1. Found and fixed camera_0 preview bug (duplicate observers)
-2. Added Flash Mode setting (Auto/On/Off/Torch dropdown)
-3. Added Level Indicator setting (horizon level switch)
-4. Enhanced CameraAPIMonitor with comprehensive troubleshooting
-5. Created 120-test comprehensive testing framework
-6. Audited all 22 plugins for correct UI patterns
-7. Identified 2 plugins needing action button conversion
+1. ✅ **Camera Fix Forensics** - Identified Bixby Vision Framework as root cause fix
+2. ✅ **DiagnosticOverlay Plugin** - Moved from 8-tap gesture to plugin dropdown (23 plugins total)
+3. ✅ Created CAMERA_FIX_FORENSICS.md documentation
+4. ✅ Added DEBUG plugin category
+5. Previous session: Found and fixed camera_0 preview bug (duplicate observers)
+6. Previous session: Added Flash Mode and Level Indicator settings
+7. Previous session: Created 120-test comprehensive testing framework
 
 **What Needs Attention**:
 1. ✅ Camera lifecycle fixed - all cameras open successfully
