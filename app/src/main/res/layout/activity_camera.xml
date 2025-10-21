@@ -175,7 +175,7 @@
         android:layout_height="match_parent"
         android:visibility="gone" />
 
-    <!-- Diagnostic Overlay (8-tap to toggle) -->
+    <!-- Diagnostic Overlay (toggle via plugin dropdown) -->
     <com.customcamera.app.debug.DiagnosticOverlay
         android:id="@+id/diagnosticOverlay"
         android:layout_width="match_parent"

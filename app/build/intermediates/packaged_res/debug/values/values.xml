@@ -59,6 +59,8 @@
     <string name="plugin_camera_info_display_name">Camera Info</string>
     <string name="plugin_crop_description">Crop photos before capturing</string>
     <string name="plugin_crop_display_name">Pre-Shot Crop</string>
+    <string name="plugin_diagnostic_overlay_description">Real-time camera and sensor diagnostics</string>
+    <string name="plugin_diagnostic_overlay_display_name">Diagnostic Overlay</string>
     <string name="plugin_dual_camera_pip_description">Picture-in-picture with dual cameras</string>
     <string name="plugin_dual_camera_pip_display_name">Dual Camera PiP</string>
     <string name="plugin_exposure_analysis_description">Analyze and optimize exposure</string>

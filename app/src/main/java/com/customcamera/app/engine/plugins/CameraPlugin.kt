@@ -276,5 +276,6 @@ enum class PluginCategory(val displayName: String) {
     EFFECTS("Effects"),
     AI("AI Features"),
     CAPTURE("Capture"),
+    DEBUG("Debug"),
     OTHER("Other")
 }

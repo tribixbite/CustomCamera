@@ -96,4 +96,10 @@
     <string name="plugin_advanced_video_description">Professional video recording features</string>
     <string name="plugin_night_mode_description">Low-light and long exposure photography</string>
     <string name="plugin_hdr_description">High dynamic range photography</string>
+
+    <!-- Plugin Display Names (DEBUG) -->
+    <string name="plugin_diagnostic_overlay_display_name">Diagnostic Overlay</string>
+
+    <!-- Plugin Descriptions (DEBUG) -->
+    <string name="plugin_diagnostic_overlay_description">Real-time camera and sensor diagnostics</string>
 </resources>

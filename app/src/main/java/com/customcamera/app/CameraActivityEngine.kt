@@ -247,13 +247,7 @@ class CameraActivityEngine : AppCompatActivity() {
                             hapticManager.success()
                             com.customcamera.app.presentation.EnhancedToast.success(this@CameraActivityEngine, "Demo mode activated!")
                         }
-                    }
-                    7 -> {
-                        // Eight-tap - toggle diagnostic overlay
-                        binding.diagnosticOverlay.toggle()
-                        hapticManager.mediumTap()
-                        com.customcamera.app.presentation.EnhancedToast.info(this@CameraActivityEngine, "Diagnostic overlay toggled")
-                        tapCount = 0 // Reset after eight-tap
+                        tapCount = 0 // Reset after seven-tap
                     }
                     else -> tapCount = 0
                 }
@@ -1348,6 +1342,16 @@ class CameraActivityEngine : AppCompatActivity() {
             // Set up toggle callback
             binding.pluginDropdownView.onPluginToggled = { plugin, enabled ->
                 handlePluginToggle(plugin, enabled)
+            }
+
+            // Wire up DiagnosticOverlay plugin to the overlay view
+            val diagnosticPlugin = allPlugins.find { it.name == "DiagnosticOverlay" }
+            if (diagnosticPlugin is com.customcamera.app.plugins.DiagnosticOverlayPlugin) {
+                diagnosticPlugin.overlayToggleCallback = { show ->
+                    binding.diagnosticOverlay.visibility = if (show) android.view.View.VISIBLE else android.view.View.GONE
+                    Log.i(TAG, "DiagnosticOverlay visibility: ${if (show) "VISIBLE" else "GONE"}")
+                }
+                Log.i(TAG, "DiagnosticOverlay plugin wired to overlay view")
             }
 
             Log.i(TAG, "✅ Plugin dropdown configured successfully")

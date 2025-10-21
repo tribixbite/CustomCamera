@@ -72,7 +72,10 @@ class PluginRegistry(private val context: Context) {
         RAWCapturePlugin,
         AdvancedVideoRecordingPlugin,
         NightModePlugin,
-        HDRPlugin
+        HDRPlugin,
+
+        // DEBUG (1)
+        DiagnosticOverlayPlugin
     )
 
     /**
@@ -158,6 +161,6 @@ class PluginRegistry(private val context: Context) {
         /**
          * Total number of registered plugins
          */
-        fun getTotalPluginCount(): Int = 22 // Updated as plugins are added
+        fun getTotalPluginCount(): Int = 23 // Updated as plugins are added
     }
 }
