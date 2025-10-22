@@ -95,8 +95,11 @@ class VideoControlsOverlay @JvmOverloads constructor(
                 LayoutParams.WRAP_CONTENT
             ).apply {
                 gravity = Gravity.BOTTOM
+                // Add bottom margin to avoid overlapping activity's bottom buttons
+                // Bottom buttons: 88dp (capture) + 48dp (margin) + additional spacing = 280dp total
+                setMargins(0, 0, 0, 280) // 280dp clearance to fully avoid bottom buttons
             }
-            setPadding(16, 16, 16, 32)
+            setPadding(16, 16, 16, 16) // Reduced bottom padding since margin handles spacing
         }
 
         // Create recording controls container
