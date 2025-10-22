@@ -446,11 +446,23 @@ class VideoControlsOverlay @JvmOverloads constructor(
 
     private fun setupPluginObservers() {
         val plugin = videoPlugin ?: return
-        val lifecycleOwner = context as? LifecycleOwner ?: return
+
+        // Get LifecycleOwner from Activity context
+        // The context passed to VideoControlsOverlay is from CameraActivityEngine which is an Activity
+        val activity = context as? android.app.Activity
+        val lifecycleOwner = activity as? LifecycleOwner
+
+        if (lifecycleOwner == null) {
+            Log.e(TAG, "❌ Failed to get LifecycleOwner from context - observers not set up!")
+            return
+        }
+
+        Log.i(TAG, "✅ Setting up video plugin observers with LifecycleOwner")
 
         lifecycleOwner.lifecycleScope.launch {
             // Observe recording state
             plugin.isRecording.collect { isRecording ->
+                Log.d(TAG, "📹 Recording state changed: $isRecording")
                 updateRecordingState(isRecording)
             }
         }
