@@ -8,6 +8,7 @@ import androidx.camera.video.Recorder
 import androidx.camera.video.VideoCapture
 import androidx.camera.video.Quality
 import androidx.camera.video.QualitySelector
+import androidx.camera.video.FallbackStrategy
 import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
@@ -760,10 +761,15 @@ class CameraEngine(
         }
 
         if (config.enableVideoCapture) {
-            // Configure Recorder with QualitySelector to use device's best quality
-            // This should use device-supported audio profiles (48kHz stereo)
+            // Configure Recorder with QualitySelector and FallbackStrategy
+            // CameraX 1.3.1 doesn't expose public audio config APIs, so we use FallbackStrategy
+            // to let CameraX negotiate a working CamcorderProfile (video + audio) from the device HAL
+            val qualitySelector = androidx.camera.video.QualitySelector.from(
+                androidx.camera.video.Quality.HIGHEST,
+                androidx.camera.video.FallbackStrategy.lowerQualityOrHigherThan(androidx.camera.video.Quality.SD)
+            )
             val recorder = Recorder.Builder()
-                .setQualitySelector(androidx.camera.video.QualitySelector.from(androidx.camera.video.Quality.HIGHEST))
+                .setQualitySelector(qualitySelector)
                 .build()
 
             videoCapture = VideoCapture.withOutput(recorder)

@@ -121,8 +121,8 @@ class AdvancedVideoRecordingPlugin : UIPlugin() {
     override suspend fun onCameraReady(camera: Camera) {
         Log.i(TAG, "Camera ready for advanced video recording setup")
 
-        // Set up video capture use case
-        setupVideoCapture(camera)
+        // VideoCapture is already configured by CameraEngine with explicit audio settings
+        // Plugin retrieves it via cameraContext?.cameraEngine?.getVideoCapture()
 
         cameraContext?.debugLogger?.logPlugin(
             name,
@@ -451,28 +451,6 @@ class AdvancedVideoRecordingPlugin : UIPlugin() {
         videoRecordingManager = null
         videoCapture = null
         cameraContext = null
-    }
-
-    /**
-     * Set up video capture use case
-     */
-    @Suppress("UNUSED_PARAMETER")
-    private fun setupVideoCapture(camera: Camera) {
-        try {
-            val recorder = Recorder.Builder()
-                .setQualitySelector(
-                    videoQualityManager?.getQualitySelector(_currentQuality.value)
-                        ?: QualitySelector.from(Quality.HD)
-                )
-                .build()
-
-            videoCapture = VideoCapture.withOutput(recorder)
-
-            Log.i(TAG, "Video capture configured for quality: ${_currentQuality.value.name}")
-
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to setup video capture", e)
-        }
     }
 
     /**
