@@ -130,8 +130,8 @@ class VideoControlsOverlay @JvmOverloads constructor(
 
         durationText = TextView(context).apply {
             text = "00:00"
-            textSize = 18f
-            setTextColor(Color.WHITE)
+            textSize = 24f  // Increased from 18f for better visibility
+            setTextColor(Color.WHITE)  // Will change to red when recording
             typeface = Typeface.MONOSPACE
         }
 
@@ -165,6 +165,9 @@ class VideoControlsOverlay @JvmOverloads constructor(
         recordButton = createControlButton("REC") { startRecording() }
         pauseButton = createControlButton("⏸") { pauseRecording() }
         stopButton = createControlButton("⏹") { stopRecording() }
+
+        // Set record button to red color
+        recordButton.setBackgroundColor(Color.RED)
 
         // Initially hide pause and stop buttons
         pauseButton.visibility = View.GONE
@@ -203,13 +206,14 @@ class VideoControlsOverlay @JvmOverloads constructor(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
             )
-            setPadding(16, 16, 16, 16)
+            // Reduced padding from 16 to 8 to save vertical space
+            setPadding(8, 8, 8, 8)
             setBackgroundColor(Color.argb(180, 0, 0, 0))
 
-            // Title
+            // Title (reduced size and margins for compactness)
             val title = TextView(context).apply {
                 text = "Manual Controls"
-                textSize = 16f
+                textSize = 14f  // Reduced from 16f
                 setTextColor(Color.WHITE)
                 typeface = Typeface.DEFAULT_BOLD
                 gravity = Gravity.CENTER
@@ -217,7 +221,7 @@ class VideoControlsOverlay @JvmOverloads constructor(
                     LinearLayout.LayoutParams.MATCH_PARENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT
                 ).apply {
-                    setMargins(0, 0, 0, 16)
+                    setMargins(0, 0, 0, 8)  // Reduced from 16
                 }
             }
             addView(title)
@@ -291,26 +295,26 @@ class VideoControlsOverlay @JvmOverloads constructor(
             controlsGrid.addView(row2)
             controlsGrid.addView(row3)
 
-            // Stabilization Mode Selector
+            // Stabilization Mode Selector (reduced margins)
             val stabilizationModeContainer = LinearLayout(context).apply {
                 orientation = LinearLayout.VERTICAL
                 layoutParams = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT
                 ).apply {
-                    setMargins(0, 16, 0, 8)
+                    setMargins(0, 8, 0, 4)  // Reduced from 16, 8
                 }
             }
 
             val stabilizationModeLabel = TextView(context).apply {
                 text = "Stabilization Mode"
-                textSize = 14f
+                textSize = 12f  // Reduced from 14f
                 setTextColor(Color.WHITE)
                 layoutParams = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT
                 ).apply {
-                    setMargins(0, 0, 0, 8)
+                    setMargins(0, 0, 0, 4)  // Reduced from 8
                 }
             }
 
@@ -324,26 +328,26 @@ class VideoControlsOverlay @JvmOverloads constructor(
             stabilizationModeContainer.addView(stabilizationModeLabel)
             stabilizationModeContainer.addView(stabilizationModeSpinner)
 
-            // Stabilization Strength Control
+            // Stabilization Strength Control (reduced margins)
             val stabilizationStrengthContainer = LinearLayout(context).apply {
                 orientation = LinearLayout.VERTICAL
                 layoutParams = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT
                 ).apply {
-                    setMargins(0, 8, 0, 0)
+                    setMargins(0, 4, 0, 0)  // Reduced from 8
                 }
             }
 
             stabilizationStrengthLabel = TextView(context).apply {
                 text = "Stabilization Strength: 70%"
-                textSize = 14f
+                textSize = 12f  // Reduced from 14f
                 setTextColor(Color.WHITE)
                 layoutParams = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT
                 ).apply {
-                    setMargins(0, 0, 0, 8)
+                    setMargins(0, 0, 0, 4)  // Reduced from 8
                 }
             }
 
@@ -520,6 +524,9 @@ class VideoControlsOverlay @JvmOverloads constructor(
             stopButton.visibility = View.VISIBLE
             recordingIndicator.visibility = View.VISIBLE
 
+            // Change timer color to red when recording
+            durationText.setTextColor(Color.RED)
+
             // Start recording indicator animation
             recordingAnimation = ObjectAnimator.ofFloat(recordingIndicator, "alpha", 1.0f, 0.3f).apply {
                 duration = 800
@@ -527,15 +534,26 @@ class VideoControlsOverlay @JvmOverloads constructor(
                 repeatMode = ObjectAnimator.REVERSE
                 start()
             }
+
+            // Lock manual controls during recording
+            setManualControlsEnabled(false)
+            Log.d(TAG, "🔒 Manual controls locked during recording")
         } else {
             recordButton.visibility = View.VISIBLE
             pauseButton.visibility = View.GONE
             stopButton.visibility = View.GONE
             recordingIndicator.visibility = View.GONE
 
+            // Change timer color back to white when not recording
+            durationText.setTextColor(Color.WHITE)
+
             // Stop recording indicator animation
             recordingAnimation?.cancel()
             recordingAnimation = null
+
+            // Unlock manual controls when not recording
+            setManualControlsEnabled(true)
+            Log.d(TAG, "🔓 Manual controls unlocked")
         }
     }
 
@@ -552,6 +570,27 @@ class VideoControlsOverlay @JvmOverloads constructor(
         } else {
             recordingAnimation?.resume()
         }
+    }
+
+    /**
+     * Enable or disable manual controls panel
+     */
+    private fun setManualControlsEnabled(enabled: Boolean) {
+        // Disable all toggle buttons
+        isoToggle.isEnabled = enabled
+        shutterToggle.isEnabled = enabled
+        focusToggle.isEnabled = enabled
+        stabilizationToggle.isEnabled = enabled
+        audioToggle.isEnabled = enabled
+
+        // Disable quality and stabilization mode spinners
+        qualitySpinner.isEnabled = enabled
+        stabilizationModeSpinner.isEnabled = enabled
+        stabilizationStrengthSeekBar.isEnabled = enabled
+
+        // Visual feedback: dim controls when disabled
+        val alpha = if (enabled) 1.0f else 0.5f
+        manualControlsPanel.alpha = alpha
     }
 
     private fun startRecording() {

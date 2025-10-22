@@ -335,6 +335,9 @@ class CameraActivityEngine : AppCompatActivity() {
                 val registeredCount = cameraEngine.getAllPlugins().size
                 Log.i(TAG, "✅ Retrieved $registeredCount plugin references after initialization")
 
+                // Observe video recording state to hide/show grid overlay
+                setupVideoRecordingObserver()
+
                 // Setup plugin dropdown AFTER async initialize() completes (plugins now registered)
                 setupPluginDropdown()
 
@@ -2295,6 +2298,39 @@ class CameraActivityEngine : AppCompatActivity() {
         } catch (e: Exception) {
             Log.e(TAG, "Error setting up advanced video recording", e)
         }
+    }
+
+    /**
+     * Observe video recording state and manage grid overlay visibility
+     */
+    private fun setupVideoRecordingObserver() {
+        val videoPlugin = advancedVideoRecordingPlugin
+        val gridPlugin = gridOverlayPlugin
+
+        if (videoPlugin == null) {
+            Log.w(TAG, "Video recording plugin not available, skipping observer setup")
+            return
+        }
+
+        lifecycleScope.launch {
+            videoPlugin.isRecording.collect { isRecording ->
+                if (isRecording) {
+                    // Hide grid overlay when recording starts
+                    gridPlugin?.hideGrid()
+                    Log.i(TAG, "🎬 Recording started - grid overlay hidden")
+                } else {
+                    // Show grid overlay when recording stops (only if it was enabled in settings)
+                    val settingsManager = com.customcamera.app.engine.SettingsManager(this@CameraActivityEngine)
+                    val gridEnabled = settingsManager.isPluginEnabled("GridOverlay")
+                    if (gridEnabled) {
+                        gridPlugin?.showGrid()
+                        Log.i(TAG, "🎬 Recording stopped - grid overlay restored")
+                    }
+                }
+            }
+        }
+
+        Log.i(TAG, "✅ Video recording observer set up for grid management")
     }
 
     private fun toggleVideoRecording() {
