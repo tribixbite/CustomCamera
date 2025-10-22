@@ -2,9 +2,11 @@ package com.customcamera.app.settings
 
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
-import androidx.test.ext.junit.runners.AndroidJUnit4
+import org.robolectric.RobolectricTestRunner
 import com.customcamera.app.engine.SettingsManager
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Before
@@ -25,7 +27,7 @@ import org.junit.runner.RunWith
  * Note: These are instrumented tests requiring Android context.
  * Run with: ./gradlew connectedAndroidTest
  */
-@RunWith(AndroidJUnit4::class)
+@RunWith(RobolectricTestRunner::class)
 class PhotoSettingsTest {
 
     private lateinit var context: Context
@@ -141,20 +143,20 @@ class PhotoSettingsTest {
     @Test
     fun testPhotoQualityReactivity() = runTest {
         var observedValue = -1
-        val job = kotlinx.coroutines.launch {
+        val job = launch {
             settingsManager.photoQuality.collect { value ->
                 observedValue = value
             }
         }
 
         // Give collector time to start
-        kotlinx.coroutines.delay(50)
+        delay(50)
 
         // Update value
         settingsManager.setPhotoQuality(80)
 
         // Give StateFlow time to emit
-        kotlinx.coroutines.delay(50)
+        delay(50)
 
         assertEquals("StateFlow should emit new value", 80, observedValue)
 

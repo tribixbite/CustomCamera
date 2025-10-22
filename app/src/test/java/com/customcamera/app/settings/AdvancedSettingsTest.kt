@@ -2,9 +2,11 @@ package com.customcamera.app.settings
 
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
-import androidx.test.ext.junit.runners.AndroidJUnit4
+import org.robolectric.RobolectricTestRunner
 import com.customcamera.app.engine.SettingsManager
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Before
@@ -24,7 +26,7 @@ import org.junit.runner.RunWith
  * Note: These are instrumented tests requiring Android context.
  * Run with: ./gradlew connectedAndroidTest
  */
-@RunWith(AndroidJUnit4::class)
+@RunWith(RobolectricTestRunner::class)
 class AdvancedSettingsTest {
 
     private lateinit var context: Context
@@ -97,20 +99,20 @@ class AdvancedSettingsTest {
     @Test
     fun testDebugLoggingReactivity() = runTest {
         var observedValue = false
-        val job = kotlinx.coroutines.launch {
+        val job = launch {
             settingsManager.debugLogging.collect { value ->
                 observedValue = value
             }
         }
 
         // Give collector time to start
-        kotlinx.coroutines.delay(50)
+        delay(50)
 
         // Update value
         settingsManager.setDebugLogging(true)
 
         // Give StateFlow time to emit
-        kotlinx.coroutines.delay(50)
+        delay(50)
 
         assertTrue("StateFlow should emit new value", observedValue)
 
@@ -394,12 +396,12 @@ class AdvancedSettingsTest {
     @Test
     fun testAdvancedSettingsConcurrentChanges() = runTest {
         val jobs = List(20) { i ->
-            kotlinx.coroutines.launch {
+            launch {
                 val enabled = (i % 2 == 0)
                 settingsManager.setDebugLogging(enabled)
-                kotlinx.coroutines.delay(5)
+                delay(5)
                 settingsManager.setPerformanceMonitoring(enabled)
-                kotlinx.coroutines.delay(5)
+                delay(5)
                 settingsManager.setRawCapture(enabled)
             }
         }

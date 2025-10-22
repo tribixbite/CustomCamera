@@ -2,9 +2,11 @@ package com.customcamera.app.settings
 
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
-import androidx.test.ext.junit.runners.AndroidJUnit4
+import org.robolectric.RobolectricTestRunner
 import com.customcamera.app.engine.SettingsManager
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Before
@@ -24,7 +26,7 @@ import org.junit.runner.RunWith
  * Note: These are instrumented tests requiring Android context.
  * Run with: ./gradlew connectedAndroidTest
  */
-@RunWith(AndroidJUnit4::class)
+@RunWith(RobolectricTestRunner::class)
 class CameraSelectionTest {
 
     private lateinit var context: Context
@@ -102,20 +104,20 @@ class CameraSelectionTest {
     @Test
     fun testMainCameraIndexReactivity() = runTest {
         var observedValue = -1
-        val job = kotlinx.coroutines.launch {
+        val job = launch {
             settingsManager.defaultCameraIndex.collect { value ->
                 observedValue = value
             }
         }
 
         // Give collector time to start
-        kotlinx.coroutines.delay(50)
+        delay(50)
 
         // Update value
         settingsManager.setDefaultCameraIndex(5)
 
         // Give StateFlow time to emit
-        kotlinx.coroutines.delay(50)
+        delay(50)
 
         assertEquals("StateFlow should emit new value", 5, observedValue)
 
@@ -187,20 +189,20 @@ class CameraSelectionTest {
     @Test
     fun testPipCameraIndexReactivity() = runTest {
         var observedValue = -1
-        val job = kotlinx.coroutines.launch {
+        val job = launch {
             settingsManager.pipCameraIndex.collect { value ->
                 observedValue = value
             }
         }
 
         // Give collector time to start
-        kotlinx.coroutines.delay(50)
+        delay(50)
 
         // Update value
         settingsManager.setPipCameraIndex(4)
 
         // Give StateFlow time to emit
-        kotlinx.coroutines.delay(50)
+        delay(50)
 
         assertEquals("StateFlow should emit new value", 4, observedValue)
 
@@ -262,9 +264,9 @@ class CameraSelectionTest {
     @Test
     fun testConcurrentCameraSelections() = runTest {
         val jobs = List(10) { i ->
-            kotlinx.coroutines.launch {
+            launch {
                 settingsManager.setDefaultCameraIndex(i)
-                kotlinx.coroutines.delay(10)
+                delay(10)
                 settingsManager.setPipCameraIndex(i + 1)
             }
         }

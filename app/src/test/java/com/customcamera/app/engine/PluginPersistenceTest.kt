@@ -2,12 +2,12 @@ package com.customcamera.app.engine
 
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
-import androidx.test.ext.junit.runners.AndroidJUnit4
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.junit.Assert.*
 import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
 /**
  * Plugin Persistence Tests
@@ -19,10 +19,10 @@ import org.junit.runner.RunWith
  * - Multiple plugins persistence
  * - Settings isolation between plugins
  *
- * Note: These are instrumented tests requiring Android context.
- * Run with: ./gradlew connectedAndroidTest
+ * Note: These are Robolectric tests running on JVM with simulated Android context.
+ * Run with: ./gradlew test
  */
-@RunWith(AndroidJUnit4::class)
+@RunWith(RobolectricTestRunner::class)
 class PluginPersistenceTest {
 
     private lateinit var context: Context

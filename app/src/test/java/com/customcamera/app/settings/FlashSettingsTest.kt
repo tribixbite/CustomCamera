@@ -2,9 +2,11 @@ package com.customcamera.app.settings
 
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
-import androidx.test.ext.junit.runners.AndroidJUnit4
+import org.robolectric.RobolectricTestRunner
 import com.customcamera.app.engine.SettingsManager
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Before
@@ -24,7 +26,7 @@ import org.junit.runner.RunWith
  * Note: These are instrumented tests requiring Android context.
  * Run with: ./gradlew connectedAndroidTest
  */
-@RunWith(AndroidJUnit4::class)
+@RunWith(RobolectricTestRunner::class)
 class FlashSettingsTest {
 
     private lateinit var context: Context
@@ -195,20 +197,20 @@ class FlashSettingsTest {
     @Test
     fun testFlashModeReactivity() = runTest {
         var observedValue = ""
-        val job = kotlinx.coroutines.launch {
+        val job = launch {
             settingsManager.flashMode.collect { value ->
                 observedValue = value
             }
         }
 
         // Give collector time to start
-        kotlinx.coroutines.delay(50)
+        delay(50)
 
         // Update value
         settingsManager.setFlashMode(FLASH_ON)
 
         // Give StateFlow time to emit
-        kotlinx.coroutines.delay(50)
+        delay(50)
 
         assertEquals("StateFlow should emit new value", FLASH_ON, observedValue)
 
@@ -220,26 +222,26 @@ class FlashSettingsTest {
         var observer1Value = ""
         var observer2Value = ""
 
-        val job1 = kotlinx.coroutines.launch {
+        val job1 = launch {
             settingsManager.flashMode.collect { value ->
                 observer1Value = value
             }
         }
 
-        val job2 = kotlinx.coroutines.launch {
+        val job2 = launch {
             settingsManager.flashMode.collect { value ->
                 observer2Value = value
             }
         }
 
         // Give collectors time to start
-        kotlinx.coroutines.delay(50)
+        delay(50)
 
         // Update value
         settingsManager.setFlashMode(FLASH_TORCH)
 
         // Give StateFlows time to emit
-        kotlinx.coroutines.delay(50)
+        delay(50)
 
         assertEquals("Observer 1 should receive new value", FLASH_TORCH, observer1Value)
         assertEquals("Observer 2 should receive new value", FLASH_TORCH, observer2Value)
@@ -397,9 +399,9 @@ class FlashSettingsTest {
         val modes = listOf(FLASH_AUTO, FLASH_ON, FLASH_OFF, FLASH_TORCH)
 
         val jobs = List(20) { i ->
-            kotlinx.coroutines.launch {
+            launch {
                 settingsManager.setFlashMode(modes[i % modes.size])
-                kotlinx.coroutines.delay(5)
+                delay(5)
             }
         }
 
