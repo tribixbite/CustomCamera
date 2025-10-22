@@ -475,9 +475,9 @@ class CameraActivityEngine : AppCompatActivity() {
         val hasPipFrame = cameraEngine.hasPipFrame()
         val isDualCamera = currentMode is CameraMode.Concurrent && hasPipFrame
 
-        Log.i(TAG, "Photo capture mode check: currentMode=$currentMode, hasPipFrame=$hasPipFrame, isDualCamera=$isDualCamera")
+        Log.i(TAG, "Photo capture mode check: currentMode=$currentMode, hasPipFrame=$hasPipFrame, isDualCamera=$isDualCamera, pipPlugin=$dualCameraPiPPlugin")
 
-        if (isDualCamera) {
+        if (isDualCamera && dualCameraPiPPlugin != null) {
             // Dual camera capture: Try composite, fallback to screenshot if it fails
             Log.i(TAG, "📸 Capturing dual camera photo...")
             imageCapture.takePicture(
@@ -537,6 +537,9 @@ class CameraActivityEngine : AppCompatActivity() {
             )
         } else {
             // Single camera capture
+            if (isDualCamera) {
+                Log.w(TAG, "⚠️ In dual camera mode but PiP plugin is unavailable. Falling back to regular capture.")
+            }
             // Check if crop is enabled
             val isCropEnabled = cropPlugin!!.isEnabled && cropPlugin!!.isCropEnabled()
 
