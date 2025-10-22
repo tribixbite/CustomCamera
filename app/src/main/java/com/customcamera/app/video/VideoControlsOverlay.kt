@@ -29,7 +29,7 @@ class VideoControlsOverlay @JvmOverloads constructor(
     private var videoPlugin: AdvancedVideoRecordingPlugin? = null
 
     // UI Components
-    private lateinit var recordButton: ImageButton
+    private lateinit var recordButton: Button
     private lateinit var pauseButton: ImageButton
     private lateinit var stopButton: ImageButton
     private lateinit var qualitySpinner: Spinner
@@ -138,18 +138,40 @@ class VideoControlsOverlay @JvmOverloads constructor(
         statusContainer.addView(recordingIndicator)
         statusContainer.addView(durationText)
 
-        // Quality selector
-        qualitySpinner = Spinner(context).apply {
+        // Quality selector - Moved to separate line for better visibility
+        val qualityContainer = LinearLayout(context).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+            setPadding(0, 8, 0, 8)
+        }
+
+        val qualityLabel = TextView(context).apply {
+            text = "Quality:"
+            textSize = 14f
+            setTextColor(Color.WHITE)
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.WRAP_CONTENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
             ).apply {
-                setMargins(16, 0, 16, 0)
+                setMargins(0, 0, 8, 0)
             }
         }
 
+        qualitySpinner = Spinner(context).apply {
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+        }
+
+        qualityContainer.addView(qualityLabel)
+        qualityContainer.addView(qualitySpinner)
+
         recordingContainer.addView(statusContainer)
-        recordingContainer.addView(qualitySpinner)
 
         // Control buttons container
         val buttonsContainer = LinearLayout(context).apply {
@@ -162,12 +184,25 @@ class VideoControlsOverlay @JvmOverloads constructor(
             setPadding(0, 0, 0, 16)
         }
 
-        recordButton = createControlButton("REC") { startRecording() }
+        // Create record button as Button (not ImageButton) to show "REC" text
+        recordButton = Button(context).apply {
+            text = "REC"
+            layoutParams = LinearLayout.LayoutParams(100, 80).apply {
+                setMargins(8, 0, 8, 0)
+            }
+            setBackgroundColor(Color.RED)
+            setTextColor(Color.WHITE)
+            setOnClickListener { startRecording() }
+            contentDescription = "Record"
+        }
+
+        // Create pause and stop as ImageButtons with icons
         pauseButton = createControlButton("⏸") { pauseRecording() }
         stopButton = createControlButton("⏹") { stopRecording() }
 
-        // Set record button to red color
-        recordButton.setBackgroundColor(Color.RED)
+        // Set proper icons on ImageButtons to fix "white squares" issue
+        pauseButton.setImageResource(android.R.drawable.ic_media_pause)
+        stopButton.setImageResource(android.R.drawable.ic_delete)  // Using delete icon as stop placeholder
 
         // Initially hide pause and stop buttons
         pauseButton.visibility = View.GONE
@@ -182,6 +217,7 @@ class VideoControlsOverlay @JvmOverloads constructor(
 
         // Add all containers to main container
         mainContainer.addView(recordingContainer)
+        mainContainer.addView(qualityContainer)  // Quality selector on its own line with label
         mainContainer.addView(buttonsContainer)
         mainContainer.addView(manualControlsPanel)
 

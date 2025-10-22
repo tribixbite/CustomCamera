@@ -2338,7 +2338,9 @@ class CameraActivityEngine : AppCompatActivity() {
             val plugin = advancedVideoRecordingPlugin
             if (plugin == null) {
                 Log.e(TAG, "Video recording plugin not available")
-                Toast.makeText(this, "Video recording not available", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Video recording not available", Toast.LENGTH_SHORT).apply {
+                    setGravity(android.view.Gravity.TOP or android.view.Gravity.CENTER_HORIZONTAL, 0, 200)
+                }.show()
                 return
             }
 
@@ -2346,7 +2348,9 @@ class CameraActivityEngine : AppCompatActivity() {
 
             if (plugin.isRecording.value) {
                 plugin.stopRecording()
-                Toast.makeText(this, "Video recording stopped", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Video recording stopped", Toast.LENGTH_SHORT).apply {
+                    setGravity(android.view.Gravity.TOP or android.view.Gravity.CENTER_HORIZONTAL, 0, 200)
+                }.show()
             } else {
                 // Check if in concurrent camera mode (PiP active)
                 val currentMode = cameraEngine.getCurrentMode()
@@ -2356,7 +2360,9 @@ class CameraActivityEngine : AppCompatActivity() {
                         this,
                         "Video recording unavailable in PiP mode. Disable PiP to record video.",
                         Toast.LENGTH_LONG
-                    ).show()
+                    ).apply {
+                        setGravity(android.view.Gravity.TOP or android.view.Gravity.CENTER_HORIZONTAL, 0, 200)
+                    }.show()
                     return
                 }
 
@@ -2370,25 +2376,34 @@ class CameraActivityEngine : AppCompatActivity() {
                         this,
                         "Video recording not available. Please restart the camera.",
                         Toast.LENGTH_LONG
-                    ).show()
+                    ).apply {
+                        setGravity(android.view.Gravity.TOP or android.view.Gravity.CENTER_HORIZONTAL, 0, 200)
+                    }.show()
                     return
                 }
 
                 lifecycleScope.launch {
                     val result = plugin.startRecording()
                     if (result.isSuccess) {
-                        Toast.makeText(this@CameraActivityEngine, "Video recording started", Toast.LENGTH_SHORT).show()
+                        // Position toast at top to avoid blocking manual controls
+                        Toast.makeText(this@CameraActivityEngine, "Video recording started", Toast.LENGTH_SHORT).apply {
+                            setGravity(android.view.Gravity.TOP or android.view.Gravity.CENTER_HORIZONTAL, 0, 200)
+                        }.show()
                     } else {
                         val error = result.exceptionOrNull()
                         Log.e(TAG, "Video recording failed", error)
-                        Toast.makeText(this@CameraActivityEngine, "Failed to start recording: ${error?.message}", Toast.LENGTH_LONG).show()
+                        Toast.makeText(this@CameraActivityEngine, "Failed to start recording: ${error?.message}", Toast.LENGTH_LONG).apply {
+                            setGravity(android.view.Gravity.TOP or android.view.Gravity.CENTER_HORIZONTAL, 0, 200)
+                        }.show()
                     }
                 }
             }
 
         } catch (e: Exception) {
             Log.e(TAG, "Error toggling video recording", e)
-            Toast.makeText(this, "Video toggle failed: ${e.message}", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, "Video toggle failed: ${e.message}", Toast.LENGTH_LONG).apply {
+                setGravity(android.view.Gravity.TOP or android.view.Gravity.CENTER_HORIZONTAL, 0, 200)
+            }.show()
         }
     }
 
