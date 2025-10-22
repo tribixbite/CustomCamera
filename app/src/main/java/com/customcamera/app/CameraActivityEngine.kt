@@ -2060,6 +2060,8 @@ class CameraActivityEngine : AppCompatActivity() {
             if (gridOverlayPlugin != null) {
                 val gridView: View? = gridOverlayPlugin!!.createUIView(cameraContext)
                 if (gridView != null) {
+                    // Remove from parent first if already attached
+                    (gridView.parent as? android.view.ViewGroup)?.removeView(gridView)
                     overlayContainer.addView(gridView)
                     Log.i(TAG, "Added grid overlay to UI container")
                 }
@@ -2071,6 +2073,8 @@ class CameraActivityEngine : AppCompatActivity() {
             if (cropPlugin != null) {
                 val cropView: View? = cropPlugin!!.createUIView(cameraContext)
                 if (cropView != null) {
+                    // Remove from parent first if already attached
+                    (cropView.parent as? android.view.ViewGroup)?.removeView(cropView)
                     overlayContainer.addView(cropView)
                     Log.i(TAG, "Added crop overlay to UI container")
                 }
@@ -2082,6 +2086,8 @@ class CameraActivityEngine : AppCompatActivity() {
             if (advancedVideoRecordingPlugin != null) {
                 val videoView: View? = advancedVideoRecordingPlugin!!.createUIView(cameraContext)
                 if (videoView != null) {
+                    // Remove from parent first if already attached
+                    (videoView.parent as? android.view.ViewGroup)?.removeView(videoView)
                     overlayContainer.addView(videoView)
                     Log.i(TAG, "Added video controls overlay to UI container")
                 }

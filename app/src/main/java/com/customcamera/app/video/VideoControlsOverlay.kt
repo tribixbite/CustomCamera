@@ -331,33 +331,35 @@ class VideoControlsOverlay @JvmOverloads constructor(
             controlsGrid.addView(row2)
             controlsGrid.addView(row3)
 
-            // Stabilization Mode Selector (reduced margins)
+            // Stabilization Mode Selector - Horizontal layout like Quality selector
             val stabilizationModeContainer = LinearLayout(context).apply {
-                orientation = LinearLayout.VERTICAL
+                orientation = LinearLayout.HORIZONTAL  // Changed to horizontal
+                gravity = Gravity.CENTER_VERTICAL
                 layoutParams = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT
                 ).apply {
-                    setMargins(0, 8, 0, 4)  // Reduced from 16, 8
+                    setMargins(8, 8, 8, 4)  // Added horizontal margins
                 }
             }
 
             val stabilizationModeLabel = TextView(context).apply {
-                text = "Stabilization Mode"
-                textSize = 12f  // Reduced from 14f
+                text = "Stab. Mode:"  // Shortened to prevent truncation
+                textSize = 12f
                 setTextColor(Color.WHITE)
                 layoutParams = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT,  // Changed to wrap content
                     LinearLayout.LayoutParams.WRAP_CONTENT
                 ).apply {
-                    setMargins(0, 0, 0, 4)  // Reduced from 8
+                    setMargins(0, 0, 8, 0)  // Right margin for spacing
                 }
             }
 
             stabilizationModeSpinner = Spinner(context).apply {
                 layoutParams = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
+                    0,  // Use weight for flexible width
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    1f  // Take remaining space
                 )
             }
 
@@ -371,12 +373,12 @@ class VideoControlsOverlay @JvmOverloads constructor(
                     LinearLayout.LayoutParams.MATCH_PARENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT
                 ).apply {
-                    setMargins(0, 4, 0, 0)  // Reduced from 8
+                    setMargins(8, 4, 8, 0)  // Added horizontal margins to match mode selector
                 }
             }
 
             stabilizationStrengthLabel = TextView(context).apply {
-                text = "Stabilization Strength: 70%"
+                text = "Stab. Strength: 70%"  // Shortened to match
                 textSize = 12f  // Reduced from 14f
                 setTextColor(Color.WHITE)
                 layoutParams = LinearLayout.LayoutParams(
@@ -475,7 +477,7 @@ class VideoControlsOverlay @JvmOverloads constructor(
                 if (fromUser) {
                     val strength = progress / 100.0f
                     videoPlugin?.setStabilizationStrength(strength)
-                    stabilizationStrengthLabel.text = "Stabilization Strength: ${progress}%"
+                    stabilizationStrengthLabel.text = "Stab. Strength: ${progress}%"
                 }
             }
 
@@ -550,7 +552,7 @@ class VideoControlsOverlay @JvmOverloads constructor(
         val currentStrength = plugin.stabilizationStrength.value
         val strengthPercent = (currentStrength * 100).toInt()
         stabilizationStrengthSeekBar.progress = strengthPercent
-        stabilizationStrengthLabel.text = "Stabilization Strength: ${strengthPercent}%"
+        stabilizationStrengthLabel.text = "Stab. Strength: ${strengthPercent}%"
     }
 
     private fun updateRecordingState(isRecording: Boolean) {
