@@ -1,6 +1,21 @@
 #!/bin/bash
 # Comprehensive ADB Testing Script for CustomCamera
 # Tests all activities, settings screens, and plugin functionality
+#
+# KNOWN LIMITATIONS:
+# - Termux focus stealing prevents reliable tap automation
+# - Photo capture testing is unreliable via ADB (app in foreground required)
+# - Some UI interactions don't respond to 'adb shell input tap' consistently
+# - Recommend manual testing for comprehensive verification
+# - See MANUAL_TESTING_GUIDE.md for detailed test procedures
+#
+# This script provides basic smoke tests and verification of:
+# - App installation and permissions
+# - Activity launches
+# - Plugin system initialization
+# - Basic crash detection
+#
+# Photo Storage Note: Photos saved to /data/data/com.customcamera.app/files/ (not /sdcard/DCIM/)
 
 LOG_FILE="test-results-$(date +%Y%m%d-%H%M%S).md"
 APP_PACKAGE="com.customcamera.app"
