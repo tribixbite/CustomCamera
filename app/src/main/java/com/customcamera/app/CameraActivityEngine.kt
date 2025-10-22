@@ -294,20 +294,13 @@ class CameraActivityEngine : AppCompatActivity() {
         // - AI (3): SmartScene, SmartAdjustments, ObjectDetection
         // - CAPTURE (7): Crop, DualCameraPiP, RAWCapture, AdvancedVideoRecording, NightMode, HDR
 
-        // Get specific plugins that need references for UI interaction
-        autoFocusPlugin = cameraEngine.getPlugin("AutoFocus") as? AutoFocusPlugin
-        gridOverlayPlugin = cameraEngine.getPlugin("GridOverlay") as? GridOverlayPlugin
-        cameraInfoPlugin = cameraEngine.getPlugin("CameraInfo") as? CameraInfoPlugin
-        proControlsPlugin = cameraEngine.getPlugin("ProControls") as? ProControlsPlugin
-        exposureControlPlugin = cameraEngine.getPlugin("ExposureControl") as? ExposureControlPlugin
-        cropPlugin = cameraEngine.getPlugin("Crop") as? CropPlugin
-        dualCameraPiPPlugin = cameraEngine.getPlugin("DualCameraPiP") as? DualCameraPiPPlugin
-        advancedVideoRecordingPlugin = cameraEngine.getPlugin("AdvancedVideoRecording") as? AdvancedVideoRecordingPlugin
+        // NOTE: Plugin references retrieved after async initialize() completes in startCameraWithEngine()
+        // Plugins are registered during cameraEngine.initialize(), so we can't get them here yet.
+        // See line ~330 in startCameraWithEngine() for actual plugin reference assignment.
 
-        val registeredCount = cameraEngine.getAllPlugins().size
-        Log.i(TAG, "✅ Camera engine initialized with $registeredCount plugins via Provider Pattern")
+        Log.i(TAG, "🔌 Camera engine created, plugins will be registered during async initialize()")
 
-        // Note: setupPluginDropdown() called in startCameraWithEngine() after async initialize()
+        // Note: setupPluginDropdown() and plugin reference assignment happen in startCameraWithEngine() after async initialize()
     }
 
     private fun startCameraWithEngine() {
@@ -328,6 +321,19 @@ class CameraActivityEngine : AppCompatActivity() {
                     handleCameraError("Camera engine initialization failed: ${initResult.exceptionOrNull()?.message}")
                     return@launch
                 }
+
+                // Get plugin references AFTER initialize() completes (plugins are now registered)
+                autoFocusPlugin = cameraEngine.getPlugin("AutoFocus") as? AutoFocusPlugin
+                gridOverlayPlugin = cameraEngine.getPlugin("GridOverlay") as? GridOverlayPlugin
+                cameraInfoPlugin = cameraEngine.getPlugin("CameraInfo") as? CameraInfoPlugin
+                proControlsPlugin = cameraEngine.getPlugin("ProControls") as? ProControlsPlugin
+                exposureControlPlugin = cameraEngine.getPlugin("ExposureControl") as? ExposureControlPlugin
+                cropPlugin = cameraEngine.getPlugin("Crop") as? CropPlugin
+                dualCameraPiPPlugin = cameraEngine.getPlugin("DualCameraPiP") as? DualCameraPiPPlugin
+                advancedVideoRecordingPlugin = cameraEngine.getPlugin("AdvancedVideoRecording") as? AdvancedVideoRecordingPlugin
+
+                val registeredCount = cameraEngine.getAllPlugins().size
+                Log.i(TAG, "✅ Retrieved $registeredCount plugin references after initialization")
 
                 // Setup plugin dropdown AFTER async initialize() completes (plugins now registered)
                 setupPluginDropdown()
@@ -765,9 +771,9 @@ class CameraActivityEngine : AppCompatActivity() {
         lifecycleScope.launch {
             try {
                 // Stop video recording if active during camera switch
-                if (advancedVideoRecordingPlugin!!.isRecording.value) {
+                if (advancedVideoRecordingPlugin?.isRecording?.value == true) {
                     Log.i(TAG, "Stopping video recording for camera switch")
-                    advancedVideoRecordingPlugin!!.stopRecording()
+                    advancedVideoRecordingPlugin?.stopRecording()
                 }
 
                 val availableCameras = cameraEngine.availableCameras.value
