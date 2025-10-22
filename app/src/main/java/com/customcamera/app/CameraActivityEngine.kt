@@ -2075,6 +2075,17 @@ class CameraActivityEngine : AppCompatActivity() {
                 Log.w(TAG, "⚠️ Crop plugin not initialized, skipping UI setup")
             }
 
+            // Create and add video controls overlay UI (with null check)
+            if (advancedVideoRecordingPlugin != null) {
+                val videoView: View? = advancedVideoRecordingPlugin!!.createUIView(cameraContext)
+                if (videoView != null) {
+                    overlayContainer.addView(videoView)
+                    Log.i(TAG, "Added video controls overlay to UI container")
+                }
+            } else {
+                Log.w(TAG, "⚠️ Video recording plugin not initialized, skipping UI setup")
+            }
+
             // Barcode is ProcessingPlugin, not UIPlugin - doesn't have visual overlay
             // The barcode scanning results are shown via Toast messages
 
