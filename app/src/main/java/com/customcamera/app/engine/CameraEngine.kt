@@ -6,6 +6,8 @@ import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.video.Recorder
 import androidx.camera.video.VideoCapture
+import androidx.camera.video.Quality
+import androidx.camera.video.QualitySelector
 import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
@@ -758,7 +760,12 @@ class CameraEngine(
         }
 
         if (config.enableVideoCapture) {
-            val recorder = Recorder.Builder().build()
+            // Configure Recorder with QualitySelector to use device's best quality
+            // This should use device-supported audio profiles (48kHz stereo)
+            val recorder = Recorder.Builder()
+                .setQualitySelector(androidx.camera.video.QualitySelector.from(androidx.camera.video.Quality.HIGHEST))
+                .build()
+
             videoCapture = VideoCapture.withOutput(recorder)
             useCases.add(videoCapture!!)
         }

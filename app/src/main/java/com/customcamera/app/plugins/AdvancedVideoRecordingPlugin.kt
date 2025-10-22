@@ -485,7 +485,14 @@ class AdvancedVideoRecordingPlugin : UIPlugin() {
             }
             is VideoRecordEvent.Finalize -> {
                 if (event.hasError()) {
-                    Log.e(TAG, "Recording finalized with error: ${event.error}")
+                    val errorMessage = "Recording finalized with error: ${event.error}"
+                    val cause = event.cause
+                    if (cause != null) {
+                        Log.e(TAG, errorMessage, cause) // Log full exception with stack trace
+                        Log.e(TAG, "Error cause: ${cause.message}")
+                    } else {
+                        Log.e(TAG, errorMessage)
+                    }
                 } else {
                     Log.i(TAG, "Recording finalized successfully: ${event.outputResults.outputUri}")
                 }
