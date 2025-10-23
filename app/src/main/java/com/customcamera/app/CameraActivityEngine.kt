@@ -122,6 +122,11 @@ class CameraActivityEngine : AppCompatActivity() {
             binding = ActivityCameraBinding.inflate(layoutInflater)
             setContentView(binding.root)
             Log.i(TAG, "✅ Layout inflated successfully")
+
+            // Configure PreviewView to use PERFORMANCE mode for better dual camera compatibility
+            // PERFORMANCE mode uses SurfaceView which matches PiP preview mode
+            binding.previewView.implementationMode = androidx.camera.view.PreviewView.ImplementationMode.PERFORMANCE
+            Log.i(TAG, "✅ PreviewView configured with PERFORMANCE mode (SurfaceView)")
         } catch (e: Exception) {
             Log.e(TAG, "💥 Layout inflation failed", e)
             Toast.makeText(this, "Camera interface failed to load", Toast.LENGTH_LONG).show()
