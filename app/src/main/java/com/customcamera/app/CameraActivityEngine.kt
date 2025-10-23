@@ -171,6 +171,42 @@ class CameraActivityEngine : AppCompatActivity() {
         } else {
             requestPermissionLauncher.launch(Manifest.permission.CAMERA)
         }
+
+        // Handle ADB testing intents
+        handleTestIntent()
+    }
+
+    /**
+     * Handle ADB testing intents for automated testing
+     */
+    private fun handleTestIntent() {
+        when (intent?.action) {
+            "com.customcamera.app.TEST_CAMERA" -> {
+                Log.i(TAG, "🧪 TEST_CAMERA intent received - camera will launch normally")
+            }
+            "com.customcamera.app.TEST_PIP" -> {
+                Log.i(TAG, "🧪 TEST_PIP intent received - will enable PiP mode after camera starts")
+                lifecycleScope.launch {
+                    kotlinx.coroutines.delay(2000) // Wait for camera to initialize
+                    // Only toggle if PiP is NOT already enabled
+                    val isEnabled = dualCameraPiPPlugin?.isPiPEnabled?.value ?: false
+                    if (!isEnabled) {
+                        togglePiP()
+                        Log.i(TAG, "🧪 PiP mode enabled via test intent")
+                    } else {
+                        Log.i(TAG, "🧪 PiP mode already enabled (current state: $isEnabled), keeping it enabled")
+                    }
+                }
+            }
+            "com.customcamera.app.TEST_CAPTURE" -> {
+                Log.i(TAG, "🧪 TEST_CAPTURE intent received - will capture photo after camera starts")
+                lifecycleScope.launch {
+                    kotlinx.coroutines.delay(2000) // Wait for camera to initialize
+                    capturePhoto()
+                    Log.i(TAG, "🧪 Photo captured via test intent")
+                }
+            }
+        }
     }
 
     private fun setupFullscreen() {

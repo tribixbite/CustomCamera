@@ -58,8 +58,26 @@
             android:screenOrientation="portrait" />
         <activity
             android:name="com.customcamera.app.CameraActivityEngine"
-            android:exported="false"
-            android:screenOrientation="portrait" />
+            android:exported="true"
+            android:screenOrientation="portrait" >
+
+            <!-- ADB testing intent filters -->
+            <intent-filter>
+                <action android:name="com.customcamera.app.TEST_CAMERA" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.customcamera.app.TEST_PIP" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.customcamera.app.TEST_CAPTURE" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
         <activity
             android:name="com.customcamera.app.CameraSelectionActivity"
             android:exported="false"
