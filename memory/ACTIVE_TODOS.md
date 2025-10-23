@@ -1,18 +1,29 @@
-# Active TODOs - Settings & Plugin Testing
+# Active TODOs - Video UI & Testing Complete
 
-**Last Updated**: 2025-10-21
-**Priority**: MEDIUM - Core camera issues resolved, forensics complete
-**Status**: Camera working, diagnostic tools integrated, ready for feature work
+**Last Updated**: 2025-10-23
+**Priority**: HIGH - Video UI polish complete, PiP fixes verified
+**Status**: Material 3 redesign complete, all video fixes working, ADB testing infrastructure ready
 
 ## Current Session Context
 
-Just completed:
+Just completed (2025-10-23):
+- ✅ **MATERIAL 3 VIDEO CONTROLS REDESIGN** - Complete UI overhaul
+- ✅ **PIP BLACK CAMERA FIX** - PERFORMANCE mode consistency fix
+- ✅ **ADB TESTING INFRASTRUCTURE** - Automated testing capability
+- ✅ Fixed Manual Controls overlap (280dp bottom margin)
+- ✅ Applied Material 3 styling (purple active, gray inactive buttons)
+- ✅ Fixed PreviewView implementation mode mismatch
+- ✅ Created TEST_PIP, TEST_CAMERA, TEST_CAPTURE intents
+- ✅ Verified via automated ADB screenshot testing
+- ✅ All 17 video UI fixes from previous sessions working
+
+Previous completions:
 - ✅ **CAMERA SYSTEM-WIDE FIX** - Identified Bixby Vision Framework dependency
 - ✅ **FORENSIC ANALYSIS** - Root cause: OIS driver requires DL interface libraries
 - ✅ Fixed premature camera closure during initialization
 - ✅ Added getCurrentCameraState() method to prevent rapid rebinds
 - ✅ Created DiagnosticOverlay.kt for real-time debugging
-- ✅ **INTEGRATED DiagnosticOverlay** - 8-tap gesture to show/hide overlay
+- ✅ **INTEGRATED DiagnosticOverlay** - Plugin dropdown toggle
 - ✅ Wired diagnostic overlay to camera state updates
 - ✅ Created debug-camera.sh automated testing script
 - ✅ Enhanced CameraEngine logging (system info, sensors, permissions)
