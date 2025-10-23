@@ -193,8 +193,22 @@ class VideoControlsOverlay @JvmOverloads constructor(
             layoutParams = LinearLayout.LayoutParams(100, 80).apply {
                 setMargins(8, 0, 8, 0)
             }
-            setBackgroundColor(Color.RED)
+
+            // Material 3 styling for REC button
+            setBackgroundColor(Color.argb(255, 211, 47, 47))  // Material red 600
             setTextColor(Color.WHITE)
+            textSize = 16f
+            typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
+            elevation = 4f
+
+            // Material rounded corners
+            clipToOutline = true
+            outlineProvider = object : android.view.ViewOutlineProvider() {
+                override fun getOutline(view: View, outline: android.graphics.Outline) {
+                    outline.setRoundRect(0, 0, view.width, view.height, 16f)  // More rounded
+                }
+            }
+
             setOnClickListener { startRecording() }
             contentDescription = "Record"
         }
@@ -245,22 +259,31 @@ class VideoControlsOverlay @JvmOverloads constructor(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
             )
-            // Reduced padding from 16 to 8 to save vertical space
-            setPadding(8, 8, 8, 8)
-            setBackgroundColor(Color.argb(180, 0, 0, 0))
+            // Material 3 spacing
+            setPadding(16, 12, 16, 12)
 
-            // Title (reduced size and margins for compactness)
+            // Material 3 background with proper elevation
+            background = ContextCompat.getDrawable(context, android.R.drawable.dialog_holo_dark_frame)
+            setBackgroundColor(Color.argb(220, 18, 18, 18))  // Material dark surface
+            elevation = 8f
+
+            // Material 3 rounded corners
+            clipToOutline = true
+            outlineProvider = android.view.ViewOutlineProvider.BACKGROUND
+
+            // Title - Material 3 typography
             val title = TextView(context).apply {
                 text = "Manual Controls"
-                textSize = 14f  // Reduced from 16f
-                setTextColor(Color.WHITE)
-                typeface = Typeface.DEFAULT_BOLD
+                textSize = 16f  // Material headline6
+                setTextColor(Color.argb(255, 229, 225, 230))  // Material on-surface
+                typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
                 gravity = Gravity.CENTER
+                letterSpacing = 0.015f  // Material letter spacing
                 layoutParams = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT
                 ).apply {
-                    setMargins(0, 0, 0, 8)  // Reduced from 16
+                    setMargins(0, 0, 0, 12)
                 }
             }
             addView(title)
@@ -420,9 +443,36 @@ class VideoControlsOverlay @JvmOverloads constructor(
                 LinearLayout.LayoutParams.WRAP_CONTENT,
                 1f
             ).apply {
-                setMargins(4, 4, 4, 4)
+                setMargins(8, 6, 8, 6)  // Material spacing
             }
+
+            // Material 3 styling
+            textSize = 13f
+            typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
+            elevation = 2f
+            stateListAnimator = android.animation.AnimatorInflater.loadStateListAnimator(
+                context,
+                android.R.animator.fade_in
+            )
+
+            // Material 3 colors
+            setTextColor(Color.WHITE)
+            setBackgroundColor(Color.argb(255, 66, 66, 66))  // Material dark button
+
+            // Material rounded corners
+            clipToOutline = true
+            outlineProvider = object : android.view.ViewOutlineProvider() {
+                override fun getOutline(view: View, outline: android.graphics.Outline) {
+                    outline.setRoundRect(0, 0, view.width, view.height, 12f)
+                }
+            }
+
             setOnCheckedChangeListener { _, isChecked ->
+                // Material 3 state colors
+                setBackgroundColor(
+                    if (isChecked) Color.argb(255, 103, 80, 164)  // Material purple primary
+                    else Color.argb(255, 66, 66, 66)  // Material dark button
+                )
                 onToggle(isChecked)
             }
         }
