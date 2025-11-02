@@ -109,7 +109,7 @@ class CameraActivityEngine : AppCompatActivity() {
         if (isGranted) {
             startCameraWithEngine()
         } else {
-            Toast.makeText(this, getString(R.string.camera_permission_required), Toast.LENGTH_LONG).show()
+            com.customcamera.app.presentation.EnhancedToast.error(this, getString(R.string.camera_permission_required), Toast.LENGTH_LONG)
             finish()
         }
     }
@@ -129,7 +129,7 @@ class CameraActivityEngine : AppCompatActivity() {
             Log.i(TAG, "✅ PreviewView configured with PERFORMANCE mode (SurfaceView)")
         } catch (e: Exception) {
             Log.e(TAG, "💥 Layout inflation failed", e)
-            Toast.makeText(this, "Camera interface failed to load", Toast.LENGTH_LONG).show()
+            com.customcamera.app.presentation.EnhancedToast.error(this, "Camera interface failed to load", Toast.LENGTH_LONG)
             finish()
             return
         }
@@ -703,14 +703,14 @@ class CameraActivityEngine : AppCompatActivity() {
             image.close()
 
             loadingIndicatorManager.hideLoading()
-            Toast.makeText(this@CameraActivityEngine, "Photo saved: ${photoFile.name}", Toast.LENGTH_SHORT).show()
+            com.customcamera.app.presentation.EnhancedToast.photoSaved(this@CameraActivityEngine, photoFile.name)
             Log.i(TAG, "Photo saved (single): ${photoFile.absolutePath}")
             animateCaptureButton()
         } catch (e: Exception) {
             image.close()
             loadingIndicatorManager.hideLoading()
             Log.e(TAG, "Failed to save image", e)
-            Toast.makeText(this@CameraActivityEngine, "Failed to save photo", Toast.LENGTH_SHORT).show()
+            com.customcamera.app.presentation.EnhancedToast.error(this@CameraActivityEngine, "Failed to save photo")
         }
     }
 
@@ -727,25 +727,25 @@ class CameraActivityEngine : AppCompatActivity() {
         lifecycleScope.launch {
             try {
                 val exposureTime = nightModePlugin.getCurrentExposureTime()
-                Toast.makeText(this@CameraActivityEngine, "Capturing long exposure (${exposureTime}ms)...", Toast.LENGTH_LONG).show()
+                com.customcamera.app.presentation.EnhancedToast.info(this@CameraActivityEngine, "Capturing long exposure (${exposureTime}ms)...", Toast.LENGTH_LONG)
 
                 val success = nightModePlugin.captureLongExposurePhoto(outputFileOptions)
 
                 loadingIndicatorManager.hideLoading()
 
                 if (success) {
-                    Toast.makeText(this@CameraActivityEngine, "Long exposure photo saved: ${photoFile.name}", Toast.LENGTH_LONG).show()
+                    com.customcamera.app.presentation.EnhancedToast.photoSaved(this@CameraActivityEngine, photoFile.name)
                     Log.i(TAG, "Long exposure photo saved: ${photoFile.absolutePath}")
                     animateCaptureButton()
                 } else {
                     Log.e(TAG, "Long exposure photo capture failed")
-                    Toast.makeText(this@CameraActivityEngine, "Long exposure capture failed", Toast.LENGTH_SHORT).show()
+                    com.customcamera.app.presentation.EnhancedToast.error(this@CameraActivityEngine, "Long exposure capture failed")
                 }
 
             } catch (e: Exception) {
                 loadingIndicatorManager.hideLoading()
                 Log.e(TAG, "Long exposure capture error", e)
-                Toast.makeText(this@CameraActivityEngine, "Long exposure error: ${e.message}", Toast.LENGTH_LONG).show()
+                com.customcamera.app.presentation.EnhancedToast.error(this@CameraActivityEngine, "Long exposure error: ${e.message}", Toast.LENGTH_LONG)
             }
         }
     }
@@ -896,20 +896,20 @@ class CameraActivityEngine : AppCompatActivity() {
                         hapticManager.error()
 
                         Log.e(TAG, "❌ Camera switch failed: ${result.exceptionOrNull()?.message}")
-                        Toast.makeText(this@CameraActivityEngine, "Failed to switch camera", Toast.LENGTH_SHORT).show()
+                        com.customcamera.app.presentation.EnhancedToast.error(this@CameraActivityEngine, "Failed to switch camera")
                     }
                 } else {
                     // Haptic feedback for unavailable action
                     hapticManager.mediumTap()
 
-                    Toast.makeText(this@CameraActivityEngine, "Only one camera available", Toast.LENGTH_SHORT).show()
+                    com.customcamera.app.presentation.EnhancedToast.info(this@CameraActivityEngine, "Only one camera available")
                 }
             } catch (e: Exception) {
                 // Haptic feedback for error
                 hapticManager.error()
 
                 Log.e(TAG, "Error switching camera with engine", e)
-                Toast.makeText(this@CameraActivityEngine, "Switch failed: ${e.message}", Toast.LENGTH_SHORT).show()
+                com.customcamera.app.presentation.EnhancedToast.error(this@CameraActivityEngine, "Switch failed: ${e.message}")
             }
         }
     }
@@ -940,7 +940,7 @@ class CameraActivityEngine : AppCompatActivity() {
             // Haptic feedback for unavailable action
             hapticManager.mediumTap()
 
-            Toast.makeText(this, "Flash not available", Toast.LENGTH_SHORT).show()
+            com.customcamera.app.presentation.EnhancedToast.info(this, "Flash not available")
         }
     }
 
@@ -964,7 +964,7 @@ class CameraActivityEngine : AppCompatActivity() {
             startActivity(intent)
         } catch (e: Exception) {
             Log.e(TAG, "Failed to open gallery", e)
-            Toast.makeText(this, "Gallery error: ${e.message}", Toast.LENGTH_SHORT).show()
+            com.customcamera.app.presentation.EnhancedToast.error(this, "Gallery error: ${e.message}")
         }
     }
 
@@ -974,7 +974,7 @@ class CameraActivityEngine : AppCompatActivity() {
             startActivity(intent)
         } catch (e: Exception) {
             Log.e(TAG, "Failed to open settings", e)
-            Toast.makeText(this, "Settings error: ${e.message}", Toast.LENGTH_SHORT).show()
+            com.customcamera.app.presentation.EnhancedToast.error(this, "Settings error: ${e.message}")
         }
     }
 
@@ -985,7 +985,7 @@ class CameraActivityEngine : AppCompatActivity() {
             Log.i(TAG, "Opened settings page")
         } catch (e: Exception) {
             Log.e(TAG, "Failed to open settings", e)
-            Toast.makeText(this, "Settings error: ${e.message}", Toast.LENGTH_LONG).show()
+            com.customcamera.app.presentation.EnhancedToast.error(this, "Settings error: ${e.message}", Toast.LENGTH_LONG)
         }
     }
 
@@ -1027,7 +1027,7 @@ class CameraActivityEngine : AppCompatActivity() {
                             // Show enhanced feedback with exposure info
                             val exposureTime = nightModePlugin.getCurrentExposureTime()
                             val message = "Night mode enabled - Long exposure: ${exposureTime}ms"
-                            Toast.makeText(this@CameraActivityEngine, message, Toast.LENGTH_LONG).show()
+                            com.customcamera.app.presentation.EnhancedToast.featureActivated(this@CameraActivityEngine, "Night Mode")
 
                         } else {
                             nightModePlugin.toggleNightMode()
@@ -1039,7 +1039,7 @@ class CameraActivityEngine : AppCompatActivity() {
                                 Log.i(TAG, "Night mode overlay removed from UI")
                             }
 
-                            Toast.makeText(this@CameraActivityEngine, "Night mode disabled", Toast.LENGTH_SHORT).show()
+                            com.customcamera.app.presentation.EnhancedToast.featureDeactivated(this@CameraActivityEngine, "Night Mode")
                         }
 
                         // Update button appearance with enhanced visual feedback
@@ -1066,18 +1066,18 @@ class CameraActivityEngine : AppCompatActivity() {
 
                     } catch (e: Exception) {
                         Log.e(TAG, "Error in night mode async toggle", e)
-                        Toast.makeText(this@CameraActivityEngine, "Night mode error: ${e.message}", Toast.LENGTH_SHORT).show()
+                        com.customcamera.app.presentation.EnhancedToast.error(this@CameraActivityEngine, "Night mode error: ${e.message}")
                     }
                 }
 
             } else {
-                Toast.makeText(this, "Night mode plugin not available", Toast.LENGTH_SHORT).show()
+                com.customcamera.app.presentation.EnhancedToast.error(this, "Night mode plugin not available")
                 Log.w(TAG, "Night mode plugin not found")
             }
 
         } catch (e: Exception) {
             Log.e(TAG, "Error toggling night mode", e)
-            Toast.makeText(this, "Night mode error: ${e.message}", Toast.LENGTH_SHORT).show()
+            com.customcamera.app.presentation.EnhancedToast.error(this, "Night mode error: ${e.message}")
         }
     }
 
@@ -2311,7 +2311,7 @@ class CameraActivityEngine : AppCompatActivity() {
                 hapticManager.error()
 
                 Log.e(TAG, "PiP plugin not initialized")
-                Toast.makeText(this, "PiP not available", Toast.LENGTH_SHORT).show()
+                com.customcamera.app.presentation.EnhancedToast.error(this, "PiP not available")
                 return
             }
 
@@ -2324,28 +2324,26 @@ class CameraActivityEngine : AppCompatActivity() {
                 hapticManager.error()
 
                 Log.w(TAG, "PiP requires at least 2 cameras, found: $cameraCount")
-                Toast.makeText(
+                com.customcamera.app.presentation.EnhancedToast.warning(
                     this,
                     "PiP requires at least 2 cameras (found $cameraCount)",
                     Toast.LENGTH_LONG
-                ).show()
+                )
                 return
             }
 
             // Toggle PiP state
             val wasEnabled = dualCameraPiPPlugin!!.togglePiP()
 
-            val message = if (wasEnabled) {
-                "Dual camera PiP enabled"
-            } else {
-                "Dual camera PiP disabled"
-            }
-
             // Haptic feedback for successful toggle
             hapticManager.success()
 
-            Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
-            Log.i(TAG, "$message (cameras available: $cameraCount)")
+            if (wasEnabled) {
+                com.customcamera.app.presentation.EnhancedToast.featureActivated(this, "Dual Camera PiP")
+            } else {
+                com.customcamera.app.presentation.EnhancedToast.featureDeactivated(this, "Dual Camera PiP")
+            }
+            Log.i(TAG, "Dual camera PiP ${if (wasEnabled) "enabled" else "disabled"} (cameras available: $cameraCount)")
 
             // Update video button state based on camera mode
             // Video recording is disabled in concurrent mode due to UseCase limit
@@ -2365,7 +2363,7 @@ class CameraActivityEngine : AppCompatActivity() {
             hapticManager.error()
 
             Log.e(TAG, "Error toggling dual camera PiP", e)
-            Toast.makeText(this, "PiP toggle failed: ${e.message}", Toast.LENGTH_LONG).show()
+            com.customcamera.app.presentation.EnhancedToast.error(this, "PiP toggle failed: ${e.message}", Toast.LENGTH_LONG)
         }
     }
 
