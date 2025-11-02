@@ -1,36 +1,93 @@
-# Active TODOs - Video UI & Testing Complete
+# Active TODOs - Plugin Audit Complete
 
-**Last Updated**: 2025-10-23
-**Priority**: HIGH - Video UI polish complete, PiP fixes verified
-**Status**: Material 3 redesign complete, all video fixes working, ADB testing infrastructure ready
+**Last Updated**: 2025-11-02
+**Priority**: CRITICAL - 5 broken plugins identified, P0 fixes required
+**Status**: Comprehensive plugin audit complete, fixing critical plugins
 
 ## Current Session Context
 
-Just completed (2025-10-23):
-- ✅ **MATERIAL 3 VIDEO CONTROLS REDESIGN** - Complete UI overhaul
-- ✅ **PIP BLACK CAMERA FIX** - PERFORMANCE mode consistency fix
-- ✅ **ADB TESTING INFRASTRUCTURE** - Automated testing capability
-- ✅ Fixed Manual Controls overlap (280dp bottom margin)
-- ✅ Applied Material 3 styling (purple active, gray inactive buttons)
-- ✅ Fixed PreviewView implementation mode mismatch
-- ✅ Created TEST_PIP, TEST_CAMERA, TEST_CAPTURE intents
-- ✅ Verified via automated ADB screenshot testing
-- ✅ All 17 video UI fixes from previous sessions working
+Just completed (2025-11-02):
+- ✅ **COMPREHENSIVE PLUGIN AUDIT** - All 23 plugins systematically verified
+- ✅ **PLUGIN_AUDIT_REPORT.md** - Detailed findings with line-by-line code references
+- ✅ Fixed status bar visibility (Android 11+ edge-to-edge)
+- ✅ Added version info to settings (BUILD_DATE)
+- ✅ Enhanced haptic feedback for all camera actions
+- ✅ Implemented app restart logic for critical error recovery
+- ✅ Replaced plain toasts with EnhancedToast (contextual colors/icons)
 
-Previous completions:
-- ✅ **CAMERA SYSTEM-WIDE FIX** - Identified Bixby Vision Framework dependency
-- ✅ **FORENSIC ANALYSIS** - Root cause: OIS driver requires DL interface libraries
-- ✅ Fixed premature camera closure during initialization
-- ✅ Added getCurrentCameraState() method to prevent rapid rebinds
-- ✅ Created DiagnosticOverlay.kt for real-time debugging
-- ✅ **INTEGRATED DiagnosticOverlay** - Plugin dropdown toggle
-- ✅ Wired diagnostic overlay to camera state updates
-- ✅ Created debug-camera.sh automated testing script
-- ✅ Enhanced CameraEngine logging (system info, sensors, permissions)
-- ✅ Documented camera fix in CAMERA_FIX_FORENSICS.md
+**Plugin Audit Findings**:
+- **Total Plugins**: 23
+- **COMPLETE**: 18 (78%)
+- **INCOMPLETE**: 5 (22%)
+
+**CRITICAL (P0) - 2 plugins**:
+1. **RAWCapturePlugin** - No actual RAW capture (TODOs at lines 275-277, 317-318, 484-486)
+2. **HDRPlugin** - Mock/simulation only (lines 294-297, 300-319, 322-325)
+
+**HIGH PRIORITY (P1) - 3 plugins**:
+1. **ObjectDetectionPlugin** - ML Kit disabled (lines 9-12, 57)
+2. **SmartScenePlugin** - Heuristic-only, no ML integration
+3. **SmartAdjustmentsPlugin** - Partial implementation
+
+Previous completions (2025-10-23):
+- ✅ Material 3 video controls redesign
+- ✅ PiP black camera fix (PERFORMANCE mode)
+- ✅ ADB testing infrastructure
+- ✅ DiagnosticOverlay integration
+- ✅ Camera system-wide fix (Bixby Vision Framework)
 - ✅ All 4 cameras verified working system-wide
 
 ## Immediate Next Steps (Priority Order)
+
+### 🔴 PRIORITY 1: Fix P0 Critical Plugins (5 days estimated)
+
+**Status**: READY TO START
+**See**: `PLUGIN_AUDIT_REPORT.md` for complete analysis
+
+#### Task 1.1: Fix RAWCapturePlugin (2 days)
+**Files to Create**:
+- `app/src/main/java/com/customcamera/app/camera/Camera2Interop.kt` - Camera2 API wrapper
+- `app/src/main/java/com/customcamera/app/camera/DNGWriter.kt` - DNG file format writer
+
+**Files to Modify**:
+- `app/src/main/java/com/customcamera/app/plugins/RAWCapturePlugin.kt` - Remove TODOs, implement actual RAW capture
+
+**Implementation Steps**:
+1. Create Camera2Interop wrapper for Camera2 API access
+2. Implement DNG file writer using Camera2 RAW stream
+3. Add dual capture with timestamp synchronization (JPEG + RAW)
+4. Implement metadata embedding (EXIF, sensor info)
+5. Add capability detection for RAW support
+6. Remove TODOs at lines 275-277, 317-318, 484-486
+
+**Testing**:
+- Unit test RAW capture capability detection
+- Integration test DNG file creation
+- Integration test dual JPEG+RAW capture
+
+#### Task 1.2: Fix HDRPlugin (3 days)
+**Files to Create**:
+- `app/src/main/java/com/customcamera/app/camera/HDRProcessor.kt` - Frame merging and tone mapping
+- `app/src/main/java/com/customcamera/app/camera/ExposureBracketing.kt` - Exposure bracketing logic
+
+**Files to Modify**:
+- `app/src/main/java/com/customcamera/app/plugins/HDRPlugin.kt` - Replace mock implementations
+
+**Implementation Steps**:
+1. Implement exposure bracketing with configurable stops (-2, 0, +2 EV)
+2. Create HDRProcessor for frame alignment and merging
+3. Implement tone mapping algorithm (Reinhard or Drago)
+4. Add local contrast enhancement
+5. Implement frame caching and memory management
+6. Replace mock implementations at lines 294-297, 300-319, 322-325
+
+**Testing**:
+- Unit test frame alignment
+- Unit test tone mapping
+- Integration test multi-frame capture
+- Performance test < 3s processing time
+
+---
 
 ### ✅ CAMERA ISSUES RESOLVED
 
