@@ -114,19 +114,17 @@ Previous completions:
    - ✅ **DualCameraPiPPlugin** - Already excluded from dropdown (dedicated button only)
    - ✅ **DiagnosticOverlayPlugin** - Added to DEBUG category (toggle correct)
 
-5. **Plugin UI Decision Point**
-   - ❓ **BarcodePlugin**: Currently toggle, should be action button?
-   - ❓ **QRScannerPlugin**: Currently toggle, should be action button?
-   - Both are action-based (one-shot scan) not continuous monitoring
-   - **Decision needed**: Keep as toggles or convert to action buttons?
-
-### 🟢 MEDIUM PRIORITY - Code Changes
-
-6. **Convert Barcode/QRScanner to Action Buttons** (if user confirms)
-   - Set `userToggleable = false` in BarcodePlugin
-   - Set `userToggleable = false` in QRScannerPlugin
-   - Add action buttons to CameraActivityEngine UI
-   - Implement trigger methods for scanning mode
+5. **Plugin UI Decision - RESOLVED ✅** (2025-10-23)
+   - ✅ **BarcodePlugin**: Toggle is CORRECT (continuous monitoring, not one-shot)
+   - ✅ **QRScannerPlugin**: Toggle is CORRECT (continuous monitoring, not one-shot)
+   - **Analysis**: `PLUGIN_UI_DECISION_ANALYSIS.md`
+   - **Finding**: Both plugins implement continuous frame processing (100ms/200ms intervals)
+   - **Evidence**:
+     - BarcodePlugin processes every frame when enabled, maintains history
+     - QRScannerPlugin processes every frame, auto-actions on detection
+     - Matches pattern of MotionDetection/Crop (both use toggles)
+   - **Decision**: KEEP AS TOGGLES - Current implementation is architecturally correct
+   - **No changes needed**: Assertion "action-based (one-shot)" was incorrect
 
 ### ✅ AUTOMATED TESTING - Robolectric Infrastructure Complete (2025-10-21)
 
