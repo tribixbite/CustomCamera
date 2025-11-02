@@ -9,6 +9,8 @@
 Just completed (2025-11-02):
 - ✅ **COMPREHENSIVE PLUGIN AUDIT** - All 23 plugins systematically verified
 - ✅ **PLUGIN_AUDIT_REPORT.md** - Detailed findings with line-by-line code references
+- ✅ **ZEN-MCP THINKDEEP ANALYSIS** - RAW capture implementation strategy validated by expert
+- ✅ **DNGWriter.kt** - DNG file writer with timestamp-based pairing implemented
 - ✅ Fixed status bar visibility (Android 11+ edge-to-edge)
 - ✅ Added version info to settings (BUILD_DATE)
 - ✅ Enhanced haptic feedback for all camera actions
@@ -44,26 +46,41 @@ Previous completions (2025-10-23):
 **Status**: READY TO START
 **See**: `PLUGIN_AUDIT_REPORT.md` for complete analysis
 
-#### Task 1.1: Fix RAWCapturePlugin (2 days)
-**Files to Create**:
-- `app/src/main/java/com/customcamera/app/camera/Camera2Interop.kt` - Camera2 API wrapper
-- `app/src/main/java/com/customcamera/app/camera/DNGWriter.kt` - DNG file format writer
+#### Task 1.1: Fix RAWCapturePlugin (2 days) - IN PROGRESS ⚙️
+
+**Progress**:
+- ✅ Zen-mcp thinkdeep analysis completed - Expert validation received
+- ✅ DNGWriter.kt created and committed (225 lines, fully functional)
+- ⚙️ Architecture analysis ongoing - Understanding camera engine integration
+- ⏳ RAWCapturePlugin modifications pending
+
+**Expert-Recommended Approach**:
+- Use `Camera2Interop.Extender` to extend existing CameraX ImageCapture
+- Single `takePicture()` call produces both JPEG and RAW (inherent synchronization)
+- DNGWriter pairs Image with TotalCaptureResult via timestamps
+- No separate Camera2 session needed (simplified lifecycle)
+
+**Files Created**:
+- ✅ `app/src/main/java/com/customcamera/app/camera/DNGWriter.kt` - DNG file writer with timestamp pairing
 
 **Files to Modify**:
-- `app/src/main/java/com/customcamera/app/plugins/RAWCapturePlugin.kt` - Remove TODOs, implement actual RAW capture
+- ⏳ `app/src/main/java/com/customcamera/app/plugins/RAWCapturePlugin.kt` - Implement RAW capture
+  - Line 275-277: Replace TODO with ImageReader setup and Camera2Interop.Extender
+  - Line 317-318: Remove separate dual capture (now automatic)
+  - Line 484-486: Remove toTotalCaptureResult() (get from CaptureCallback)
 
-**Implementation Steps**:
-1. Create Camera2Interop wrapper for Camera2 API access
-2. Implement DNG file writer using Camera2 RAW stream
-3. Add dual capture with timestamp synchronization (JPEG + RAW)
-4. Implement metadata embedding (EXIF, sensor info)
-5. Add capability detection for RAW support
-6. Remove TODOs at lines 275-277, 317-318, 484-486
+**Next Steps**:
+1. Understand CameraEngine architecture for ImageCapture access
+2. Add ImageReader for RAW_SENSOR in RAWCapturePlugin
+3. Use Camera2Interop.Extender to add RAW surface to camera session
+4. Wire up DNGWriter to ImageReader callbacks
+5. Test on device with RAW capability
 
 **Testing**:
-- Unit test RAW capture capability detection
+- Unit test RAW capture capability detection (already working)
 - Integration test DNG file creation
 - Integration test dual JPEG+RAW capture
+- Memory leak test (ImageReader cleanup)
 
 #### Task 1.2: Fix HDRPlugin (3 days)
 **Files to Create**:
