@@ -319,13 +319,37 @@ class ErrorHandlingManager(private val context: Context) {
                 .setTitle("Critical Error")
                 .setMessage("$message\n\nThe app may need to be restarted.")
                 .setPositiveButton("Restart App") { _, _ ->
-                    // TODO: Implement app restart logic
+                    restartApp()
                 }
                 .setNegativeButton("Continue") { dialog, _ ->
                     dialog.dismiss()
                 }
                 .setCancelable(false)
                 .show()
+        }
+    }
+
+    /**
+     * Restart the application
+     * Used for critical error recovery when other recovery strategies fail
+     */
+    private fun restartApp() {
+        try {
+            Log.i(TAG, "Restarting application for critical error recovery")
+
+            val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)
+            intent?.addFlags(android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP or android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+
+            if (intent != null) {
+                context.startActivity(intent)
+                Runtime.getRuntime().exit(0)
+            } else {
+                Log.e(TAG, "Failed to get launch intent for app restart")
+                Toast.makeText(context, "Unable to restart app. Please manually restart.", Toast.LENGTH_LONG).show()
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error during app restart", e)
+            Toast.makeText(context, "Restart failed. Please manually close and reopen the app.", Toast.LENGTH_LONG).show()
         }
     }
 

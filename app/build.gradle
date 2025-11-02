@@ -48,6 +48,10 @@ android {
         versionName getVersionName()
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        // Add build timestamp to BuildConfig
+        buildConfigField "long", "BUILD_TIMESTAMP", System.currentTimeMillis() + "L"
+        buildConfigField "String", "BUILD_DATE", "\"" + new Date().format("yyyy-MM-dd HH:mm") + "\""
     }
 
     buildTypes {
@@ -68,6 +72,7 @@ android {
 
     buildFeatures {
         viewBinding true
+        buildConfig true
     }
 
     testOptions {

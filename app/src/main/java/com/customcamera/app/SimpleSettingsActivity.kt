@@ -554,6 +554,12 @@ class SimpleSettingsActivity : AppCompatActivity() {
                     description = "Internal build number",
                     value = versionCode
                 ))
+                items.add(SettingsListItem.InfoItem(
+                    key = "build_date",
+                    title = "Build Date",
+                    description = "When this version was compiled",
+                    value = BuildConfig.BUILD_DATE
+                ))
                 items.add(SettingsListItem.ButtonItem(
                     key = "check_updates",
                     title = "Check for Updates",

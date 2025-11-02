@@ -211,11 +211,22 @@ class CameraActivityEngine : AppCompatActivity() {
 
     private fun setupFullscreen() {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
-            // Modern approach for Android 11+
+            // Modern approach for Android 11+ (API 30+)
+            // Enable edge-to-edge display
+            window.setDecorFitsSystemWindows(false)
+
             window.insetsController?.let { controller ->
-                controller.hide(android.view.WindowInsets.Type.statusBars() or android.view.WindowInsets.Type.navigationBars())
-                controller.systemBarsBehavior = android.view.WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+                // Hide both status bar and navigation bar
+                controller.hide(
+                    android.view.WindowInsets.Type.statusBars()
+                    or android.view.WindowInsets.Type.navigationBars()
+                )
+                // Make bars reappear temporarily on swipe
+                controller.systemBarsBehavior =
+                    android.view.WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
             }
+
+            Log.i(TAG, "✅ Fullscreen mode enabled (Android 11+ edge-to-edge)")
         } else {
             // Legacy approach for older Android versions
             @Suppress("DEPRECATION")
@@ -227,6 +238,16 @@ class CameraActivityEngine : AppCompatActivity() {
                 or View.SYSTEM_UI_FLAG_FULLSCREEN
                 or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
             )
+
+            Log.i(TAG, "✅ Fullscreen mode enabled (Legacy immersive sticky)")
+        }
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus) {
+            // Re-apply fullscreen when window regains focus
+            setupFullscreen()
         }
     }
 
@@ -865,15 +886,28 @@ class CameraActivityEngine : AppCompatActivity() {
 
                         updateFlashButton()
                         animateSwitchButton()
+
+                        // Haptic feedback for successful camera switch
+                        hapticManager.success()
+
                         Log.i(TAG, "✅ Camera switched successfully with video support and plugin states restored")
                     } else {
+                        // Haptic feedback for error
+                        hapticManager.error()
+
                         Log.e(TAG, "❌ Camera switch failed: ${result.exceptionOrNull()?.message}")
                         Toast.makeText(this@CameraActivityEngine, "Failed to switch camera", Toast.LENGTH_SHORT).show()
                     }
                 } else {
+                    // Haptic feedback for unavailable action
+                    hapticManager.mediumTap()
+
                     Toast.makeText(this@CameraActivityEngine, "Only one camera available", Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
+                // Haptic feedback for error
+                hapticManager.error()
+
                 Log.e(TAG, "Error switching camera with engine", e)
                 Toast.makeText(this@CameraActivityEngine, "Switch failed: ${e.message}", Toast.LENGTH_SHORT).show()
             }
@@ -899,7 +933,13 @@ class CameraActivityEngine : AppCompatActivity() {
             camera.cameraControl.enableTorch(isFlashOn)
             updateFlashButton()
             animateFlashButton()
+
+            // Haptic feedback for toggle
+            hapticManager.mediumTap()
         } else {
+            // Haptic feedback for unavailable action
+            hapticManager.mediumTap()
+
             Toast.makeText(this, "Flash not available", Toast.LENGTH_SHORT).show()
         }
     }
@@ -1018,6 +1058,9 @@ class CameraActivityEngine : AppCompatActivity() {
                                         .setDuration(200)
                                 }
                         }
+
+                        // Haptic feedback for successful toggle
+                        hapticManager.mediumTap()
 
                         Log.i(TAG, "Night mode v2.0 ${if (isNightModeEnabled) "enabled" else "disabled"}")
 
@@ -1976,6 +2019,9 @@ class CameraActivityEngine : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
 
+        // Ensure fullscreen persists after resume
+        setupFullscreen()
+
         // Check if camera selection changed in settings
         if (::cameraEngine.isInitialized && hasCameraPermission()) {
             val settingsManager = SettingsManager(this)
@@ -2261,6 +2307,9 @@ class CameraActivityEngine : AppCompatActivity() {
         try {
             // Check if plugin is initialized
             if (dualCameraPiPPlugin == null) {
+                // Haptic feedback for error
+                hapticManager.error()
+
                 Log.e(TAG, "PiP plugin not initialized")
                 Toast.makeText(this, "PiP not available", Toast.LENGTH_SHORT).show()
                 return
@@ -2271,6 +2320,9 @@ class CameraActivityEngine : AppCompatActivity() {
             val cameraCount = cameraManager?.cameraIdList?.size ?: 0
 
             if (cameraCount < 2 && !dualCameraPiPPlugin!!.isPiPEnabled.value) {
+                // Haptic feedback for unavailable action
+                hapticManager.error()
+
                 Log.w(TAG, "PiP requires at least 2 cameras, found: $cameraCount")
                 Toast.makeText(
                     this,
@@ -2289,6 +2341,9 @@ class CameraActivityEngine : AppCompatActivity() {
                 "Dual camera PiP disabled"
             }
 
+            // Haptic feedback for successful toggle
+            hapticManager.success()
+
             Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
             Log.i(TAG, "$message (cameras available: $cameraCount)")
 
@@ -2306,6 +2361,9 @@ class CameraActivityEngine : AppCompatActivity() {
             }
 
         } catch (e: Exception) {
+            // Haptic feedback for error
+            hapticManager.error()
+
             Log.e(TAG, "Error toggling dual camera PiP", e)
             Toast.makeText(this, "PiP toggle failed: ${e.message}", Toast.LENGTH_LONG).show()
         }
@@ -2384,6 +2442,9 @@ class CameraActivityEngine : AppCompatActivity() {
         try {
             val plugin = advancedVideoRecordingPlugin
             if (plugin == null) {
+                // Haptic feedback for error
+                hapticManager.error()
+
                 Log.e(TAG, "Video recording plugin not available")
                 Toast.makeText(this, "Video recording not available", Toast.LENGTH_SHORT).apply {
                     setGravity(android.view.Gravity.TOP or android.view.Gravity.CENTER_HORIZONTAL, 0, 200)
@@ -2395,6 +2456,10 @@ class CameraActivityEngine : AppCompatActivity() {
 
             if (plugin.isRecording.value) {
                 plugin.stopRecording()
+
+                // Haptic feedback for stop recording
+                hapticManager.mediumTap()
+
                 Toast.makeText(this, "Video recording stopped", Toast.LENGTH_SHORT).apply {
                     setGravity(android.view.Gravity.TOP or android.view.Gravity.CENTER_HORIZONTAL, 0, 200)
                 }.show()
@@ -2402,6 +2467,9 @@ class CameraActivityEngine : AppCompatActivity() {
                 // Check if in concurrent camera mode (PiP active)
                 val currentMode = cameraEngine.getCurrentMode()
                 if (currentMode is com.customcamera.app.engine.CameraMode.Concurrent) {
+                    // Haptic feedback for unavailable action
+                    hapticManager.error()
+
                     Log.w(TAG, "Video recording not available in concurrent camera mode")
                     Toast.makeText(
                         this,
@@ -2418,6 +2486,9 @@ class CameraActivityEngine : AppCompatActivity() {
                 Log.i(TAG, "Video capture from engine: $videoCapture")
 
                 if (videoCapture == null) {
+                    // Haptic feedback for error
+                    hapticManager.error()
+
                     Log.e(TAG, "VideoCapture not initialized")
                     Toast.makeText(
                         this,
@@ -2432,11 +2503,17 @@ class CameraActivityEngine : AppCompatActivity() {
                 lifecycleScope.launch {
                     val result = plugin.startRecording()
                     if (result.isSuccess) {
+                        // Haptic feedback for successful start
+                        hapticManager.success()
+
                         // Position toast at top to avoid blocking manual controls
                         Toast.makeText(this@CameraActivityEngine, "Video recording started", Toast.LENGTH_SHORT).apply {
                             setGravity(android.view.Gravity.TOP or android.view.Gravity.CENTER_HORIZONTAL, 0, 200)
                         }.show()
                     } else {
+                        // Haptic feedback for error
+                        hapticManager.error()
+
                         val error = result.exceptionOrNull()
                         Log.e(TAG, "Video recording failed", error)
                         Toast.makeText(this@CameraActivityEngine, "Failed to start recording: ${error?.message}", Toast.LENGTH_LONG).apply {
@@ -2447,6 +2524,9 @@ class CameraActivityEngine : AppCompatActivity() {
             }
 
         } catch (e: Exception) {
+            // Haptic feedback for error
+            hapticManager.error()
+
             Log.e(TAG, "Error toggling video recording", e)
             Toast.makeText(this, "Video toggle failed: ${e.message}", Toast.LENGTH_LONG).apply {
                 setGravity(android.view.Gravity.TOP or android.view.Gravity.CENTER_HORIZONTAL, 0, 200)
