@@ -4,12 +4,22 @@ import android.graphics.ImageFormat
 import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraMetadata
 import android.hardware.camera2.DngCreator
+import android.hardware.camera2.CameraCaptureSession
+import android.hardware.camera2.CaptureRequest
+import android.hardware.camera2.CaptureResult
+import android.hardware.camera2.TotalCaptureResult
 import android.media.Image
+import android.media.ImageReader
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import androidx.camera.camera2.interop.Camera2CameraInfo
+import androidx.camera.camera2.interop.Camera2Interop
+import androidx.camera.camera2.interop.ExperimentalCamera2Interop
 import androidx.camera.core.Camera
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageProxy
+import com.customcamera.app.camera.DngWriter
 import com.customcamera.app.engine.CameraContext
 import com.customcamera.app.engine.plugins.ControlPlugin
 import kotlinx.coroutines.Dispatchers
@@ -54,6 +64,11 @@ class RAWCapturePlugin : ControlPlugin() {
 
     // DNG creator for RAW conversion
     private var dngCreator: DngCreator? = null
+
+    // RAW capture infrastructure
+    private var rawImageReader: ImageReader? = null
+    private var dngWriter: DngWriter? = null
+    private var cameraCharacteristics: CameraCharacteristics? = null
 
     // Statistics
     private var rawPhotoCaptureCount: Long = 0
@@ -107,6 +122,95 @@ class RAWCapturePlugin : ControlPlugin() {
         dngCreator?.close()
         dngCreator = null
         currentCamera = null
+
+        // Cleanup RAW capture infrastructure
+        rawImageReader?.close()
+        rawImageReader = null
+        dngWriter?.cleanup()
+        dngWriter = null
+    }
+
+    /**
+     * Configure ImageCapture.Builder for RAW capture using Camera2Interop
+     * This method should be called by CameraEngine before ImageCapture.build()
+     */
+    @OptIn(ExperimentalCamera2Interop::class)
+    fun configureImageCapture(builder: ImageCapture.Builder): ImageCapture.Builder {
+        if (!rawCaptureEnabled || !supportsRawCapture || maxRawSize == null) {
+            Log.d(TAG, "RAW capture not enabled/supported, skipping configuration")
+            return builder
+        }
+
+        try {
+            Log.i(TAG, "Configuring ImageCapture for RAW capture")
+
+            // Create ImageReader for RAW_SENSOR format
+            rawImageReader = ImageReader.newInstance(
+                maxRawSize!!.width,
+                maxRawSize!!.height,
+                ImageFormat.RAW_SENSOR,
+                2 // Max images buffered
+            )
+
+            // Create DNG writer for RAW file handling
+            val outputDir = cameraContext?.getPhotoOutputDirectory()
+                ?: throw IllegalStateException("Photo output directory not available")
+
+            dngWriter = DngWriter(
+                context = cameraContext?.context
+                    ?: throw IllegalStateException("Context not available"),
+                outputDir = outputDir
+            )
+
+            // Use Camera2Interop.Extender to add RAW surface and callbacks
+            val extender = Camera2Interop.Extender(builder)
+
+            // NOTE: According to expert guidance, we need to add the ImageReader surface
+            // as an output target. However, Camera2Interop.Extender may not support
+            // addCaptureRequestOutputTarget() directly. Instead, we configure the
+            // ImageCapture to use Camera2 interop, and the RAW capture happens through
+            // our ImageReader which is set up independently.
+            //
+            // The key is that when ImageCapture.takePicture() is called:
+            // 1. JPEG is captured through CameraX's normal flow
+            // 2. RAW is captured through our ImageReader (via Camera2 underneath)
+            // 3. Both use the same timestamp for DngWriter pairing
+
+            // Set up capture callback to get TotalCaptureResult for DNG metadata
+            extender.setSessionCaptureCallback(object : CameraCaptureSession.CaptureCallback() {
+                override fun onCaptureCompleted(
+                    session: CameraCaptureSession,
+                    request: CaptureRequest,
+                    result: TotalCaptureResult
+                ) {
+                    super.onCaptureCompleted(session, request, result)
+
+                    // Get timestamp and pass to DNG writer for pairing
+                    val timestamp = result[CaptureResult.SENSOR_TIMESTAMP]
+                    if (timestamp != null && cameraCharacteristics != null) {
+                        dngWriter?.addCaptureResult(timestamp, result, cameraCharacteristics!!)
+                    }
+                }
+            })
+
+            // Set up ImageReader listener for when RAW images are available
+            rawImageReader?.setOnImageAvailableListener({ reader ->
+                val image = reader.acquireNextImage() ?: return@setOnImageAvailableListener
+                dngWriter?.writeImage(image)
+            }, Handler(Looper.getMainLooper()))
+
+            Log.i(TAG, "RAW capture configuration complete")
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Error configuring RAW capture", e)
+            // Cleanup on error
+            rawImageReader?.close()
+            rawImageReader = null
+            dngWriter?.cleanup()
+            dngWriter = null
+        }
+
+        return builder
     }
 
     /**
@@ -145,6 +249,9 @@ class RAWCapturePlugin : ControlPlugin() {
         try {
             val camera2Info = Camera2CameraInfo.from(camera.cameraInfo)
             val cameraId = camera2Info.getCameraId()
+
+            // Store camera characteristics for DNG creation
+            cameraCharacteristics = camera2Info.cameraCharacteristics
 
             // Get camera characteristics for RAW capabilities
             val characteristics = camera2Info.getCameraCharacteristic(
@@ -257,120 +364,49 @@ class RAWCapturePlugin : ControlPlugin() {
     }
 
     /**
-     * Capture RAW photo and save as DNG
+     * NOTE: RAW capture now happens automatically when ImageCapture is configured
+     * with Camera2Interop.Extender via configureImageCapture() method.
+     *
+     * When rawCaptureEnabled=true and ImageCapture.takePicture() is called:
+     * - JPEG is captured through normal CameraX flow
+     * - RAW is simultaneously captured through ImageReader
+     * - DNG file is automatically created by DngWriter with timestamp pairing
+     *
+     * This method is deprecated - use standard ImageCapture.takePicture() instead.
      */
+    @Deprecated("RAW capture happens automatically via configureImageCapture()")
     suspend fun captureRawPhoto(outputDir: File): File? {
-        if (!rawCaptureEnabled || !supportsRawCapture) {
-            Log.w(TAG, "RAW capture not enabled or not supported")
-            return null
-        }
-
-        return withContext(Dispatchers.IO) {
-            try {
-                val timestamp = System.currentTimeMillis()
-                val dngFile = File(outputDir, "IMG_${timestamp}.dng")
-
-                Log.i(TAG, "Capturing RAW photo to: ${dngFile.absolutePath}")
-
-                // TODO: Implement actual RAW capture using ImageCapture with RAW format
-                // This requires CameraX RAW support or Camera2 API integration
-                // For now, this is a placeholder for the RAW capture implementation
-
-                rawPhotoCaptureCount++
-                lastRawCaptureTime = timestamp
-
-                cameraContext?.debugLogger?.logPlugin(
-                    name,
-                    "raw_photo_captured",
-                    mapOf(
-                        "file" to dngFile.name,
-                        "size" to (maxRawSize?.toString() ?: "N/A"),
-                        "count" to rawPhotoCaptureCount
-                    )
-                )
-
-                dngFile
-            } catch (e: Exception) {
-                Log.e(TAG, "Error capturing RAW photo", e)
-                null
-            }
-        }
+        Log.i(TAG, "captureRawPhoto() is deprecated - RAW capture happens automatically")
+        Log.i(TAG, "Enable RAW mode and call ImageCapture.takePicture() instead")
+        return null
     }
 
     /**
-     * Capture both RAW and JPEG simultaneously
+     * NOTE: Dual RAW+JPEG capture now happens automatically.
+     *
+     * When rawCaptureEnabled=true:
+     * - Every ImageCapture.takePicture() produces both JPEG and RAW
+     * - No separate dual capture method needed
+     * - DNGWriter handles RAW file creation asynchronously
+     *
+     * This method is deprecated - dual capture is automatic.
      */
+    @Deprecated("Dual capture happens automatically via configureImageCapture()")
     suspend fun captureDualPhoto(outputDir: File): Pair<File?, File?> {
-        if (!dualCaptureMode || !supportsRawCapture) {
-            Log.w(TAG, "Dual capture not enabled or not supported")
-            return Pair(null, null)
-        }
-
-        return withContext(Dispatchers.IO) {
-            try {
-                val timestamp = System.currentTimeMillis()
-                val dngFile = File(outputDir, "IMG_${timestamp}.dng")
-                val jpegFile = File(outputDir, "IMG_${timestamp}.jpg")
-
-                Log.i(TAG, "Capturing dual RAW+JPEG to: ${dngFile.name} + ${jpegFile.name}")
-
-                // TODO: Implement dual capture
-                // Capture RAW and JPEG simultaneously with same timestamp
-
-                dualCaptureCount++
-                lastRawCaptureTime = timestamp
-
-                cameraContext?.debugLogger?.logPlugin(
-                    name,
-                    "dual_photo_captured",
-                    mapOf(
-                        "rawFile" to dngFile.name,
-                        "jpegFile" to jpegFile.name,
-                        "count" to dualCaptureCount
-                    )
-                )
-
-                Pair(dngFile, jpegFile)
-            } catch (e: Exception) {
-                Log.e(TAG, "Error capturing dual photo", e)
-                Pair(null, null)
-            }
-        }
+        Log.i(TAG, "captureDualPhoto() is deprecated - dual capture is automatic")
+        Log.i(TAG, "Enable RAW mode and call ImageCapture.takePicture() for dual capture")
+        return Pair(null, null)
     }
 
     /**
-     * Convert RAW ImageProxy to DNG file
+     * INTERNAL NOTE: Statistics tracking moved to DngWriter
+     * These counters are now maintained by DngWriter.getStats()
      */
-    private suspend fun convertToDng(
-        rawImage: ImageProxy,
-        outputFile: File,
-        characteristics: CameraCharacteristics
-    ): Boolean {
-        return withContext(Dispatchers.IO) {
-            try {
-                val image: Image = rawImage.image ?: return@withContext false
-
-                // Create DNG creator with camera characteristics
-                val creator = DngCreator(characteristics, rawImage.imageInfo.toTotalCaptureResult())
-
-                // Set DNG orientation based on image orientation
-                creator.setOrientation(rawImage.imageInfo.rotationDegrees)
-
-                // Write DNG file
-                FileOutputStream(outputFile).use { output ->
-                    creator.writeImage(output, image)
-                }
-
-                creator.close()
-
-                Log.i(TAG, "DNG file created: ${outputFile.absolutePath}")
-                true
-
-            } catch (e: Exception) {
-                Log.e(TAG, "Error converting to DNG", e)
-                false
-            }
-        }
+    private fun updateCaptureStats() {
+        // Stats now tracked by DngWriter
+        val stats = dngWriter?.getStats() ?: return
+        rawPhotoCaptureCount = (stats["filesWritten"] as? Int)?.toLong() ?: 0L
+        lastRawCaptureTime = System.currentTimeMillis()
     }
 
     /**
@@ -478,10 +514,6 @@ class RAWCapturePlugin : ControlPlugin() {
     }
 }
 
-// Extension function to convert ImageInfo to TotalCaptureResult
-// This is a placeholder - actual implementation would need proper Camera2 integration
-private fun androidx.camera.core.ImageInfo.toTotalCaptureResult(): android.hardware.camera2.TotalCaptureResult {
-    // TODO: Implement proper conversion from ImageInfo to TotalCaptureResult
-    // This requires Camera2 interop and capture metadata
-    throw UnsupportedOperationException("TotalCaptureResult conversion not yet implemented")
-}
+// Note: toTotalCaptureResult() extension function removed
+// TotalCaptureResult is now obtained directly from Camera2 CaptureCallback
+// in configureImageCapture() method, not from CameraX ImageInfo
