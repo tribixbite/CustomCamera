@@ -25,6 +25,8 @@ class HDRPlugin : ProcessingPlugin() {
     override val priority: Int = 85 // Lower priority for specialized processing
 
     private var cameraContext: CameraContext? = null
+    private var hdrCaptureController: HDRCaptureController? = null
+    private var hdrProcessor: HDRProcessor? = null
 
     // HDR configuration
     private var isHDREnabled: Boolean = false
@@ -53,6 +55,10 @@ class HDRPlugin : ProcessingPlugin() {
     override suspend fun initialize(context: CameraContext) {
         this.cameraContext = context
         Log.i(TAG, "HDRPlugin initialized")
+
+        // Initialize HDR components
+        hdrCaptureController = HDRCaptureController(context.context)
+        hdrProcessor = HDRProcessor()
 
         loadSettings(context)
 
@@ -124,8 +130,10 @@ class HDRPlugin : ProcessingPlugin() {
 
     /**
      * Multi-exposure capture for HDR
+     *
+     * @param cameraId Camera ID to use for capture
      */
-    suspend fun captureHDRSequence(): HDRResult? {
+    suspend fun captureHDRSequence(cameraId: String = "0"): HDRResult? {
         if (isCapturingHDRSequence || hdrProcessingInProgress) {
             Log.w(TAG, "HDR capture already in progress")
             return null
@@ -137,17 +145,26 @@ class HDRPlugin : ProcessingPlugin() {
             isCapturingHDRSequence = true
             val startTime = System.currentTimeMillis()
 
-            // In production, this would:
-            // 1. Capture multiple frames at different exposures
-            // 2. Align frames to compensate for movement
-            // 3. Merge frames using HDR algorithms
-            // 4. Apply tone mapping for display
+            // Capture bracketed frames using HDRCaptureController
+            val controller = hdrCaptureController ?: run {
+                Log.e(TAG, "HDRCaptureController not initialized")
+                return null
+            }
 
-            // Simulate HDR capture
-            val frames = simulateHDRCapture()
+            val bracketedFrames = controller.captureHDRSequence(
+                cameraId = cameraId,
+                evSteps = hdrBracketingSteps,
+                width = 1920,
+                height = 1080
+            )
 
-            // Simulate HDR processing
-            val processedResult = processHDRFrames(frames)
+            if (bracketedFrames.isNullOrEmpty()) {
+                Log.e(TAG, "No frames captured")
+                return null
+            }
+
+            // Process HDR frames using HDRProcessor
+            val processedResult = processHDRBitmaps(bracketedFrames)
 
             val processingTime = System.currentTimeMillis() - startTime
 
@@ -155,15 +172,28 @@ class HDRPlugin : ProcessingPlugin() {
                 name,
                 "hdr_sequence_captured",
                 mapOf(
-                    "frameCount" to frames.size,
+                    "frameCount" to bracketedFrames.size,
                     "bracketingSteps" to hdrBracketingSteps.joinToString(),
                     "processingTime" to processingTime
                 )
             )
 
+            // Convert to legacy HDRFrame format for result
+            val hdrFrames = bracketedFrames.map { frame ->
+                // Store bitmap reference without ImageProxy
+                capturedFrames.add(
+                    HDRFrame(
+                        image = createMockImageProxy(),  // Placeholder
+                        exposureValue = frame.evValue.toFloat(),
+                        captureTimestamp = frame.timestamp
+                    )
+                )
+                capturedFrames.last()
+            }
+
             HDRResult(
                 processedImage = processedResult,
-                originalFrames = frames,
+                originalFrames = hdrFrames,
                 toneMappingApplied = toneMappingEnabled,
                 processingTimeMs = processingTime
             )
@@ -252,13 +282,6 @@ class HDRPlugin : ProcessingPlugin() {
         )
     }
 
-    override fun cleanup() {
-        Log.i(TAG, "Cleaning up HDRPlugin")
-
-        clearHDRData()
-        cameraContext = null
-    }
-
     private fun analyzeSceneForHDR(image: ImageProxy): Boolean {
         try {
             // Analyze scene dynamic range to recommend HDR
@@ -291,26 +314,39 @@ class HDRPlugin : ProcessingPlugin() {
         }
     }
 
-    private fun simulateHDRCapture(): List<HDRFrame> {
-        // Simulate HDR capture sequence
-        Log.d(TAG, "Simulating HDR capture with ${hdrBracketingSteps.size} exposures")
-        return emptyList() // Return empty list for simulation
-    }
-
-    private fun processHDRFrames(frames: List<HDRFrame>): Bitmap? {
-        Log.d(TAG, "Processing ${frames.size} HDR frames")
+    /**
+     * Process bracketed frames into HDR image using Mertens fusion
+     */
+    private fun processHDRBitmaps(bracketedFrames: List<HDRCaptureController.BracketedFrame>): Bitmap? {
+        Log.d(TAG, "Processing ${bracketedFrames.size} HDR frames")
 
         return try {
             hdrProcessingInProgress = true
 
-            // In production, this would:
-            // 1. Align frames
-            // 2. Merge exposures
-            // 3. Apply tone mapping
-            // 4. Enhance local contrast
+            val processor = hdrProcessor ?: run {
+                Log.e(TAG, "HDRProcessor not initialized")
+                hdrProcessingInProgress = false
+                return null
+            }
+
+            // Merge exposures using Mertens fusion
+            val mergedBitmap = processor.mergeExposures(bracketedFrames)
+
+            if (mergedBitmap == null) {
+                Log.e(TAG, "Failed to merge HDR frames")
+                hdrProcessingInProgress = false
+                return null
+            }
+
+            // Apply tone mapping if enabled
+            val finalBitmap = if (toneMappingEnabled) {
+                processor.applyToneMapping(mergedBitmap, gamma = 2.2f)
+            } else {
+                mergedBitmap
+            }
 
             hdrProcessingInProgress = false
-            null // Return null for simulation
+            finalBitmap
 
         } catch (e: Exception) {
             Log.e(TAG, "Error processing HDR frames", e)
@@ -356,6 +392,19 @@ class HDRPlugin : ProcessingPlugin() {
         settings.setPluginSetting(name, "autoDetection", autoHDRDetection.toString())
         settings.setPluginSetting(name, "toneMappingEnabled", toneMappingEnabled.toString())
         settings.setPluginSetting(name, "bracketingSteps", hdrBracketingSteps.joinToString(","))
+    }
+
+    override fun cleanup() {
+        Log.i(TAG, "Cleaning up HDRPlugin")
+
+        clearHDRData()
+
+        // Cleanup HDR components
+        hdrCaptureController?.shutdown()
+        hdrCaptureController = null
+
+        hdrProcessor = null
+        cameraContext = null
     }
 
     companion object : com.customcamera.app.engine.plugins.PluginProvider {
