@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.customcamera.app-mergeDebugResources-46:/values/values.xml",
+            "outputFile": "com.customcamera.app-mergeDebugResources-47:/values/values.xml",
             "map": [
                 {
                     "source": "/data/data/com.termux/files/home/.gradle/caches/transforms-4/45f230f3abd767bd251e00e53a077552/transformed/jetified-leakcanary-object-watcher-android-2.12/res/values/values.xml",

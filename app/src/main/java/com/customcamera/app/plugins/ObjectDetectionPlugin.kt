@@ -6,10 +6,10 @@ import android.view.View
 import androidx.camera.core.Camera
 import androidx.camera.core.ImageProxy
 import com.google.mlkit.vision.common.InputImage
-// ML Kit imports - commented out for compilation, would be used in production
-// import com.google.mlkit.vision.objects.ObjectDetection
-// import com.google.mlkit.vision.objects.DetectedObject
-// import com.google.mlkit.vision.objects.defaults.ObjectDetectorOptions
+import com.google.mlkit.vision.objects.ObjectDetection
+import com.google.mlkit.vision.objects.DetectedObject
+import com.google.mlkit.vision.objects.defaults.ObjectDetectorOptions
+import kotlinx.coroutines.tasks.await
 import com.customcamera.app.engine.CameraContext
 import com.customcamera.app.engine.plugins.ProcessingPlugin
 import com.customcamera.app.engine.plugins.ProcessingResult
@@ -32,8 +32,7 @@ class ObjectDetectionPlugin : ProcessingPlugin() {
     override val priority: Int = 35 // High priority for object detection
 
     private var cameraContext: CameraContext? = null
-    // Mock object detector for compilation - would be ML Kit in production
-    private var objectDetector: Any? = null
+    private var objectDetector: com.google.mlkit.vision.objects.ObjectDetector? = null
 
     // Detection configuration
     private var isObjectDetectionEnabled: Boolean = true
@@ -52,9 +51,14 @@ class ObjectDetectionPlugin : ProcessingPlugin() {
         this.cameraContext = context
         Log.i(TAG, "ObjectDetectionPlugin initialized")
 
-        // Configure ML Kit object detector (simulated for compilation)
-        // In production, would initialize ML Kit ObjectDetection here
-        objectDetector = "simulated_detector"
+        // Configure ML Kit object detector
+        val options = ObjectDetectorOptions.Builder()
+            .setDetectorMode(ObjectDetectorOptions.STREAM_MODE)
+            .enableMultipleObjects()
+            .enableClassification()
+            .build()
+
+        objectDetector = ObjectDetection.getClient(options)
 
         loadSettings(context)
 
@@ -163,83 +167,61 @@ class ObjectDetectionPlugin : ProcessingPlugin() {
     }
 
     /**
-     * Perform object detection on the image (simulated for compilation)
+     * Perform object detection on the image using ML Kit
      */
     private suspend fun performObjectDetection(image: ImageProxy): List<DetectedObjectInfo> {
         return try {
-            // Simulated object detection for compilation
-            // In production, this would use ML Kit ObjectDetection
-            val simulatedObjects = mutableListOf<DetectedObjectInfo>()
+            val detector = objectDetector ?: return emptyList()
 
-            // Simulate detecting a few objects based on image characteristics
-            val imageData = imageProxyToByteArray(image)
-            val brightness = calculateAverageBrightness(imageData)
+            // Convert ImageProxy to InputImage for ML Kit
+            val inputImage = InputImage.fromMediaImage(
+                image.image!!,
+                image.imageInfo.rotationDegrees
+            )
 
-            if (brightness > 100) {
-                // Simulate detecting objects in well-lit scenes
-                simulatedObjects.add(
-                    DetectedObjectInfo(
-                        trackingId = 1,
-                        category = "person",
-                        confidence = 0.85f,
-                        boundingBox = Rect(100, 100, 300, 400),
-                        timestamp = System.currentTimeMillis(),
-                        labels = listOf(ObjectLabel("person", 0.85f, 0))
+            // Process image with ML Kit using Tasks.await() for synchronous behavior
+            val results = detector.process(inputImage).await()
+
+            val detectedObjects = results.map { detectedObject ->
+                val trackingId = detectedObject.trackingId ?: generateTrackingId()
+
+                // Get labels from ML Kit
+                val labels = detectedObject.labels.map { label ->
+                    ObjectLabel(
+                        text = label.text,
+                        confidence = label.confidence,
+                        index = label.index
                     )
-                )
-            }
+                }
 
-            if (brightness < 50) {
-                // Simulate fewer objects in low light
-                simulatedObjects.add(
-                    DetectedObjectInfo(
-                        trackingId = 2,
-                        category = "object",
-                        confidence = 0.6f,
-                        boundingBox = Rect(200, 200, 350, 300),
-                        timestamp = System.currentTimeMillis(),
-                        labels = listOf(ObjectLabel("object", 0.6f, 1))
-                    )
+                val category = labels.firstOrNull()?.text ?: "unknown"
+                val confidence = labels.firstOrNull()?.confidence ?: 0f
+
+                DetectedObjectInfo(
+                    trackingId = trackingId,
+                    category = category,
+                    confidence = confidence,
+                    boundingBox = detectedObject.boundingBox,
+                    timestamp = System.currentTimeMillis(),
+                    labels = labels
                 )
             }
 
             // Filter by confidence threshold
-            val filteredObjects = simulatedObjects.filter { it.confidence >= confidenceThreshold }
+            val filteredObjects = detectedObjects.filter { it.confidence >= confidenceThreshold }
 
             if (filteredObjects.isNotEmpty()) {
                 updateDetectedObjects(filteredObjects)
-                Log.i(TAG, "Simulated detection: ${filteredObjects.size} objects above confidence threshold")
+                Log.i(TAG, "ML Kit detected: ${filteredObjects.size} objects above confidence threshold")
             }
 
             filteredObjects
 
         } catch (e: Exception) {
-            Log.e(TAG, "Object detection simulation failed", e)
+            Log.e(TAG, "Object detection failed", e)
             emptyList()
         }
     }
-
-    private fun calculateAverageBrightness(imageData: ByteArray): Float {
-        var totalBrightness = 0L
-        val sampleStep = 8
-
-        for (i in imageData.indices step sampleStep) {
-            totalBrightness += (imageData[i].toInt() and 0xFF)
-        }
-
-        return if (imageData.isNotEmpty()) {
-            totalBrightness.toFloat() / (imageData.size / sampleStep)
-        } else 0f
-    }
-
-    private fun imageProxyToByteArray(image: ImageProxy): ByteArray {
-        val buffer = image.planes[0].buffer
-        val bytes = ByteArray(buffer.remaining())
-        buffer.get(bytes)
-        return bytes
-    }
-
-    // ML Kit conversion methods would be implemented in production
 
     /**
      * Generate a unique tracking ID for objects without one
@@ -482,7 +464,8 @@ class ObjectDetectionPlugin : ProcessingPlugin() {
         trackingIds.clear()
         cameraContext = null
 
-        // Close ML Kit detector (would be implemented in production)
+        // Close ML Kit detector
+        objectDetector?.close()
         objectDetector = null
     }
 
