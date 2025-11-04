@@ -229,8 +229,8 @@ class SmartAdjustmentsPlugin : ProcessingPlugin() {
                     .coerceIn(-2.0f, 2.0f)
 
                 if (abs(newExposureLevel - currentExposureLevel) > 0.1f) {
-                    // Apply exposure compensation (simulated for compilation)
-                    Log.d(TAG, "Would apply exposure compensation: $newExposureLevel")
+                    // Apply exposure compensation to camera
+                    applyExposureCompensation(cameraControl, newExposureLevel)
                     currentExposureLevel = newExposureLevel
                     adjustmentsApplied.add("exposure")
                     Log.d(TAG, "Applied exposure adjustment: $newExposureLevel")
@@ -242,8 +242,8 @@ class SmartAdjustmentsPlugin : ProcessingPlugin() {
                 val newWhiteBalanceTemp = analysis.recommendedWhiteBalanceTemp
                     .coerceIn(2000, 10000)
 
-                // Apply white balance adjustment (simulated for compilation)
-                Log.d(TAG, "Would apply white balance: ${newWhiteBalanceTemp}K")
+                // Apply white balance adjustment to camera
+                applyWhiteBalanceAdjustment(cameraControl, newWhiteBalanceTemp)
                 currentWhiteBalanceTemp = newWhiteBalanceTemp
                 adjustmentsApplied.add("whiteBalance")
                 Log.d(TAG, "Applied white balance adjustment: ${newWhiteBalanceTemp}K")
