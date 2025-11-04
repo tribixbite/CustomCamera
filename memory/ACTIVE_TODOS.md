@@ -1,10 +1,30 @@
-# Active TODOs - 5 Plugins Fixed Today! 🎉
+# Active TODOs - Quality Improvements & Capability Detection! ✅
 
-**Last Updated**: 2025-11-04
-**Priority**: ALL PLUGINS COMPLETE! 🎉
-**Status**: 23/23 plugins complete (100%) ⬆️ +5 plugins fixed today
+**Last Updated**: 2025-11-04 (Session 2)
+**Priority**: Quality improvements and device capability detection
+**Status**: 23/23 plugins complete (100%) | 6/23 plugins with capability detection
 
-## Current Session Context
+## Current Session Context (2025-11-04 Session 2)
+
+**Quality Improvements Completed:**
+- ✅ **PROJECT_QUALITY_AUDIT.md** - Comprehensive 9-point quality audit (402 lines)
+- ✅ **README.md updated** - 100% plugin completion documented, all 23 plugins listed
+- ✅ **Documentation organized** - 32 root markdown files → structured docs/ subdirectories
+- ✅ **AndroidManifest updated** - Added RAW capability + GPS permissions
+- ✅ **ML Kit updated** - All dependencies to latest stable (17.3.0, 17.0.2, 17.0.9)
+- ✅ **CameraX researched** - 1.5.0 available but requires AGP 8.6.0+ (documented)
+
+**Capability Detection Implemented (6/23 plugins):**
+- ✅ **RAWCapturePlugin** - Checks for RAW_SENSOR capability via CameraCharacteristics
+- ✅ **HDRPlugin** - Checks for exposure compensation range (bracketing support)
+- ✅ **DualCameraPiPPlugin** - Checks for 2+ cameras + concurrent streaming (Android 11+)
+- ✅ **ObjectDetectionPlugin** - Checks for Google Play Services (ML Kit dependency)
+- ✅ **SmartScenePlugin** - Checks for Google Play Services (ML Kit dependency)
+- ✅ **BarcodePlugin** - Checks for Google Play Services (ML Kit dependency)
+
+**Build Status**: ✅ SUCCESS (all changes compiled)
+
+## Previous Session (2025-11-04 Session 1)
 
 Just completed (2025-11-04 latest):
 - ✅ **HDRPlugin COMPLETE (P0)** - Mertens exposure fusion implemented
@@ -70,7 +90,52 @@ Previous completions (2025-10-23):
 
 ## Immediate Next Steps (Priority Order)
 
-### 🔴 PRIORITY 1: Fix RAWCapturePlugin (2 days) - ✅ COMPLETE 100%
+### 🔴 PRIORITY 1: Complete Capability Detection (Remaining 12 Plugins)
+
+**Status**: 6/23 plugins complete (RAW, HDR, PiP, 3× ML Kit plugins)
+**Remaining**: 12 plugins need capability detection
+
+**Plugins Pending Capability Detection:**
+1. AutoFocusPlugin - Check autofocus hardware support
+2. ExposureControlPlugin - Check exposure compensation range
+3. ManualFocusPlugin - Check manual focus support
+4. ProControlsPlugin - Check manual control capabilities (ISO, shutter)
+5. NightModePlugin - Check low-light capabilities
+6. AdvancedVideoRecordingPlugin - Check video capabilities
+7. GridOverlayPlugin - Always supported (UI overlay)
+8. HistogramPlugin - Always supported (processing)
+9. CameraInfoPlugin - Always supported (metadata)
+10. ExposureAnalysisPlugin - Check exposure analysis support
+11. SharpnessAnalysisPlugin - Always supported (processing)
+12. MotionDetectionPlugin - Always supported (processing)
+13. QRScannerPlugin - Check Google Play Services (ML Kit)
+14. CropPlugin - Always supported (UI)
+15. DiagnosticOverlayPlugin - Always supported (UI)
+16. ScanningOverlayPlugin - Always supported (UI)
+17. SmartAdjustmentsPlugin - Inherits from SmartScenePlugin (GMS check)
+
+**Implementation Priority:**
+- **High**: AutoFocus, ExposureControl, ManualFocus, ProControls, QRScanner (hardware-dependent)
+- **Medium**: NightMode, AdvancedVideoRecording (capability-dependent)
+- **Low**: UI/Processing plugins (always supported, no capability check needed)
+
+### 🔴 PRIORITY 2: Upgrade Build System
+
+**Android Gradle Plugin**: 8.0.2 → 8.6.0+ (required for CameraX 1.5.0)
+**CameraX**: 1.3.1 → 1.5.0 (after AGP upgrade)
+**Benefits**: Low-light boost API, feature group API, improved surface sharing
+
+### 🟡 PRIORITY 3: Test Infrastructure Improvements
+
+**Robolectric**: Add for Android component mocking (fix 94% test failure rate)
+**Test Coverage**: Add instrumented tests for critical paths
+**CI/CD**: Enhance GitHub Actions workflow
+
+---
+
+## Completed Work Reference
+
+### ✅ PRIORITY 1: Fix RAWCapturePlugin (2 days) - COMPLETE 100%
 
 **Status**: IMPLEMENTATION COMPLETE - Ready for device testing
 
