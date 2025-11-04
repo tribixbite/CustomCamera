@@ -1,7 +1,9 @@
 package com.customcamera.app.plugins
 
+import android.content.Context
 import android.graphics.ImageFormat
 import android.hardware.camera2.CameraCharacteristics
+import android.hardware.camera2.CameraManager
 import android.hardware.camera2.CameraMetadata
 import android.hardware.camera2.DngCreator
 import android.hardware.camera2.CameraCaptureSession
@@ -153,8 +155,8 @@ class RAWCapturePlugin : ControlPlugin() {
             )
 
             // Create DNG writer for RAW file handling
-            val outputDir = cameraContext?.getPhotoOutputDirectory()
-                ?: throw IllegalStateException("Photo output directory not available")
+            val outputDir = cameraContext?.context?.filesDir
+                ?: throw IllegalStateException("Context files directory not available")
 
             dngWriter = DngWriter(
                 context = cameraContext?.context
@@ -250,8 +252,15 @@ class RAWCapturePlugin : ControlPlugin() {
             val camera2Info = Camera2CameraInfo.from(camera.cameraInfo)
             val cameraId = camera2Info.getCameraId()
 
-            // Store camera characteristics for DNG creation
-            cameraCharacteristics = camera2Info.cameraCharacteristics
+            // Get CameraManager and camera characteristics for DNG creation
+            val cameraManager = cameraContext?.context?.getSystemService(Context.CAMERA_SERVICE) as? CameraManager
+            if (cameraManager != null) {
+                cameraCharacteristics = cameraManager.getCameraCharacteristics(cameraId)
+            } else {
+                Log.e(TAG, "Failed to get CameraManager for RAW capabilities")
+                supportsRawCapture = false
+                return
+            }
 
             // Get camera characteristics for RAW capabilities
             val characteristics = camera2Info.getCameraCharacteristic(

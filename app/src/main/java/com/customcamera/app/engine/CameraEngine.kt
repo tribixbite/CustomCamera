@@ -18,6 +18,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.customcamera.app.engine.plugins.CameraPlugin
 import com.customcamera.app.engine.plugins.PluginManager
+import com.customcamera.app.plugins.RAWCapturePlugin
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -756,7 +757,27 @@ class CameraEngine(
         }
 
         if (config.enableImageCapture) {
-            imageCapture = ImageCapture.Builder().build()
+            val builder = ImageCapture.Builder()
+
+            // Configure RAW capture if RAWCapturePlugin is enabled
+            try {
+                val rawPlugin = pluginManager.getPlugin("RAWCapture") as? RAWCapturePlugin
+                if (rawPlugin != null) {
+                    Log.d(TAG, "RAWCapturePlugin found, checking if RAW capture is enabled")
+                    if (rawPlugin.isRawEnabled() && rawPlugin.isRawSupported()) {
+                        Log.i(TAG, "Configuring ImageCapture for RAW capture")
+                        rawPlugin.configureImageCapture(builder)
+                    } else {
+                        Log.d(TAG, "RAW capture not enabled or not supported")
+                    }
+                } else {
+                    Log.d(TAG, "RAWCapturePlugin not found in PluginManager")
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error configuring RAW capture", e)
+            }
+
+            imageCapture = builder.build()
             useCases.add(imageCapture!!)
         }
 
