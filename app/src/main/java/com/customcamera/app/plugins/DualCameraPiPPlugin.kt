@@ -664,8 +664,34 @@ class DualCameraPiPPlugin : UIPlugin() {
         override val showInDropdown: Boolean = false
 
         override fun isSupported(context: android.content.Context): Boolean {
-            // TODO: Add device capability checking if needed
-            return true
+            return try {
+                val cameraManager = context.getSystemService(android.content.Context.CAMERA_SERVICE) as? android.hardware.camera2.CameraManager
+                    ?: return false
+
+                // Require at least 2 cameras for PiP mode
+                val cameraCount = cameraManager.cameraIdList.size
+                if (cameraCount < 2) {
+                    android.util.Log.w(TAG, "Dual Camera PiP requires at least 2 cameras (found: $cameraCount)")
+                    return false
+                }
+
+                // Check for concurrent camera support (Android 11+ API)
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+                    val concurrentCameraIds = cameraManager.concurrentCameraIds
+                    val hasConcurrentSupport = concurrentCameraIds.any { it.size >= 2 }
+                    if (!hasConcurrentSupport) {
+                        android.util.Log.w(TAG, "Device does not support concurrent camera streaming")
+                    }
+                    hasConcurrentSupport
+                } else {
+                    // Pre-Android 11: Assume support if 2+ cameras exist
+                    android.util.Log.i(TAG, "Concurrent camera API not available (Android < 11), assuming support")
+                    true
+                }
+            } catch (e: Exception) {
+                android.util.Log.e(TAG, "Error checking dual camera PiP capability", e)
+                false
+            }
         }
 
         override fun create(dependencies: com.customcamera.app.engine.plugins.PluginDependencies): com.customcamera.app.engine.plugins.CameraPlugin {

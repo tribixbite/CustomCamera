@@ -20,542 +20,554 @@
 12    <uses-permission android:name="android.permission.HIGH_SAMPLING_RATE_SENSORS" />
 12-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:8:5-85
 12-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:8:22-82
-13
-14    <uses-feature
-14-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:10:5-12:35
-15        android:name="android.hardware.camera"
-15-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:11:9-47
-16        android:required="true" />
-16-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:12:9-32
-17    <uses-feature
-17-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:13:5-15:36
-18        android:name="android.hardware.camera.autofocus"
-18-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:14:9-57
-19        android:required="false" />
-19-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:15:9-33
-20
-21    <!-- For remote config -->
-22    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-22-->[com.google.mlkit:object-detection:17.0.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/116a14b8d387aeda05d916ec3c310eab/transformed/jetified-object-detection-17.0.1/AndroidManifest.xml:7:5-79
-22-->[com.google.mlkit:object-detection:17.0.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/116a14b8d387aeda05d916ec3c310eab/transformed/jetified-object-detection-17.0.1/AndroidManifest.xml:7:22-76
-23    <uses-permission android:name="android.permission.INTERNET" />
-23-->[com.google.mlkit:object-detection:17.0.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/116a14b8d387aeda05d916ec3c310eab/transformed/jetified-object-detection-17.0.1/AndroidManifest.xml:8:5-67
-23-->[com.google.mlkit:object-detection:17.0.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/116a14b8d387aeda05d916ec3c310eab/transformed/jetified-object-detection-17.0.1/AndroidManifest.xml:8:22-64
-24
-25    <permission
-25-->[androidx.core:core:1.12.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/928de47e133b1ae84cdec1533ebaa58f/transformed/core-1.12.0/AndroidManifest.xml:22:5-24:47
-26        android:name="com.customcamera.app.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
-26-->[androidx.core:core:1.12.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/928de47e133b1ae84cdec1533ebaa58f/transformed/core-1.12.0/AndroidManifest.xml:23:9-81
-27        android:protectionLevel="signature" />
-27-->[androidx.core:core:1.12.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/928de47e133b1ae84cdec1533ebaa58f/transformed/core-1.12.0/AndroidManifest.xml:24:9-44
-28
-29    <uses-permission android:name="com.customcamera.app.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" /> <!-- To store the heap dumps and leak analysis results. -->
-29-->[androidx.core:core:1.12.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/928de47e133b1ae84cdec1533ebaa58f/transformed/core-1.12.0/AndroidManifest.xml:26:5-97
-29-->[androidx.core:core:1.12.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/928de47e133b1ae84cdec1533ebaa58f/transformed/core-1.12.0/AndroidManifest.xml:26:22-94
-30    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-30-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:25:5-80
-30-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:25:22-77
-31    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" /> <!-- To allow posting notifications on Android 13 -->
-31-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:26:5-81
-31-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:26:22-78
-32    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-32-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:29:5-77
-32-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:29:22-74
+13    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+13-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:9:5-79
+13-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:9:22-76
+14    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+14-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:10:5-81
+14-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:10:22-78
+15
+16    <uses-feature
+16-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:12:5-14:35
+17        android:name="android.hardware.camera"
+17-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:13:9-47
+18        android:required="true" />
+18-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:14:9-32
+19    <uses-feature
+19-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:15:5-17:36
+20        android:name="android.hardware.camera.autofocus"
+20-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:16:9-57
+21        android:required="false" />
+21-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:17:9-33
+22    <uses-feature
+22-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:18:5-20:36
+23        android:name="android.hardware.camera.capability.raw"
+23-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:19:9-62
+24        android:required="false" />
+24-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:20:9-33
+25
+26    <!-- For remote config -->
+27    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+27-->[com.google.mlkit:object-detection:17.0.2] /data/data/com.termux/files/home/.gradle/caches/transforms-4/23cc815acbd926e1d97043d480849dee/transformed/jetified-object-detection-17.0.2/AndroidManifest.xml:7:5-79
+27-->[com.google.mlkit:object-detection:17.0.2] /data/data/com.termux/files/home/.gradle/caches/transforms-4/23cc815acbd926e1d97043d480849dee/transformed/jetified-object-detection-17.0.2/AndroidManifest.xml:7:22-76
+28    <uses-permission android:name="android.permission.INTERNET" />
+28-->[com.google.mlkit:object-detection:17.0.2] /data/data/com.termux/files/home/.gradle/caches/transforms-4/23cc815acbd926e1d97043d480849dee/transformed/jetified-object-detection-17.0.2/AndroidManifest.xml:8:5-67
+28-->[com.google.mlkit:object-detection:17.0.2] /data/data/com.termux/files/home/.gradle/caches/transforms-4/23cc815acbd926e1d97043d480849dee/transformed/jetified-object-detection-17.0.2/AndroidManifest.xml:8:22-64
+29
+30    <permission
+30-->[androidx.core:core:1.12.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/928de47e133b1ae84cdec1533ebaa58f/transformed/core-1.12.0/AndroidManifest.xml:22:5-24:47
+31        android:name="com.customcamera.app.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+31-->[androidx.core:core:1.12.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/928de47e133b1ae84cdec1533ebaa58f/transformed/core-1.12.0/AndroidManifest.xml:23:9-81
+32        android:protectionLevel="signature" />
+32-->[androidx.core:core:1.12.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/928de47e133b1ae84cdec1533ebaa58f/transformed/core-1.12.0/AndroidManifest.xml:24:9-44
 33
-34    <application
-34-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:17:5-102:19
-35        android:allowBackup="true"
-35-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:18:9-35
-36        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
-36-->[androidx.core:core:1.12.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/928de47e133b1ae84cdec1533ebaa58f/transformed/core-1.12.0/AndroidManifest.xml:28:18-86
-37        android:dataExtractionRules="@xml/data_extraction_rules"
-37-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:19:9-65
-38        android:debuggable="true"
-39        android:extractNativeLibs="false"
-40        android:fullBackupContent="@xml/backup_rules"
-40-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:20:9-54
-41        android:icon="@mipmap/ic_launcher"
-41-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:21:9-43
-42        android:label="@string/app_name"
-42-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:22:9-41
-43        android:roundIcon="@mipmap/ic_launcher_round"
-43-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:23:9-54
-44        android:supportsRtl="true"
-44-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:24:9-35
-45        android:theme="@style/Theme.CustomCamera" >
-45-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:25:9-50
-46        <activity
-46-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:28:9-36:20
-47            android:name="com.customcamera.app.MainActivity"
-47-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:29:13-41
-48            android:exported="true"
-48-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:30:13-36
-49            android:screenOrientation="portrait" >
-49-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:31:13-49
-50            <intent-filter>
-50-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:32:13-35:29
-51                <action android:name="android.intent.action.MAIN" />
-51-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:33:17-69
-51-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:33:25-66
-52
-53                <category android:name="android.intent.category.LAUNCHER" />
-53-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:34:17-77
-53-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:34:27-74
-54            </intent-filter>
-55        </activity>
-56        <activity
-56-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:38:9-41:52
-57            android:name="com.customcamera.app.CameraActivity"
-57-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:39:13-43
-58            android:exported="false"
-58-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:40:13-37
-59            android:screenOrientation="portrait" />
-59-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:41:13-49
-60        <activity
-60-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:43:9-60:20
-61            android:name="com.customcamera.app.CameraActivityEngine"
-61-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:44:13-49
-62            android:exported="true"
-62-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:45:13-36
-63            android:screenOrientation="portrait" >
-63-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:46:13-49
-64
-65            <!-- ADB testing intent filters -->
-66            <intent-filter>
-66-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:48:13-51:29
-67                <action android:name="com.customcamera.app.TEST_CAMERA" />
-67-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:49:17-75
-67-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:49:25-72
-68
-69                <category android:name="android.intent.category.DEFAULT" />
-69-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:50:17-76
-69-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:50:27-73
-70            </intent-filter>
+34    <uses-permission android:name="com.customcamera.app.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" /> <!-- To store the heap dumps and leak analysis results. -->
+34-->[androidx.core:core:1.12.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/928de47e133b1ae84cdec1533ebaa58f/transformed/core-1.12.0/AndroidManifest.xml:26:5-97
+34-->[androidx.core:core:1.12.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/928de47e133b1ae84cdec1533ebaa58f/transformed/core-1.12.0/AndroidManifest.xml:26:22-94
+35    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+35-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:25:5-80
+35-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:25:22-77
+36    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" /> <!-- To allow posting notifications on Android 13 -->
+36-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:26:5-81
+36-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:26:22-78
+37    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+37-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:29:5-77
+37-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:29:22-74
+38
+39    <application
+39-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:22:5-107:19
+40        android:allowBackup="true"
+40-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:23:9-35
+41        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
+41-->[androidx.core:core:1.12.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/928de47e133b1ae84cdec1533ebaa58f/transformed/core-1.12.0/AndroidManifest.xml:28:18-86
+42        android:dataExtractionRules="@xml/data_extraction_rules"
+42-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:24:9-65
+43        android:debuggable="true"
+44        android:extractNativeLibs="false"
+45        android:fullBackupContent="@xml/backup_rules"
+45-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:25:9-54
+46        android:icon="@mipmap/ic_launcher"
+46-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:26:9-43
+47        android:label="@string/app_name"
+47-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:27:9-41
+48        android:roundIcon="@mipmap/ic_launcher_round"
+48-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:28:9-54
+49        android:supportsRtl="true"
+49-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:29:9-35
+50        android:theme="@style/Theme.CustomCamera" >
+50-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:30:9-50
+51        <activity
+51-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:33:9-41:20
+52            android:name="com.customcamera.app.MainActivity"
+52-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:34:13-41
+53            android:exported="true"
+53-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:35:13-36
+54            android:screenOrientation="portrait" >
+54-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:36:13-49
+55            <intent-filter>
+55-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:37:13-40:29
+56                <action android:name="android.intent.action.MAIN" />
+56-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:38:17-69
+56-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:38:25-66
+57
+58                <category android:name="android.intent.category.LAUNCHER" />
+58-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:39:17-77
+58-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:39:27-74
+59            </intent-filter>
+60        </activity>
+61        <activity
+61-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:43:9-46:52
+62            android:name="com.customcamera.app.CameraActivity"
+62-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:44:13-43
+63            android:exported="false"
+63-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:45:13-37
+64            android:screenOrientation="portrait" />
+64-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:46:13-49
+65        <activity
+65-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:48:9-65:20
+66            android:name="com.customcamera.app.CameraActivityEngine"
+66-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:49:13-49
+67            android:exported="true"
+67-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:50:13-36
+68            android:screenOrientation="portrait" >
+68-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:51:13-49
+69
+70            <!-- ADB testing intent filters -->
 71            <intent-filter>
-71-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:52:13-55:29
-72                <action android:name="com.customcamera.app.TEST_PIP" />
-72-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:53:17-72
-72-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:53:25-69
+71-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:53:13-56:29
+72                <action android:name="com.customcamera.app.TEST_CAMERA" />
+72-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:54:17-75
+72-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:54:25-72
 73
 74                <category android:name="android.intent.category.DEFAULT" />
-74-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:50:17-76
-74-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:50:27-73
+74-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:55:17-76
+74-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:55:27-73
 75            </intent-filter>
 76            <intent-filter>
-76-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:56:13-59:29
-77                <action android:name="com.customcamera.app.TEST_CAPTURE" />
-77-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:57:17-76
-77-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:57:25-73
+76-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:57:13-60:29
+77                <action android:name="com.customcamera.app.TEST_PIP" />
+77-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:58:17-72
+77-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:58:25-69
 78
 79                <category android:name="android.intent.category.DEFAULT" />
-79-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:50:17-76
-79-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:50:27-73
+79-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:55:17-76
+79-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:55:27-73
 80            </intent-filter>
-81        </activity>
-82        <activity
-82-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:62:9-65:52
-83            android:name="com.customcamera.app.CameraSelectionActivity"
-83-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:63:13-52
-84            android:exported="false"
-84-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:64:13-37
-85            android:screenOrientation="portrait" />
-85-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:65:13-49
-86        <activity
-86-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:67:9-71:57
-87            android:name="com.customcamera.app.SettingsActivity"
-87-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:68:13-45
-88            android:exported="false"
-88-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:69:13-37
-89            android:parentActivityName="com.customcamera.app.CameraActivityEngine"
-89-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:70:13-63
-90            android:theme="@style/Theme.CustomCamera" />
-90-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:71:13-54
+81            <intent-filter>
+81-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:61:13-64:29
+82                <action android:name="com.customcamera.app.TEST_CAPTURE" />
+82-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:62:17-76
+82-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:62:25-73
+83
+84                <category android:name="android.intent.category.DEFAULT" />
+84-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:55:17-76
+84-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:55:27-73
+85            </intent-filter>
+86        </activity>
+87        <activity
+87-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:67:9-70:52
+88            android:name="com.customcamera.app.CameraSelectionActivity"
+88-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:68:13-52
+89            android:exported="false"
+89-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:69:13-37
+90            android:screenOrientation="portrait" />
+90-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:70:13-49
 91        <activity
-91-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:73:9-77:57
-92            android:name="com.customcamera.app.SimpleSettingsActivity"
-92-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:74:13-51
+91-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:72:9-76:57
+92            android:name="com.customcamera.app.SettingsActivity"
+92-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:73:13-45
 93            android:exported="false"
-93-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:75:13-37
+93-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:74:13-37
 94            android:parentActivityName="com.customcamera.app.CameraActivityEngine"
-94-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:76:13-63
+94-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:75:13-63
 95            android:theme="@style/Theme.CustomCamera" />
-95-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:77:13-54
+95-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:76:13-54
 96        <activity
-96-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:79:9-83:57
-97            android:name="com.customcamera.app.GalleryActivity"
-97-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:80:13-44
+96-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:78:9-82:57
+97            android:name="com.customcamera.app.SimpleSettingsActivity"
+97-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:79:13-51
 98            android:exported="false"
-98-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:81:13-37
+98-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:80:13-37
 99            android:parentActivityName="com.customcamera.app.CameraActivityEngine"
-99-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:82:13-63
+99-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:81:13-63
 100            android:theme="@style/Theme.CustomCamera" />
-100-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:83:13-54
+100-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:82:13-54
 101        <activity
-101-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:85:9-89:57
-102            android:name="com.customcamera.app.DebugActivity"
-102-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:86:13-42
+101-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:84:9-88:57
+102            android:name="com.customcamera.app.GalleryActivity"
+102-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:85:13-44
 103            android:exported="false"
-103-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:87:13-37
-104            android:parentActivityName="com.customcamera.app.SimpleSettingsActivity"
-104-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:88:13-65
+103-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:86:13-37
+104            android:parentActivityName="com.customcamera.app.CameraActivityEngine"
+104-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:87:13-63
 105            android:theme="@style/Theme.CustomCamera" />
-105-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:89:13-54
-106
-107        <!-- FileProvider for sharing photos and videos -->
-108        <provider
-109            android:name="androidx.core.content.FileProvider"
-109-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:93:13-62
-110            android:authorities="com.customcamera.app.fileprovider"
-110-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:94:13-64
-111            android:exported="false"
-111-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:95:13-37
-112            android:grantUriPermissions="true" >
-112-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:96:13-47
-113            <meta-data
-113-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:97:13-99:54
-114                android:name="android.support.FILE_PROVIDER_PATHS"
-114-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:98:17-67
-115                android:resource="@xml/file_paths" />
-115-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:99:17-51
-116        </provider>
-117
-118        <service
-118-->[androidx.camera:camera-camera2:1.3.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/1e0b4fc1804d07a5f414abc7ffc1306b/transformed/jetified-camera-camera2-1.3.1/AndroidManifest.xml:24:9-33:19
-119            android:name="androidx.camera.core.impl.MetadataHolderService"
-119-->[androidx.camera:camera-camera2:1.3.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/1e0b4fc1804d07a5f414abc7ffc1306b/transformed/jetified-camera-camera2-1.3.1/AndroidManifest.xml:25:13-75
-120            android:enabled="false"
-120-->[androidx.camera:camera-camera2:1.3.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/1e0b4fc1804d07a5f414abc7ffc1306b/transformed/jetified-camera-camera2-1.3.1/AndroidManifest.xml:26:13-36
-121            android:exported="false" >
-121-->[androidx.camera:camera-camera2:1.3.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/1e0b4fc1804d07a5f414abc7ffc1306b/transformed/jetified-camera-camera2-1.3.1/AndroidManifest.xml:27:13-37
-122            <meta-data
-122-->[androidx.camera:camera-camera2:1.3.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/1e0b4fc1804d07a5f414abc7ffc1306b/transformed/jetified-camera-camera2-1.3.1/AndroidManifest.xml:30:13-32:89
-123                android:name="androidx.camera.core.impl.MetadataHolderService.DEFAULT_CONFIG_PROVIDER"
-123-->[androidx.camera:camera-camera2:1.3.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/1e0b4fc1804d07a5f414abc7ffc1306b/transformed/jetified-camera-camera2-1.3.1/AndroidManifest.xml:31:17-103
-124                android:value="androidx.camera.camera2.Camera2Config$DefaultProvider" />
-124-->[androidx.camera:camera-camera2:1.3.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/1e0b4fc1804d07a5f414abc7ffc1306b/transformed/jetified-camera-camera2-1.3.1/AndroidManifest.xml:32:17-86
-125        </service>
-126        <service
-126-->[com.google.mlkit:object-detection:17.0.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/116a14b8d387aeda05d916ec3c310eab/transformed/jetified-object-detection-17.0.1/AndroidManifest.xml:11:9-17:19
-127            android:name="com.google.mlkit.common.internal.MlKitComponentDiscoveryService"
-127-->[com.google.mlkit:object-detection:17.0.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/116a14b8d387aeda05d916ec3c310eab/transformed/jetified-object-detection-17.0.1/AndroidManifest.xml:12:13-91
-128            android:directBootAware="true"
-128-->[com.google.mlkit:common:18.10.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/a4a32b3364516bd0877e2ed2bc99f1a4/transformed/jetified-common-18.10.0/AndroidManifest.xml:17:13-43
-129            android:exported="false" >
-129-->[com.google.mlkit:object-detection:17.0.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/116a14b8d387aeda05d916ec3c310eab/transformed/jetified-object-detection-17.0.1/AndroidManifest.xml:13:13-37
-130            <meta-data
-130-->[com.google.mlkit:object-detection:17.0.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/116a14b8d387aeda05d916ec3c310eab/transformed/jetified-object-detection-17.0.1/AndroidManifest.xml:14:13-16:85
-131                android:name="com.google.firebase.components:com.google.mlkit.vision.objects.defaults.internal.DefaultObjectsRegistrar"
-131-->[com.google.mlkit:object-detection:17.0.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/116a14b8d387aeda05d916ec3c310eab/transformed/jetified-object-detection-17.0.1/AndroidManifest.xml:15:17-136
-132                android:value="com.google.firebase.components.ComponentRegistrar" />
-132-->[com.google.mlkit:object-detection:17.0.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/116a14b8d387aeda05d916ec3c310eab/transformed/jetified-object-detection-17.0.1/AndroidManifest.xml:16:17-82
-133            <meta-data
-133-->[com.google.mlkit:image-labeling:17.0.8] /data/data/com.termux/files/home/.gradle/caches/transforms-4/f990f0456b3c73d20e615719b56b52ed/transformed/jetified-image-labeling-17.0.8/AndroidManifest.xml:11:13-13:85
-134                android:name="com.google.firebase.components:com.google.mlkit.vision.label.defaults.internal.BundledLabelRegistrar"
-134-->[com.google.mlkit:image-labeling:17.0.8] /data/data/com.termux/files/home/.gradle/caches/transforms-4/f990f0456b3c73d20e615719b56b52ed/transformed/jetified-image-labeling-17.0.8/AndroidManifest.xml:12:17-132
-135                android:value="com.google.firebase.components.ComponentRegistrar" />
-135-->[com.google.mlkit:image-labeling:17.0.8] /data/data/com.termux/files/home/.gradle/caches/transforms-4/f990f0456b3c73d20e615719b56b52ed/transformed/jetified-image-labeling-17.0.8/AndroidManifest.xml:13:17-82
-136            <meta-data
-136-->[com.google.android.gms:play-services-mlkit-barcode-scanning:18.3.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/680cba39ecf3c907b9e72cfaad635414/transformed/jetified-play-services-mlkit-barcode-scanning-18.3.0/AndroidManifest.xml:12:13-14:85
-137                android:name="com.google.firebase.components:com.google.mlkit.vision.barcode.internal.BarcodeRegistrar"
-137-->[com.google.android.gms:play-services-mlkit-barcode-scanning:18.3.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/680cba39ecf3c907b9e72cfaad635414/transformed/jetified-play-services-mlkit-barcode-scanning-18.3.0/AndroidManifest.xml:13:17-120
-138                android:value="com.google.firebase.components.ComponentRegistrar" />
-138-->[com.google.android.gms:play-services-mlkit-barcode-scanning:18.3.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/680cba39ecf3c907b9e72cfaad635414/transformed/jetified-play-services-mlkit-barcode-scanning-18.3.0/AndroidManifest.xml:14:17-82
-139            <meta-data
-139-->[com.google.mlkit:vision-internal-vkp:18.2.2] /data/data/com.termux/files/home/.gradle/caches/transforms-4/0fec6efc1c433d46e08548f1e85574ae/transformed/jetified-vision-internal-vkp-18.2.2/AndroidManifest.xml:14:13-16:85
-140                android:name="com.google.firebase.components:com.google.mlkit.vision.vkp.VkpRegistrar"
-140-->[com.google.mlkit:vision-internal-vkp:18.2.2] /data/data/com.termux/files/home/.gradle/caches/transforms-4/0fec6efc1c433d46e08548f1e85574ae/transformed/jetified-vision-internal-vkp-18.2.2/AndroidManifest.xml:15:17-103
-141                android:value="com.google.firebase.components.ComponentRegistrar" />
-141-->[com.google.mlkit:vision-internal-vkp:18.2.2] /data/data/com.termux/files/home/.gradle/caches/transforms-4/0fec6efc1c433d46e08548f1e85574ae/transformed/jetified-vision-internal-vkp-18.2.2/AndroidManifest.xml:16:17-82
-142            <meta-data
-142-->[com.google.mlkit:vision-common:17.3.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/14fd37fbc2f25204a3a0cc29278ca0fc/transformed/jetified-vision-common-17.3.0/AndroidManifest.xml:12:13-14:85
-143                android:name="com.google.firebase.components:com.google.mlkit.vision.common.internal.VisionCommonRegistrar"
-143-->[com.google.mlkit:vision-common:17.3.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/14fd37fbc2f25204a3a0cc29278ca0fc/transformed/jetified-vision-common-17.3.0/AndroidManifest.xml:13:17-124
-144                android:value="com.google.firebase.components.ComponentRegistrar" />
-144-->[com.google.mlkit:vision-common:17.3.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/14fd37fbc2f25204a3a0cc29278ca0fc/transformed/jetified-vision-common-17.3.0/AndroidManifest.xml:14:17-82
-145            <meta-data
-145-->[com.google.mlkit:common:18.10.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/a4a32b3364516bd0877e2ed2bc99f1a4/transformed/jetified-common-18.10.0/AndroidManifest.xml:20:13-22:85
-146                android:name="com.google.firebase.components:com.google.mlkit.common.internal.CommonComponentRegistrar"
-146-->[com.google.mlkit:common:18.10.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/a4a32b3364516bd0877e2ed2bc99f1a4/transformed/jetified-common-18.10.0/AndroidManifest.xml:21:17-120
-147                android:value="com.google.firebase.components.ComponentRegistrar" />
-147-->[com.google.mlkit:common:18.10.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/a4a32b3364516bd0877e2ed2bc99f1a4/transformed/jetified-common-18.10.0/AndroidManifest.xml:22:17-82
-148        </service>
-149
-150        <provider
-150-->[com.google.mlkit:common:18.10.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/a4a32b3364516bd0877e2ed2bc99f1a4/transformed/jetified-common-18.10.0/AndroidManifest.xml:9:9-13:38
-151            android:name="com.google.mlkit.common.internal.MlKitInitProvider"
-151-->[com.google.mlkit:common:18.10.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/a4a32b3364516bd0877e2ed2bc99f1a4/transformed/jetified-common-18.10.0/AndroidManifest.xml:10:13-78
-152            android:authorities="com.customcamera.app.mlkitinitprovider"
-152-->[com.google.mlkit:common:18.10.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/a4a32b3364516bd0877e2ed2bc99f1a4/transformed/jetified-common-18.10.0/AndroidManifest.xml:11:13-69
-153            android:exported="false"
-153-->[com.google.mlkit:common:18.10.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/a4a32b3364516bd0877e2ed2bc99f1a4/transformed/jetified-common-18.10.0/AndroidManifest.xml:12:13-37
-154            android:initOrder="99" />
-154-->[com.google.mlkit:common:18.10.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/a4a32b3364516bd0877e2ed2bc99f1a4/transformed/jetified-common-18.10.0/AndroidManifest.xml:13:13-35
-155
-156        <activity
-156-->[com.google.android.gms:play-services-base:18.1.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/46f300e2476b05a82da5145645d171c9/transformed/jetified-play-services-base-18.1.0/AndroidManifest.xml:20:9-22:45
-157            android:name="com.google.android.gms.common.api.GoogleApiActivity"
-157-->[com.google.android.gms:play-services-base:18.1.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/46f300e2476b05a82da5145645d171c9/transformed/jetified-play-services-base-18.1.0/AndroidManifest.xml:20:19-85
+105-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:88:13-54
+106        <activity
+106-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:90:9-94:57
+107            android:name="com.customcamera.app.DebugActivity"
+107-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:91:13-42
+108            android:exported="false"
+108-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:92:13-37
+109            android:parentActivityName="com.customcamera.app.SimpleSettingsActivity"
+109-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:93:13-65
+110            android:theme="@style/Theme.CustomCamera" />
+110-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:94:13-54
+111
+112        <!-- FileProvider for sharing photos and videos -->
+113        <provider
+114            android:name="androidx.core.content.FileProvider"
+114-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:98:13-62
+115            android:authorities="com.customcamera.app.fileprovider"
+115-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:99:13-64
+116            android:exported="false"
+116-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:100:13-37
+117            android:grantUriPermissions="true" >
+117-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:101:13-47
+118            <meta-data
+118-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:102:13-104:54
+119                android:name="android.support.FILE_PROVIDER_PATHS"
+119-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:103:17-67
+120                android:resource="@xml/file_paths" />
+120-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:104:17-51
+121        </provider>
+122
+123        <service
+123-->[androidx.camera:camera-camera2:1.3.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/1e0b4fc1804d07a5f414abc7ffc1306b/transformed/jetified-camera-camera2-1.3.1/AndroidManifest.xml:24:9-33:19
+124            android:name="androidx.camera.core.impl.MetadataHolderService"
+124-->[androidx.camera:camera-camera2:1.3.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/1e0b4fc1804d07a5f414abc7ffc1306b/transformed/jetified-camera-camera2-1.3.1/AndroidManifest.xml:25:13-75
+125            android:enabled="false"
+125-->[androidx.camera:camera-camera2:1.3.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/1e0b4fc1804d07a5f414abc7ffc1306b/transformed/jetified-camera-camera2-1.3.1/AndroidManifest.xml:26:13-36
+126            android:exported="false" >
+126-->[androidx.camera:camera-camera2:1.3.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/1e0b4fc1804d07a5f414abc7ffc1306b/transformed/jetified-camera-camera2-1.3.1/AndroidManifest.xml:27:13-37
+127            <meta-data
+127-->[androidx.camera:camera-camera2:1.3.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/1e0b4fc1804d07a5f414abc7ffc1306b/transformed/jetified-camera-camera2-1.3.1/AndroidManifest.xml:30:13-32:89
+128                android:name="androidx.camera.core.impl.MetadataHolderService.DEFAULT_CONFIG_PROVIDER"
+128-->[androidx.camera:camera-camera2:1.3.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/1e0b4fc1804d07a5f414abc7ffc1306b/transformed/jetified-camera-camera2-1.3.1/AndroidManifest.xml:31:17-103
+129                android:value="androidx.camera.camera2.Camera2Config$DefaultProvider" />
+129-->[androidx.camera:camera-camera2:1.3.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/1e0b4fc1804d07a5f414abc7ffc1306b/transformed/jetified-camera-camera2-1.3.1/AndroidManifest.xml:32:17-86
+130        </service>
+131        <service
+131-->[com.google.mlkit:object-detection:17.0.2] /data/data/com.termux/files/home/.gradle/caches/transforms-4/23cc815acbd926e1d97043d480849dee/transformed/jetified-object-detection-17.0.2/AndroidManifest.xml:11:9-17:19
+132            android:name="com.google.mlkit.common.internal.MlKitComponentDiscoveryService"
+132-->[com.google.mlkit:object-detection:17.0.2] /data/data/com.termux/files/home/.gradle/caches/transforms-4/23cc815acbd926e1d97043d480849dee/transformed/jetified-object-detection-17.0.2/AndroidManifest.xml:12:13-91
+133            android:directBootAware="true"
+133-->[com.google.mlkit:common:18.11.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/8ee41b92a8e03e7accd09d5bd7c46799/transformed/jetified-common-18.11.0/AndroidManifest.xml:17:13-43
+134            android:exported="false" >
+134-->[com.google.mlkit:object-detection:17.0.2] /data/data/com.termux/files/home/.gradle/caches/transforms-4/23cc815acbd926e1d97043d480849dee/transformed/jetified-object-detection-17.0.2/AndroidManifest.xml:13:13-37
+135            <meta-data
+135-->[com.google.mlkit:object-detection:17.0.2] /data/data/com.termux/files/home/.gradle/caches/transforms-4/23cc815acbd926e1d97043d480849dee/transformed/jetified-object-detection-17.0.2/AndroidManifest.xml:14:13-16:85
+136                android:name="com.google.firebase.components:com.google.mlkit.vision.objects.defaults.internal.DefaultObjectsRegistrar"
+136-->[com.google.mlkit:object-detection:17.0.2] /data/data/com.termux/files/home/.gradle/caches/transforms-4/23cc815acbd926e1d97043d480849dee/transformed/jetified-object-detection-17.0.2/AndroidManifest.xml:15:17-136
+137                android:value="com.google.firebase.components.ComponentRegistrar" />
+137-->[com.google.mlkit:object-detection:17.0.2] /data/data/com.termux/files/home/.gradle/caches/transforms-4/23cc815acbd926e1d97043d480849dee/transformed/jetified-object-detection-17.0.2/AndroidManifest.xml:16:17-82
+138            <meta-data
+138-->[com.google.mlkit:image-labeling:17.0.9] /data/data/com.termux/files/home/.gradle/caches/transforms-4/0f0172b2e8f4f84fc8b52a91eb64a08e/transformed/jetified-image-labeling-17.0.9/AndroidManifest.xml:11:13-13:85
+139                android:name="com.google.firebase.components:com.google.mlkit.vision.label.defaults.internal.BundledLabelRegistrar"
+139-->[com.google.mlkit:image-labeling:17.0.9] /data/data/com.termux/files/home/.gradle/caches/transforms-4/0f0172b2e8f4f84fc8b52a91eb64a08e/transformed/jetified-image-labeling-17.0.9/AndroidManifest.xml:12:17-132
+140                android:value="com.google.firebase.components.ComponentRegistrar" />
+140-->[com.google.mlkit:image-labeling:17.0.9] /data/data/com.termux/files/home/.gradle/caches/transforms-4/0f0172b2e8f4f84fc8b52a91eb64a08e/transformed/jetified-image-labeling-17.0.9/AndroidManifest.xml:13:17-82
+141            <meta-data
+141-->[com.google.android.gms:play-services-mlkit-barcode-scanning:18.3.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/1f145447135940b9727bab2345c9997c/transformed/jetified-play-services-mlkit-barcode-scanning-18.3.1/AndroidManifest.xml:12:13-14:85
+142                android:name="com.google.firebase.components:com.google.mlkit.vision.barcode.internal.BarcodeRegistrar"
+142-->[com.google.android.gms:play-services-mlkit-barcode-scanning:18.3.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/1f145447135940b9727bab2345c9997c/transformed/jetified-play-services-mlkit-barcode-scanning-18.3.1/AndroidManifest.xml:13:17-120
+143                android:value="com.google.firebase.components.ComponentRegistrar" />
+143-->[com.google.android.gms:play-services-mlkit-barcode-scanning:18.3.1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/1f145447135940b9727bab2345c9997c/transformed/jetified-play-services-mlkit-barcode-scanning-18.3.1/AndroidManifest.xml:14:17-82
+144            <meta-data
+144-->[com.google.mlkit:vision-internal-vkp:18.2.3] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c7356df5e4d49ad1e36844346aa383d7/transformed/jetified-vision-internal-vkp-18.2.3/AndroidManifest.xml:14:13-16:85
+145                android:name="com.google.firebase.components:com.google.mlkit.vision.vkp.VkpRegistrar"
+145-->[com.google.mlkit:vision-internal-vkp:18.2.3] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c7356df5e4d49ad1e36844346aa383d7/transformed/jetified-vision-internal-vkp-18.2.3/AndroidManifest.xml:15:17-103
+146                android:value="com.google.firebase.components.ComponentRegistrar" />
+146-->[com.google.mlkit:vision-internal-vkp:18.2.3] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c7356df5e4d49ad1e36844346aa383d7/transformed/jetified-vision-internal-vkp-18.2.3/AndroidManifest.xml:16:17-82
+147            <meta-data
+147-->[com.google.mlkit:vision-common:17.3.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/14fd37fbc2f25204a3a0cc29278ca0fc/transformed/jetified-vision-common-17.3.0/AndroidManifest.xml:12:13-14:85
+148                android:name="com.google.firebase.components:com.google.mlkit.vision.common.internal.VisionCommonRegistrar"
+148-->[com.google.mlkit:vision-common:17.3.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/14fd37fbc2f25204a3a0cc29278ca0fc/transformed/jetified-vision-common-17.3.0/AndroidManifest.xml:13:17-124
+149                android:value="com.google.firebase.components.ComponentRegistrar" />
+149-->[com.google.mlkit:vision-common:17.3.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/14fd37fbc2f25204a3a0cc29278ca0fc/transformed/jetified-vision-common-17.3.0/AndroidManifest.xml:14:17-82
+150            <meta-data
+150-->[com.google.mlkit:common:18.11.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/8ee41b92a8e03e7accd09d5bd7c46799/transformed/jetified-common-18.11.0/AndroidManifest.xml:20:13-22:85
+151                android:name="com.google.firebase.components:com.google.mlkit.common.internal.CommonComponentRegistrar"
+151-->[com.google.mlkit:common:18.11.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/8ee41b92a8e03e7accd09d5bd7c46799/transformed/jetified-common-18.11.0/AndroidManifest.xml:21:17-120
+152                android:value="com.google.firebase.components.ComponentRegistrar" />
+152-->[com.google.mlkit:common:18.11.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/8ee41b92a8e03e7accd09d5bd7c46799/transformed/jetified-common-18.11.0/AndroidManifest.xml:22:17-82
+153        </service>
+154
+155        <provider
+155-->[com.google.mlkit:common:18.11.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/8ee41b92a8e03e7accd09d5bd7c46799/transformed/jetified-common-18.11.0/AndroidManifest.xml:9:9-13:38
+156            android:name="com.google.mlkit.common.internal.MlKitInitProvider"
+156-->[com.google.mlkit:common:18.11.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/8ee41b92a8e03e7accd09d5bd7c46799/transformed/jetified-common-18.11.0/AndroidManifest.xml:10:13-78
+157            android:authorities="com.customcamera.app.mlkitinitprovider"
+157-->[com.google.mlkit:common:18.11.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/8ee41b92a8e03e7accd09d5bd7c46799/transformed/jetified-common-18.11.0/AndroidManifest.xml:11:13-69
 158            android:exported="false"
-158-->[com.google.android.gms:play-services-base:18.1.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/46f300e2476b05a82da5145645d171c9/transformed/jetified-play-services-base-18.1.0/AndroidManifest.xml:22:19-43
-159            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
-159-->[com.google.android.gms:play-services-base:18.1.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/46f300e2476b05a82da5145645d171c9/transformed/jetified-play-services-base-18.1.0/AndroidManifest.xml:21:19-78
+158-->[com.google.mlkit:common:18.11.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/8ee41b92a8e03e7accd09d5bd7c46799/transformed/jetified-common-18.11.0/AndroidManifest.xml:12:13-37
+159            android:initOrder="99" />
+159-->[com.google.mlkit:common:18.11.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/8ee41b92a8e03e7accd09d5bd7c46799/transformed/jetified-common-18.11.0/AndroidManifest.xml:13:13-35
 160
-161        <meta-data
-161-->[com.google.android.gms:play-services-basement:18.1.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/06289c913081ea3cb06a2f0ccc411820/transformed/jetified-play-services-basement-18.1.0/AndroidManifest.xml:21:9-23:69
-162            android:name="com.google.android.gms.version"
-162-->[com.google.android.gms:play-services-basement:18.1.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/06289c913081ea3cb06a2f0ccc411820/transformed/jetified-play-services-basement-18.1.0/AndroidManifest.xml:22:13-58
-163            android:value="@integer/google_play_services_version" />
-163-->[com.google.android.gms:play-services-basement:18.1.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/06289c913081ea3cb06a2f0ccc411820/transformed/jetified-play-services-basement-18.1.0/AndroidManifest.xml:23:13-66
-164
-165        <provider
-165-->[androidx.emoji2:emoji2:1.2.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/9685033730dcb4ef2c61c21f7cc2dbb5/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:24:9-32:20
-166            android:name="androidx.startup.InitializationProvider"
-166-->[androidx.emoji2:emoji2:1.2.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/9685033730dcb4ef2c61c21f7cc2dbb5/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:25:13-67
-167            android:authorities="com.customcamera.app.androidx-startup"
-167-->[androidx.emoji2:emoji2:1.2.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/9685033730dcb4ef2c61c21f7cc2dbb5/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:26:13-68
-168            android:exported="false" >
-168-->[androidx.emoji2:emoji2:1.2.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/9685033730dcb4ef2c61c21f7cc2dbb5/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:27:13-37
-169            <meta-data
-169-->[androidx.emoji2:emoji2:1.2.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/9685033730dcb4ef2c61c21f7cc2dbb5/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:29:13-31:52
-170                android:name="androidx.emoji2.text.EmojiCompatInitializer"
-170-->[androidx.emoji2:emoji2:1.2.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/9685033730dcb4ef2c61c21f7cc2dbb5/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:30:17-75
-171                android:value="androidx.startup" />
-171-->[androidx.emoji2:emoji2:1.2.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/9685033730dcb4ef2c61c21f7cc2dbb5/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:31:17-49
-172            <meta-data
-172-->[androidx.lifecycle:lifecycle-process:2.7.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/0349d1b278f29129af922da197e77d51/transformed/jetified-lifecycle-process-2.7.0/AndroidManifest.xml:29:13-31:52
-173                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
-173-->[androidx.lifecycle:lifecycle-process:2.7.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/0349d1b278f29129af922da197e77d51/transformed/jetified-lifecycle-process-2.7.0/AndroidManifest.xml:30:17-78
-174                android:value="androidx.startup" />
-174-->[androidx.lifecycle:lifecycle-process:2.7.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/0349d1b278f29129af922da197e77d51/transformed/jetified-lifecycle-process-2.7.0/AndroidManifest.xml:31:17-49
-175            <meta-data
-175-->[androidx.profileinstaller:profileinstaller:1.3.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c6bf2148b704dc55410a6d5e12882d04/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:29:13-31:52
-176                android:name="androidx.profileinstaller.ProfileInstallerInitializer"
-176-->[androidx.profileinstaller:profileinstaller:1.3.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c6bf2148b704dc55410a6d5e12882d04/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:30:17-85
-177                android:value="androidx.startup" />
-177-->[androidx.profileinstaller:profileinstaller:1.3.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c6bf2148b704dc55410a6d5e12882d04/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:31:17-49
-178        </provider>
-179
-180        <service
-180-->[com.google.android.datatransport:transport-backend-cct:2.3.3] /data/data/com.termux/files/home/.gradle/caches/transforms-4/0f3baafd1f63ccf0c957c62314fe5114/transformed/jetified-transport-backend-cct-2.3.3/AndroidManifest.xml:29:9-35:19
-181            android:name="com.google.android.datatransport.runtime.backends.TransportBackendDiscovery"
-181-->[com.google.android.datatransport:transport-backend-cct:2.3.3] /data/data/com.termux/files/home/.gradle/caches/transforms-4/0f3baafd1f63ccf0c957c62314fe5114/transformed/jetified-transport-backend-cct-2.3.3/AndroidManifest.xml:30:13-103
-182            android:exported="false" >
-182-->[com.google.android.datatransport:transport-backend-cct:2.3.3] /data/data/com.termux/files/home/.gradle/caches/transforms-4/0f3baafd1f63ccf0c957c62314fe5114/transformed/jetified-transport-backend-cct-2.3.3/AndroidManifest.xml:31:13-37
-183            <meta-data
-183-->[com.google.android.datatransport:transport-backend-cct:2.3.3] /data/data/com.termux/files/home/.gradle/caches/transforms-4/0f3baafd1f63ccf0c957c62314fe5114/transformed/jetified-transport-backend-cct-2.3.3/AndroidManifest.xml:32:13-34:39
-184                android:name="backend:com.google.android.datatransport.cct.CctBackendFactory"
-184-->[com.google.android.datatransport:transport-backend-cct:2.3.3] /data/data/com.termux/files/home/.gradle/caches/transforms-4/0f3baafd1f63ccf0c957c62314fe5114/transformed/jetified-transport-backend-cct-2.3.3/AndroidManifest.xml:33:17-94
-185                android:value="cct" />
-185-->[com.google.android.datatransport:transport-backend-cct:2.3.3] /data/data/com.termux/files/home/.gradle/caches/transforms-4/0f3baafd1f63ccf0c957c62314fe5114/transformed/jetified-transport-backend-cct-2.3.3/AndroidManifest.xml:34:17-36
-186        </service>
-187        <service
-187-->[com.google.android.datatransport:transport-runtime:2.2.6] /data/data/com.termux/files/home/.gradle/caches/transforms-4/42ae05af79c00408c97d8d247cd0c682/transformed/jetified-transport-runtime-2.2.6/AndroidManifest.xml:26:9-30:19
-188            android:name="com.google.android.datatransport.runtime.scheduling.jobscheduling.JobInfoSchedulerService"
-188-->[com.google.android.datatransport:transport-runtime:2.2.6] /data/data/com.termux/files/home/.gradle/caches/transforms-4/42ae05af79c00408c97d8d247cd0c682/transformed/jetified-transport-runtime-2.2.6/AndroidManifest.xml:27:13-117
-189            android:exported="false"
-189-->[com.google.android.datatransport:transport-runtime:2.2.6] /data/data/com.termux/files/home/.gradle/caches/transforms-4/42ae05af79c00408c97d8d247cd0c682/transformed/jetified-transport-runtime-2.2.6/AndroidManifest.xml:28:13-37
-190            android:permission="android.permission.BIND_JOB_SERVICE" >
-190-->[com.google.android.datatransport:transport-runtime:2.2.6] /data/data/com.termux/files/home/.gradle/caches/transforms-4/42ae05af79c00408c97d8d247cd0c682/transformed/jetified-transport-runtime-2.2.6/AndroidManifest.xml:29:13-69
+161        <activity
+161-->[com.google.android.gms:play-services-base:18.5.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/e5310056f73e09baac27338232dbcf7e/transformed/jetified-play-services-base-18.5.0/AndroidManifest.xml:5:9-173
+162            android:name="com.google.android.gms.common.api.GoogleApiActivity"
+162-->[com.google.android.gms:play-services-base:18.5.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/e5310056f73e09baac27338232dbcf7e/transformed/jetified-play-services-base-18.5.0/AndroidManifest.xml:5:19-85
+163            android:exported="false"
+163-->[com.google.android.gms:play-services-base:18.5.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/e5310056f73e09baac27338232dbcf7e/transformed/jetified-play-services-base-18.5.0/AndroidManifest.xml:5:146-170
+164            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+164-->[com.google.android.gms:play-services-base:18.5.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/e5310056f73e09baac27338232dbcf7e/transformed/jetified-play-services-base-18.5.0/AndroidManifest.xml:5:86-145
+165
+166        <meta-data
+166-->[com.google.android.gms:play-services-basement:18.4.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2eaf26d4cf68ebc8071e832ded8fe8ae/transformed/jetified-play-services-basement-18.4.0/AndroidManifest.xml:6:9-122
+167            android:name="com.google.android.gms.version"
+167-->[com.google.android.gms:play-services-basement:18.4.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2eaf26d4cf68ebc8071e832ded8fe8ae/transformed/jetified-play-services-basement-18.4.0/AndroidManifest.xml:6:20-65
+168            android:value="@integer/google_play_services_version" />
+168-->[com.google.android.gms:play-services-basement:18.4.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2eaf26d4cf68ebc8071e832ded8fe8ae/transformed/jetified-play-services-basement-18.4.0/AndroidManifest.xml:6:66-119
+169
+170        <provider
+170-->[androidx.emoji2:emoji2:1.2.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/9685033730dcb4ef2c61c21f7cc2dbb5/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:24:9-32:20
+171            android:name="androidx.startup.InitializationProvider"
+171-->[androidx.emoji2:emoji2:1.2.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/9685033730dcb4ef2c61c21f7cc2dbb5/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:25:13-67
+172            android:authorities="com.customcamera.app.androidx-startup"
+172-->[androidx.emoji2:emoji2:1.2.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/9685033730dcb4ef2c61c21f7cc2dbb5/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:26:13-68
+173            android:exported="false" >
+173-->[androidx.emoji2:emoji2:1.2.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/9685033730dcb4ef2c61c21f7cc2dbb5/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:27:13-37
+174            <meta-data
+174-->[androidx.emoji2:emoji2:1.2.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/9685033730dcb4ef2c61c21f7cc2dbb5/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:29:13-31:52
+175                android:name="androidx.emoji2.text.EmojiCompatInitializer"
+175-->[androidx.emoji2:emoji2:1.2.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/9685033730dcb4ef2c61c21f7cc2dbb5/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:30:17-75
+176                android:value="androidx.startup" />
+176-->[androidx.emoji2:emoji2:1.2.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/9685033730dcb4ef2c61c21f7cc2dbb5/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:31:17-49
+177            <meta-data
+177-->[androidx.lifecycle:lifecycle-process:2.7.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/0349d1b278f29129af922da197e77d51/transformed/jetified-lifecycle-process-2.7.0/AndroidManifest.xml:29:13-31:52
+178                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
+178-->[androidx.lifecycle:lifecycle-process:2.7.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/0349d1b278f29129af922da197e77d51/transformed/jetified-lifecycle-process-2.7.0/AndroidManifest.xml:30:17-78
+179                android:value="androidx.startup" />
+179-->[androidx.lifecycle:lifecycle-process:2.7.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/0349d1b278f29129af922da197e77d51/transformed/jetified-lifecycle-process-2.7.0/AndroidManifest.xml:31:17-49
+180            <meta-data
+180-->[androidx.profileinstaller:profileinstaller:1.3.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c6bf2148b704dc55410a6d5e12882d04/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:29:13-31:52
+181                android:name="androidx.profileinstaller.ProfileInstallerInitializer"
+181-->[androidx.profileinstaller:profileinstaller:1.3.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c6bf2148b704dc55410a6d5e12882d04/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:30:17-85
+182                android:value="androidx.startup" />
+182-->[androidx.profileinstaller:profileinstaller:1.3.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c6bf2148b704dc55410a6d5e12882d04/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:31:17-49
+183        </provider>
+184
+185        <service
+185-->[com.google.android.datatransport:transport-backend-cct:2.3.3] /data/data/com.termux/files/home/.gradle/caches/transforms-4/0f3baafd1f63ccf0c957c62314fe5114/transformed/jetified-transport-backend-cct-2.3.3/AndroidManifest.xml:29:9-35:19
+186            android:name="com.google.android.datatransport.runtime.backends.TransportBackendDiscovery"
+186-->[com.google.android.datatransport:transport-backend-cct:2.3.3] /data/data/com.termux/files/home/.gradle/caches/transforms-4/0f3baafd1f63ccf0c957c62314fe5114/transformed/jetified-transport-backend-cct-2.3.3/AndroidManifest.xml:30:13-103
+187            android:exported="false" >
+187-->[com.google.android.datatransport:transport-backend-cct:2.3.3] /data/data/com.termux/files/home/.gradle/caches/transforms-4/0f3baafd1f63ccf0c957c62314fe5114/transformed/jetified-transport-backend-cct-2.3.3/AndroidManifest.xml:31:13-37
+188            <meta-data
+188-->[com.google.android.datatransport:transport-backend-cct:2.3.3] /data/data/com.termux/files/home/.gradle/caches/transforms-4/0f3baafd1f63ccf0c957c62314fe5114/transformed/jetified-transport-backend-cct-2.3.3/AndroidManifest.xml:32:13-34:39
+189                android:name="backend:com.google.android.datatransport.cct.CctBackendFactory"
+189-->[com.google.android.datatransport:transport-backend-cct:2.3.3] /data/data/com.termux/files/home/.gradle/caches/transforms-4/0f3baafd1f63ccf0c957c62314fe5114/transformed/jetified-transport-backend-cct-2.3.3/AndroidManifest.xml:33:17-94
+190                android:value="cct" />
+190-->[com.google.android.datatransport:transport-backend-cct:2.3.3] /data/data/com.termux/files/home/.gradle/caches/transforms-4/0f3baafd1f63ccf0c957c62314fe5114/transformed/jetified-transport-backend-cct-2.3.3/AndroidManifest.xml:34:17-36
 191        </service>
-192
-193        <receiver
-193-->[com.google.android.datatransport:transport-runtime:2.2.6] /data/data/com.termux/files/home/.gradle/caches/transforms-4/42ae05af79c00408c97d8d247cd0c682/transformed/jetified-transport-runtime-2.2.6/AndroidManifest.xml:32:9-34:40
-194            android:name="com.google.android.datatransport.runtime.scheduling.jobscheduling.AlarmManagerSchedulerBroadcastReceiver"
-194-->[com.google.android.datatransport:transport-runtime:2.2.6] /data/data/com.termux/files/home/.gradle/caches/transforms-4/42ae05af79c00408c97d8d247cd0c682/transformed/jetified-transport-runtime-2.2.6/AndroidManifest.xml:33:13-132
-195            android:exported="false" />
-195-->[com.google.android.datatransport:transport-runtime:2.2.6] /data/data/com.termux/files/home/.gradle/caches/transforms-4/42ae05af79c00408c97d8d247cd0c682/transformed/jetified-transport-runtime-2.2.6/AndroidManifest.xml:34:13-37
-196        <receiver
-196-->[androidx.profileinstaller:profileinstaller:1.3.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c6bf2148b704dc55410a6d5e12882d04/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:34:9-52:20
-197            android:name="androidx.profileinstaller.ProfileInstallReceiver"
-197-->[androidx.profileinstaller:profileinstaller:1.3.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c6bf2148b704dc55410a6d5e12882d04/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:35:13-76
-198            android:directBootAware="false"
-198-->[androidx.profileinstaller:profileinstaller:1.3.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c6bf2148b704dc55410a6d5e12882d04/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:36:13-44
-199            android:enabled="true"
-199-->[androidx.profileinstaller:profileinstaller:1.3.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c6bf2148b704dc55410a6d5e12882d04/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:37:13-35
-200            android:exported="true"
-200-->[androidx.profileinstaller:profileinstaller:1.3.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c6bf2148b704dc55410a6d5e12882d04/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:38:13-36
-201            android:permission="android.permission.DUMP" >
-201-->[androidx.profileinstaller:profileinstaller:1.3.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c6bf2148b704dc55410a6d5e12882d04/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:39:13-57
-202            <intent-filter>
-202-->[androidx.profileinstaller:profileinstaller:1.3.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c6bf2148b704dc55410a6d5e12882d04/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:40:13-42:29
-203                <action android:name="androidx.profileinstaller.action.INSTALL_PROFILE" />
-203-->[androidx.profileinstaller:profileinstaller:1.3.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c6bf2148b704dc55410a6d5e12882d04/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:41:17-91
-203-->[androidx.profileinstaller:profileinstaller:1.3.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c6bf2148b704dc55410a6d5e12882d04/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:41:25-88
-204            </intent-filter>
-205            <intent-filter>
-205-->[androidx.profileinstaller:profileinstaller:1.3.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c6bf2148b704dc55410a6d5e12882d04/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:43:13-45:29
-206                <action android:name="androidx.profileinstaller.action.SKIP_FILE" />
-206-->[androidx.profileinstaller:profileinstaller:1.3.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c6bf2148b704dc55410a6d5e12882d04/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:44:17-85
-206-->[androidx.profileinstaller:profileinstaller:1.3.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c6bf2148b704dc55410a6d5e12882d04/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:44:25-82
-207            </intent-filter>
-208            <intent-filter>
-208-->[androidx.profileinstaller:profileinstaller:1.3.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c6bf2148b704dc55410a6d5e12882d04/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:46:13-48:29
-209                <action android:name="androidx.profileinstaller.action.SAVE_PROFILE" />
-209-->[androidx.profileinstaller:profileinstaller:1.3.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c6bf2148b704dc55410a6d5e12882d04/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:47:17-88
-209-->[androidx.profileinstaller:profileinstaller:1.3.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c6bf2148b704dc55410a6d5e12882d04/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:47:25-85
-210            </intent-filter>
-211            <intent-filter>
-211-->[androidx.profileinstaller:profileinstaller:1.3.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c6bf2148b704dc55410a6d5e12882d04/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:49:13-51:29
-212                <action android:name="androidx.profileinstaller.action.BENCHMARK_OPERATION" />
-212-->[androidx.profileinstaller:profileinstaller:1.3.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c6bf2148b704dc55410a6d5e12882d04/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:50:17-95
-212-->[androidx.profileinstaller:profileinstaller:1.3.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c6bf2148b704dc55410a6d5e12882d04/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:50:25-92
-213            </intent-filter>
-214        </receiver>
-215
-216        <provider
-216-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:32:9-40:20
-217            android:name="leakcanary.internal.LeakCanaryFileProvider"
-217-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:33:13-70
-218            android:authorities="com.squareup.leakcanary.fileprovider.com.customcamera.app"
-218-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:34:13-88
-219            android:exported="false"
-219-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:35:13-37
-220            android:grantUriPermissions="true" >
-220-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:36:13-47
-221            <meta-data
-221-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:97:13-99:54
-222                android:name="android.support.FILE_PROVIDER_PATHS"
-222-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:98:17-67
-223                android:resource="@xml/leak_canary_file_paths" />
-223-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:99:17-51
-224        </provider>
-225
-226        <activity
-226-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:42:9-73:20
-227            android:name="leakcanary.internal.activity.LeakActivity"
-227-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:43:13-69
-228            android:exported="true"
-228-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:44:13-36
-229            android:icon="@mipmap/leak_canary_icon"
-229-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:45:13-52
-230            android:label="@string/leak_canary_display_activity_label"
-230-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:46:13-71
-231            android:taskAffinity="com.squareup.leakcanary.com.customcamera.app"
-231-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:47:13-76
-232            android:theme="@style/leak_canary_LeakCanary.Base" >
-232-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:48:13-63
-233            <intent-filter android:label="@string/leak_canary_import_hprof_file" >
-233-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:49:13-72:29
-233-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:49:28-81
-234                <action android:name="android.intent.action.VIEW" />
-234-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:50:17-69
-234-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:50:25-66
-235
-236                <category android:name="android.intent.category.DEFAULT" />
-236-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:50:17-76
-236-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:50:27-73
-237                <category android:name="android.intent.category.BROWSABLE" />
-237-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:53:17-78
-237-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:53:27-75
-238
-239                <data android:scheme="file" />
-239-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:55:17-47
-239-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:55:23-44
-240                <data android:scheme="content" />
-240-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:55:17-47
-240-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:55:23-44
-241                <data android:mimeType="*/*" />
-241-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:55:17-47
-242                <data android:host="*" />
-242-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:55:17-47
-243                <data android:pathPattern=".*\\.hprof" />
-243-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:55:17-47
-244                <data android:pathPattern=".*\\..*\\.hprof" />
+192        <service
+192-->[com.google.android.datatransport:transport-runtime:2.2.6] /data/data/com.termux/files/home/.gradle/caches/transforms-4/42ae05af79c00408c97d8d247cd0c682/transformed/jetified-transport-runtime-2.2.6/AndroidManifest.xml:26:9-30:19
+193            android:name="com.google.android.datatransport.runtime.scheduling.jobscheduling.JobInfoSchedulerService"
+193-->[com.google.android.datatransport:transport-runtime:2.2.6] /data/data/com.termux/files/home/.gradle/caches/transforms-4/42ae05af79c00408c97d8d247cd0c682/transformed/jetified-transport-runtime-2.2.6/AndroidManifest.xml:27:13-117
+194            android:exported="false"
+194-->[com.google.android.datatransport:transport-runtime:2.2.6] /data/data/com.termux/files/home/.gradle/caches/transforms-4/42ae05af79c00408c97d8d247cd0c682/transformed/jetified-transport-runtime-2.2.6/AndroidManifest.xml:28:13-37
+195            android:permission="android.permission.BIND_JOB_SERVICE" >
+195-->[com.google.android.datatransport:transport-runtime:2.2.6] /data/data/com.termux/files/home/.gradle/caches/transforms-4/42ae05af79c00408c97d8d247cd0c682/transformed/jetified-transport-runtime-2.2.6/AndroidManifest.xml:29:13-69
+196        </service>
+197
+198        <receiver
+198-->[com.google.android.datatransport:transport-runtime:2.2.6] /data/data/com.termux/files/home/.gradle/caches/transforms-4/42ae05af79c00408c97d8d247cd0c682/transformed/jetified-transport-runtime-2.2.6/AndroidManifest.xml:32:9-34:40
+199            android:name="com.google.android.datatransport.runtime.scheduling.jobscheduling.AlarmManagerSchedulerBroadcastReceiver"
+199-->[com.google.android.datatransport:transport-runtime:2.2.6] /data/data/com.termux/files/home/.gradle/caches/transforms-4/42ae05af79c00408c97d8d247cd0c682/transformed/jetified-transport-runtime-2.2.6/AndroidManifest.xml:33:13-132
+200            android:exported="false" />
+200-->[com.google.android.datatransport:transport-runtime:2.2.6] /data/data/com.termux/files/home/.gradle/caches/transforms-4/42ae05af79c00408c97d8d247cd0c682/transformed/jetified-transport-runtime-2.2.6/AndroidManifest.xml:34:13-37
+201        <receiver
+201-->[androidx.profileinstaller:profileinstaller:1.3.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c6bf2148b704dc55410a6d5e12882d04/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:34:9-52:20
+202            android:name="androidx.profileinstaller.ProfileInstallReceiver"
+202-->[androidx.profileinstaller:profileinstaller:1.3.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c6bf2148b704dc55410a6d5e12882d04/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:35:13-76
+203            android:directBootAware="false"
+203-->[androidx.profileinstaller:profileinstaller:1.3.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c6bf2148b704dc55410a6d5e12882d04/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:36:13-44
+204            android:enabled="true"
+204-->[androidx.profileinstaller:profileinstaller:1.3.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c6bf2148b704dc55410a6d5e12882d04/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:37:13-35
+205            android:exported="true"
+205-->[androidx.profileinstaller:profileinstaller:1.3.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c6bf2148b704dc55410a6d5e12882d04/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:38:13-36
+206            android:permission="android.permission.DUMP" >
+206-->[androidx.profileinstaller:profileinstaller:1.3.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c6bf2148b704dc55410a6d5e12882d04/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:39:13-57
+207            <intent-filter>
+207-->[androidx.profileinstaller:profileinstaller:1.3.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c6bf2148b704dc55410a6d5e12882d04/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:40:13-42:29
+208                <action android:name="androidx.profileinstaller.action.INSTALL_PROFILE" />
+208-->[androidx.profileinstaller:profileinstaller:1.3.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c6bf2148b704dc55410a6d5e12882d04/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:41:17-91
+208-->[androidx.profileinstaller:profileinstaller:1.3.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c6bf2148b704dc55410a6d5e12882d04/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:41:25-88
+209            </intent-filter>
+210            <intent-filter>
+210-->[androidx.profileinstaller:profileinstaller:1.3.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c6bf2148b704dc55410a6d5e12882d04/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:43:13-45:29
+211                <action android:name="androidx.profileinstaller.action.SKIP_FILE" />
+211-->[androidx.profileinstaller:profileinstaller:1.3.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c6bf2148b704dc55410a6d5e12882d04/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:44:17-85
+211-->[androidx.profileinstaller:profileinstaller:1.3.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c6bf2148b704dc55410a6d5e12882d04/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:44:25-82
+212            </intent-filter>
+213            <intent-filter>
+213-->[androidx.profileinstaller:profileinstaller:1.3.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c6bf2148b704dc55410a6d5e12882d04/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:46:13-48:29
+214                <action android:name="androidx.profileinstaller.action.SAVE_PROFILE" />
+214-->[androidx.profileinstaller:profileinstaller:1.3.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c6bf2148b704dc55410a6d5e12882d04/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:47:17-88
+214-->[androidx.profileinstaller:profileinstaller:1.3.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c6bf2148b704dc55410a6d5e12882d04/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:47:25-85
+215            </intent-filter>
+216            <intent-filter>
+216-->[androidx.profileinstaller:profileinstaller:1.3.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c6bf2148b704dc55410a6d5e12882d04/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:49:13-51:29
+217                <action android:name="androidx.profileinstaller.action.BENCHMARK_OPERATION" />
+217-->[androidx.profileinstaller:profileinstaller:1.3.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c6bf2148b704dc55410a6d5e12882d04/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:50:17-95
+217-->[androidx.profileinstaller:profileinstaller:1.3.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/c6bf2148b704dc55410a6d5e12882d04/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:50:25-92
+218            </intent-filter>
+219        </receiver>
+220
+221        <provider
+221-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:32:9-40:20
+222            android:name="leakcanary.internal.LeakCanaryFileProvider"
+222-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:33:13-70
+223            android:authorities="com.squareup.leakcanary.fileprovider.com.customcamera.app"
+223-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:34:13-88
+224            android:exported="false"
+224-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:35:13-37
+225            android:grantUriPermissions="true" >
+225-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:36:13-47
+226            <meta-data
+226-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:102:13-104:54
+227                android:name="android.support.FILE_PROVIDER_PATHS"
+227-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:103:17-67
+228                android:resource="@xml/leak_canary_file_paths" />
+228-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:104:17-51
+229        </provider>
+230
+231        <activity
+231-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:42:9-73:20
+232            android:name="leakcanary.internal.activity.LeakActivity"
+232-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:43:13-69
+233            android:exported="true"
+233-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:44:13-36
+234            android:icon="@mipmap/leak_canary_icon"
+234-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:45:13-52
+235            android:label="@string/leak_canary_display_activity_label"
+235-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:46:13-71
+236            android:taskAffinity="com.squareup.leakcanary.com.customcamera.app"
+236-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:47:13-76
+237            android:theme="@style/leak_canary_LeakCanary.Base" >
+237-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:48:13-63
+238            <intent-filter android:label="@string/leak_canary_import_hprof_file" >
+238-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:49:13-72:29
+238-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:49:28-81
+239                <action android:name="android.intent.action.VIEW" />
+239-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:50:17-69
+239-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:50:25-66
+240
+241                <category android:name="android.intent.category.DEFAULT" />
+241-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:55:17-76
+241-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:55:27-73
+242                <category android:name="android.intent.category.BROWSABLE" />
+242-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:53:17-78
+242-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:53:27-75
+243
+244                <data android:scheme="file" />
 244-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:55:17-47
-245                <data android:pathPattern=".*\\..*\\..*\\.hprof" />
+244-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:55:23-44
+245                <data android:scheme="content" />
 245-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:55:17-47
-246                <data android:pathPattern=".*\\..*\\..*\\..*\\.hprof" />
+245-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:55:23-44
+246                <data android:mimeType="*/*" />
 246-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:55:17-47
-247                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.hprof" />
+247                <data android:host="*" />
 247-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:55:17-47
-248                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\.hprof" />
+248                <data android:pathPattern=".*\\.hprof" />
 248-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:55:17-47
-249                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\..*\\.hprof" />
+249                <data android:pathPattern=".*\\..*\\.hprof" />
 249-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:55:17-47
-250                <!--
-251            Since hprof isn't a standard MIME type, we have to declare such patterns.
-252            Most file providers will generate URIs including their own package name,
-253            which contains `.` characters that must be explicitly escaped in pathPattern.
-254            @see https://stackoverflow.com/a/31028507/703646
-255                -->
-256            </intent-filter>
-257        </activity>
-258
-259        <activity-alias
-259-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:75:9-92:26
-260            android:name="leakcanary.internal.activity.LeakLauncherActivity"
-260-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:76:13-77
-261            android:banner="@drawable/leak_canary_tv_icon"
-261-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:77:13-59
-262            android:enabled="@bool/leak_canary_add_launcher_icon"
-262-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:78:13-66
-263            android:exported="true"
-263-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:79:13-36
-264            android:icon="@mipmap/leak_canary_icon"
-264-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:80:13-52
-265            android:label="@string/leak_canary_display_activity_label"
-265-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:81:13-71
-266            android:targetActivity="leakcanary.internal.activity.LeakActivity"
-266-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:82:13-79
-267            android:taskAffinity="com.squareup.leakcanary.com.customcamera.app"
-267-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:83:13-76
-268            android:theme="@style/leak_canary_LeakCanary.Base" >
-268-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:84:13-63
-269            <intent-filter>
-269-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:85:13-91:29
-270                <action android:name="android.intent.action.MAIN" />
-270-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:33:17-69
-270-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:33:25-66
-271
-272                <category android:name="android.intent.category.LAUNCHER" />
-272-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:34:17-77
-272-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:34:27-74
-273                <!-- Android TV launcher intent -->
-274                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
-274-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:90:17-86
-274-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:90:27-83
-275            </intent-filter>
-276        </activity-alias>
-277
-278        <activity
-278-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:94:9-100:68
-279            android:name="leakcanary.internal.RequestPermissionActivity"
-279-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:95:13-73
-280            android:excludeFromRecents="true"
-280-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:96:13-46
-281            android:icon="@mipmap/leak_canary_icon"
-281-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:97:13-52
-282            android:label="@string/leak_canary_storage_permission_activity_label"
-282-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:98:13-82
-283            android:taskAffinity="com.squareup.leakcanary.com.customcamera.app"
-283-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:99:13-76
-284            android:theme="@style/leak_canary_Theme.Transparent" />
-284-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:100:13-65
-285
-286        <receiver android:name="leakcanary.internal.NotificationReceiver" />
-286-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:102:9-77
-286-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:102:19-74
-287
-288        <provider
-288-->[com.squareup.leakcanary:leakcanary-object-watcher-android:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/45f230f3abd767bd251e00e53a077552/transformed/jetified-leakcanary-object-watcher-android-2.12/AndroidManifest.xml:8:9-12:40
-289            android:name="leakcanary.internal.MainProcessAppWatcherInstaller"
-289-->[com.squareup.leakcanary:leakcanary-object-watcher-android:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/45f230f3abd767bd251e00e53a077552/transformed/jetified-leakcanary-object-watcher-android-2.12/AndroidManifest.xml:9:13-78
-290            android:authorities="com.customcamera.app.leakcanary-installer"
-290-->[com.squareup.leakcanary:leakcanary-object-watcher-android:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/45f230f3abd767bd251e00e53a077552/transformed/jetified-leakcanary-object-watcher-android-2.12/AndroidManifest.xml:10:13-72
-291            android:enabled="@bool/leak_canary_watcher_auto_install"
-291-->[com.squareup.leakcanary:leakcanary-object-watcher-android:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/45f230f3abd767bd251e00e53a077552/transformed/jetified-leakcanary-object-watcher-android-2.12/AndroidManifest.xml:11:13-69
-292            android:exported="false" />
-292-->[com.squareup.leakcanary:leakcanary-object-watcher-android:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/45f230f3abd767bd251e00e53a077552/transformed/jetified-leakcanary-object-watcher-android-2.12/AndroidManifest.xml:12:13-37
+250                <data android:pathPattern=".*\\..*\\..*\\.hprof" />
+250-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:55:17-47
+251                <data android:pathPattern=".*\\..*\\..*\\..*\\.hprof" />
+251-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:55:17-47
+252                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.hprof" />
+252-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:55:17-47
+253                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\.hprof" />
+253-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:55:17-47
+254                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\..*\\.hprof" />
+254-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:55:17-47
+255                <!--
+256            Since hprof isn't a standard MIME type, we have to declare such patterns.
+257            Most file providers will generate URIs including their own package name,
+258            which contains `.` characters that must be explicitly escaped in pathPattern.
+259            @see https://stackoverflow.com/a/31028507/703646
+260                -->
+261            </intent-filter>
+262        </activity>
+263
+264        <activity-alias
+264-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:75:9-92:26
+265            android:name="leakcanary.internal.activity.LeakLauncherActivity"
+265-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:76:13-77
+266            android:banner="@drawable/leak_canary_tv_icon"
+266-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:77:13-59
+267            android:enabled="@bool/leak_canary_add_launcher_icon"
+267-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:78:13-66
+268            android:exported="true"
+268-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:79:13-36
+269            android:icon="@mipmap/leak_canary_icon"
+269-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:80:13-52
+270            android:label="@string/leak_canary_display_activity_label"
+270-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:81:13-71
+271            android:targetActivity="leakcanary.internal.activity.LeakActivity"
+271-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:82:13-79
+272            android:taskAffinity="com.squareup.leakcanary.com.customcamera.app"
+272-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:83:13-76
+273            android:theme="@style/leak_canary_LeakCanary.Base" >
+273-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:84:13-63
+274            <intent-filter>
+274-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:85:13-91:29
+275                <action android:name="android.intent.action.MAIN" />
+275-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:38:17-69
+275-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:38:25-66
+276
+277                <category android:name="android.intent.category.LAUNCHER" />
+277-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:39:17-77
+277-->/data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:39:27-74
+278                <!-- Android TV launcher intent -->
+279                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+279-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:90:17-86
+279-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:90:27-83
+280            </intent-filter>
+281        </activity-alias>
+282
+283        <activity
+283-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:94:9-100:68
+284            android:name="leakcanary.internal.RequestPermissionActivity"
+284-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:95:13-73
+285            android:excludeFromRecents="true"
+285-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:96:13-46
+286            android:icon="@mipmap/leak_canary_icon"
+286-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:97:13-52
+287            android:label="@string/leak_canary_storage_permission_activity_label"
+287-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:98:13-82
+288            android:taskAffinity="com.squareup.leakcanary.com.customcamera.app"
+288-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:99:13-76
+289            android:theme="@style/leak_canary_Theme.Transparent" />
+289-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:100:13-65
+290
+291        <receiver android:name="leakcanary.internal.NotificationReceiver" />
+291-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:102:9-77
+291-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2a90db8355526530ae9e153f9166b239/transformed/jetified-leakcanary-android-core-2.12/AndroidManifest.xml:102:19-74
+292
 293        <provider
-293-->[com.squareup.leakcanary:plumber-android:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2c5b2373a61c3ac6b4f22a02e46c7727/transformed/jetified-plumber-android-2.12/AndroidManifest.xml:8:9-12:40
-294            android:name="leakcanary.internal.PlumberInstaller"
-294-->[com.squareup.leakcanary:plumber-android:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2c5b2373a61c3ac6b4f22a02e46c7727/transformed/jetified-plumber-android-2.12/AndroidManifest.xml:9:13-64
-295            android:authorities="com.customcamera.app.plumber-installer"
-295-->[com.squareup.leakcanary:plumber-android:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2c5b2373a61c3ac6b4f22a02e46c7727/transformed/jetified-plumber-android-2.12/AndroidManifest.xml:10:13-69
-296            android:enabled="@bool/leak_canary_plumber_auto_install"
-296-->[com.squareup.leakcanary:plumber-android:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2c5b2373a61c3ac6b4f22a02e46c7727/transformed/jetified-plumber-android-2.12/AndroidManifest.xml:11:13-69
+293-->[com.squareup.leakcanary:leakcanary-object-watcher-android:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/45f230f3abd767bd251e00e53a077552/transformed/jetified-leakcanary-object-watcher-android-2.12/AndroidManifest.xml:8:9-12:40
+294            android:name="leakcanary.internal.MainProcessAppWatcherInstaller"
+294-->[com.squareup.leakcanary:leakcanary-object-watcher-android:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/45f230f3abd767bd251e00e53a077552/transformed/jetified-leakcanary-object-watcher-android-2.12/AndroidManifest.xml:9:13-78
+295            android:authorities="com.customcamera.app.leakcanary-installer"
+295-->[com.squareup.leakcanary:leakcanary-object-watcher-android:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/45f230f3abd767bd251e00e53a077552/transformed/jetified-leakcanary-object-watcher-android-2.12/AndroidManifest.xml:10:13-72
+296            android:enabled="@bool/leak_canary_watcher_auto_install"
+296-->[com.squareup.leakcanary:leakcanary-object-watcher-android:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/45f230f3abd767bd251e00e53a077552/transformed/jetified-leakcanary-object-watcher-android-2.12/AndroidManifest.xml:11:13-69
 297            android:exported="false" />
-297-->[com.squareup.leakcanary:plumber-android:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2c5b2373a61c3ac6b4f22a02e46c7727/transformed/jetified-plumber-android-2.12/AndroidManifest.xml:12:13-37
-298    </application>
-299
-300</manifest>
+297-->[com.squareup.leakcanary:leakcanary-object-watcher-android:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/45f230f3abd767bd251e00e53a077552/transformed/jetified-leakcanary-object-watcher-android-2.12/AndroidManifest.xml:12:13-37
+298        <provider
+298-->[com.squareup.leakcanary:plumber-android:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2c5b2373a61c3ac6b4f22a02e46c7727/transformed/jetified-plumber-android-2.12/AndroidManifest.xml:8:9-12:40
+299            android:name="leakcanary.internal.PlumberInstaller"
+299-->[com.squareup.leakcanary:plumber-android:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2c5b2373a61c3ac6b4f22a02e46c7727/transformed/jetified-plumber-android-2.12/AndroidManifest.xml:9:13-64
+300            android:authorities="com.customcamera.app.plumber-installer"
+300-->[com.squareup.leakcanary:plumber-android:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2c5b2373a61c3ac6b4f22a02e46c7727/transformed/jetified-plumber-android-2.12/AndroidManifest.xml:10:13-69
+301            android:enabled="@bool/leak_canary_plumber_auto_install"
+301-->[com.squareup.leakcanary:plumber-android:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2c5b2373a61c3ac6b4f22a02e46c7727/transformed/jetified-plumber-android-2.12/AndroidManifest.xml:11:13-69
+302            android:exported="false" />
+302-->[com.squareup.leakcanary:plumber-android:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/2c5b2373a61c3ac6b4f22a02e46c7727/transformed/jetified-plumber-android-2.12/AndroidManifest.xml:12:13-37
+303    </application>
+304
+305</manifest>

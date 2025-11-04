@@ -468,9 +468,15 @@ class BarcodePlugin : ProcessingPlugin() {
         override val showInDropdown: Boolean = true
 
         override fun isSupported(context: android.content.Context): Boolean {
-            // ML Kit barcode scanning is available on all Android devices
-            // (It's part of Google Play Services)
-            return true
+            return try {
+                // ML Kit Barcode Scanning requires Google Play Services
+                val packageManager = context.packageManager
+                packageManager.getPackageInfo("com.google.android.gms", 0)
+                true
+            } catch (e: Exception) {
+                android.util.Log.w(TAG, "Google Play Services not available for ML Kit Barcode Scanning", e)
+                false
+            }
         }
 
         override fun create(dependencies: com.customcamera.app.engine.plugins.PluginDependencies): com.customcamera.app.engine.plugins.CameraPlugin {

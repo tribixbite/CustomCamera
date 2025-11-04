@@ -931,8 +931,15 @@ class SmartScenePlugin : ProcessingPlugin() {
         override val showInDropdown: Boolean = true
 
         override fun isSupported(context: android.content.Context): Boolean {
-            // TODO: Add device capability checking if needed
-            return true
+            return try {
+                // ML Kit Image Labeling requires Google Play Services
+                val packageManager = context.packageManager
+                packageManager.getPackageInfo("com.google.android.gms", 0)
+                true
+            } catch (e: Exception) {
+                android.util.Log.w(TAG, "Google Play Services not available for ML Kit Image Labeling", e)
+                false
+            }
         }
 
         override fun create(dependencies: com.customcamera.app.engine.plugins.PluginDependencies): com.customcamera.app.engine.plugins.CameraPlugin {
