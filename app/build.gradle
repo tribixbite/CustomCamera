@@ -100,9 +100,10 @@ dependencies {
     implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0'
     implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.7.0'
 
-    // ML Kit for barcode scanning and object detection
+    // ML Kit for barcode scanning, object detection, and image labeling
     implementation 'com.google.mlkit:barcode-scanning:17.2.0'
     implementation 'com.google.mlkit:object-detection:17.0.1'
+    implementation 'com.google.mlkit:image-labeling:17.0.8'
 
     // Kotlin coroutines support for Google Play Services Tasks
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3'

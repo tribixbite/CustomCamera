@@ -5,6 +5,11 @@ import android.util.Log
 import androidx.camera.core.Camera
 import androidx.camera.core.ImageProxy
 import androidx.annotation.ColorInt
+import com.google.mlkit.vision.common.InputImage
+import com.google.mlkit.vision.label.ImageLabeling
+import com.google.mlkit.vision.label.ImageLabeler
+import com.google.mlkit.vision.label.defaults.ImageLabelerOptions
+import kotlinx.coroutines.tasks.await
 import com.customcamera.app.engine.CameraContext
 import com.customcamera.app.engine.plugins.ProcessingPlugin
 import com.customcamera.app.engine.plugins.ProcessingResult
@@ -29,6 +34,7 @@ class SmartScenePlugin : ProcessingPlugin() {
     override val priority: Int = 30 // High priority for scene analysis
 
     private var cameraContext: CameraContext? = null
+    private var imageLabeler: ImageLabeler? = null
     private var isSceneDetectionEnabled: Boolean = true
     private var processingInterval: Long = 200L // Process every 200ms
     private var lastProcessingTime: Long = 0L
@@ -48,6 +54,12 @@ class SmartScenePlugin : ProcessingPlugin() {
         this.cameraContext = context
         Log.i(TAG, "SmartScenePlugin initialized")
 
+        // Initialize ML Kit Image Labeler for enhanced scene classification
+        val labelerOptions = ImageLabelerOptions.Builder()
+            .setConfidenceThreshold(0.6f)
+            .build()
+        imageLabeler = ImageLabeling.getClient(labelerOptions)
+
         loadSettings(context)
 
         context.debugLogger.logPlugin(
@@ -57,7 +69,8 @@ class SmartScenePlugin : ProcessingPlugin() {
                 "sceneDetectionEnabled" to isSceneDetectionEnabled,
                 "processingInterval" to processingInterval,
                 "brightnessThreshold" to brightnessThreshold,
-                "contrastThreshold" to contrastThreshold
+                "contrastThreshold" to contrastThreshold,
+                "mlKitEnabled" to true
             )
         )
     }
@@ -158,6 +171,31 @@ class SmartScenePlugin : ProcessingPlugin() {
     }
 
     /**
+     * Get ML Kit image labels for enhanced scene classification
+     */
+    private suspend fun getMLKitLabels(image: ImageProxy): List<Pair<String, Float>> {
+        return try {
+            val labeler = imageLabeler ?: return emptyList()
+
+            // Convert ImageProxy to InputImage for ML Kit
+            val inputImage = InputImage.fromMediaImage(
+                image.image!!,
+                image.imageInfo.rotationDegrees
+            )
+
+            // Get labels from ML Kit
+            val labels = labeler.process(inputImage).await()
+
+            // Convert to list of (label, confidence) pairs
+            labels.map { Pair(it.text.lowercase(), it.confidence) }
+
+        } catch (e: Exception) {
+            Log.e(TAG, "ML Kit labeling failed", e)
+            emptyList()
+        }
+    }
+
+    /**
      * Perform comprehensive scene analysis on the image
      */
     private suspend fun performSceneAnalysis(image: ImageProxy): SceneDetection {
@@ -179,16 +217,19 @@ class SmartScenePlugin : ProcessingPlugin() {
         val focusRegions = detectFocusRegions(imageData, width, height)
         val motionBlur = detectMotionBlur(imageData, width, height)
 
-        // Scene classification based on comprehensive analysis
+        // Get ML Kit labels for enhanced classification
+        val mlKitLabels = getMLKitLabels(image)
+
+        // Scene classification based on comprehensive analysis + ML Kit
         val sceneType = classifyScene(
             brightness, contrast, edgeDensity, colorVariation,
             textureComplexity, faceRegions, horizonLine, focusRegions,
-            motionBlur, dominantColors
+            motionBlur, dominantColors, mlKitLabels
         )
 
         val confidence = calculateSceneConfidence(
             sceneType, brightness, contrast, edgeDensity,
-            colorVariation, textureComplexity
+            colorVariation, textureComplexity, mlKitLabels
         )
 
         val analysisData = mapOf(
@@ -213,7 +254,7 @@ class SmartScenePlugin : ProcessingPlugin() {
     }
 
     /**
-     * Classify scene based on comprehensive image analysis
+     * Classify scene based on comprehensive image analysis + ML Kit labels
      */
     private fun classifyScene(
         brightness: Float,
@@ -225,15 +266,32 @@ class SmartScenePlugin : ProcessingPlugin() {
         horizonLine: Int,
         focusRegions: List<Rect>,
         motionBlur: Float,
-        dominantColors: List<Int>
+        dominantColors: List<Int>,
+        mlKitLabels: List<Pair<String, Float>>
     ): SceneType {
 
-        // Portrait detection - faces with lower background complexity
+        // Check ML Kit labels for strong scene indicators
+        for ((label, confidence) in mlKitLabels) {
+            if (confidence > 0.75f) {
+                when {
+                    label.contains("portrait") || label.contains("person") || label.contains("face") -> return SceneType.PORTRAIT
+                    label.contains("landscape") || label.contains("mountain") || label.contains("sky") || label.contains("cloud") -> return SceneType.LANDSCAPE
+                    label.contains("food") || label.contains("dish") || label.contains("meal") -> return SceneType.FOOD
+                    label.contains("building") || label.contains("architecture") -> return SceneType.ARCHITECTURE
+                    label.contains("sunset") || label.contains("sunrise") || label.contains("dawn") || label.contains("dusk") -> return SceneType.SUNSET_SUNRISE
+                    label.contains("night") || label.contains("dark") -> return SceneType.NIGHT
+                    label.contains("text") || label.contains("document") || label.contains("paper") -> return SceneType.DOCUMENT_TEXT
+                    label.contains("sport") || label.contains("action") -> return SceneType.SPORTS_ACTION
+                }
+            }
+        }
+
+        // Portrait detection - faces with lower background complexity OR ML Kit person label
         if (faceRegions.isNotEmpty() && textureComplexity < 0.6f) {
             return SceneType.PORTRAIT
         }
 
-        // Landscape detection - horizon line and high edge density
+        // Landscape detection - horizon line and high edge density OR ML Kit landscape label
         if (horizonLine >= 0 && edgeDensity > 0.4f && colorVariation > 30) {
             return SceneType.LANDSCAPE
         }
@@ -294,7 +352,7 @@ class SmartScenePlugin : ProcessingPlugin() {
     }
 
     /**
-     * Calculate confidence score for scene classification
+     * Calculate confidence score for scene classification (enhanced with ML Kit)
      */
     private fun calculateSceneConfidence(
         sceneType: SceneType,
@@ -302,9 +360,28 @@ class SmartScenePlugin : ProcessingPlugin() {
         contrast: Float,
         edgeDensity: Float,
         colorVariation: Float,
-        textureComplexity: Float
+        textureComplexity: Float,
+        mlKitLabels: List<Pair<String, Float>>
     ): Float {
         var confidence = 0.5f // Base confidence
+
+        // Boost confidence if ML Kit agrees with scene type
+        for ((label, mlConfidence) in mlKitLabels) {
+            val sceneMatch = when (sceneType) {
+                SceneType.PORTRAIT -> label.contains("person") || label.contains("face") || label.contains("portrait")
+                SceneType.LANDSCAPE -> label.contains("landscape") || label.contains("mountain") || label.contains("sky")
+                SceneType.FOOD -> label.contains("food") || label.contains("dish") || label.contains("meal")
+                SceneType.ARCHITECTURE -> label.contains("building") || label.contains("architecture")
+                SceneType.SUNSET_SUNRISE -> label.contains("sunset") || label.contains("sunrise") || label.contains("dusk")
+                SceneType.NIGHT -> label.contains("night") || label.contains("dark")
+                SceneType.DOCUMENT_TEXT -> label.contains("text") || label.contains("document")
+                SceneType.SPORTS_ACTION -> label.contains("sport") || label.contains("action")
+                else -> false
+            }
+            if (sceneMatch) {
+                confidence += mlConfidence * 0.3f // Boost confidence by up to 30%
+            }
+        }
 
         // Adjust confidence based on scene-specific characteristics
         when (sceneType) {
@@ -798,6 +875,11 @@ class SmartScenePlugin : ProcessingPlugin() {
         currentScene = SceneType.UNKNOWN
         sceneConfidence = 0.0f
         sceneDetectionHistory.clear()
+
+        // Close ML Kit Image Labeler
+        imageLabeler?.close()
+        imageLabeler = null
+
         cameraContext = null
     }
 
