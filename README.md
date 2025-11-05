@@ -5,9 +5,11 @@
   <img src="https://img.shields.io/badge/Language-Kotlin-blue.svg" alt="Language">
   <img src="https://img.shields.io/badge/Architecture-Plugin%20System-orange.svg" alt="Architecture">
   <img src="https://img.shields.io/badge/Camera-CameraX-red.svg" alt="Camera">
-  <img src="https://img.shields.io/badge/Plugins-22%2F22%20Complete-success.svg" alt="Plugins">
+  <img src="https://img.shields.io/badge/Plugins-23%2F23%20Complete-success.svg" alt="Plugins">
   <img src="https://img.shields.io/badge/ML%20Kit-Integrated-purple.svg" alt="ML Kit">
-  <img src="https://img.shields.io/badge/Version-v2.1.42--build.36-blue.svg" alt="Version">
+  <img src="https://img.shields.io/badge/CameraX-1.5.0-red.svg" alt="CameraX">
+  <img src="https://img.shields.io/badge/Kotlin-2.1.20-blue.svg" alt="Kotlin">
+  <img src="https://img.shields.io/badge/Updated-Nov%202025-green.svg" alt="Updated">
   <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License">
 </p>
 
@@ -26,7 +28,8 @@ A modern, extensible Android camera application built with a powerful plugin arc
 - **Video Recording** - Professional video controls with 9-mode stabilization (hardware + software)
 
 ### 🔧 Plugin Architecture
-- **100% Complete** - All 22 planned plugins fully implemented and production-ready
+- **100% Complete** - All 23 planned plugins fully implemented and production-ready
+- **Capability Detection** - All plugins detect device capabilities (hardware, software, OS)
 - **Modular Design** - Extensible plugin system with three specialized plugin types
 - **Hot-swappable Plugins** - Enable/disable features without app restart
 - **Performance Optimized** - Sequential plugin processing with memory leak prevention
@@ -110,10 +113,12 @@ abstract class CameraPlugin {
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Android Studio Arctic Fox (2020.3.1) or newer
-- Android SDK API 21+ (Android 5.0)
-- Kotlin 1.8.0+
-- CameraX 1.3.0+
+- Android Studio Hedgehog (2023.1.1) or newer
+- Android SDK API 24+ (Android 7.0) - API 35 for latest features
+- Kotlin 2.1.20+
+- CameraX 1.5.0+
+- Android Gradle Plugin 8.6.0+
+- Gradle 8.7+
 
 ### Installation
 
@@ -306,7 +311,7 @@ CustomCamera/
 ## 🎯 Development Status
 
 ### ✅ Completed Features (100% Plugin System)
-All 22 planned plugins have been successfully implemented and tested:
+All 23 planned plugins have been successfully implemented and tested:
 
 **Phase 4 Completion:**
 - [x] **Dual Camera PiP System** - Simultaneous front/rear camera with compositing ✅
@@ -353,12 +358,13 @@ We welcome contributions! Please see our contributing guidelines:
 
 ## 📋 Requirements
 
-- **Minimum SDK:** Android API 21 (Android 5.0)
-- **Target SDK:** Android API 34 (Android 14)
-- **Language:** Kotlin 1.8.0+
+- **Minimum SDK:** Android API 24 (Android 7.0)
+- **Target SDK:** Android API 35 (Android 15)
+- **Language:** Kotlin 2.1.20+
 - **Architecture:** MVVM with Provider Pattern Plugin System
-- **Camera:** CameraX 1.3.1+ (with Camera2Interop for RAW/HDR)
-- **ML Kit:** Object Detection 17.0.1, Image Labeling 17.0.8, Barcode Scanning 17.2.0
+- **Camera:** CameraX 1.5.0 (with Camera2Interop for RAW/HDR)
+- **ML Kit:** Object Detection 17.3.0, Image Labeling 17.0.9, Barcode Scanning 17.0.2
+- **Build Tools:** AGP 8.6.0, Gradle 8.7
 - **UI:** Material Design 3 with ViewBinding
 - **Permissions:** CAMERA, RECORD_AUDIO, VIBRATE, HIGH_SAMPLING_RATE_SENSORS
 
@@ -374,6 +380,7 @@ We welcome contributions! Please see our contributing guidelines:
 - Deprecated `systemUiVisibility` warnings (Android 11+) - Will be updated to WindowInsetsController
 - ISO control limited by CameraX API - Full manual control requires Camera2 API
 - Some advanced features require specific camera hardware support
+- Frame rate configuration requires migration to SessionConfig API (CameraX 1.5.0)
 
 ## 📄 License
 
