@@ -14,6 +14,7 @@
 - ✅ **Android SDK 34 → 35** (required by CameraX 1.5.0)
 - ✅ **Fixed 28 Kotlin 2.1.20 null-safety errors** (Bitmap.config, ApplicationInfo, PackageInfo)
 - ✅ **Documented CameraX 1.5.0 API changes** (VideoSpec.Builder.setFrameRate removal)
+- ✅ **README.md updated** (commit 4434ff6c) - CameraX 1.5.0, Kotlin 2.1.20, all build versions
 
 **Previous Session (2025-11-04):**
 - ✅ **PROJECT_QUALITY_AUDIT.md** - Comprehensive 9-point quality audit
