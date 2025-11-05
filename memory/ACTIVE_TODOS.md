@@ -1,28 +1,28 @@
-# Active TODOs - Quality Improvements & Capability Detection! ✅
+# Active TODOs - Build System Modernization ✅
 
-**Last Updated**: 2025-11-04 (Session 2)
-**Priority**: Quality improvements and device capability detection
-**Status**: 23/23 plugins complete (100%) | 6/23 plugins with capability detection
+**Last Updated**: 2025-11-05
+**Priority**: Build system upgrades and dependency modernization
+**Status**: 23/23 plugins complete (100%) | 23/23 plugins with capability detection ✅
 
-## Current Session Context (2025-11-04 Session 2)
+## Current Session Context (2025-11-05)
 
-**Quality Improvements Completed:**
-- ✅ **PROJECT_QUALITY_AUDIT.md** - Comprehensive 9-point quality audit (402 lines)
-- ✅ **README.md updated** - 100% plugin completion documented, all 23 plugins listed
-- ✅ **Documentation organized** - 32 root markdown files → structured docs/ subdirectories
-- ✅ **AndroidManifest updated** - Added RAW capability + GPS permissions
-- ✅ **ML Kit updated** - All dependencies to latest stable (17.3.0, 17.0.2, 17.0.9)
-- ✅ **CameraX researched** - 1.5.0 available but requires AGP 8.6.0+ (documented)
+**Build System Modernization Completed:**
+- ✅ **AGP 8.0.2 → 8.6.0** (commit 97ea7d9c)
+- ✅ **Gradle 8.6 → 8.7** (minimum for AGP 8.6.0)
+- ✅ **Kotlin 1.8.20 → 2.1.20** (required for AGP 8.6.x)
+- ✅ **CameraX 1.3.1 → 1.5.0** (commit 8a3fa6b7)
+- ✅ **Android SDK 34 → 35** (required by CameraX 1.5.0)
+- ✅ **Fixed 28 Kotlin 2.1.20 null-safety errors** (Bitmap.config, ApplicationInfo, PackageInfo)
+- ✅ **Documented CameraX 1.5.0 API changes** (VideoSpec.Builder.setFrameRate removal)
 
-**Capability Detection Implemented (6/23 plugins):**
-- ✅ **RAWCapturePlugin** - Checks for RAW_SENSOR capability via CameraCharacteristics
-- ✅ **HDRPlugin** - Checks for exposure compensation range (bracketing support)
-- ✅ **DualCameraPiPPlugin** - Checks for 2+ cameras + concurrent streaming (Android 11+)
-- ✅ **ObjectDetectionPlugin** - Checks for Google Play Services (ML Kit dependency)
-- ✅ **SmartScenePlugin** - Checks for Google Play Services (ML Kit dependency)
-- ✅ **BarcodePlugin** - Checks for Google Play Services (ML Kit dependency)
+**Previous Session (2025-11-04):**
+- ✅ **PROJECT_QUALITY_AUDIT.md** - Comprehensive 9-point quality audit
+- ✅ **README.md updated** - 100% plugin completion documented
+- ✅ **Documentation organized** - 32 root markdown files → structured docs/
+- ✅ **ML Kit updated** - All dependencies to latest stable
+- ✅ **Capability Detection COMPLETE** - All 23/23 plugins (commit 4e1c87c0)
 
-**Build Status**: ✅ SUCCESS (all changes compiled)
+**Build Status**: ✅ SUCCESS (4m 3s build time)
 
 ## Previous Session (2025-11-04 Session 1)
 
@@ -90,46 +90,63 @@ Previous completions (2025-10-23):
 
 ## Immediate Next Steps (Priority Order)
 
-### 🔴 PRIORITY 1: Complete Capability Detection (Remaining 12 Plugins)
+### ✅ PRIORITY 1: Capability Detection - COMPLETE
 
-**Status**: 6/23 plugins complete (RAW, HDR, PiP, 3× ML Kit plugins)
-**Remaining**: 12 plugins need capability detection
+**Status**: 23/23 plugins complete (100%)
+**Completed**: Commit 4e1c87c0 "feat(plugins): complete capability detection for all remaining plugins"
 
-**Plugins Pending Capability Detection:**
-1. AutoFocusPlugin - Check autofocus hardware support
-2. ExposureControlPlugin - Check exposure compensation range
-3. ManualFocusPlugin - Check manual focus support
-4. ProControlsPlugin - Check manual control capabilities (ISO, shutter)
-5. NightModePlugin - Check low-light capabilities
-6. AdvancedVideoRecordingPlugin - Check video capabilities
-7. GridOverlayPlugin - Always supported (UI overlay)
-8. HistogramPlugin - Always supported (processing)
-9. CameraInfoPlugin - Always supported (metadata)
-10. ExposureAnalysisPlugin - Check exposure analysis support
-11. SharpnessAnalysisPlugin - Always supported (processing)
-12. MotionDetectionPlugin - Always supported (processing)
-13. QRScannerPlugin - Check Google Play Services (ML Kit)
-14. CropPlugin - Always supported (UI)
-15. DiagnosticOverlayPlugin - Always supported (UI)
-16. ScanningOverlayPlugin - Always supported (UI)
-17. SmartAdjustmentsPlugin - Inherits from SmartScenePlugin (GMS check)
+All plugins now have proper `isSupported()` implementations checking:
+- Hardware capabilities (RAW, HDR, autofocus, manual controls)
+- Software dependencies (Google Play Services for ML Kit)
+- OS version requirements (Android 11+ for concurrent cameras)
+- Always-supported features return `true` (UI overlays, processing plugins)
 
-**Implementation Priority:**
-- **High**: AutoFocus, ExposureControl, ManualFocus, ProControls, QRScanner (hardware-dependent)
-- **Medium**: NightMode, AdvancedVideoRecording (capability-dependent)
-- **Low**: UI/Processing plugins (always supported, no capability check needed)
+### ✅ PRIORITY 2: Upgrade Build System - COMPLETE
 
-### 🔴 PRIORITY 2: Upgrade Build System
+**Status**: Full upgrade complete ✅
+**Commits**:
+- 97ea7d9c - AGP 8.6.0, Kotlin 2.1.20, Gradle 8.7
+- 8a3fa6b7 - CameraX 1.5.0, Android SDK 35, null-safety fixes
 
-**Android Gradle Plugin**: 8.0.2 → 8.6.0+ (required for CameraX 1.5.0)
-**CameraX**: 1.3.1 → 1.5.0 (after AGP upgrade)
-**Benefits**: Low-light boost API, feature group API, improved surface sharing
+**Benefits Gained**:
+- Low-light boost API access
+- Feature group API support
+- Improved surface sharing
+- Latest Kotlin language features
+- Security updates and bug fixes
 
-### 🟡 PRIORITY 3: Test Infrastructure Improvements
+### 🔴 PRIORITY 3: CameraX 1.5.0 API Migration
 
-**Robolectric**: Add for Android component mocking (fix 94% test failure rate)
+**Status**: Temporary workarounds in place, proper implementation needed
+**Files Affected**:
+- `VariableFrameRateManager.kt:311` - `.setFrameRate()` commented out
+- `VideoCodecManager.kt:234` - `.setFrameRate()` commented out
+
+**Migration Required**:
+- Replace VideoSpec.Builder.setFrameRate() with new API
+- Use MediaSpec.Builder.configureVideo() for frame rate control
+- Or use SessionConfig.Builder.setFrameRateRange()
+- Test variable frame rate functionality
+- See: https://developer.android.com/jetpack/androidx/releases/camera#1.5.0
+
+### 🟡 PRIORITY 4: Test & Validate Upgrades
+
+**Device Testing**:
+- [ ] Build and install APK on test device
+- [ ] Verify all 23 plugins still work correctly
+- [ ] Test video recording with upgraded CameraX
+- [ ] Check for runtime regressions
+- [ ] Performance test (ensure no degradation)
+
+**Known Issues**:
+- Video frame rate configuration temporarily disabled (see Priority 3)
+- May need testing on multiple Android versions (API 24-35)
+
+### 🟡 PRIORITY 5: Test Infrastructure Improvements
+
+**Robolectric**: Add for Android component mocking (GitHub CI/CD only)
 **Test Coverage**: Add instrumented tests for critical paths
-**CI/CD**: Enhance GitHub Actions workflow
+**CI/CD**: Verify tests pass on GitHub Actions (x86_64 runners)
 
 ---
 
