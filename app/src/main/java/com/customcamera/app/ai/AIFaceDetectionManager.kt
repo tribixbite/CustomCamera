@@ -255,7 +255,7 @@ class AIFaceDetectionManager(private val context: Context) {
         val startTime = System.currentTimeMillis()
 
         try {
-            var beautifiedBitmap = bitmap.copy(bitmap.config, true)
+            var beautifiedBitmap = bitmap.copy(bitmap.config ?: Bitmap.Config.ARGB_8888, true)
             val appliedEnhancements = mutableListOf<BeautificationEnhancement>()
 
             for (face in faces) {
@@ -602,35 +602,35 @@ class AIFaceDetectionManager(private val context: Context) {
 
     private fun applySkinSmoothing(bitmap: Bitmap, face: DetectedFace, strength: Float): Bitmap {
         // Apply Gaussian blur to skin areas for smoothing effect
-        val smoothedBitmap = bitmap.copy(bitmap.config, true)
+        val smoothedBitmap = bitmap.copy(bitmap.config ?: Bitmap.Config.ARGB_8888, true)
         // Real implementation would use selective smoothing only on skin areas
         return smoothedBitmap
     }
 
     private fun removeBlemishes(bitmap: Bitmap, face: DetectedFace, strength: Float): Bitmap {
         // Detect and remove blemishes using inpainting algorithms
-        val cleanedBitmap = bitmap.copy(bitmap.config, true)
+        val cleanedBitmap = bitmap.copy(bitmap.config ?: Bitmap.Config.ARGB_8888, true)
         // Real implementation would detect dark spots and smooth them out
         return cleanedBitmap
     }
 
     private fun enhanceEyes(bitmap: Bitmap, face: DetectedFace, strength: Float): Bitmap {
         // Enhance eye brightness and definition
-        val enhancedBitmap = bitmap.copy(bitmap.config, true)
+        val enhancedBitmap = bitmap.copy(bitmap.config ?: Bitmap.Config.ARGB_8888, true)
         // Real implementation would brighten eye areas and enhance iris details
         return enhancedBitmap
     }
 
     private fun whitenTeeth(bitmap: Bitmap, face: DetectedFace, strength: Float): Bitmap {
         // Whiten teeth when mouth is visible and smiling
-        val whitenedBitmap = bitmap.copy(bitmap.config, true)
+        val whitenedBitmap = bitmap.copy(bitmap.config ?: Bitmap.Config.ARGB_8888, true)
         // Real implementation would detect teeth area and adjust whiteness
         return whitenedBitmap
     }
 
     private fun correctSkinTone(bitmap: Bitmap, face: DetectedFace, strength: Float): Bitmap {
         // Correct and even out skin tone
-        val correctedBitmap = bitmap.copy(bitmap.config, true)
+        val correctedBitmap = bitmap.copy(bitmap.config ?: Bitmap.Config.ARGB_8888, true)
         // Real implementation would analyze skin tone and apply corrections
         return correctedBitmap
     }

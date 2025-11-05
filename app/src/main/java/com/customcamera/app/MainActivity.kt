@@ -188,7 +188,7 @@ class MainActivity : AppCompatActivity() {
                     📱 App Information:
                     Version: ${packageInfo.versionName} (${packageInfo.longVersionCode})
                     Package: ${packageInfo.packageName}
-                    Target SDK: ${packageInfo.applicationInfo.targetSdkVersion}
+                    Target SDK: ${packageInfo.applicationInfo?.targetSdkVersion ?: "N/A"}
 
                     🔧 Current Configuration:
                     Default Camera: ${settingsSummary.defaultCameraIndex}
@@ -216,7 +216,7 @@ class MainActivity : AppCompatActivity() {
                 Log.i(TAG, "About info:\n$aboutInfo")
                 Toast.makeText(this@MainActivity, "About info logged - Check logcat for details", Toast.LENGTH_LONG).show()
 
-                debugLogger.logInfo("About info displayed", mapOf("version" to packageInfo.versionName))
+                debugLogger.logInfo("About info displayed", mapOf("version" to (packageInfo.versionName ?: "unknown")))
 
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to show about info", e)

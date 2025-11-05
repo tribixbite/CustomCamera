@@ -228,10 +228,13 @@ class VideoCodecManager(private val context: Context) {
      * Create VideoSpec with current codec configuration
      */
     fun createVideoSpec(quality: Quality = Quality.HD): VideoSpec {
+        // TODO: CameraX 1.5.0 - VideoSpec.Builder.setFrameRate() API changed
+        // Frame rate configuration now uses MediaSpec.Builder.configureVideo()
+        // See: https://developer.android.com/jetpack/androidx/releases/camera#1.5.0
         val frameRate = Range.create(30, 30) // Default 30fps
 
         return VideoSpec.builder()
-            .setFrameRate(frameRate)
+            // .setFrameRate(frameRate) // Removed in CameraX 1.5.0
             .build()
     }
 

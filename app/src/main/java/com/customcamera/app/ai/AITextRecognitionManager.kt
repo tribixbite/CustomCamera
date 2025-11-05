@@ -410,7 +410,7 @@ class AITextRecognitionManager(private val context: Context) {
     }
 
     private fun convertToGrayscale(bitmap: Bitmap): Bitmap {
-        val grayscale = bitmap.copy(bitmap.config, true)
+        val grayscale = bitmap.copy(bitmap.config ?: Bitmap.Config.ARGB_8888, true)
         val canvas = Canvas(grayscale)
         val paint = Paint()
         val colorMatrix = ColorMatrix()
@@ -421,7 +421,7 @@ class AITextRecognitionManager(private val context: Context) {
     }
 
     private fun enhanceContrast(bitmap: Bitmap): Bitmap {
-        val enhanced = bitmap.copy(bitmap.config, true)
+        val enhanced = bitmap.copy(bitmap.config ?: Bitmap.Config.ARGB_8888, true)
         val canvas = Canvas(enhanced)
         val paint = Paint()
 
@@ -444,7 +444,7 @@ class AITextRecognitionManager(private val context: Context) {
     private fun reduceNoise(bitmap: Bitmap): Bitmap {
         // Simplified noise reduction
         // Real implementation would use morphological operations
-        return bitmap.copy(bitmap.config, true)
+        return bitmap.copy(bitmap.config ?: Bitmap.Config.ARGB_8888, true)
     }
 
     private fun scaleForOptimalOCR(bitmap: Bitmap, config: RecognitionConfig): Bitmap {

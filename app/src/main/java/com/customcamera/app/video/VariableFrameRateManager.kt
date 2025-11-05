@@ -302,13 +302,16 @@ class VariableFrameRateManager(private val context: Context) {
      * Create VideoSpec with current frame rate configuration
      */
     fun createVideoSpec(quality: Quality = Quality.HD): VideoSpec {
+        // TODO: CameraX 1.5.0 - VideoSpec.Builder.setFrameRate() API changed
+        // Frame rate configuration now uses MediaSpec.Builder.configureVideo()
+        // See: https://developer.android.com/jetpack/androidx/releases/camera#1.5.0
         val frameRate = Range.create(
             currentConfig.captureFrameRate,
             currentConfig.captureFrameRate
         )
 
         return VideoSpec.builder()
-            .setFrameRate(frameRate)
+            // .setFrameRate(frameRate) // Removed in CameraX 1.5.0
             .build()
     }
 

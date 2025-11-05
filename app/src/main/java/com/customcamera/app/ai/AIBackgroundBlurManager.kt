@@ -377,7 +377,7 @@ class AIBackgroundBlurManager(private val context: Context) {
         config: BlurConfig
     ): Bitmap = withContext(Dispatchers.Default) {
 
-        val blurredBitmap = bitmap.copy(bitmap.config, true)
+        val blurredBitmap = bitmap.copy(bitmap.config ?: Bitmap.Config.ARGB_8888, true)
 
         when (config.style) {
             BlurStyle.GAUSSIAN -> applyGaussianBlur(blurredBitmap, depthMap, config)
@@ -388,7 +388,7 @@ class AIBackgroundBlurManager(private val context: Context) {
     }
 
     private fun applyGaussianBlur(bitmap: Bitmap, depthMap: DepthMap, config: BlurConfig): Bitmap {
-        val result = bitmap.copy(bitmap.config, true)
+        val result = bitmap.copy(bitmap.config ?: Bitmap.Config.ARGB_8888, true)
         val canvas = Canvas(result)
         val paint = Paint(Paint.ANTI_ALIAS_FLAG)
 
@@ -458,7 +458,7 @@ class AIBackgroundBlurManager(private val context: Context) {
     private fun applyGaussianBlurToImage(bitmap: Bitmap, radius: Float): Bitmap {
         // Simplified Gaussian blur
         // Real implementation would use proper convolution with Gaussian kernel
-        val blurred = bitmap.copy(bitmap.config, true)
+        val blurred = bitmap.copy(bitmap.config ?: Bitmap.Config.ARGB_8888, true)
 
         // Apply paint filter for basic blur effect
         val paint = Paint()
@@ -472,7 +472,7 @@ class AIBackgroundBlurManager(private val context: Context) {
 
     private fun refineEdges(bitmap: Bitmap, depthMap: DepthMap, config: BlurConfig): Bitmap {
         // Apply edge refinement to smooth subject boundaries
-        val refined = bitmap.copy(bitmap.config, true)
+        val refined = bitmap.copy(bitmap.config ?: Bitmap.Config.ARGB_8888, true)
 
         // Simplified edge refinement
         // Real implementation would use morphological operations and edge-aware smoothing

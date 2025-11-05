@@ -169,7 +169,7 @@ class AIImageProcessingManager(private val context: Context) {
 
             // Return original image as fallback
             ProcessingResult(
-                processedBitmap = inputBitmap.copy(inputBitmap.config, false),
+                processedBitmap = inputBitmap.copy(inputBitmap.config ?: Bitmap.Config.ARGB_8888, false),
                 processingTimeMs = System.currentTimeMillis() - startTime,
                 appliedEnhancements = emptyList(),
                 qualityScore = 0.5f,
@@ -322,7 +322,7 @@ class AIImageProcessingManager(private val context: Context) {
         isProcessingActive = true
 
         try {
-            var processedBitmap = bitmap.copy(bitmap.config, true)
+            var processedBitmap = bitmap.copy(bitmap.config ?: Bitmap.Config.ARGB_8888, true)
 
             // Apply enhancements based on configuration
             if (config.noiseReduction > 0f) {
@@ -372,7 +372,7 @@ class AIImageProcessingManager(private val context: Context) {
     }
 
     private fun adjustExposure(bitmap: Bitmap, compensation: Float): Bitmap {
-        val adjustedBitmap = bitmap.copy(bitmap.config, true)
+        val adjustedBitmap = bitmap.copy(bitmap.config ?: Bitmap.Config.ARGB_8888, true)
         val canvas = Canvas(adjustedBitmap)
         val paint = Paint()
 
@@ -392,7 +392,7 @@ class AIImageProcessingManager(private val context: Context) {
     }
 
     private fun applyShadowHighlightAdjustment(bitmap: Bitmap, shadowRecovery: Float, highlightRecovery: Float): Bitmap {
-        val adjustedBitmap = bitmap.copy(bitmap.config, true)
+        val adjustedBitmap = bitmap.copy(bitmap.config ?: Bitmap.Config.ARGB_8888, true)
         val pixels = IntArray(bitmap.width * bitmap.height)
         bitmap.getPixels(pixels, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
 
@@ -423,7 +423,7 @@ class AIImageProcessingManager(private val context: Context) {
     }
 
     private fun adjustContrast(bitmap: Bitmap, adjustment: Float): Bitmap {
-        val adjustedBitmap = bitmap.copy(bitmap.config, true)
+        val adjustedBitmap = bitmap.copy(bitmap.config ?: Bitmap.Config.ARGB_8888, true)
         val canvas = Canvas(adjustedBitmap)
         val paint = Paint()
 
@@ -444,7 +444,7 @@ class AIImageProcessingManager(private val context: Context) {
     }
 
     private fun enhanceColors(bitmap: Bitmap, enhancement: Float): Bitmap {
-        val adjustedBitmap = bitmap.copy(bitmap.config, true)
+        val adjustedBitmap = bitmap.copy(bitmap.config ?: Bitmap.Config.ARGB_8888, true)
         val canvas = Canvas(adjustedBitmap)
         val paint = Paint()
 
@@ -466,7 +466,7 @@ class AIImageProcessingManager(private val context: Context) {
 
     private fun applyHDRToneMapping(bitmap: Bitmap): Bitmap {
         // Simplified HDR tone mapping
-        val adjustedBitmap = bitmap.copy(bitmap.config, true)
+        val adjustedBitmap = bitmap.copy(bitmap.config ?: Bitmap.Config.ARGB_8888, true)
         val pixels = IntArray(bitmap.width * bitmap.height)
         bitmap.getPixels(pixels, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
 
@@ -498,7 +498,7 @@ class AIImageProcessingManager(private val context: Context) {
     }
 
     private fun applyGaussianBlur(bitmap: Bitmap, radius: Float): Bitmap {
-        val blurred = bitmap.copy(bitmap.config, true)
+        val blurred = bitmap.copy(bitmap.config ?: Bitmap.Config.ARGB_8888, true)
         // Simplified blur implementation
         // Real implementation would use proper Gaussian convolution
         return blurred
@@ -506,7 +506,7 @@ class AIImageProcessingManager(private val context: Context) {
 
     private fun blendBitmaps(bitmap1: Bitmap, bitmap2: Bitmap, strength: Float, mode: BlendMode): Bitmap {
         // Simplified bitmap blending
-        return bitmap1.copy(bitmap1.config, true)
+        return bitmap1.copy(bitmap1.config ?: Bitmap.Config.ARGB_8888, true)
     }
 
     enum class BlendMode { SUBTRACT, OVERLAY, MULTIPLY }
