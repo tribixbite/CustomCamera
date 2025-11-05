@@ -97,6 +97,30 @@ class NightModePlugin : ProcessingPlugin() {
     }
 
     override suspend fun onCameraReady(camera: Camera) {
+        // Check if low-light boost is supported (CameraX 1.5.0+, Android 15+)
+        val lowLightBoostSupported = try {
+            camera.cameraInfo.isLowLightBoostSupported
+        } catch (e: Exception) {
+            Log.w(TAG, "⚠️ Low-light boost API not available: ${e.message}")
+            false
+        }
+
+        if (lowLightBoostSupported) {
+            Log.i(TAG, "✅ Low-light boost supported by camera")
+
+            // Enable low-light boost if night mode is active
+            if (isNightModeEnabled) {
+                try {
+                    camera.cameraControl.enableLowLightBoostAsync(true)
+                    Log.i(TAG, "📸 Low-light boost enabled")
+                } catch (e: Exception) {
+                    Log.w(TAG, "⚠️ Failed to enable low-light boost: ${e.message}")
+                }
+            }
+        } else {
+            Log.i(TAG, "ℹ️ Low-light boost not supported (requires Android 15+)")
+        }
+
         // Configure camera for night mode if enabled
         if (isNightModeEnabled) {
             configureNightModeCamera(camera)
@@ -107,12 +131,13 @@ class NightModePlugin : ProcessingPlugin() {
             "camera_ready",
             mapOf(
                 "nightModeActive" to isNightModeEnabled,
+                "lowLightBoostSupported" to lowLightBoostSupported,
                 "exposureTime" to currentExposureTime,
                 "autoMode" to isAutoNightModeEnabled
             )
         )
 
-        Log.i(TAG, "Camera ready for night mode - Enabled: $isNightModeEnabled")
+        Log.i(TAG, "Camera ready for night mode - Enabled: $isNightModeEnabled, Boost: $lowLightBoostSupported")
     }
 
     override suspend fun onCameraReleased(camera: Camera) {
