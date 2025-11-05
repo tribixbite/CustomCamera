@@ -443,8 +443,21 @@ class ExposureControlPlugin : ControlPlugin() {
         override val showInDropdown: Boolean = false
 
         override fun isSupported(context: android.content.Context): Boolean {
-            // TODO: Add device capability checking if needed
-            return true
+            return try {
+                val cameraManager = context.getSystemService(android.content.Context.CAMERA_SERVICE) as? android.hardware.camera2.CameraManager
+                    ?: return false
+
+                // Check if any camera supports exposure compensation
+                cameraManager.cameraIdList.any { id ->
+                    val characteristics = cameraManager.getCameraCharacteristics(id)
+                    val range = characteristics.get(android.hardware.camera2.CameraCharacteristics.CONTROL_AE_COMPENSATION_RANGE)
+                    // Exposure control requires some compensation range
+                    range != null && (range.upper != 0 || range.lower != 0)
+                }
+            } catch (e: Exception) {
+                android.util.Log.e(TAG, "Error checking exposure control capability", e)
+                false
+            }
         }
 
         override fun create(dependencies: com.customcamera.app.engine.plugins.PluginDependencies): com.customcamera.app.engine.plugins.CameraPlugin {

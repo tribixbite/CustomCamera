@@ -385,9 +385,28 @@ class AutoFocusPlugin : ControlPlugin() {
         override val showInDropdown: Boolean = false
 
         override fun isSupported(context: android.content.Context): Boolean {
-            // Autofocus is a basic capability available on all Android cameras
-            // CameraX handles fallback to fixed focus if AF not available
-            return true
+            return try {
+                val cameraManager = context.getSystemService(android.content.Context.CAMERA_SERVICE) as? android.hardware.camera2.CameraManager
+                    ?: return false
+
+                // Check if any camera supports autofocus
+                cameraManager.cameraIdList.any { id ->
+                    val characteristics = cameraManager.getCameraCharacteristics(id)
+                    val afModes = characteristics.get(android.hardware.camera2.CameraCharacteristics.CONTROL_AF_AVAILABLE_MODES)
+                    // Check for continuous or auto focus modes (not just OFF or EDOF)
+                    afModes != null && afModes.any { mode ->
+                        mode in listOf(
+                            android.hardware.camera2.CameraCharacteristics.CONTROL_AF_MODE_AUTO,
+                            android.hardware.camera2.CameraCharacteristics.CONTROL_AF_MODE_CONTINUOUS_PICTURE,
+                            android.hardware.camera2.CameraCharacteristics.CONTROL_AF_MODE_CONTINUOUS_VIDEO,
+                            android.hardware.camera2.CameraCharacteristics.CONTROL_AF_MODE_MACRO
+                        )
+                    }
+                }
+            } catch (e: Exception) {
+                android.util.Log.e(TAG, "Error checking autofocus capability", e)
+                false
+            }
         }
 
         override fun create(dependencies: com.customcamera.app.engine.plugins.PluginDependencies): com.customcamera.app.engine.plugins.CameraPlugin {

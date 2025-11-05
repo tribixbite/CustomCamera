@@ -477,8 +477,28 @@ class ProControlsPlugin : ControlPlugin() {
         override val showInDropdown: Boolean = false
 
         override fun isSupported(context: android.content.Context): Boolean {
-            // TODO: Add device capability checking if needed
-            return true
+            return try {
+                val cameraManager = context.getSystemService(android.content.Context.CAMERA_SERVICE) as? android.hardware.camera2.CameraManager
+                    ?: return false
+
+                // Check if any camera supports manual controls (ISO, shutter speed)
+                cameraManager.cameraIdList.any { id ->
+                    val characteristics = cameraManager.getCameraCharacteristics(id)
+
+                    // Check for manual sensor control support
+                    val capabilities = characteristics.get(android.hardware.camera2.CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES)
+                    val hasManualSensor = capabilities?.contains(android.hardware.camera2.CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES_MANUAL_SENSOR) == true
+
+                    // Check for ISO sensitivity range
+                    val isoRange = characteristics.get(android.hardware.camera2.CameraCharacteristics.SENSOR_INFO_SENSITIVITY_RANGE)
+                    val hasIsoControl = isoRange != null && isoRange.upper > isoRange.lower
+
+                    hasManualSensor && hasIsoControl
+                }
+            } catch (e: Exception) {
+                android.util.Log.e(TAG, "Error checking pro controls capability", e)
+                false
+            }
         }
 
         override fun create(dependencies: com.customcamera.app.engine.plugins.PluginDependencies): com.customcamera.app.engine.plugins.CameraPlugin {

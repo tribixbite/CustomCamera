@@ -357,8 +357,22 @@ class ManualFocusPlugin : ControlPlugin() {
         override val showInDropdown: Boolean = false
 
         override fun isSupported(context: android.content.Context): Boolean {
-            // TODO: Add device capability checking if needed
-            return true
+            return try {
+                val cameraManager = context.getSystemService(android.content.Context.CAMERA_SERVICE) as? android.hardware.camera2.CameraManager
+                    ?: return false
+
+                // Check if any camera supports manual focus distance control
+                cameraManager.cameraIdList.any { id ->
+                    val characteristics = cameraManager.getCameraCharacteristics(id)
+                    val minFocusDistance = characteristics.get(android.hardware.camera2.CameraCharacteristics.LENS_INFO_MINIMUM_FOCUS_DISTANCE)
+                    // Manual focus requires minimum focus distance > 0
+                    // A value of 0.0 means fixed focus (no manual focus support)
+                    minFocusDistance != null && minFocusDistance > 0.0f
+                }
+            } catch (e: Exception) {
+                android.util.Log.e(TAG, "Error checking manual focus capability", e)
+                false
+            }
         }
 
         override fun create(dependencies: com.customcamera.app.engine.plugins.PluginDependencies): com.customcamera.app.engine.plugins.CameraPlugin {
