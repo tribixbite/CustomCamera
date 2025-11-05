@@ -300,19 +300,36 @@ class VariableFrameRateManager(private val context: Context) {
 
     /**
      * Create VideoSpec with current frame rate configuration
+     *
+     * @deprecated CameraX 1.5.0 removed VideoSpec.Builder.setFrameRate()
+     *
+     * Migration Path:
+     * Frame rate configuration now uses SessionConfig.Builder.setFrameRateRange()
+     * instead of VideoSpec. This requires architectural changes to video recording:
+     *
+     * 1. Query supported frame rates:
+     *    val supportedRates = cameraInfo.getSupportedFrameRateRanges(sessionConfig)
+     *
+     * 2. Set frame rate on SessionConfig:
+     *    val sessionConfig = SessionConfig.Builder()
+     *        .setFrameRateRange(Range(captureFrameRate, captureFrameRate))
+     *        .build()
+     *
+     * 3. Apply to camera binding/recording initialization
+     *
+     * Note: This method is currently unused in the codebase. Full migration requires
+     * refactoring video recording architecture to use SessionConfig-based configuration.
+     *
+     * See: https://developer.android.com/jetpack/androidx/releases/camera#1.5.0
      */
+    @Deprecated(
+        message = "VideoSpec.setFrameRate() removed in CameraX 1.5.0. Use SessionConfig.setFrameRateRange() instead.",
+        level = DeprecationLevel.WARNING
+    )
     fun createVideoSpec(quality: Quality = Quality.HD): VideoSpec {
-        // TODO: CameraX 1.5.0 - VideoSpec.Builder.setFrameRate() API changed
-        // Frame rate configuration now uses MediaSpec.Builder.configureVideo()
-        // See: https://developer.android.com/jetpack/androidx/releases/camera#1.5.0
-        val frameRate = Range.create(
-            currentConfig.captureFrameRate,
-            currentConfig.captureFrameRate
-        )
-
-        return VideoSpec.builder()
-            // .setFrameRate(frameRate) // Removed in CameraX 1.5.0
-            .build()
+        // This method no longer configures frame rate in CameraX 1.5.0+
+        // Frame rate must be set via SessionConfig.Builder.setFrameRateRange()
+        return VideoSpec.builder().build()
     }
 
     /**
