@@ -617,8 +617,27 @@ class NightModePlugin : ProcessingPlugin() {
         override val showInDropdown: Boolean = false
 
         override fun isSupported(context: android.content.Context): Boolean {
-            // TODO: Add device capability checking if needed
-            return true
+            return try {
+                val cameraManager = context.getSystemService(android.content.Context.CAMERA_SERVICE) as? android.hardware.camera2.CameraManager
+                    ?: return false
+
+                // Check if any camera supports exposure control for low-light photography
+                cameraManager.cameraIdList.any { id ->
+                    val characteristics = cameraManager.getCameraCharacteristics(id)
+
+                    // Check for exposure compensation range (needed for night mode adjustments)
+                    val exposureRange = characteristics.get(android.hardware.camera2.CameraCharacteristics.CONTROL_AE_COMPENSATION_RANGE)
+                    val hasExposureControl = exposureRange != null && (exposureRange.upper > 0 || exposureRange.lower < 0)
+
+                    // Check for flash capability (often useful in low-light)
+                    val hasFlash = characteristics.get(android.hardware.camera2.CameraCharacteristics.FLASH_INFO_AVAILABLE) == true
+
+                    hasExposureControl || hasFlash
+                }
+            } catch (e: Exception) {
+                android.util.Log.e(TAG, "Error checking night mode capability", e)
+                false
+            }
         }
 
         override fun create(dependencies: com.customcamera.app.engine.plugins.PluginDependencies): com.customcamera.app.engine.plugins.CameraPlugin {

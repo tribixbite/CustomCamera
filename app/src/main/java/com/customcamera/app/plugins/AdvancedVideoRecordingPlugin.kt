@@ -579,8 +579,27 @@ class AdvancedVideoRecordingPlugin : UIPlugin() {
         override val showInDropdown: Boolean = true
 
         override fun isSupported(context: android.content.Context): Boolean {
-            // TODO: Add device capability checking if needed
-            return true
+            return try {
+                val cameraManager = context.getSystemService(android.content.Context.CAMERA_SERVICE) as? android.hardware.camera2.CameraManager
+                    ?: return false
+
+                // Check if any camera supports video recording capabilities
+                cameraManager.cameraIdList.any { id ->
+                    val characteristics = cameraManager.getCameraCharacteristics(id)
+                    val capabilities = characteristics.get(android.hardware.camera2.CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES)
+
+                    // Check for backward compatible capability (basic video recording)
+                    // Most modern cameras also have this, so it's a good baseline check
+                    val hasVideoCapability = capabilities?.contains(
+                        android.hardware.camera2.CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES_BACKWARD_COMPATIBLE
+                    ) == true
+
+                    hasVideoCapability
+                }
+            } catch (e: Exception) {
+                android.util.Log.e(TAG, "Error checking video recording capability", e)
+                false
+            }
         }
 
         override fun create(dependencies: com.customcamera.app.engine.plugins.PluginDependencies): com.customcamera.app.engine.plugins.CameraPlugin {
