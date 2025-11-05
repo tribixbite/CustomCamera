@@ -371,7 +371,8 @@ class HistogramPlugin : ProcessingPlugin() {
         override val showInDropdown: Boolean = true
 
         override fun isSupported(context: android.content.Context): Boolean {
-            // TODO: Add device capability checking if needed
+            // Histogram is an image processing plugin that analyzes color distribution
+            // Works on all devices (software-based analysis, no special hardware required)
             return true
         }
 

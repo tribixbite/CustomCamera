@@ -533,7 +533,8 @@ class CropPlugin : UIPlugin() {
         override val showInDropdown: Boolean = true
 
         override fun isSupported(context: android.content.Context): Boolean {
-            // TODO: Add device capability checking if needed
+            // Crop is a UI overlay plugin that provides pre-capture cropping guides
+            // Works on all devices (software-based, no special hardware required)
             return true
         }
 

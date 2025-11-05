@@ -265,7 +265,8 @@ class CameraInfoPlugin : ProcessingPlugin() {
         override val showInDropdown: Boolean = true
 
         override fun isSupported(context: android.content.Context): Boolean {
-            // TODO: Add device capability checking if needed
+            // CameraInfo is a UI plugin that displays camera metadata
+            // Works on all devices with cameras (no special hardware required)
             return true
         }
 

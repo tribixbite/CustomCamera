@@ -347,7 +347,8 @@ class ExposureAnalysisPlugin : ProcessingPlugin() {
         override val showInDropdown: Boolean = true
 
         override fun isSupported(context: android.content.Context): Boolean {
-            // TODO: Add device capability checking if needed
+            // ExposureAnalysis is an image processing plugin that analyzes pixel data
+            // Works on all devices (software-based analysis, no special hardware required)
             return true
         }
 
