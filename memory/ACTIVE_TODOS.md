@@ -136,18 +136,33 @@ All plugins now have proper `isSupported()` implementations checking:
 
 **Reference**: https://developer.android.com/jetpack/androidx/releases/camera#1.5.0
 
-### 🟡 PRIORITY 4: Test & Validate Upgrades
+### 🟡 PRIORITY 4: Test & Validate Upgrades - READY FOR EXECUTION
 
-**Device Testing**:
-- [ ] Build and install APK on test device
-- [ ] Verify all 23 plugins still work correctly
-- [ ] Test video recording with upgraded CameraX
-- [ ] Check for runtime regressions
-- [ ] Performance test (ensure no degradation)
+**Status**: Testing infrastructure ready ✅ (commit bfe61894)
+**Documentation**: `DEVICE_TESTING_CHECKLIST.md` (461 lines)
+
+**Completed Preparation**:
+- ✅ APK built successfully (88MB debug build)
+- ✅ Comprehensive testing checklist created
+- ✅ Installation instructions documented (ADB, manual, script)
+- ✅ 23-plugin testing procedure defined
+- ✅ Kotlin 2.1.20 null-safety verification plan
+- ✅ Performance testing procedures
+- ✅ Regression testing checklist
+- ✅ Test results template included
+
+**Manual Testing Required** (~90 minutes):
+- [ ] Install APK on physical device
+- [ ] Critical path testing (15 min)
+- [ ] All 23 plugins verification (30 min)
+- [ ] Kotlin 2.1.20 null-safety tests (10 min)
+- [ ] Performance testing (10 min)
+- [ ] Regression testing (15 min)
+- [ ] Edge cases & stress testing (15 min)
 
 **Known Issues**:
-- Video frame rate configuration temporarily disabled (see Priority 3)
-- May need testing on multiple Android versions (API 24-35)
+- Frame rate configuration documented but not implemented
+- Requires device with ADB or manual APK installation capability
 
 ### 🟡 PRIORITY 5: Test Infrastructure Improvements
 
