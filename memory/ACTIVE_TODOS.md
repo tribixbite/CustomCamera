@@ -6,7 +6,7 @@
 
 ## Current Session Context (2025-11-05)
 
-**Build System Modernization Completed:**
+**Build System Modernization & CameraX 1.5.0 Features:**
 - ✅ **AGP 8.0.2 → 8.6.0** (commit 97ea7d9c)
 - ✅ **Gradle 8.6 → 8.7** (minimum for AGP 8.6.0)
 - ✅ **Kotlin 1.8.20 → 2.1.20** (required for AGP 8.6.x)
@@ -15,6 +15,8 @@
 - ✅ **Fixed 28 Kotlin 2.1.20 null-safety errors** (Bitmap.config, ApplicationInfo, PackageInfo)
 - ✅ **Documented CameraX 1.5.0 API changes** (VideoSpec.Builder.setFrameRate removal)
 - ✅ **README.md updated** (commit 4434ff6c) - CameraX 1.5.0, Kotlin 2.1.20, all build versions
+- ✅ **Frame rate infrastructure** (commit 94b20e99) - videoFrameRate config, queryVideoFrameRateCapabilities()
+- ✅ **Low-light boost API** (commit 3a480d20) - NightModePlugin with enableLowLightBoostAsync()
 
 **Previous Session (2025-11-04):**
 - ✅ **PROJECT_QUALITY_AUDIT.md** - Comprehensive 9-point quality audit
