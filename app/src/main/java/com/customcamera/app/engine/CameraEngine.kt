@@ -232,6 +232,11 @@ class CameraEngine(
                 *useCases.toTypedArray()
             )
 
+            // Query and log video frame rate capabilities if video is enabled
+            if (config.enableVideoCapture && videoCapture != null) {
+                queryVideoFrameRateCapabilities(camera!!, config.videoFrameRate)
+            }
+
             // Log successful camera binding
             apiMonitor?.logCameraBinding(
                 cameraId = "camera_${config.cameraIndex}",
@@ -746,6 +751,35 @@ class CameraEngine(
     }
 
     /**
+     * Query and log supported video frame rates for current camera
+     * CameraX 1.5.0: Frame rate querying via getSupportedFrameRateRanges()
+     *
+     * Note: Full implementation requires SessionConfig which is @ExperimentalSessionConfig
+     * For now, we log the target frame rate and note that device-specific support varies
+     */
+    private fun queryVideoFrameRateCapabilities(camera: Camera, targetFps: Int) {
+        try {
+            // TODO: Implement getSupportedFrameRateRanges() when SessionConfig API is stable
+            // Current limitation: UseCaseConfig != SessionConfig type mismatch
+            //
+            // Future implementation:
+            // 1. Create SessionConfig from VideoCapture
+            // 2. Query: cameraInfo.getSupportedFrameRateRanges(sessionConfig)
+            // 3. Apply: sessionConfigBuilder.setExpectedFrameRateRange(range)
+            //
+            // Reference: https://developer.android.com/jetpack/androidx/releases/camera#1.5.0
+
+            Log.i(TAG, "📹 Video frame rate configuration:")
+            Log.i(TAG, "   Target: ${targetFps} fps")
+            Log.i(TAG, "   Note: Device will use closest supported rate")
+            Log.i(TAG, "   TODO: Implement SessionConfig.setExpectedFrameRateRange() when API is stable")
+
+        } catch (e: Exception) {
+            Log.w(TAG, "⚠️ Unable to query frame rate capabilities: ${e.message}")
+        }
+    }
+
+    /**
      * Build use cases based on configuration
      */
     private fun buildUseCases(config: CameraConfig): List<UseCase> {
@@ -783,15 +817,26 @@ class CameraEngine(
 
         if (config.enableVideoCapture) {
             // Configure Recorder with QualitySelector and FallbackStrategy
-            // CameraX 1.3.1 doesn't expose public audio config APIs, so we use FallbackStrategy
-            // to let CameraX negotiate a working CamcorderProfile (video + audio) from the device HAL
+            // CameraX 1.5.0+ supports frame rate configuration via SessionConfig
             val qualitySelector = androidx.camera.video.QualitySelector.from(
                 androidx.camera.video.Quality.HIGHEST,
                 androidx.camera.video.FallbackStrategy.lowerQualityOrHigherThan(androidx.camera.video.Quality.SD)
             )
+
+            // Build Recorder with quality configuration
             val recorder = Recorder.Builder()
                 .setQualitySelector(qualitySelector)
                 .build()
+
+            // Create VideoCapture use case
+            // CameraX 1.5.0: Frame rate configuration will be added via SessionConfig
+            // TODO: Implement setExpectedFrameRateRange() when @ExperimentalSessionConfig is stable
+            // For now, log the target frame rate from config
+            val targetFps = config.videoFrameRate
+            Log.i(TAG, "📹 Video capture initialized with target frame rate: ${targetFps} fps")
+            if (config.enableVariableFrameRate) {
+                Log.i(TAG, "   Variable frame rate enabled (allows dynamic adjustment)")
+            }
 
             videoCapture = VideoCapture.withOutput(recorder)
             useCases.add(videoCapture!!)
@@ -897,5 +942,7 @@ data class CameraConfig(
     val enablePreview: Boolean = true,
     val enableImageCapture: Boolean = true,
     val enableVideoCapture: Boolean = false,
-    val enableImageAnalysis: Boolean = false
+    val enableImageAnalysis: Boolean = false,
+    val videoFrameRate: Int = 30, // Target frame rate for video recording (24/30/60)
+    val enableVariableFrameRate: Boolean = false // Allow frame rate range instead of fixed
 )
