@@ -115,19 +115,26 @@ All plugins now have proper `isSupported()` implementations checking:
 - Latest Kotlin language features
 - Security updates and bug fixes
 
-### 🔴 PRIORITY 3: CameraX 1.5.0 API Migration
+### ✅ PRIORITY 3: CameraX 1.5.0 API Migration - DOCUMENTED
 
-**Status**: Temporary workarounds in place, proper implementation needed
-**Files Affected**:
-- `VariableFrameRateManager.kt:311` - `.setFrameRate()` commented out
-- `VideoCodecManager.kt:234` - `.setFrameRate()` commented out
+**Status**: API migration documented ✅ (commit fdcccdff)
+**Files Updated**:
+- `VariableFrameRateManager.kt` - Added @Deprecated + migration guide
+- `VideoCodecManager.kt` - Added @Deprecated + migration guide
 
-**Migration Required**:
-- Replace VideoSpec.Builder.setFrameRate() with new API
-- Use MediaSpec.Builder.configureVideo() for frame rate control
-- Or use SessionConfig.Builder.setFrameRateRange()
-- Test variable frame rate functionality
-- See: https://developer.android.com/jetpack/androidx/releases/camera#1.5.0
+**Completed Work**:
+- ✅ Researched new SessionConfig.Builder.setFrameRateRange() API
+- ✅ Replaced TODO comments with comprehensive documentation
+- ✅ Added @Deprecated annotations with migration messages
+- ✅ Documented 3-step migration path with code examples
+- ✅ Noted methods currently unused (no immediate breaking changes)
+
+**Future Implementation** (when video architecture refactored):
+1. Query supported frame rates: `cameraInfo.getSupportedFrameRateRanges()`
+2. Configure SessionConfig: `SessionConfig.Builder().setFrameRateRange(Range(30, 30))`
+3. Apply to camera binding/recording initialization
+
+**Reference**: https://developer.android.com/jetpack/androidx/releases/camera#1.5.0
 
 ### 🟡 PRIORITY 4: Test & Validate Upgrades
 
