@@ -475,7 +475,8 @@ class RAWCapturePlugin : ControlPlugin() {
         val settings = context.settingsManager
 
         try {
-            rawCaptureEnabled = settings.getPluginSetting(name, "rawEnabled", "false").toBoolean()
+            // Use centralized RAW capture setting from SettingsManager instead of plugin-specific storage
+            rawCaptureEnabled = settings.getRawCapture()
             dualCaptureMode = settings.getPluginSetting(name, "dualMode", "false").toBoolean()
             rawBitDepth = settings.getPluginSetting(name, "bitDepth", "16").toInt()
 
@@ -488,7 +489,8 @@ class RAWCapturePlugin : ControlPlugin() {
     private fun saveSettings() {
         val settings = cameraContext?.settingsManager ?: return
 
-        settings.setPluginSetting(name, "rawEnabled", rawCaptureEnabled.toString())
+        // Use centralized RAW capture setting from SettingsManager
+        settings.setRawCapture(rawCaptureEnabled)
         settings.setPluginSetting(name, "dualMode", dualCaptureMode.toString())
         settings.setPluginSetting(name, "bitDepth", rawBitDepth.toString())
     }
