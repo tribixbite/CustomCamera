@@ -34,7 +34,8 @@ import kotlinx.coroutines.flow.asStateFlow
 class CameraEngine(
     private val context: Context,
     private val lifecycleOwner: LifecycleOwner,
-    private val pluginRegistry: com.customcamera.app.engine.plugins.PluginRegistry
+    private val pluginRegistry: com.customcamera.app.engine.plugins.PluginRegistry,
+    private val settingsManager: SettingsManager
 ) {
     private var cameraProvider: ProcessCameraProvider? = null
     private var camera: Camera? = null
@@ -818,8 +819,14 @@ class CameraEngine(
         if (config.enableVideoCapture) {
             // Configure Recorder with QualitySelector and FallbackStrategy
             // CameraX 1.5.0+ supports frame rate configuration via SessionConfig
+
+            // Read user's video quality setting
+            val userQuality = settingsManager.getVideoQuality()
+            val targetQuality = mapVideoQuality(userQuality)
+            Log.i(TAG, "📹 Video quality: $userQuality → $targetQuality")
+
             val qualitySelector = androidx.camera.video.QualitySelector.from(
-                androidx.camera.video.Quality.HIGHEST,
+                targetQuality,
                 androidx.camera.video.FallbackStrategy.lowerQualityOrHigherThan(androidx.camera.video.Quality.SD)
             )
 
@@ -927,6 +934,24 @@ class CameraEngine(
         Log.i(TAG, "   Camera: ${if (cameraPermission) "✅ Granted" else "❌ DENIED - Camera will not work!"}")
         Log.i(TAG, "   Audio: ${if (audioPermission) "✅ Granted" else "⚠️ Denied (video recording disabled)"}")
         Log.i(TAG, "   Storage: ${if (storagePermission) "✅ Granted" else "⚠️ Denied (save may fail)"}")
+    }
+
+    /**
+     * Map user-friendly video quality strings to CameraX Quality enums
+     */
+    private fun mapVideoQuality(qualityString: String): androidx.camera.video.Quality {
+        return when (qualityString.lowercase()) {
+            "4k", "2160p" -> androidx.camera.video.Quality.UHD // 3840x2160
+            "1080p", "fhd" -> androidx.camera.video.Quality.FHD // 1920x1080
+            "720p", "hd" -> androidx.camera.video.Quality.HD   // 1280x720
+            "480p", "sd" -> androidx.camera.video.Quality.SD   // 720x480
+            "highest" -> androidx.camera.video.Quality.HIGHEST
+            "lowest" -> androidx.camera.video.Quality.LOWEST
+            else -> {
+                Log.w(TAG, "Unknown video quality '$qualityString', using 1080p")
+                androidx.camera.video.Quality.FHD // Default to 1080p
+            }
+        }
     }
 
     companion object {

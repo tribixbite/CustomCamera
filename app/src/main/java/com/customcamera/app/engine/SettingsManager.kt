@@ -22,6 +22,8 @@ class SettingsManager(context: Context) {
     private val _flashMode = MutableStateFlow(getString(KEY_FLASH_MODE, "auto"))
     private val _gridOverlay = MutableStateFlow(getBoolean(KEY_GRID_OVERLAY, false))
     private val _debugLogging = MutableStateFlow(getBoolean(KEY_DEBUG_LOGGING, false))
+    private val _videoQuality = MutableStateFlow(getString(KEY_VIDEO_QUALITY, "1080p"))
+    private val _rawCapture = MutableStateFlow(getBoolean(KEY_RAW_CAPTURE, false))
 
     val defaultCameraIndex: StateFlow<Int> = _defaultCameraIndex.asStateFlow()
     val pipCameraIndex: StateFlow<Int> = _pipCameraIndex.asStateFlow()
@@ -29,6 +31,8 @@ class SettingsManager(context: Context) {
     val flashMode: StateFlow<String> = _flashMode.asStateFlow()
     val gridOverlay: StateFlow<Boolean> = _gridOverlay.asStateFlow()
     val debugLogging: StateFlow<Boolean> = _debugLogging.asStateFlow()
+    val videoQuality: StateFlow<String> = _videoQuality.asStateFlow()
+    val rawCapture: StateFlow<Boolean> = _rawCapture.asStateFlow()
 
     /**
      * Camera Settings
@@ -87,6 +91,7 @@ class SettingsManager(context: Context) {
 
     fun setVideoQuality(quality: String) {
         putString(KEY_VIDEO_QUALITY, quality)
+        _videoQuality.value = quality
         Log.i(TAG, "Video quality set to: $quality")
     }
 
@@ -145,6 +150,7 @@ class SettingsManager(context: Context) {
 
     fun setRawCapture(enabled: Boolean) {
         putBoolean(KEY_RAW_CAPTURE, enabled)
+        _rawCapture.value = enabled
         Log.i(TAG, "RAW capture ${if (enabled) "enabled" else "disabled"}")
     }
 

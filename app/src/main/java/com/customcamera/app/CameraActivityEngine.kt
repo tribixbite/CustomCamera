@@ -50,6 +50,7 @@ class CameraActivityEngine : AppCompatActivity() {
     private lateinit var binding: ActivityCameraBinding
     private lateinit var cameraEngine: CameraEngine
     private lateinit var pluginRegistry: com.customcamera.app.engine.plugins.PluginRegistry
+    private lateinit var settingsManager: SettingsManager
 
     private var cameraIndex: Int = 0
     @Volatile private var isFlashOn: Boolean = false
@@ -339,11 +340,14 @@ class CameraActivityEngine : AppCompatActivity() {
     private fun initializeCameraEngine() {
         Log.i(TAG, "🔌 Initializing camera engine with Provider Pattern...")
 
+        // Create settings manager (should be singleton, but using instance for now)
+        settingsManager = SettingsManager(this)
+
         // Create plugin registry (single source of truth for all plugins)
         pluginRegistry = com.customcamera.app.engine.plugins.PluginRegistry(this)
 
-        // Create camera engine with registry - plugins auto-register via Provider Pattern
-        cameraEngine = CameraEngine(this, this, pluginRegistry)
+        // Create camera engine with registry and settings - plugins auto-register via Provider Pattern
+        cameraEngine = CameraEngine(this, this, pluginRegistry, settingsManager)
 
         // ✅ Provider Pattern Refactoring Complete!
         // All plugins now auto-register from PluginRegistry using companion object providers.
