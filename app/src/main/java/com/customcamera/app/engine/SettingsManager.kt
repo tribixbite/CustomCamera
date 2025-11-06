@@ -31,6 +31,10 @@ class SettingsManager private constructor(context: Context) {
     private val _cameraInfoOverlay = MutableStateFlow(getBoolean(KEY_CAMERA_INFO_OVERLAY, false))
     private val _videoStabilization = MutableStateFlow(getBoolean(KEY_VIDEO_STABILIZATION, true))
     private val _performanceMonitoring = MutableStateFlow(getBoolean(KEY_PERFORMANCE_MONITORING, false))
+    private val _photoResolution = MutableStateFlow(getString(KEY_PHOTO_RESOLUTION, "auto"))
+    private val _levelIndicator = MutableStateFlow(getBoolean(KEY_LEVEL_INDICATOR, false))
+    private val _autoFocusMode = MutableStateFlow(getString(KEY_AUTO_FOCUS_MODE, "continuous"))
+    private val _tapToFocus = MutableStateFlow(getBoolean(KEY_TAP_TO_FOCUS, true))
 
     val defaultCameraIndex: StateFlow<Int> = _defaultCameraIndex.asStateFlow()
     val pipCameraIndex: StateFlow<Int> = _pipCameraIndex.asStateFlow()
@@ -44,6 +48,10 @@ class SettingsManager private constructor(context: Context) {
     val cameraInfoOverlay: StateFlow<Boolean> = _cameraInfoOverlay.asStateFlow()
     val videoStabilization: StateFlow<Boolean> = _videoStabilization.asStateFlow()
     val performanceMonitoring: StateFlow<Boolean> = _performanceMonitoring.asStateFlow()
+    val photoResolution: StateFlow<String> = _photoResolution.asStateFlow()
+    val levelIndicator: StateFlow<Boolean> = _levelIndicator.asStateFlow()
+    val autoFocusMode: StateFlow<String> = _autoFocusMode.asStateFlow()
+    val tapToFocus: StateFlow<Boolean> = _tapToFocus.asStateFlow()
 
     /**
      * Camera Settings
@@ -92,6 +100,7 @@ class SettingsManager private constructor(context: Context) {
 
     fun setPhotoResolution(resolution: String) {
         putString(KEY_PHOTO_RESOLUTION, resolution)
+        _photoResolution.value = resolution
         Log.i(TAG, "Photo resolution set to: $resolution")
     }
 
@@ -121,6 +130,7 @@ class SettingsManager private constructor(context: Context) {
 
     fun setAutoFocusMode(mode: String) {
         putString(KEY_AUTO_FOCUS_MODE, mode)
+        _autoFocusMode.value = mode
         Log.i(TAG, "Auto focus mode set to: $mode")
     }
 
@@ -128,6 +138,7 @@ class SettingsManager private constructor(context: Context) {
 
     fun setTapToFocus(enabled: Boolean) {
         putBoolean(KEY_TAP_TO_FOCUS, enabled)
+        _tapToFocus.value = enabled
         Log.i(TAG, "Tap to focus ${if (enabled) "enabled" else "disabled"}")
     }
 
@@ -138,6 +149,7 @@ class SettingsManager private constructor(context: Context) {
 
     fun setLevelIndicator(enabled: Boolean) {
         putBoolean(KEY_LEVEL_INDICATOR, enabled)
+        _levelIndicator.value = enabled
         Log.i(TAG, "Level indicator ${if (enabled) "enabled" else "disabled"}")
     }
 
@@ -284,6 +296,10 @@ class SettingsManager private constructor(context: Context) {
         _cameraInfoOverlay.value = getBoolean(KEY_CAMERA_INFO_OVERLAY, false)
         _videoStabilization.value = getBoolean(KEY_VIDEO_STABILIZATION, true)
         _performanceMonitoring.value = getBoolean(KEY_PERFORMANCE_MONITORING, false)
+        _photoResolution.value = getString(KEY_PHOTO_RESOLUTION, "auto")
+        _levelIndicator.value = getBoolean(KEY_LEVEL_INDICATOR, false)
+        _autoFocusMode.value = getString(KEY_AUTO_FOCUS_MODE, "continuous")
+        _tapToFocus.value = getBoolean(KEY_TAP_TO_FOCUS, true)
     }
 
     // Helper methods for SharedPreferences
