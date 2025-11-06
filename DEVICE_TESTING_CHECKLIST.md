@@ -77,7 +77,11 @@ Note: Requires `adb` or root access
 - [ ] **Stop Recording**: Stop button saves video
 - [ ] **Video Playback**: Video plays correctly in gallery
 - [ ] **Audio Recording**: Video has audio track
-- [ ] **Video Quality**: Default quality is acceptable
+- [ ] **Video Quality Settings Test** (CRITICAL FIX 6138da70):
+  - [ ] Set video quality to 4K in settings → record video → check resolution is 3840x2160
+  - [ ] Set to 1080p in settings → record video → check resolution is 1920x1080
+  - [ ] Set to 720p in settings → record video → check resolution is 1280x720
+  - [ ] Settings now actually control recording quality (was hardcoded to HIGHEST)
 
 **Known Issue**: Frame rate configuration disabled (see Priority 3)
 - Videos use default frame rates (typically 30fps)
@@ -104,10 +108,11 @@ Note: Requires `adb` or root access
 - [ ] Scan result displays
 
 #### HistogramPlugin
-- [ ] Enable via dropdown
+- [ ] Enable via dropdown (or toggle in settings - fix 50a19ace)
 - [ ] Histogram overlay appears
 - [ ] Histogram updates in real-time
 - [ ] Shows RGB channel distribution
+- [ ] Toggle in settings correctly enables/disables overlay
 
 #### CameraInfoPlugin
 - [ ] Enable via dropdown
@@ -205,10 +210,12 @@ Note: Requires `adb` or root access
 - [ ] Android 11+ required
 
 #### RAWCapturePlugin
-- [ ] Enable in settings
+- [ ] Enable in settings (CRITICAL: now uses SettingsManager.getRawCapture() - fix 30fc278f)
 - [ ] Capture photo
 - [ ] DNG file created alongside JPEG
-- [ ] DNG metadata preserved
+- [ ] Disable in settings
+- [ ] Capture photo - verify NO DNG created
+- [ ] DNG metadata preserved when enabled
 - [ ] RAW capability detected (device-dependent)
 
 #### AdvancedVideoRecordingPlugin
@@ -224,6 +231,7 @@ Note: Requires `adb` or root access
 - [ ] Preview brightens in dark scenes
 - [ ] Photos capture with night mode applied
 - [ ] Longer exposure time used
+- [ ] **CameraX 1.5.0**: Low-light boost enabled on Android 15+ (commit 3a480d20)
 
 #### HDRPlugin
 - [ ] Enable via dropdown
@@ -333,11 +341,14 @@ Note: Requires `adb` or root access
 
 ### Settings Testing
 - [ ] **Photo Quality**: Slider saves value
-- [ ] **Video Quality**: Dropdown persists selection
+- [ ] **Video Quality**: Dropdown persists selection **AND ACTUALLY AFFECTS RECORDINGS** (critical fix 6138da70)
 - [ ] **Flash Mode**: Mode saved across launches
 - [ ] **Grid Type**: Grid selection persists
 - [ ] **Plugin States**: Enabled/disabled states persist
 - [ ] **Advanced Settings**: Debug logging, RAW capture, etc. persist
+- [ ] **RAW Capture**: Toggle actually enables/disables DNG files (critical fix 30fc278f)
+- [ ] **Histogram Overlay**: Toggle in settings controls histogram display (fix 50a19ace)
+- [ ] **Settings Singleton**: Same values across all activities (architecture fix e469c353)
 
 ---
 
