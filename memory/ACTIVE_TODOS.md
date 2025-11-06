@@ -18,15 +18,20 @@
 - ✅ **Frame rate infrastructure** (commit 94b20e99) - videoFrameRate config, queryVideoFrameRateCapabilities()
 - ✅ **Low-light boost API** (commit 3a480d20) - NightModePlugin with enableLowLightBoostAsync()
 
-**Settings System Critical Fixes - Code Review Implementation (2025-11-06):**
+**Settings System Critical Fixes - COMPLETE (2025-11-06):**
 - ✅ **P0 CRITICAL: Video quality hardcoded** (commit 6138da70) - User selection now honored
-- ✅ **P1 HIGH: RAWCapturePlugin disconnected** (commit 30fc278f) - Connected to central settings
+- ✅ **P0 CRITICAL: RAWCapturePlugin disconnected** (commit 30fc278f) - Connected to central settings
 - ✅ **P1 HIGH: Multiple SettingsManager instances** (commit e469c353) - Singleton pattern implemented
-- ✅ **P1 HIGH: StateFlow migration** (commit 177bc416) - videoStabilization & performanceMonitoring
+- ✅ **P1 HIGH: StateFlow migration phase 1** (commit 177bc416) - videoStabilization & performanceMonitoring
+- ✅ **P1 HIGH: Plugin enable StateFlow** (commit 60e50f4c) - Dynamic reactive plugin states
+- ✅ **P1 HIGH: StateFlow migration phase 2** (commit 0378801c) - photoResolution, levelIndicator, autoFocusMode, tapToFocus
 - ✅ **P2 MEDIUM: Overlay settings ignored** (commit 50a19ace) - Histogram/CameraInfo connected to StateFlows
-- ✅ **SETTINGS_FIXES_SUMMARY.md** (commit d314a3c5, e18ad05e) - Complete documentation of fixes
-- ✅ **DEVICE_TESTING_CHECKLIST.md** (commit 89e587d8) - Updated with verification steps for all fixes
-- ✅ **StateFlow Progress**: 12/20 settings (60%) now have reactive StateFlows
+- ✅ **P2 MEDIUM: Architecture documentation** (commit 90f57458) - SETTINGS_ARCHITECTURE.md created
+- ✅ **Documentation Updates**:
+  - SETTINGS_FIXES_SUMMARY.md (commits d314a3c5, e18ad05e, 99650c96)
+  - DEVICE_TESTING_CHECKLIST.md (commit 89e587d8)
+  - ACTIVE_TODOS.md (commit 3ca25ed3)
+- ✅ **StateFlow Progress**: 16/16 core settings (100%) + dynamic plugin StateFlow map
 
 **Previous Session (2025-11-04):**
 - ✅ **PROJECT_QUALITY_AUDIT.md** - Comprehensive 9-point quality audit
