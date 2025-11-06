@@ -18,12 +18,15 @@
 - ✅ **Frame rate infrastructure** (commit 94b20e99) - videoFrameRate config, queryVideoFrameRateCapabilities()
 - ✅ **Low-light boost API** (commit 3a480d20) - NightModePlugin with enableLowLightBoostAsync()
 
-**Settings System Critical Fixes - Code Review Implementation:**
+**Settings System Critical Fixes - Code Review Implementation (2025-11-06):**
 - ✅ **P0 CRITICAL: Video quality hardcoded** (commit 6138da70) - User selection now honored
 - ✅ **P1 HIGH: RAWCapturePlugin disconnected** (commit 30fc278f) - Connected to central settings
 - ✅ **P1 HIGH: Multiple SettingsManager instances** (commit e469c353) - Singleton pattern implemented
+- ✅ **P1 HIGH: StateFlow migration** (commit 177bc416) - videoStabilization & performanceMonitoring
 - ✅ **P2 MEDIUM: Overlay settings ignored** (commit 50a19ace) - Histogram/CameraInfo connected to StateFlows
-- ✅ **SETTINGS_FIXES_SUMMARY.md** (commit d314a3c5) - Complete documentation of fixes
+- ✅ **SETTINGS_FIXES_SUMMARY.md** (commit d314a3c5, e18ad05e) - Complete documentation of fixes
+- ✅ **DEVICE_TESTING_CHECKLIST.md** (commit 89e587d8) - Updated with verification steps for all fixes
+- ✅ **StateFlow Progress**: 12/20 settings (60%) now have reactive StateFlows
 
 **Previous Session (2025-11-04):**
 - ✅ **PROJECT_QUALITY_AUDIT.md** - Comprehensive 9-point quality audit
@@ -148,11 +151,12 @@ All plugins now have proper `isSupported()` implementations checking:
 
 ### 🟡 PRIORITY 4: Test & Validate Upgrades - READY FOR EXECUTION
 
-**Status**: Testing infrastructure ready ✅ (commit bfe61894)
-**Documentation**: `DEVICE_TESTING_CHECKLIST.md` (461 lines)
+**Status**: Testing infrastructure ready ✅ (commits bfe61894, 89e587d8)
+**Documentation**: `DEVICE_TESTING_CHECKLIST.md` (470 lines)
+**APK**: `app-debug.apk` (76MB, v2.1.42-build.33)
 
 **Completed Preparation**:
-- ✅ APK built successfully (88MB debug build)
+- ✅ APK built successfully (clean build 2025-11-06)
 - ✅ Comprehensive testing checklist created
 - ✅ Installation instructions documented (ADB, manual, script)
 - ✅ 23-plugin testing procedure defined
@@ -160,19 +164,29 @@ All plugins now have proper `isSupported()` implementations checking:
 - ✅ Performance testing procedures
 - ✅ Regression testing checklist
 - ✅ Test results template included
+- ✅ **Settings fixes verification steps** (commit 89e587d8):
+  - Video quality resolution verification (4K/1080p/720p)
+  - RAW capture enable/disable verification with DNG checks
+  - Histogram overlay toggle verification
+  - Settings singleton consistency across activities
 
 **Manual Testing Required** (~90 minutes):
 - [ ] Install APK on physical device
 - [ ] Critical path testing (15 min)
+  - [ ] **Video quality settings affect recordings** (CRITICAL FIX 6138da70)
+  - [ ] **RAW capture toggle creates/prevents DNG** (CRITICAL FIX 30fc278f)
 - [ ] All 23 plugins verification (30 min)
+  - [ ] **Histogram overlay settings toggle** (FIX 50a19ace)
 - [ ] Kotlin 2.1.20 null-safety tests (10 min)
 - [ ] Performance testing (10 min)
 - [ ] Regression testing (15 min)
+  - [ ] **Settings consistency across activities** (FIX e469c353)
 - [ ] Edge cases & stress testing (15 min)
 
 **Known Issues**:
 - Frame rate configuration documented but not implemented
 - Requires device with ADB or manual APK installation capability
+- No adb device currently connected (development environment only)
 
 ### 🟡 PRIORITY 5: Test Infrastructure Improvements
 
