@@ -176,6 +176,9 @@ class SettingsManager private constructor(context: Context) {
         Log.i(TAG, "Performance monitoring ${if (enabled) "enabled" else "disabled"}")
     }
 
+    // Plugin enable/disable states - reactive StateFlow map
+    private val _pluginStates = mutableMapOf<String, MutableStateFlow<Boolean>>()
+
     /**
      * Plugin Settings
      */
@@ -185,7 +188,24 @@ class SettingsManager private constructor(context: Context) {
 
     fun setPluginEnabled(pluginName: String, enabled: Boolean) {
         putBoolean("plugin_enabled_$pluginName", enabled)
+
+        // Update StateFlow if it exists, create if not
+        val flow = _pluginStates.getOrPut(pluginName) {
+            MutableStateFlow(enabled)
+        }
+        flow.value = enabled
+
         Log.i(TAG, "Plugin '$pluginName' ${if (enabled) "enabled" else "disabled"}")
+    }
+
+    /**
+     * Get reactive StateFlow for a plugin's enabled state.
+     * Allows UI to observe plugin state changes.
+     */
+    fun getPluginStateFlow(pluginName: String): StateFlow<Boolean> {
+        return _pluginStates.getOrPut(pluginName) {
+            MutableStateFlow(isPluginEnabled(pluginName))
+        }.asStateFlow()
     }
 
     fun getPluginSetting(pluginName: String, settingKey: String, defaultValue: String): String {
