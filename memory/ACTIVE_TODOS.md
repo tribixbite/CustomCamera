@@ -18,6 +18,13 @@
 - ✅ **Frame rate infrastructure** (commit 94b20e99) - videoFrameRate config, queryVideoFrameRateCapabilities()
 - ✅ **Low-light boost API** (commit 3a480d20) - NightModePlugin with enableLowLightBoostAsync()
 
+**Settings System Critical Fixes - Code Review Implementation:**
+- ✅ **P0 CRITICAL: Video quality hardcoded** (commit 6138da70) - User selection now honored
+- ✅ **P1 HIGH: RAWCapturePlugin disconnected** (commit 30fc278f) - Connected to central settings
+- ✅ **P1 HIGH: Multiple SettingsManager instances** (commit e469c353) - Singleton pattern implemented
+- ✅ **P2 MEDIUM: Overlay settings ignored** (commit 50a19ace) - Histogram/CameraInfo connected to StateFlows
+- ✅ **SETTINGS_FIXES_SUMMARY.md** (commit d314a3c5) - Complete documentation of fixes
+
 **Previous Session (2025-11-04):**
 - ✅ **PROJECT_QUALITY_AUDIT.md** - Comprehensive 9-point quality audit
 - ✅ **README.md updated** - 100% plugin completion documented
