@@ -27,6 +27,8 @@ class SettingsManager private constructor(context: Context) {
     private val _debugLogging = MutableStateFlow(getBoolean(KEY_DEBUG_LOGGING, false))
     private val _videoQuality = MutableStateFlow(getString(KEY_VIDEO_QUALITY, "1080p"))
     private val _rawCapture = MutableStateFlow(getBoolean(KEY_RAW_CAPTURE, false))
+    private val _histogramOverlay = MutableStateFlow(getBoolean(KEY_HISTOGRAM_OVERLAY, false))
+    private val _cameraInfoOverlay = MutableStateFlow(getBoolean(KEY_CAMERA_INFO_OVERLAY, false))
 
     val defaultCameraIndex: StateFlow<Int> = _defaultCameraIndex.asStateFlow()
     val pipCameraIndex: StateFlow<Int> = _pipCameraIndex.asStateFlow()
@@ -36,6 +38,8 @@ class SettingsManager private constructor(context: Context) {
     val debugLogging: StateFlow<Boolean> = _debugLogging.asStateFlow()
     val videoQuality: StateFlow<String> = _videoQuality.asStateFlow()
     val rawCapture: StateFlow<Boolean> = _rawCapture.asStateFlow()
+    val histogramOverlay: StateFlow<Boolean> = _histogramOverlay.asStateFlow()
+    val cameraInfoOverlay: StateFlow<Boolean> = _cameraInfoOverlay.asStateFlow()
 
     /**
      * Camera Settings
@@ -136,6 +140,7 @@ class SettingsManager private constructor(context: Context) {
 
     fun setHistogramOverlay(enabled: Boolean) {
         putBoolean(KEY_HISTOGRAM_OVERLAY, enabled)
+        _histogramOverlay.value = enabled
         Log.i(TAG, "Histogram overlay ${if (enabled) "enabled" else "disabled"}")
     }
 
@@ -143,6 +148,7 @@ class SettingsManager private constructor(context: Context) {
 
     fun setCameraInfoOverlay(enabled: Boolean) {
         putBoolean(KEY_CAMERA_INFO_OVERLAY, enabled)
+        _cameraInfoOverlay.value = enabled
         Log.i(TAG, "Camera info overlay ${if (enabled) "enabled" else "disabled"}")
     }
 

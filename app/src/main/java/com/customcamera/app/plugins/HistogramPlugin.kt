@@ -331,7 +331,8 @@ class HistogramPlugin : ProcessingPlugin() {
         val settings = context.settingsManager
 
         try {
-            isHistogramEnabled = settings.getPluginSetting(name, "histogramEnabled", "false").toBoolean()
+            // Use centralized histogram overlay setting from SettingsManager
+            isHistogramEnabled = settings.getHistogramOverlay()
             showRGBHistogram = settings.getPluginSetting(name, "showRGB", "true").toBoolean()
             showLuminanceHistogram = settings.getPluginSetting(name, "showLuminance", "true").toBoolean()
             processingInterval = settings.getPluginSetting(name, "processingInterval", "200").toLong()
@@ -345,7 +346,8 @@ class HistogramPlugin : ProcessingPlugin() {
     private fun saveSettings() {
         val settings = cameraContext?.settingsManager ?: return
 
-        settings.setPluginSetting(name, "histogramEnabled", isHistogramEnabled.toString())
+        // Use centralized histogram overlay setting
+        settings.setHistogramOverlay(isHistogramEnabled)
         settings.setPluginSetting(name, "showRGB", showRGBHistogram.toString())
         settings.setPluginSetting(name, "showLuminance", showLuminanceHistogram.toString())
         settings.setPluginSetting(name, "processingInterval", processingInterval.toString())
