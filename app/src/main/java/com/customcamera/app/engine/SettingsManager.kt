@@ -29,6 +29,8 @@ class SettingsManager private constructor(context: Context) {
     private val _rawCapture = MutableStateFlow(getBoolean(KEY_RAW_CAPTURE, false))
     private val _histogramOverlay = MutableStateFlow(getBoolean(KEY_HISTOGRAM_OVERLAY, false))
     private val _cameraInfoOverlay = MutableStateFlow(getBoolean(KEY_CAMERA_INFO_OVERLAY, false))
+    private val _videoStabilization = MutableStateFlow(getBoolean(KEY_VIDEO_STABILIZATION, true))
+    private val _performanceMonitoring = MutableStateFlow(getBoolean(KEY_PERFORMANCE_MONITORING, false))
 
     val defaultCameraIndex: StateFlow<Int> = _defaultCameraIndex.asStateFlow()
     val pipCameraIndex: StateFlow<Int> = _pipCameraIndex.asStateFlow()
@@ -40,6 +42,8 @@ class SettingsManager private constructor(context: Context) {
     val rawCapture: StateFlow<Boolean> = _rawCapture.asStateFlow()
     val histogramOverlay: StateFlow<Boolean> = _histogramOverlay.asStateFlow()
     val cameraInfoOverlay: StateFlow<Boolean> = _cameraInfoOverlay.asStateFlow()
+    val videoStabilization: StateFlow<Boolean> = _videoStabilization.asStateFlow()
+    val performanceMonitoring: StateFlow<Boolean> = _performanceMonitoring.asStateFlow()
 
     /**
      * Camera Settings
@@ -106,6 +110,7 @@ class SettingsManager private constructor(context: Context) {
 
     fun setVideoStabilization(enabled: Boolean) {
         putBoolean(KEY_VIDEO_STABILIZATION, enabled)
+        _videoStabilization.value = enabled
         Log.i(TAG, "Video stabilization ${if (enabled) "enabled" else "disabled"}")
     }
 
@@ -167,6 +172,7 @@ class SettingsManager private constructor(context: Context) {
 
     fun setPerformanceMonitoring(enabled: Boolean) {
         putBoolean(KEY_PERFORMANCE_MONITORING, enabled)
+        _performanceMonitoring.value = enabled
         Log.i(TAG, "Performance monitoring ${if (enabled) "enabled" else "disabled"}")
     }
 
@@ -252,6 +258,12 @@ class SettingsManager private constructor(context: Context) {
         _flashMode.value = getString(KEY_FLASH_MODE, "auto")
         _gridOverlay.value = getBoolean(KEY_GRID_OVERLAY, false)
         _debugLogging.value = getBoolean(KEY_DEBUG_LOGGING, false)
+        _videoQuality.value = getString(KEY_VIDEO_QUALITY, "1080p")
+        _rawCapture.value = getBoolean(KEY_RAW_CAPTURE, false)
+        _histogramOverlay.value = getBoolean(KEY_HISTOGRAM_OVERLAY, false)
+        _cameraInfoOverlay.value = getBoolean(KEY_CAMERA_INFO_OVERLAY, false)
+        _videoStabilization.value = getBoolean(KEY_VIDEO_STABILIZATION, true)
+        _performanceMonitoring.value = getBoolean(KEY_PERFORMANCE_MONITORING, false)
     }
 
     // Helper methods for SharedPreferences
