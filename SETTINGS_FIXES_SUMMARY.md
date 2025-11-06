@@ -60,12 +60,31 @@
 - [ ] Open settings from different activity
 - [ ] Verify same values displayed
 
+## Additional Fixes (commits 177bc416, 89e587d8)
+
+### StateFlow Migration Completion (commit 177bc416)
+**Issue**: Only 6/20 settings had reactive StateFlows
+**Impact**: UI couldn't react to settings changes programmatically
+
+**Fix**:
+- Added StateFlows for `videoStabilization` and `performanceMonitoring`
+- Updated setter methods to update StateFlow values
+- Updated refreshStateFlows() to refresh all 12 StateFlows
+- Now at 12/20 settings with StateFlows (60% complete)
+
+### Testing Documentation (commit 89e587d8)
+**Updates to DEVICE_TESTING_CHECKLIST.md**:
+- Added video quality resolution verification steps
+- Added RAW capture enable/disable verification
+- Added histogram overlay toggle verification
+- Added settings singleton consistency checks
+- Added CameraX 1.5.0 low-light boost feature notes
+
 ## Remaining Work (P2 - Medium Priority)
 
-1. Wire histogram/cameraInfo overlay settings to plugins
+1. ✅ ~~Wire histogram/cameraInfo overlay settings to plugins~~ (COMPLETED)
 2. Add plugin enable StateFlow for reactive toggles
-3. Complete StateFlow migration for remaining 12 settings:
-   - videoStabilization, photoResolution, levelIndicator
-   - autoFocusMode, tapToFocus, histogramOverlay
-   - cameraInfoOverlay, performanceMonitoring
+3. Complete StateFlow migration for remaining 8 settings:
+   - photoResolution, levelIndicator, autoFocusMode, tapToFocus
+   - (4 more TBD based on priority)
 4. Document reactive vs. non-reactive settings
