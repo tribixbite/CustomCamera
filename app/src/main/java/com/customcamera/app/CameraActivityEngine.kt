@@ -145,8 +145,8 @@ class CameraActivityEngine : AppCompatActivity() {
             cameraIndex = intentCameraIndex
             Log.i(TAG, "Using camera index from intent: $cameraIndex")
         } else {
-            // Fallback to saved default camera from settings
-            val tempSettings = com.customcamera.app.engine.SettingsManager(this)
+            // Fallback to saved default camera from settings (use singleton)
+            val tempSettings = SettingsManager.getInstance(this)
             cameraIndex = tempSettings.defaultCameraIndex.value
             Log.i(TAG, "Using camera index from settings: $cameraIndex")
         }
@@ -340,8 +340,8 @@ class CameraActivityEngine : AppCompatActivity() {
     private fun initializeCameraEngine() {
         Log.i(TAG, "🔌 Initializing camera engine with Provider Pattern...")
 
-        // Create settings manager (should be singleton, but using instance for now)
-        settingsManager = SettingsManager(this)
+        // Get singleton settings manager instance
+        settingsManager = SettingsManager.getInstance(this)
 
         // Create plugin registry (single source of truth for all plugins)
         pluginRegistry = com.customcamera.app.engine.plugins.PluginRegistry(this)
@@ -1320,7 +1320,7 @@ class CameraActivityEngine : AppCompatActivity() {
                 }
 
                 // Update settings
-                val settingsManager = com.customcamera.app.engine.SettingsManager(this)
+                val settingsManager = com.customcamera.app.engine.SettingsManager.getInstance(this)
                 settingsManager.setPluginEnabled("Barcode", isBarcodeScanningEnabled)
             } else {
                 Log.w(TAG, "BarcodePlugin not found")
@@ -1973,7 +1973,7 @@ class CameraActivityEngine : AppCompatActivity() {
                 context = this,
                 cameraProvider = androidx.camera.lifecycle.ProcessCameraProvider.getInstance(this).get(),
                 debugLogger = com.customcamera.app.engine.DebugLogger(),
-                settingsManager = com.customcamera.app.engine.SettingsManager(this)
+                settingsManager = com.customcamera.app.engine.SettingsManager.getInstance(this)
             )
 
             performanceMonitor = com.customcamera.app.monitoring.PerformanceMonitor(this, cameraContext)
@@ -2028,7 +2028,7 @@ class CameraActivityEngine : AppCompatActivity() {
 
         // Check if camera selection changed in settings
         if (::cameraEngine.isInitialized && hasCameraPermission()) {
-            val settingsManager = SettingsManager(this)
+            val settingsManager = SettingsManager.getInstance(this)
             val settingsDefaultCamera = settingsManager.defaultCameraIndex.value
 
             if (settingsDefaultCamera != cameraIndex) {
@@ -2140,7 +2140,7 @@ class CameraActivityEngine : AppCompatActivity() {
                 context = this,
                 cameraProvider = cameraEngine.getProvider() ?: return,
                 debugLogger = DebugLogger(),
-                settingsManager = SettingsManager(this),
+                settingsManager = SettingsManager.getInstance(this),
                 cameraEngine = cameraEngine
             )
 
@@ -2204,7 +2204,7 @@ class CameraActivityEngine : AppCompatActivity() {
 
     private fun updatePluginStatesFromSettings() {
         try {
-            val settingsManager = com.customcamera.app.engine.SettingsManager(this)
+            val settingsManager = com.customcamera.app.engine.SettingsManager.getInstance(this)
 
             // Update grid overlay visibility based on setting (with null check)
             if (gridOverlayPlugin != null) {
@@ -2279,7 +2279,7 @@ class CameraActivityEngine : AppCompatActivity() {
             dualCameraPiPPlugin!!.setupMainPreview(binding.previewView)
 
             // Check if PiP should be enabled from settings
-            val settingsManager = com.customcamera.app.engine.SettingsManager(this)
+            val settingsManager = com.customcamera.app.engine.SettingsManager.getInstance(this)
             val pipEnabled = settingsManager.isPluginEnabled("DualCameraPiP")
 
             if (pipEnabled) {
@@ -2394,7 +2394,7 @@ class CameraActivityEngine : AppCompatActivity() {
     private fun setupAdvancedVideoRecording() {
         try {
             // Check if video recording should be enabled from settings
-            val settingsManager = com.customcamera.app.engine.SettingsManager(this)
+            val settingsManager = com.customcamera.app.engine.SettingsManager.getInstance(this)
             // Check if video recording is enabled in settings
             // val videoEnabled = settingsManager.isPluginEnabled("AdvancedVideoRecording")
 
@@ -2427,7 +2427,6 @@ class CameraActivityEngine : AppCompatActivity() {
                     Log.i(TAG, "🎬 Recording started - grid overlay hidden")
                 } else {
                     // Show grid overlay when recording stops (only if it was enabled in settings)
-                    val settingsManager = com.customcamera.app.engine.SettingsManager(this@CameraActivityEngine)
                     val gridEnabled = settingsManager.isPluginEnabled("GridOverlay")
                     if (gridEnabled) {
                         gridPlugin?.showGrid()

@@ -35,7 +35,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         // Initialize managers
-        settingsManager = SettingsManager(this)
+        settingsManager = SettingsManager.getInstance(this)
         debugLogger = DebugLogger()
 
         setupUI()

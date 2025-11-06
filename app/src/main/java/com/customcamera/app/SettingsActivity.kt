@@ -61,7 +61,7 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun initializeSettings() {
-        settingsManager = SettingsManager(this)
+        settingsManager = SettingsManager.getInstance(this)
         debugLogger = DebugLogger()
 
         Log.i(TAG, "Settings initialized")

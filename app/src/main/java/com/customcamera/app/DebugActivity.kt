@@ -68,7 +68,7 @@ class DebugActivity : AppCompatActivity() {
     }
 
     private fun initializeDebugSystems() {
-        settingsManager = SettingsManager(this)
+        settingsManager = SettingsManager.getInstance(this)
         cameraManager = getSystemService(Context.CAMERA_SERVICE) as CameraManager
 
         // Get global API monitor instance from active camera session

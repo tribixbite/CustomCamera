@@ -10,10 +10,13 @@ import kotlinx.coroutines.flow.asStateFlow
 /**
  * Manages camera settings and preferences with reactive state updates.
  * Provides type-safe access to camera configuration and user preferences.
+ *
+ * SINGLETON: Use SettingsManager.getInstance(context) to access the shared instance.
+ * This ensures consistent settings across all activities and plugins.
  */
-class SettingsManager(context: Context) {
+class SettingsManager private constructor(context: Context) {
 
-    private val prefs: SharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    private val prefs: SharedPreferences = context.applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
     // State flows for reactive settings
     private val _defaultCameraIndex = MutableStateFlow(getInt(KEY_DEFAULT_CAMERA_INDEX, 0))
@@ -273,6 +276,23 @@ class SettingsManager(context: Context) {
     companion object {
         private const val TAG = "SettingsManager"
         private const val PREFS_NAME = "custom_camera_settings"
+
+        // Singleton instance
+        @Volatile
+        private var INSTANCE: SettingsManager? = null
+
+        /**
+         * Get singleton instance of SettingsManager.
+         * Thread-safe double-checked locking pattern.
+         */
+        fun getInstance(context: Context): SettingsManager {
+            return INSTANCE ?: synchronized(this) {
+                INSTANCE ?: SettingsManager(context.applicationContext).also {
+                    INSTANCE = it
+                    Log.i(TAG, "SettingsManager singleton created")
+                }
+            }
+        }
 
         // Setting keys
         private const val KEY_DEFAULT_CAMERA_INDEX = "default_camera_index"

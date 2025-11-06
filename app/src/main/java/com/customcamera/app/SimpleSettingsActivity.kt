@@ -65,7 +65,7 @@ class SimpleSettingsActivity : AppCompatActivity() {
 
         // Initialize settings and adapter
         try {
-            settingsManager = SettingsManager(this)
+            settingsManager = SettingsManager.getInstance(this)
             pluginRegistry = PluginRegistry(this)
             debugLogger = DebugLogger()
 

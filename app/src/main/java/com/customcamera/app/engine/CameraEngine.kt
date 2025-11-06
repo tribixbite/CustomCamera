@@ -113,7 +113,7 @@ class CameraEngine(
                     context = context,
                     cameraProvider = cameraProvider!!,
                     debugLogger = DebugLogger(),
-                    settingsManager = SettingsManager(context),
+                    settingsManager = SettingsManager.getInstance(context),
                     cameraEngine = this,
                     apiMonitor = null // Circular reference prevention
                 )
@@ -137,7 +137,7 @@ class CameraEngine(
                 context = context,
                 cameraProvider = cameraProvider!!,
                 debugLogger = DebugLogger(),
-                settingsManager = SettingsManager(context),
+                settingsManager = SettingsManager.getInstance(context),
                 cameraEngine = this,
                 apiMonitor = this.apiMonitor
             )
