@@ -1,0 +1,281 @@
+{"test_run": {"timestamp": "2025-11-12T02:17:50-05:00", "tests": [
+    {
+      "name": "ADB connection active",
+      "result": "PASS",
+      "details": "Device connected",
+      "duration_ms": 29
+    }
+,
+    {
+      "name": "App installed",
+      "result": "PASS",
+      "details": "versionName=null",
+      "duration_ms": 202
+    }
+,
+    {
+      "name": "Camera permission granted",
+      "result": "PASS",
+      "details": "",
+      "duration_ms": 0
+    }
+,
+    {
+      "name": "Audio permission granted",
+      "result": "PASS",
+      "details": "",
+      "duration_ms": 0
+    }
+,
+    {
+      "name": "Logcat cleared",
+      "result": "PASS",
+      "details": "Ready for test logging",
+      "duration_ms": 0
+    }
+,
+    {
+      "name": "Launch MainActivity",
+      "result": "PASS",
+      "details": "Navigated to: com.customcamera.app.CameraActivityEngine",
+      "duration_ms": 3187
+    }
+,
+    {
+      "name": "Launch CameraActivityEngine",
+      "result": "PASS",
+      "details": "Camera engine started",
+      "duration_ms": 3227
+    }
+,
+    {
+      "name": "TEST_CAMERA intent",
+      "result": "PASS",
+      "details": "Intent handled correctly",
+      "duration_ms": 3159
+    }
+,
+    {
+      "name": "Launch CameraSelectionActivity",
+      "result": "WARN",
+      "details": "May not be accessible directly",
+      "duration_ms": 0
+    }
+,
+    {
+      "name": "Launch SettingsActivity",
+      "result": "FAIL",
+      "details": "Settings not accessible",
+      "duration_ms": 0
+    }
+,
+    {
+      "name": "Launch SimpleSettingsActivity",
+      "result": "FAIL",
+      "details": "Simple settings not accessible",
+      "duration_ms": 0
+    }
+,
+    {
+      "name": "Launch GalleryActivity",
+      "result": "FAIL",
+      "details": "Gallery not accessible",
+      "duration_ms": 0
+    }
+,
+    {
+      "name": "Launch DebugActivity",
+      "result": "WARN",
+      "details": "Debug activity not accessible",
+      "duration_ms": 0
+    }
+,
+    {
+      "name": "TEST_PIP intent activates PiP",
+      "result": "PASS",
+      "details": "PiP mode activated (18 logs)",
+      "duration_ms": 10517
+    }
+,
+    {
+      "name": "TEST_CAPTURE intent triggers capture",
+      "result": "FAIL",
+      "details": "No photos found",
+      "duration_ms": 0
+    }
+,
+    {
+      "name": "Plugin system initialized",
+      "result": "PASS",
+      "details": "21 plugin-related logs",
+      "duration_ms": 370
+    }
+,
+    {
+      "name": "Plugin registry active",
+      "result": "WARN",
+      "details": "Low registration activity",
+      "duration_ms": 0
+    }
+,
+    {
+      "name": "Plugin active: AutoFocusPlugin",
+      "result": "PASS",
+      "details": "Found in logs",
+      "duration_ms": 0
+    }
+,
+    {
+      "name": "Plugin active: ExposureControlPlugin",
+      "result": "PASS",
+      "details": "Found in logs",
+      "duration_ms": 0
+    }
+,
+    {
+      "name": "Plugin active: GridOverlayPlugin",
+      "result": "PASS",
+      "details": "Found in logs",
+      "duration_ms": 0
+    }
+,
+    {
+      "name": "Plugin active: SmartScenePlugin",
+      "result": "PASS",
+      "details": "Found in logs",
+      "duration_ms": 0
+    }
+,
+    {
+      "name": "Plugin active: BarcodePlugin",
+      "result": "PASS",
+      "details": "Found in logs",
+      "duration_ms": 0
+    }
+,
+    {
+      "name": "SettingsManager initialized",
+      "result": "PASS",
+      "details": "Settings system active",
+      "duration_ms": 364
+    }
+,
+    {
+      "name": "StateFlow reactive settings",
+      "result": "PASS",
+      "details": "Reactive state management active",
+      "duration_ms": 0
+    }
+,
+    {
+      "name": "Settings persistence (SharedPreferences)",
+      "result": "WARN",
+      "details": "Settings file not accessible",
+      "duration_ms": 0
+    }
+,
+    {
+      "name": "Photo capture via UI tap",
+      "result": "FAIL",
+      "details": "No new photos created",
+      "duration_ms": 0
+    }
+,
+    {
+      "name": "Video recording system available",
+      "result": "PASS",
+      "details": "Video components initialized",
+      "duration_ms": 0
+    }
+,
+    {
+      "name": "Multi-tap gesture (2-tap)",
+      "result": "WARN",
+      "details": "No gesture response detected",
+      "duration_ms": 0
+    }
+,
+    {
+      "name": "Pinch-to-zoom gesture",
+      "result": "WARN",
+      "details": "Not testable via ADB (requires manual testing)",
+      "duration_ms": 0
+    }
+,
+    {
+      "name": "Long-press gesture",
+      "result": "WARN",
+      "details": "No long-press response",
+      "duration_ms": 0
+    }
+,
+    {
+      "name": "No crashes detected",
+      "result": "FAIL",
+      "details": "5 potential crash(es) found",
+      "duration_ms": 0
+    }
+,
+    {
+      "name": "No ANRs (Application Not Responding)",
+      "result": "PASS",
+      "details": "App responsive",
+      "duration_ms": 0
+    }
+,
+    {
+      "name": "Memory leak detection",
+      "result": "WARN",
+      "details": "Potential memory issues found in logs",
+      "duration_ms": 0
+    }
+,
+    {
+      "name": "Performance warnings",
+      "result": "PASS",
+      "details": "No performance issues",
+      "duration_ms": 0
+    }
+,
+    {
+      "name": "CameraX library loaded",
+      "result": "PASS",
+      "details": "CameraX components active",
+      "duration_ms": 0
+    }
+,
+    {
+      "name": "CameraProvider initialized",
+      "result": "PASS",
+      "details": "Camera provider ready",
+      "duration_ms": 0
+    }
+,
+    {
+      "name": "UseCase: Preview",
+      "result": "PASS",
+      "details": "Use case bound",
+      "duration_ms": 0
+    }
+,
+    {
+      "name": "UseCase: ImageCapture",
+      "result": "PASS",
+      "details": "Use case bound",
+      "duration_ms": 0
+    }
+,
+    {
+      "name": "UseCase: ImageAnalysis",
+      "result": "PASS",
+      "details": "Use case bound",
+      "duration_ms": 0
+    }
+,
+    {
+      "name": "UseCase: VideoCapture",
+      "result": "PASS",
+      "details": "Use case bound",
+      "duration_ms": 0
+    }
+  ]}}  
