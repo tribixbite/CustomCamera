@@ -5,6 +5,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.materialswitch.MaterialSwitch
 import com.customcamera.app.R
 
 /**
@@ -123,7 +124,7 @@ class SettingsAdapter(
     class SwitchViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         private val titleText: TextView = view.findViewById(R.id.settingTitle)
         private val descriptionText: TextView = view.findViewById(R.id.settingDescription)
-        private val switch: Switch = view.findViewById(R.id.settingSwitch)
+        private val switch: MaterialSwitch = view.findViewById(R.id.settingSwitch)
 
         fun bind(setting: SettingsItem.Switch, onChanged: (SettingsItem, Any) -> Unit) {
             titleText.text = setting.title
