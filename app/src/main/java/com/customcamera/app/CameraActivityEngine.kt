@@ -541,38 +541,38 @@ class CameraActivityEngine : AppCompatActivity() {
 
         // Check if in concurrent camera mode (dual camera capture)
         val currentMode = cameraEngine.getCurrentMode()
-        val hasPipFrame = cameraEngine.hasPipFrame()
-        val isDualCamera = currentMode is CameraMode.Concurrent && hasPipFrame
+        val isDualCamera = currentMode is CameraMode.Concurrent && dualCameraPiPPlugin != null
 
-        Log.i(TAG, "Photo capture mode check: currentMode=$currentMode, hasPipFrame=$hasPipFrame, isDualCamera=$isDualCamera, pipPlugin=$dualCameraPiPPlugin")
+        Log.i(TAG, "Photo capture mode check: currentMode=$currentMode, isDualCamera=$isDualCamera, pipPlugin=$dualCameraPiPPlugin")
 
         if (isDualCamera && dualCameraPiPPlugin != null) {
-            // Dual camera capture: Try composite, fallback to screenshot if it fails
+            // Dual camera capture: Get PiP bitmap from PreviewView
             Log.i(TAG, "📸 Capturing dual camera photo...")
             imageCapture.takePicture(
                 ContextCompat.getMainExecutor(this),
                 object : ImageCapture.OnImageCapturedCallback() {
                     override fun onCaptureSuccess(mainImage: ImageProxy) {
                         try {
-                            // Get PiP frame
-                            val pipImage = cameraEngine.getLatestPipFrame()
-                            if (pipImage == null) {
-                                Log.e(TAG, "PiP frame not available, saving main camera only")
+                            // Get PiP bitmap from PreviewView (must run on main thread)
+                            val pipPreviewView = dualCameraPiPPlugin?.getPiPPreviewView()
+                            val pipBitmap = pipPreviewView?.bitmap
+
+                            if (pipBitmap == null) {
+                                Log.e(TAG, "PiP bitmap not available, saving main camera only")
                                 saveSingleImage(mainImage, outputFileOptions, photoFile)
                                 return
                             }
 
                             // Get PiP overlay position
-                            val pipPlugin = cameraEngine.getPlugin("DualCameraPiP") as? DualCameraPiPPlugin
-                            val pipRect = pipPlugin?.getPiPOverlayRect() ?: android.graphics.RectF(0.7f, 0.7f, 0.95f, 0.9f)
+                            val pipRect = dualCameraPiPPlugin?.getPiPOverlayRect() ?: android.graphics.RectF(0.7f, 0.7f, 0.95f, 0.9f)
 
-                            Log.i(TAG, "PiP plugin: $pipPlugin, PiP rect: $pipRect")
+                            Log.i(TAG, "PiP bitmap: ${pipBitmap.width}x${pipBitmap.height}, PiP rect: $pipRect")
 
-                            // Composite images
-                            Log.i(TAG, "Calling DualCameraCompositor.compositeImages()...")
+                            // Composite images using PreviewView.bitmap approach
+                            Log.i(TAG, "Calling DualCameraCompositor.compositeImages() with PreviewView bitmap...")
                             val success = com.customcamera.app.utils.DualCameraCompositor.compositeImages(
                                 mainImage = mainImage,
-                                pipImage = pipImage,
+                                pipBitmap = pipBitmap,
                                 pipRect = pipRect,
                                 outputFile = photoFile
                             )

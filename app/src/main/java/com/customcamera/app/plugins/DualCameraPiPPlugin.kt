@@ -619,6 +619,14 @@ class DualCameraPiPPlugin : UIPlugin() {
     }
 
     /**
+     * Get the PiP PreviewView for capturing bitmap
+     * Returns null if PiP mode is not enabled
+     */
+    fun getPiPPreviewView(): PreviewView? {
+        return pipOverlayView?.getPreviewView()
+    }
+
+    /**
      * Get current PiP overlay position and size as normalized coordinates (0-1)
      * Used for compositing dual camera photos
      */

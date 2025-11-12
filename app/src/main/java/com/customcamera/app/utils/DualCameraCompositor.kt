@@ -125,6 +125,105 @@ object DualCameraCompositor {
     }
 
     /**
+     * Composite dual camera images using Bitmap for PiP (Preview-based capture)
+     * Optimized for PreviewView.bitmap approach to reduce hardware use cases
+     *
+     * @param mainImage Main camera ImageProxy
+     * @param pipBitmap PiP camera Bitmap from PreviewView
+     * @param pipRect Position and size of PiP overlay on screen (normalized 0-1)
+     * @param outputFile File to save composite image
+     * @return true if successful, false otherwise
+     */
+    fun compositeImages(
+        mainImage: ImageProxy,
+        pipBitmap: Bitmap,
+        pipRect: RectF,
+        outputFile: File
+    ): Boolean {
+        return try {
+            Log.i(TAG, "Starting dual camera composite (PreviewView-based PiP)...")
+            Log.i(TAG, "Main image: ${mainImage.width}x${mainImage.height}, format: ${mainImage.format}")
+            Log.i(TAG, "PiP bitmap: ${pipBitmap.width}x${pipBitmap.height}")
+            Log.i(TAG, "PiP rect: $pipRect")
+
+            // Convert main ImageProxy to Bitmap
+            val mainBitmap = imageProxyToBitmap(mainImage)
+            if (mainBitmap == null) {
+                Log.e(TAG, "Failed to convert main image to bitmap")
+                return false
+            }
+            Log.i(TAG, "Main bitmap created: ${mainBitmap.width}x${mainBitmap.height}")
+
+            // Create composite
+            val composite = Bitmap.createBitmap(
+                mainBitmap.width,
+                mainBitmap.height,
+                Bitmap.Config.ARGB_8888
+            )
+
+            val canvas = Canvas(composite)
+
+            // Draw main image as base
+            canvas.drawBitmap(mainBitmap, 0f, 0f, null)
+
+            // Calculate PiP position and size on the main image
+            val pipLeft = pipRect.left * mainBitmap.width
+            val pipTop = pipRect.top * mainBitmap.height
+            val pipWidth = pipRect.width() * mainBitmap.width
+            val pipHeight = pipRect.height() * mainBitmap.height
+
+            val pipDestRect = RectF(
+                pipLeft,
+                pipTop,
+                pipLeft + pipWidth,
+                pipTop + pipHeight
+            )
+
+            // Draw PiP image on top with rounded corners and border
+            val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+            val cornerRadius = pipWidth * 0.05f // 5% corner radius
+
+            // Draw white border
+            val borderPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = Color.WHITE
+                style = Paint.Style.STROKE
+                strokeWidth = pipWidth * 0.02f // 2% border width
+            }
+
+            canvas.drawRoundRect(pipDestRect, cornerRadius, cornerRadius, borderPaint)
+
+            // Draw PiP image with rounded corners
+            val path = Path().apply {
+                addRoundRect(pipDestRect, cornerRadius, cornerRadius, Path.Direction.CW)
+            }
+            canvas.save()
+            canvas.clipPath(path)
+
+            // Scale and draw PiP bitmap
+            val pipSrcRect = Rect(0, 0, pipBitmap.width, pipBitmap.height)
+            canvas.drawBitmap(pipBitmap, pipSrcRect, pipDestRect, paint)
+
+            canvas.restore()
+
+            // Save composite to file
+            FileOutputStream(outputFile).use { out ->
+                composite.compress(Bitmap.CompressFormat.JPEG, 95, out)
+            }
+
+            // Clean up
+            mainBitmap.recycle()
+            composite.recycle()
+
+            Log.i(TAG, "✅ Dual camera composite saved to: ${outputFile.absolutePath}")
+            true
+
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Failed to composite images", e)
+            false
+        }
+    }
+
+    /**
      * Convert ImageProxy to Bitmap
      * Handles YUV_420_888 format from CameraX
      */

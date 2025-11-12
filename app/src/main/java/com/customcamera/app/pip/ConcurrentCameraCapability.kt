@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.core.CameraSelector
+import androidx.camera.camera2.interop.Camera2CameraInfo
 
 /**
  * Data class representing concurrent camera capability information
@@ -30,12 +31,14 @@ class ConcurrentCameraCapability(private val context: Context) {
      * @return ConcurrentCameraInfo with support status and available combinations
      */
     suspend fun checkSupport(provider: ProcessCameraProvider): ConcurrentCameraInfo {
+        Log.d(TAG, "🔍 Starting concurrent camera support check...")
         try {
             // Get all available cameras
             val availableCameras = provider.availableCameraInfos
+            Log.i(TAG, "📷 Found ${availableCameras.size} available cameras.")
 
             if (availableCameras.size < 2) {
-                Log.w(TAG, "Device has less than 2 cameras (found: ${availableCameras.size})")
+                Log.w(TAG, "❌ FAIL: Device has less than 2 cameras.")
                 return ConcurrentCameraInfo(
                     isSupported = false,
                     availableCombinations = emptyList(),
@@ -44,13 +47,12 @@ class ConcurrentCameraCapability(private val context: Context) {
                 )
             }
 
-            Log.i(TAG, "Device has ${availableCameras.size} cameras available")
-
             // Query concurrent camera support from CameraX
             val concurrentCameraInfos = provider.availableConcurrentCameraInfos
+            Log.i(TAG, "🔗 CameraX reports ${concurrentCameraInfos.size} concurrent camera combinations.")
 
             if (concurrentCameraInfos.isEmpty()) {
-                Log.w(TAG, "No concurrent camera combinations supported by hardware")
+                Log.w(TAG, "❌ FAIL: provider.availableConcurrentCameraInfos returned an empty list.")
                 return ConcurrentCameraInfo(
                     isSupported = false,
                     availableCombinations = emptyList(),
@@ -59,27 +61,46 @@ class ConcurrentCameraCapability(private val context: Context) {
                 )
             }
 
-            Log.i(TAG, "Found ${concurrentCameraInfos.size} concurrent camera combinations")
-
             // Build list of valid combinations
             val combinations = mutableListOf<Pair<Int, Int>>()
 
             concurrentCameraInfos.forEachIndexed { index, concurrentInfo ->
                 val cameraInfoList = concurrentInfo
+                Log.d(TAG, "🔄 Processing combination #$index with ${cameraInfoList.size} cameras.")
+
                 if (cameraInfoList.size >= 2) {
-                    // Map CameraInfo back to camera indices
-                    val firstIndex = availableCameras.indexOf(cameraInfoList[0])
-                    val secondIndex = availableCameras.indexOf(cameraInfoList[1])
+                    // Map CameraInfo back to camera indices using Camera IDs (more robust than object identity)
+                    val firstCamInfo = cameraInfoList[0]
+                    val secondCamInfo = cameraInfoList[1]
+
+                    // Extract camera IDs using Camera2 interop
+                    val firstCameraId = Camera2CameraInfo.from(firstCamInfo).cameraId
+                    val secondCameraId = Camera2CameraInfo.from(secondCamInfo).cameraId
+
+                    // Find indices by matching camera IDs
+                    val firstIndex = availableCameras.indexOfFirst {
+                        Camera2CameraInfo.from(it).cameraId == firstCameraId
+                    }
+                    val secondIndex = availableCameras.indexOfFirst {
+                        Camera2CameraInfo.from(it).cameraId == secondCameraId
+                    }
+
+                    Log.d(TAG, "  📌 Combination #$index: Mapping via camera IDs...")
+                    Log.d(TAG, "    - Cam 1 ID: $firstCameraId -> Index: $firstIndex")
+                    Log.d(TAG, "    - Cam 2 ID: $secondCameraId -> Index: $secondIndex")
 
                     if (firstIndex >= 0 && secondIndex >= 0) {
                         combinations.add(Pair(firstIndex, secondIndex))
-                        Log.d(TAG, "Valid combination #$index: camera $firstIndex + camera $secondIndex")
+                        Log.d(TAG, "  ✅ SUCCESS: Valid combination mapped: camera $firstIndex + camera $secondIndex")
+                    } else {
+                        Log.w(TAG, "  ⚠️ WARN: Failed to map cameras in combination #$index (firstIndex=$firstIndex, secondIndex=$secondIndex)")
+                        Log.w(TAG, "           Camera IDs: $firstCameraId, $secondCameraId")
                     }
                 }
             }
 
             if (combinations.isEmpty()) {
-                Log.w(TAG, "No valid camera combinations could be mapped")
+                Log.w(TAG, "❌ FAIL: No valid camera combinations could be mapped after processing ${concurrentCameraInfos.size} reported combinations.")
                 return ConcurrentCameraInfo(
                     isSupported = false,
                     availableCombinations = emptyList(),
@@ -91,9 +112,9 @@ class ConcurrentCameraCapability(private val context: Context) {
             // Recommend best combination (prefer back + front)
             val recommended = findRecommendedCombination(provider, combinations)
 
-            Log.i(TAG, "✅ Concurrent cameras supported with ${combinations.size} valid combinations")
+            Log.i(TAG, "✅ SUCCESS: Concurrent cameras supported with ${combinations.size} valid combinations.")
             if (recommended != null) {
-                Log.i(TAG, "Recommended combination: main=${recommended.first}, pip=${recommended.second}")
+                Log.i(TAG, "🎯 Recommended combination: main=${recommended.first}, pip=${recommended.second}")
             }
 
             return ConcurrentCameraInfo(
@@ -104,7 +125,7 @@ class ConcurrentCameraCapability(private val context: Context) {
             )
 
         } catch (e: Exception) {
-            Log.e(TAG, "Error checking concurrent camera support", e)
+            Log.e(TAG, "❌ EXCEPTION during concurrent camera support check", e)
             return ConcurrentCameraInfo(
                 isSupported = false,
                 availableCombinations = emptyList(),

@@ -51,10 +51,6 @@ class CameraEngine(
     private var videoWasEnabled = false
     private var analysisWasEnabled = false
 
-    // PiP frame capture for dual camera photos
-    private var latestPipFrame: ImageProxy? = null
-    private val pipFrameLock = Any()
-
     private val pluginManager = PluginManager()
     private val _isInitialized = MutableStateFlow(false)
     private val _currentCameraIndex = MutableStateFlow(0)
@@ -508,27 +504,13 @@ class CameraEngine(
                     mainUseCases.forEach { addUseCase(it) }
                 }.build()
 
-                // Build UseCaseGroup for PiP camera (preview + analysis for frame capture)
-                // Add ImageAnalysis to capture PiP frames for composite photos
-                val pipAnalysis = ImageAnalysis.Builder()
-                    .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-                    .build()
-                    .apply {
-                        setAnalyzer(ContextCompat.getMainExecutor(context)) { image ->
-                            // Store latest PiP frame for composite photos
-                            synchronized(pipFrameLock) {
-                                latestPipFrame?.close() // Close previous frame
-                                latestPipFrame = image
-                            }
-                        }
-                    }
-
+                // Build UseCaseGroup for PiP camera (preview only)
+                // PiP frame will be captured from PreviewView.bitmap when taking photo
                 val pipUseCaseGroup = UseCaseGroup.Builder()
                     .addUseCase(pipPreview)
-                    .addUseCase(pipAnalysis)
                     .build()
 
-                Log.i(TAG, "PiP camera: Preview + ImageAnalysis (2 UseCases for frame capture)")
+                Log.i(TAG, "PiP camera: Preview only (frame captured from PreviewView.bitmap)")
 
                 // Create camera selectors
                 val mainSelector = createCameraSelector(mainCameraIndex)
@@ -655,12 +637,6 @@ class CameraEngine(
                 cameraProvider?.unbindAll()
                 concurrentCamera = null
                 camera = null
-
-                // Clean up PiP frame
-                synchronized(pipFrameLock) {
-                    latestPipFrame?.close()
-                    latestPipFrame = null
-                }
             }
         }
     }
@@ -669,25 +645,6 @@ class CameraEngine(
      * Get current camera mode
      */
     fun getCurrentMode(): CameraMode = currentMode
-
-    /**
-     * Get the latest PiP frame for composite photos
-     * Returns a copy of the frame that must be closed by the caller
-     */
-    fun getLatestPipFrame(): ImageProxy? {
-        synchronized(pipFrameLock) {
-            return latestPipFrame
-        }
-    }
-
-    /**
-     * Check if PiP frame is available for composite photos
-     */
-    fun hasPipFrame(): Boolean {
-        synchronized(pipFrameLock) {
-            return latestPipFrame != null
-        }
-    }
 
     /**
      * Clean up resources and plugins
