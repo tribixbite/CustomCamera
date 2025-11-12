@@ -71,27 +71,51 @@
 
         <activity
             android:name=".SettingsActivity"
-            android:exported="false"
+            android:exported="true"
             android:parentActivityName=".CameraActivityEngine"
-            android:theme="@style/Theme.CustomCamera" />
+            android:theme="@style/Theme.CustomCamera">
+            <!-- ADB testing intent filter -->
+            <intent-filter>
+                <action android:name="com.customcamera.app.TEST_SETTINGS" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
 
         <activity
             android:name=".SimpleSettingsActivity"
-            android:exported="false"
+            android:exported="true"
             android:parentActivityName=".CameraActivityEngine"
-            android:theme="@style/Theme.CustomCamera" />
+            android:theme="@style/Theme.CustomCamera">
+            <!-- ADB testing intent filter -->
+            <intent-filter>
+                <action android:name="com.customcamera.app.TEST_SIMPLE_SETTINGS" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
 
         <activity
             android:name=".GalleryActivity"
-            android:exported="false"
+            android:exported="true"
             android:parentActivityName=".CameraActivityEngine"
-            android:theme="@style/Theme.CustomCamera" />
+            android:theme="@style/Theme.CustomCamera">
+            <!-- ADB testing intent filter -->
+            <intent-filter>
+                <action android:name="com.customcamera.app.TEST_GALLERY" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
 
         <activity
             android:name=".DebugActivity"
-            android:exported="false"
+            android:exported="true"
             android:parentActivityName=".SimpleSettingsActivity"
-            android:theme="@style/Theme.CustomCamera" />
+            android:theme="@style/Theme.CustomCamera">
+            <!-- ADB testing intent filter -->
+            <intent-filter>
+                <action android:name="com.customcamera.app.TEST_DEBUG" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
 
         <!-- FileProvider for sharing photos and videos -->
         <provider

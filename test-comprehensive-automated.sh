@@ -280,15 +280,15 @@ test_activity_intents() {
         log_test "Launch CameraSelectionActivity" "WARN" "May not be accessible directly"
     fi
 
-    # Test 2.5: SettingsActivity
+    # Test 2.5: SettingsActivity (via TEST_SETTINGS intent)
     start=$(date +%s%3N)
-    adb shell am start -n $APP_PACKAGE/.SettingsActivity > /dev/null 2>&1
+    adb shell am start -a com.customcamera.app.TEST_SETTINGS > /dev/null 2>&1
     sleep $WAIT_MEDIUM
 
     activity=$(wait_for_activity "SettingsActivity" 5)
     if [ $? -eq 0 ]; then
         local duration=$(($(date +%s%3N) - start))
-        log_test "Launch SettingsActivity" "PASS" "Settings opened" "$duration"
+        log_test "Launch SettingsActivity" "PASS" "Settings opened via TEST_SETTINGS" "$duration"
         take_screenshot "settings"
         adb shell input keyevent 4  # Back
         sleep $WAIT_SHORT
@@ -296,15 +296,15 @@ test_activity_intents() {
         log_test "Launch SettingsActivity" "FAIL" "Settings not accessible"
     fi
 
-    # Test 2.6: SimpleSettingsActivity
+    # Test 2.6: SimpleSettingsActivity (via TEST_SIMPLE_SETTINGS intent)
     start=$(date +%s%3N)
-    adb shell am start -n $APP_PACKAGE/.SimpleSettingsActivity > /dev/null 2>&1
+    adb shell am start -a com.customcamera.app.TEST_SIMPLE_SETTINGS > /dev/null 2>&1
     sleep $WAIT_MEDIUM
 
     activity=$(wait_for_activity "SimpleSettingsActivity" 5)
     if [ $? -eq 0 ]; then
         local duration=$(($(date +%s%3N) - start))
-        log_test "Launch SimpleSettingsActivity" "PASS" "Simple settings opened" "$duration"
+        log_test "Launch SimpleSettingsActivity" "PASS" "Simple settings opened via TEST_SIMPLE_SETTINGS" "$duration"
         take_screenshot "simple-settings"
         adb shell input keyevent 4  # Back
         sleep $WAIT_SHORT
@@ -312,15 +312,15 @@ test_activity_intents() {
         log_test "Launch SimpleSettingsActivity" "FAIL" "Simple settings not accessible"
     fi
 
-    # Test 2.7: GalleryActivity
+    # Test 2.7: GalleryActivity (via TEST_GALLERY intent)
     start=$(date +%s%3N)
-    adb shell am start -n $APP_PACKAGE/.GalleryActivity > /dev/null 2>&1
+    adb shell am start -a com.customcamera.app.TEST_GALLERY > /dev/null 2>&1
     sleep $WAIT_MEDIUM
 
     activity=$(wait_for_activity "GalleryActivity" 5)
     if [ $? -eq 0 ]; then
         local duration=$(($(date +%s%3N) - start))
-        log_test "Launch GalleryActivity" "PASS" "Gallery opened" "$duration"
+        log_test "Launch GalleryActivity" "PASS" "Gallery opened via TEST_GALLERY" "$duration"
         take_screenshot "gallery"
         adb shell input keyevent 4  # Back
         sleep $WAIT_SHORT
@@ -328,15 +328,15 @@ test_activity_intents() {
         log_test "Launch GalleryActivity" "FAIL" "Gallery not accessible"
     fi
 
-    # Test 2.8: DebugActivity
+    # Test 2.8: DebugActivity (via TEST_DEBUG intent)
     start=$(date +%s%3N)
-    adb shell am start -n $APP_PACKAGE/.DebugActivity > /dev/null 2>&1
+    adb shell am start -a com.customcamera.app.TEST_DEBUG > /dev/null 2>&1
     sleep $WAIT_MEDIUM
 
     activity=$(wait_for_activity "DebugActivity" 5)
     if [ $? -eq 0 ]; then
         local duration=$(($(date +%s%3N) - start))
-        log_test "Launch DebugActivity" "PASS" "Debug screen opened" "$duration"
+        log_test "Launch DebugActivity" "PASS" "Debug screen opened via TEST_DEBUG" "$duration"
         take_screenshot "debug"
         adb shell input keyevent 4  # Back
         sleep $WAIT_SHORT
