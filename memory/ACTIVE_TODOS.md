@@ -1,10 +1,45 @@
-# Active TODOs - Automated Testing & Bug Fixes ✅
+# Active TODOs - Concurrent Camera PiP Fix ✅
 
 **Last Updated**: 2025-11-12
-**Priority**: Comprehensive ADB automated testing and critical bug fixes
-**Status**: 65% test pass rate | Crash investigation complete | Activity accessibility fixed
+**Priority**: Fix dual camera PiP regression from CameraX 1.5.0 upgrade
+**Status**: Detection fixed ✅ | Use case binding fixed ✅ | Pending device testing
 
-## Current Session Context (2025-11-12)
+## Current Session Context (2025-11-12 - Concurrent Camera Fix)
+
+**Dual Camera PiP Regression Fixed (2 Issues):**
+
+1. ✅ **Camera Detection Fixed** (commit f30bb337)
+   - **Problem**: CameraX 1.5.0 concurrent camera detection failed - "dual cam not supported" message
+   - **Root Cause**: Object identity mapping failure - `indexOf()` returned -1 because `CameraInfo` objects from `availableConcurrentCameraInfos` are different instances than `availableCameraInfos`
+   - **Solution**: Used Camera2CameraInfo.from().cameraId for stable identifier matching
+   - **Result**: Detection now works - 2 valid combinations detected (camera 0+1, camera 0+3)
+   - **Consultation**: Gemini-2.5-pro via zen-mcp provided diagnostic approach and fix strategy
+
+2. ✅ **Use Case Binding Fixed** (commit f30bb337)
+   - **Problem**: After detection fix, PiP mode enable failed with "No supported surface combination" error
+   - **Root Cause**: Binding 4 use cases exceeded hardware limits (Preview + ImageCapture for main, Preview + ImageAnalysis for PiP)
+   - **Solution**: Removed ImageAnalysis from PiP camera, use PreviewView.bitmap for photo compositing instead
+   - **Result**: Reduced from 4 to 3 use cases (Preview + ImageCapture for main, Preview only for PiP)
+   - **Trade-off**: PiP image limited to preview resolution instead of full sensor - acceptable for small overlay
+   - **Consultation**: Gemini-2.5-pro confirmed hardware limitation and recommended PreviewView.bitmap approach
+
+**Code Changes:**
+- `ConcurrentCameraCapability.kt`: Camera ID-based mapping, enhanced diagnostic logging
+- `CameraEngine.kt`: Removed latestPipFrame state, ImageAnalysis setup, cleanup code
+- `DualCameraPiPPlugin.kt`: Added getPiPPreviewView() for bitmap access
+- `DualCameraCompositor.kt`: Added overload accepting Bitmap for PiP image
+- `CameraActivityEngine.kt`: Updated photo capture to use PreviewView.bitmap
+
+**Pending:**
+- 🔄 Install rebuilt app (ADB wireless disconnected)
+- 🔄 Test concurrent camera detection shows "supported" message
+- 🔄 Test dual camera PiP mode enables successfully
+- 🔄 Test photo capture with dual camera compositing
+- 🔄 Review captured photos to verify quality
+
+---
+
+## Previous Session Context (2025-11-12 - Automated Testing)
 
 **Comprehensive Automated Testing Complete:**
 - ✅ **test-comprehensive-automated.sh** (755 lines) - Full ADB intent-based test system created
