@@ -1,0 +1,56 @@
+{"test_run": {"timestamp": "2025-11-12T02:15:26-05:00", "tests": [
+    {
+      "name": "ADB connection active",
+      "result": "PASS",
+      "details": "Device connected",
+      "duration_ms": 26
+    }
+,
+    {
+      "name": "App installed",
+      "result": "PASS",
+      "details": "versionName=null",
+      "duration_ms": 254
+    }
+,
+    {
+      "name": "Camera permission granted",
+      "result": "PASS",
+      "details": "",
+      "duration_ms": 0
+    }
+,
+    {
+      "name": "Audio permission granted",
+      "result": "PASS",
+      "details": "",
+      "duration_ms": 0
+    }
+,
+    {
+      "name": "Logcat cleared",
+      "result": "PASS",
+      "details": "Ready for test logging",
+      "duration_ms": 0
+    }
+,
+    {
+      "name": "Launch MainActivity",
+      "result": "PASS",
+      "details": "Navigated to: com.customcamera.app.MainActivity",
+      "duration_ms": 3171
+    }
+,
+    {
+      "name": "Launch CameraActivityEngine",
+      "result": "PASS",
+      "details": "Camera engine started",
+      "duration_ms": 3138
+    }
+,
+    {
+      "name": "TEST_CAMERA intent",
+      "result": "PASS",
+      "details": "Intent handled correctly",
+      "duration_ms": 3181
+    }
