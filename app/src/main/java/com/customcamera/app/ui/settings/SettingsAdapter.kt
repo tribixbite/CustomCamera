@@ -41,15 +41,6 @@ class SettingsAdapter(
     fun submitList(newItems: List<SettingsListItem>) {
         items.clear()
         items.addAll(newItems)
-
-        // Debug: Count CameraItems
-        val cameraItems = items.filterIsInstance<SettingsListItem.CameraItem>()
-        val pipCameraItems = cameraItems.filter { it.isPipCamera }
-        android.util.Log.i("SettingsAdapter", "submitList: ${items.size} total items, ${cameraItems.size} cameras (${pipCameraItems.size} PiP)")
-        pipCameraItems.forEach {
-            android.util.Log.i("SettingsAdapter", "  PiP camera in list: ${it.cameraName}")
-        }
-
         notifyDataSetChanged()
     }
 
@@ -68,8 +59,7 @@ class SettingsAdapter(
     }
 
     override fun getItemViewType(position: Int): Int {
-        val item = items[position]
-        val viewType = when (item) {
+        return when (items[position]) {
             is SettingsListItem.CategoryHeader -> SettingsListItem.VIEW_TYPE_CATEGORY_HEADER
             is SettingsListItem.CameraItem -> SettingsListItem.VIEW_TYPE_CAMERA_ITEM
             is SettingsListItem.PluginItem -> SettingsListItem.VIEW_TYPE_PLUGIN_ITEM
@@ -80,23 +70,14 @@ class SettingsAdapter(
             is SettingsListItem.InfoItem -> SettingsListItem.VIEW_TYPE_INFO_ITEM
             is SettingsListItem.ButtonItem -> SettingsListItem.VIEW_TYPE_BUTTON_ITEM
         }
-
-        // Debug: Log view type for camera items
-        if (item is SettingsListItem.CameraItem) {
-            android.util.Log.i("SettingsAdapter", "getItemViewType pos=$position: ${item.cameraName}, isPip=${item.isPipCamera}, viewType=$viewType")
-        }
-
-        return viewType
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
-        android.util.Log.i("SettingsAdapter", "onCreateViewHolder viewType=$viewType")
         return when (viewType) {
             SettingsListItem.VIEW_TYPE_CATEGORY_HEADER -> {
                 CategoryHeaderViewHolder(createCategoryHeaderView(parent))
             }
             SettingsListItem.VIEW_TYPE_CAMERA_ITEM -> {
-                android.util.Log.i("SettingsAdapter", "Creating CameraItemViewHolder")
                 CameraItemViewHolder(createCameraItemView(parent))
             }
             SettingsListItem.VIEW_TYPE_PLUGIN_ITEM -> {
@@ -125,9 +106,6 @@ class SettingsAdapter(
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-        val item = items[position]
-        android.util.Log.i("SettingsAdapter", "onBindViewHolder pos=$position, itemType=${item::class.simpleName}")
-
         when (holder) {
             is CategoryHeaderViewHolder -> holder.bind(items[position] as SettingsListItem.CategoryHeader)
             is CameraItemViewHolder -> holder.bind(items[position] as SettingsListItem.CameraItem, onCameraSelected)
@@ -141,10 +119,7 @@ class SettingsAdapter(
         }
     }
 
-    override fun getItemCount(): Int {
-        android.util.Log.i("SettingsAdapter", "getItemCount returning ${items.size}")
-        return items.size
-    }
+    override fun getItemCount(): Int = items.size
 
     // ========================================================================
     // ViewHolder Classes
@@ -169,12 +144,8 @@ class SettingsAdapter(
         private val cameraName: TextView = view.findViewById(R.id.camera_name)
 
         fun bind(item: SettingsListItem.CameraItem, onSelected: (Int, Boolean) -> Unit) {
-            android.util.Log.i("SettingsAdapter", "Binding CameraItem: ${item.cameraName}, isPip=${item.isPipCamera}, visible=${itemView.visibility}")
             cameraName.text = item.cameraName
             radioButton.isChecked = item.isSelected
-
-            // Ensure view is visible
-            itemView.visibility = android.view.View.VISIBLE
 
             itemView.setOnClickListener {
                 onSelected(item.cameraIndex, item.isPipCamera)
