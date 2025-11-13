@@ -1,10 +1,44 @@
-# Active TODOs - Critical Bug Fixed, Ready for User Testing ✅
+# Active TODOs - TEST_CAPTURE Intent Fixed ✅
 
-**Last Updated**: 2025-11-13
-**Priority**: P0 Critical Bug Fixed - Photo Save Location
-**Status**: Remote work complete ✅ | Build v2.1.49 installed ✅ | USER TESTING REQUIRED ⏳
+**Last Updated**: 2025-11-13 (Continuation Session)
+**Priority**: P1 Automated Testing Improvements
+**Status**: TEST_CAPTURE fix committed ✅ | Build v2.1.50 ready 🔨 | Automated testing improved ✅
 
-## Current Session Context (2025-11-13 - Critical Bug Fix & Testing)
+## Current Session Context (2025-11-13 Continuation - TEST_CAPTURE Fix)
+
+**User Request**: "go" (continue pending tasks from previous session)
+
+**Work Completed This Session:**
+
+### ✅ TEST_CAPTURE Intent Reliability Fix (commit 7872cccd)
+   - **Issue Found**: TEST_CAPTURE intent failing with "Not bound to a valid Camera" error
+   - **Root Cause**: Camera in Concurrent (PiP) mode takes >2s to initialize, fixed 2-second delay insufficient
+   - **Fix Applied**:
+     - Disable PiP mode before capture (simpler test scenario)
+     - Increase delay from 2s to 5s total (2s for PiP disable + 3s for camera binding)
+     - Add camera state validation before capture attempt
+     - Add error handling with user-facing toast
+   - **Code Changes**: `CameraActivityEngine.kt:202-228` (26 lines)
+   - **Test Results**:
+     - Before fix (16:39:44): ImageCaptureException at line 529
+     - After fix (16:43:32): Successful capture at line 548, photo created: `20251113_024325.jpg`
+   - **Impact**: Automated testing via ADB intents now reliable
+
+**Total Commits This Continuation**: 1
+- 1 code fix (TEST_CAPTURE intent reliability)
+- 89 files committed (includes session report and screenshots from previous session)
+
+**Bugs Fixed**:
+1. ✅ **TEST_CAPTURE Intent (P1)** - FIXED - Intent now reliably captures photos after proper camera binding
+
+**Outstanding Tasks**:
+1. ⏳ **Collapsible Manual Controls (P2)** - Click interaction not working - low priority UX polish
+2. ⏳ **Video Recording Functional Test (P2)** - Verify .mp4 creation workflow
+3. ⏳ **Dynamic Photo Capture Coordinates (P2)** - Query screen size for better ADB tap testing
+
+---
+
+## Previous Session Context (2025-11-13 - Critical Bug Fix & Testing)
 
 **User Request**: "verify with screenshots that all features work" → "look at latest screenshot and document all bugs" → "trigger photo and video capture test and fix until output is correct"
 
