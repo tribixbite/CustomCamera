@@ -241,6 +241,15 @@ class CameraEngine(
                 success = true
             )
 
+            // Log exposure state for debugging over-exposure issues
+            camera?.cameraInfo?.exposureState?.let { exposureState ->
+                Log.i(TAG, "📊 Exposure State: " +
+                    "Range=${exposureState.exposureCompensationRange}, " +
+                    "Step=${exposureState.exposureCompensationStep}, " +
+                    "Index=${exposureState.exposureCompensationIndex}, " +
+                    "Supported=${exposureState.isExposureCompensationSupported}")
+            }
+
             // Log initial camera state (snapshot at bind time)
             val currentState = camera?.cameraInfo?.cameraState?.value
             currentState?.let { state ->
