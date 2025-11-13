@@ -501,7 +501,13 @@ class CameraActivityEngine : AppCompatActivity() {
             )
 
             val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-            val photoFile = File(filesDir, "CAMERA_ENGINE_$timestamp.jpg")
+            // Save to public DCIM/Camera directory so photos appear in gallery
+            val picturesDir = android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_DCIM)
+            val cameraDir = File(picturesDir, "Camera")
+            if (!cameraDir.exists()) {
+                cameraDir.mkdirs()
+            }
+            val photoFile = File(cameraDir, "$timestamp.jpg")
             val outputFileOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
 
             // Check if night mode is enabled for long exposure capture
