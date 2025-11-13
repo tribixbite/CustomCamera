@@ -202,7 +202,26 @@ class CameraActivityEngine : AppCompatActivity() {
             "com.customcamera.app.TEST_CAPTURE" -> {
                 Log.i(TAG, "🧪 TEST_CAPTURE intent received - will capture photo after camera starts")
                 lifecycleScope.launch {
-                    kotlinx.coroutines.delay(2000) // Wait for camera to initialize
+                    // Disable PiP mode for simpler test scenario
+                    val isPiPCurrentlyEnabled = dualCameraPiPPlugin?.isPiPEnabled?.value ?: false
+                    if (isPiPCurrentlyEnabled) {
+                        Log.i(TAG, "🧪 Disabling PiP mode for TEST_CAPTURE")
+                        togglePiP() // Turn off PiP for cleaner test
+                        kotlinx.coroutines.delay(2000) // Wait for mode switch
+                    }
+
+                    // Wait longer for camera to fully bind (especially after mode changes)
+                    kotlinx.coroutines.delay(3000) // 3 seconds for camera binding
+
+                    // Verify camera is bound before capturing
+                    val imageCapture = cameraEngine.getImageCapture()
+                    if (imageCapture == null) {
+                        Log.e(TAG, "🧪 TEST_CAPTURE failed: ImageCapture not available")
+                        com.customcamera.app.presentation.EnhancedToast.error(this@CameraActivityEngine, "Camera not ready for capture", android.widget.Toast.LENGTH_SHORT)
+                        return@launch
+                    }
+
+                    Log.i(TAG, "🧪 Camera ready, capturing photo...")
                     capturePhoto()
                     Log.i(TAG, "🧪 Photo captured via test intent")
                 }
