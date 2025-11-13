@@ -31,10 +31,18 @@
 **Bugs Fixed**:
 1. ✅ **TEST_CAPTURE Intent (P1)** - FIXED - Intent now reliably captures photos after proper camera binding
 
+### ✅ Manual Controls UI Investigation
+   - **Issue Reported**: "horrible ui with manual controls bar behind other elements"
+   - **Investigation Result**: ProControlsPlugin creates UI but never adds it to view hierarchy
+   - **Finding**: Manual controls UI not currently displayed (incomplete integration)
+   - **Code Location**: `ProControlsPlugin.kt:164` creates UI, but no `addView()` call in CameraActivityEngine
+   - **Status**: Cannot reproduce - UI overlay doesn't exist in current build
+   - **Recommendation**: User should verify if issue still occurs, or may have been misidentified
+
 **Outstanding Tasks**:
-1. ⏳ **Collapsible Manual Controls (P2)** - Click interaction not working - low priority UX polish
-2. ⏳ **Video Recording Functional Test (P2)** - Verify .mp4 creation workflow
-3. ⏳ **Dynamic Photo Capture Coordinates (P2)** - Query screen size for better ADB tap testing
+1. ⏳ **Video Recording Functional Test (P2)** - Verify .mp4 creation workflow
+2. ⏳ **Dynamic Photo Capture Coordinates (P2)** - Query screen size for better ADB tap testing
+3. ⏳ **Manual Controls UI Integration (P3)** - Complete ProControlsPlugin UI integration if needed
 
 ---
 
