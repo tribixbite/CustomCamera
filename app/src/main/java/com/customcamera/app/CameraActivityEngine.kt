@@ -553,6 +553,11 @@ class CameraActivityEngine : AppCompatActivity() {
                 object : ImageCapture.OnImageCapturedCallback() {
                     override fun onCaptureSuccess(mainImage: ImageProxy) {
                         try {
+                            // Verify we're on main thread (required by PreviewView.getBitmap())
+                            check(android.os.Looper.myLooper() == android.os.Looper.getMainLooper()) {
+                                "PreviewView.getBitmap() must be called on the main thread"
+                            }
+
                             // Get PiP bitmap from PreviewView (must run on main thread)
                             val pipPreviewView = dualCameraPiPPlugin?.getPiPPreviewView()
                             val pipBitmap = pipPreviewView?.bitmap
@@ -563,31 +568,36 @@ class CameraActivityEngine : AppCompatActivity() {
                                 return
                             }
 
-                            // Get PiP overlay position
-                            val pipRect = dualCameraPiPPlugin?.getPiPOverlayRect() ?: android.graphics.RectF(0.7f, 0.7f, 0.95f, 0.9f)
+                            try {
+                                // Get PiP overlay position
+                                val pipRect = dualCameraPiPPlugin?.getPiPOverlayRect() ?: android.graphics.RectF(0.7f, 0.7f, 0.95f, 0.9f)
 
-                            Log.i(TAG, "PiP bitmap: ${pipBitmap.width}x${pipBitmap.height}, PiP rect: $pipRect")
+                                Log.i(TAG, "PiP bitmap: ${pipBitmap.width}x${pipBitmap.height}, PiP rect: $pipRect")
 
-                            // Composite images using PreviewView.bitmap approach
-                            Log.i(TAG, "Calling DualCameraCompositor.compositeImages() with PreviewView bitmap...")
-                            val success = com.customcamera.app.utils.DualCameraCompositor.compositeImages(
-                                mainImage = mainImage,
-                                pipBitmap = pipBitmap,
-                                pipRect = pipRect,
-                                outputFile = photoFile
-                            )
+                                // Composite images using PreviewView.bitmap approach
+                                Log.i(TAG, "Calling DualCameraCompositor.compositeImages() with PreviewView bitmap...")
+                                val success = com.customcamera.app.utils.DualCameraCompositor.compositeImages(
+                                    mainImage = mainImage,
+                                    pipBitmap = pipBitmap,
+                                    pipRect = pipRect,
+                                    outputFile = photoFile
+                                )
 
-                            mainImage.close()
+                                mainImage.close()
 
-                            if (success) {
-                                loadingIndicatorManager.hideLoading()
-                                com.customcamera.app.presentation.EnhancedToast.dualCameraPhoto(this@CameraActivityEngine, photoFile.name)
-                                hapticManager.photoCapture()
-                                Log.i(TAG, "✅ Dual camera photo saved: ${photoFile.absolutePath}")
-                                animateCaptureButton()
-                            } else {
-                                Log.e(TAG, "Composite failed, capturing screen view")
-                                captureScreenFallback(photoFile)
+                                if (success) {
+                                    loadingIndicatorManager.hideLoading()
+                                    com.customcamera.app.presentation.EnhancedToast.dualCameraPhoto(this@CameraActivityEngine, photoFile.name)
+                                    hapticManager.photoCapture()
+                                    Log.i(TAG, "✅ Dual camera photo saved: ${photoFile.absolutePath}")
+                                    animateCaptureButton()
+                                } else {
+                                    Log.e(TAG, "Composite failed, capturing screen view")
+                                    captureScreenFallback(photoFile)
+                                }
+                            } finally {
+                                // Always recycle PiP bitmap to prevent memory leak
+                                pipBitmap.recycle()
                             }
                         } catch (e: Exception) {
                             Log.e(TAG, "Dual camera capture failed, capturing screen view", e)

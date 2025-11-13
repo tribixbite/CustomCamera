@@ -64,32 +64,29 @@ class ConcurrentCameraCapability(private val context: Context) {
             // Build list of valid combinations
             val combinations = mutableListOf<Pair<Int, Int>>()
 
+            // Pre-calculate a map of camera IDs to indices for O(1) lookup (performance optimization)
+            val cameraIdToIndexMap = availableCameras.mapIndexed { index, cameraInfo ->
+                Camera2CameraInfo.from(cameraInfo).cameraId to index
+            }.toMap()
+
             concurrentCameraInfos.forEachIndexed { index, concurrentInfo ->
                 val cameraInfoList = concurrentInfo
                 Log.d(TAG, "🔄 Processing combination #$index with ${cameraInfoList.size} cameras.")
 
                 if (cameraInfoList.size >= 2) {
-                    // Map CameraInfo back to camera indices using Camera IDs (more robust than object identity)
-                    val firstCamInfo = cameraInfoList[0]
-                    val secondCamInfo = cameraInfoList[1]
-
                     // Extract camera IDs using Camera2 interop
-                    val firstCameraId = Camera2CameraInfo.from(firstCamInfo).cameraId
-                    val secondCameraId = Camera2CameraInfo.from(secondCamInfo).cameraId
+                    val firstCameraId = Camera2CameraInfo.from(cameraInfoList[0]).cameraId
+                    val secondCameraId = Camera2CameraInfo.from(cameraInfoList[1]).cameraId
 
-                    // Find indices by matching camera IDs
-                    val firstIndex = availableCameras.indexOfFirst {
-                        Camera2CameraInfo.from(it).cameraId == firstCameraId
-                    }
-                    val secondIndex = availableCameras.indexOfFirst {
-                        Camera2CameraInfo.from(it).cameraId == secondCameraId
-                    }
+                    // Use the map for O(1) lookup instead of O(N) indexOfFirst
+                    val firstIndex = cameraIdToIndexMap[firstCameraId]
+                    val secondIndex = cameraIdToIndexMap[secondCameraId]
 
                     Log.d(TAG, "  📌 Combination #$index: Mapping via camera IDs...")
                     Log.d(TAG, "    - Cam 1 ID: $firstCameraId -> Index: $firstIndex")
                     Log.d(TAG, "    - Cam 2 ID: $secondCameraId -> Index: $secondIndex")
 
-                    if (firstIndex >= 0 && secondIndex >= 0) {
+                    if (firstIndex != null && secondIndex != null) {
                         combinations.add(Pair(firstIndex, secondIndex))
                         Log.d(TAG, "  ✅ SUCCESS: Valid combination mapped: camera $firstIndex + camera $secondIndex")
                     } else {

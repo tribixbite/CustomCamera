@@ -621,6 +621,14 @@ class DualCameraPiPPlugin : UIPlugin() {
     /**
      * Get the PiP PreviewView for capturing bitmap
      * Returns null if PiP mode is not enabled
+     *
+     * NOTE: PreviewView.bitmap resolution is limited to preview resolution (~1920x1080)
+     * instead of full sensor resolution. This trade-off was made to reduce hardware
+     * use cases from 4 to 3 (within device limits), avoiding "No supported surface
+     * combination" errors on Samsung Galaxy S23 and similar devices.
+     *
+     * For dual camera photo compositing, the PiP image quality is acceptable given
+     * the small overlay size in the final composite image.
      */
     fun getPiPPreviewView(): PreviewView? {
         return pipOverlayView?.getPreviewView()
