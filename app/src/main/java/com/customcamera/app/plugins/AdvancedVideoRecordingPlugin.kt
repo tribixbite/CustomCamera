@@ -32,6 +32,11 @@ class AdvancedVideoRecordingPlugin : UIPlugin() {
     override val version: String = "1.0.0"
     override val priority: Int = 25 // High priority for video management
 
+    // Start disabled by default - video mode is opt-in for cleaner photo-first UI
+    init {
+        isEnabled = false
+    }
+
     private var cameraContext: CameraContext? = null
     private var videoControlsOverlay: VideoControlsOverlay? = null
     private var videoQualityManager: VideoQualityManager? = null

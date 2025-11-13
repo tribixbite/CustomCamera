@@ -228,17 +228,13 @@ class SimpleSettingsActivity : AppCompatActivity() {
 
             // Dual Camera PiP Settings Section
             if (availableCameras.size >= 2) {
+                Log.i(TAG, "Adding PiP camera section (${availableCameras.size} cameras available)")
                 items.add(SettingsListItem.CategoryHeader("Dual Camera (PiP) Settings"))
 
-                items.add(SettingsListItem.InfoItem(
-                    key = "pip_camera_info",
-                    title = "PiP Camera Selection",
-                    description = "Select the camera to use for Picture-in-Picture mode",
-                    value = "Front camera recommended for PiP when main is back camera"
-                ))
-
                 val selectedPipCameraIndex = settingsManager.pipCameraIndex.value
+                Log.i(TAG, "Selected PiP camera index: $selectedPipCameraIndex")
                 availableCameras.forEach { (index, name) ->
+                    Log.i(TAG, "Adding PiP camera item: index=$index, name=$name")
                     items.add(
                         SettingsListItem.CameraItem(
                             cameraIndex = index,
@@ -249,7 +245,19 @@ class SimpleSettingsActivity : AppCompatActivity() {
                     )
                 }
 
+                // Info item after cameras so they're visible immediately
+                items.add(SettingsListItem.InfoItem(
+                    key = "pip_camera_info",
+                    title = "PiP Camera Selection",
+                    description = "Select the camera to use for Picture-in-Picture mode",
+                    value = "Front camera recommended for PiP when main is back camera"
+                ))
+
+                Log.i(TAG, "Total items after PiP section: ${items.size}")
+
                 items.add(SettingsListItem.SectionDivider)
+            } else {
+                Log.w(TAG, "PiP section skipped - only ${availableCameras.size} cameras available")
             }
 
             // Photo Settings Section
