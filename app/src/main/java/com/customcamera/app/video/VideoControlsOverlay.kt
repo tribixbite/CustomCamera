@@ -253,14 +253,14 @@ class VideoControlsOverlay @JvmOverloads constructor(
     }
 
     private fun createManualControlsPanel(): LinearLayout {
-        return LinearLayout(context).apply {
+        val containerPanel = LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
             )
             // Material 3 spacing
-            setPadding(16, 12, 16, 12)
+            setPadding(16, 8, 16, 8)
 
             // Material 3 background with proper elevation
             background = ContextCompat.getDrawable(context, android.R.drawable.dialog_holo_dark_frame)
@@ -270,26 +270,70 @@ class VideoControlsOverlay @JvmOverloads constructor(
             // Material 3 rounded corners
             clipToOutline = true
             outlineProvider = android.view.ViewOutlineProvider.BACKGROUND
+        }
 
-            // Title - Material 3 typography
-            val title = TextView(context).apply {
-                text = "Manual Controls"
-                textSize = 16f  // Material headline6
-                setTextColor(Color.argb(255, 229, 225, 230))  // Material on-surface
-                typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
-                gravity = Gravity.CENTER
-                letterSpacing = 0.015f  // Material letter spacing
-                layoutParams = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
-                ).apply {
-                    setMargins(0, 0, 0, 12)
-                }
+        // Create collapsible content container
+        val contentContainer = LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+            // Start collapsed
+            visibility = View.GONE
+        }
+
+        // Clickable header to toggle expand/collapse
+        val headerContainer = LinearLayout(context).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+            setPadding(0, 8, 0, 8)
+
+            setOnClickListener {
+                // Toggle visibility
+                contentContainer.visibility = if (contentContainer.visibility == View.VISIBLE) View.GONE else View.VISIBLE
+                // Update indicator
+                val indicator = getChildAt(getChildCount() - 1) as? TextView
+                indicator?.text = if (contentContainer.visibility == View.VISIBLE) "▼" else "▶"
             }
-            addView(title)
+        }
 
-            // Controls grid
-            val controlsGrid = LinearLayout(context).apply {
+        // Title - Material 3 typography (more compact)
+        val title = TextView(context).apply {
+            text = "Manual Controls"
+            textSize = 14f  // Reduced from 16f
+            setTextColor(Color.argb(255, 229, 225, 230))  // Material on-surface
+            typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
+            letterSpacing = 0.015f  // Material letter spacing
+            layoutParams = LinearLayout.LayoutParams(
+                0,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                1f  // Take remaining space
+            )
+        }
+
+        // Collapse/expand indicator
+        val indicator = TextView(context).apply {
+            text = "▶"  // Right arrow for collapsed
+            textSize = 14f
+            setTextColor(Color.argb(255, 229, 225, 230))
+            gravity = Gravity.CENTER
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+        }
+
+        headerContainer.addView(title)
+        headerContainer.addView(indicator)
+        containerPanel.addView(headerContainer)
+
+        // Controls grid
+        val controlsGrid = LinearLayout(context).apply {
                 orientation = LinearLayout.VERTICAL
                 layoutParams = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
@@ -427,10 +471,15 @@ class VideoControlsOverlay @JvmOverloads constructor(
             stabilizationStrengthContainer.addView(stabilizationStrengthLabel)
             stabilizationStrengthContainer.addView(stabilizationStrengthSeekBar)
 
-            addView(controlsGrid)
-            addView(stabilizationModeContainer)
-            addView(stabilizationStrengthContainer)
-        }
+            // Add all controls to the collapsible content container
+            contentContainer.addView(controlsGrid)
+            contentContainer.addView(stabilizationModeContainer)
+            contentContainer.addView(stabilizationStrengthContainer)
+
+        // Add content container to panel (starts collapsed)
+        containerPanel.addView(contentContainer)
+
+        return containerPanel
     }
 
     private fun createToggleButton(text: String, onToggle: (Boolean) -> Unit): ToggleButton {

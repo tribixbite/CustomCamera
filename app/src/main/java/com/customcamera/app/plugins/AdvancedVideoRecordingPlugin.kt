@@ -135,8 +135,24 @@ class AdvancedVideoRecordingPlugin : UIPlugin() {
         // Create video controls overlay
         videoControlsOverlay = VideoControlsOverlay(context.context).apply {
             setVideoPlugin(this@AdvancedVideoRecordingPlugin)
+            // Hide by default - only show when plugin is enabled
+            visibility = View.GONE
         }
         return videoControlsOverlay
+    }
+
+    override fun onPluginEnabled() {
+        super.onPluginEnabled()
+        // Show video controls when plugin is enabled
+        videoControlsOverlay?.visibility = View.VISIBLE
+        Log.d(TAG, "Video controls overlay shown (plugin enabled)")
+    }
+
+    override fun onPluginDisabled() {
+        super.onPluginDisabled()
+        // Hide video controls when plugin is disabled
+        videoControlsOverlay?.visibility = View.GONE
+        Log.d(TAG, "Video controls overlay hidden (plugin disabled)")
     }
 
     /**
