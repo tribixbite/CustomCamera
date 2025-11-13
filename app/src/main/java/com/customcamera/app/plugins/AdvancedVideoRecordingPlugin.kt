@@ -124,6 +124,12 @@ class AdvancedVideoRecordingPlugin : UIPlugin() {
         // VideoCapture is already configured by CameraEngine with explicit audio settings
         // Plugin retrieves it via cameraContext?.cameraEngine?.getVideoCapture()
 
+        // Sync overlay visibility with plugin enabled state after initialization
+        videoControlsOverlay?.post {
+            videoControlsOverlay?.visibility = if (isEnabled) View.VISIBLE else View.GONE
+            Log.d(TAG, "Video controls overlay visibility synced: ${if (isEnabled) "VISIBLE" else "GONE"}")
+        }
+
         cameraContext?.debugLogger?.logPlugin(
             name,
             "camera_ready",
@@ -135,7 +141,8 @@ class AdvancedVideoRecordingPlugin : UIPlugin() {
         // Create video controls overlay
         videoControlsOverlay = VideoControlsOverlay(context.context).apply {
             setVideoPlugin(this@AdvancedVideoRecordingPlugin)
-            // Hide by default - only show when plugin is enabled
+            // Start with controls hidden - shown via onPluginEnabled() when user enables plugin
+            // This provides a cleaner initial camera UI focused on photo mode
             visibility = View.GONE
         }
         return videoControlsOverlay
