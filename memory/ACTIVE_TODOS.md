@@ -1,14 +1,34 @@
-# Active TODOs - TEST_VIDEO Intent Fully Functional ✅
+# Active TODOs - All P2 Testing Infrastructure Complete ✅
 
-**Last Updated**: 2025-11-13 (Continuation Session 3)
-**Priority**: All Critical Bugs FIXED ✅
-**Status**: TEST_VIDEO working ✅ | Camera rebind fix ✅ | Build v2.1.51 verified 🎉 | All ADB intents operational ⚡
+**Last Updated**: 2025-11-13 (Continuation Session 4)
+**Priority**: Testing Infrastructure Improvements
+**Status**: Dynamic coordinates ✅ | Device-independent testing ✅ | Test script v2.1 🎉
 
-## Current Session Context (2025-11-13 Continuation #3 - Camera Rebind Fix)
+## Current Session Context (2025-11-13 Continuation #4 - Testing Infrastructure)
 
-**User Request**: "go" (continue with pending video recording testing)
+**User Request**: "go" (continue with next priority tasks)
 
 **Work Completed This Session:**
+
+### ✅ Dynamic Screen Coordinate Calculation (commit 70ee2d0e)
+   - **Issue**: Test script used hardcoded tap coordinates (540x800, 540x2200, 540x1200) that only work on 1080x2400 screens
+   - **Solution**: Implemented dynamic coordinate calculation system
+   - **New Functions**:
+     - `get_screen_dimensions()` - Query device screen size via `adb shell wm size` with fallbacks
+     - `calc_tap_coord(x%, y%)` - Calculate absolute coordinates from percentages
+     - `tap_at_percent(x%, y%)` - Execute tap at percentage-based position
+   - **Replacements**:
+     - Camera selection: `540 800` → `tap_at_percent 50 33` (center-x, upper-y)
+     - Capture button: `540 2200` → `tap_at_percent 50 92` (center-x, bottom-y)
+     - Multi-tap gestures: `540 1200` → `tap_at_percent 50 50` (center screen)
+   - **Code Changes**: `test-comprehensive-automated.sh` (55 insertions, 10 deletions)
+   - **Impact**: Tests now work on any Android device screen size, device-independent testing
+   - **Version**: Test script v2.0 → v2.1 (Dynamic Screen Coordinates)
+
+**Total Commits This Session**: 1
+- 70ee2d0e: Dynamic screen coordinate calculation
+
+**Previous Session Work (Continuation #3):**
 
 ### ✅ TEST_VIDEO Intent Camera Rebind Fix (commit 21eb934d)
    - **Issue Found**: TEST_VIDEO failing with ERROR_NO_VALID_DATA despite plugin.enable() and timing fixes
@@ -64,19 +84,24 @@
    - **Error Handling**: Comprehensive validation with user-facing toasts
    - **Usage**: `adb shell am start -a com.customcamera.app.TEST_VIDEO -n com.customcamera.app/.CameraActivityEngine`
 
-**Total Commits Across All Continuation Sessions**: 5
+**Total Commits Across All Continuation Sessions**: 7
 - 7872cccd: TEST_CAPTURE intent fix (Session 1)
 - 43adb443: ACTIVE_TODOS documentation (Session 1)
 - 109c2c26: Manual controls investigation (Session 1)
 - 83b04687: Video save location + TEST_VIDEO intent (Session 2)
-- 21eb934d: TEST_VIDEO camera rebind fix (Session 3) ⭐ NEW
+- 21eb934d: TEST_VIDEO camera rebind fix (Session 3)
+- 285e8926: ACTIVE_TODOS update (Session 3)
+- 70ee2d0e: Dynamic screen coordinate calculation (Session 4) ⭐ NEW
 
 **Bugs Fixed - All Complete**:
 1. ✅ **Video Save Location (P0)** - FIXED - Videos now save to `/sdcard/DCIM/Camera/`
 2. ✅ **TEST_CAPTURE Intent (P1)** - FIXED - Reliable photo capture testing
 3. ✅ **TEST_VIDEO Intent (P1)** - FIXED - Automated video recording testing with camera rebind
 
-**Current Status**: All test intents operational, no blockers
+**Testing Improvements**:
+1. ✅ **Dynamic Photo Capture Coordinates (P2)** - FIXED - Device-independent tap coordinates
+
+**Current Status**: All test intents operational, testing infrastructure improved, no blockers
 
 **Previous Session Work:**
 
@@ -110,9 +135,9 @@
    - **Recommendation**: User should verify if issue still occurs, or may have been misidentified
 
 **Outstanding Tasks**:
-1. ⏳ **Video Recording Functional Test (P2)** - Verify .mp4 creation workflow
-2. ⏳ **Dynamic Photo Capture Coordinates (P2)** - Query screen size for better ADB tap testing
-3. ⏳ **Manual Controls UI Integration (P3)** - Complete ProControlsPlugin UI integration if needed
+1. ✅ **Video Recording Functional Test (P2)** - COMPLETE - Verified .mp4 creation via TEST_VIDEO intent
+2. ✅ **Dynamic Photo Capture Coordinates (P2)** - COMPLETE - Implemented percentage-based tap coordinates
+3. ⏳ **Manual Controls UI Integration (P3)** - Complete ProControlsPlugin UI integration if needed (pending user verification)
 
 ---
 
