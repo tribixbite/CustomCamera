@@ -1,14 +1,44 @@
-# Active TODOs - Video Save Location Fixed + TEST_VIDEO Intent ✅
+# Active TODOs - TEST_VIDEO Intent Fully Functional ✅
 
-**Last Updated**: 2025-11-13 (Continuation Session 2)
-**Priority**: P0 Critical Bug - Video Save Location
-**Status**: Video bug fixed ✅ | TEST_VIDEO intent added ✅ | Build v2.1.51 ready 🔨 | ADB testing blocked ⚠️
+**Last Updated**: 2025-11-13 (Continuation Session 3)
+**Priority**: All Critical Bugs FIXED ✅
+**Status**: TEST_VIDEO working ✅ | Camera rebind fix ✅ | Build v2.1.51 verified 🎉 | All ADB intents operational ⚡
 
-## Current Session Context (2025-11-13 Continuation #2 - Video Fixes)
+## Current Session Context (2025-11-13 Continuation #3 - Camera Rebind Fix)
 
 **User Request**: "go" (continue with pending video recording testing)
 
 **Work Completed This Session:**
+
+### ✅ TEST_VIDEO Intent Camera Rebind Fix (commit 21eb934d)
+   - **Issue Found**: TEST_VIDEO failing with ERROR_NO_VALID_DATA despite plugin.enable() and timing fixes
+   - **Root Cause**: AdvancedVideoRecordingPlugin defaults to disabled. VideoCapture UseCase bound during initialization but set to INACTIVE due to plugin state. Calling plugin.enable() updates state but doesn't trigger camera lifecycle rebinding, so VideoCapture remains INACTIVE.
+   - **Fix Applied**: After enabling plugin, rebind camera with proper CameraConfig
+     ```kotlin
+     plugin.enable()
+     // Rebind camera to activate VideoCapture UseCase
+     val rebindConfig = CameraConfig(
+         cameraIndex = cameraIndex,
+         enablePreview = true,
+         enableImageCapture = true,
+         enableVideoCapture = true,
+         enableImageAnalysis = false
+     )
+     cameraEngine.bindCamera(rebindConfig)
+     kotlinx.coroutines.delay(2000)
+     ```
+   - **Code Changes**: `CameraActivityEngine.kt:259-273` (15 lines added)
+   - **Test Results**:
+     - Before fix: ERROR_NO_VALID_DATA, VideoCapture INACTIVE in logs
+     - After fix: Recording finalized successfully, 16MB video created
+     - Video file: `/sdcard/DCIM/Camera/video_1763083078829.mp4`
+   - **Impact**: TEST_VIDEO intent now fully functional for automated video recording testing
+   - **Key Learning**: Plugin state changes require explicit camera rebinding to update active UseCases
+
+**Total Commits This Session**: 1
+- 21eb934d: TEST_VIDEO camera rebind fix (camera lifecycle pattern documented)
+
+**Previous Session Work:**
 
 ### ✅ Video Save Location Bug Fix (commit 83b04687)
    - **Issue Found**: Videos saving to private app storage instead of public DCIM
@@ -34,24 +64,19 @@
    - **Error Handling**: Comprehensive validation with user-facing toasts
    - **Usage**: `adb shell am start -a com.customcamera.app.TEST_VIDEO -n com.customcamera.app/.CameraActivityEngine`
 
-**Total Commits This Session**: 4
-- 7872cccd: TEST_CAPTURE intent fix
-- 43adb443: ACTIVE_TODOS documentation
-- 109c2c26: Manual controls investigation
-- 83b04687: Video save location + TEST_VIDEO intent
+**Total Commits Across All Continuation Sessions**: 5
+- 7872cccd: TEST_CAPTURE intent fix (Session 1)
+- 43adb443: ACTIVE_TODOS documentation (Session 1)
+- 109c2c26: Manual controls investigation (Session 1)
+- 83b04687: Video save location + TEST_VIDEO intent (Session 2)
+- 21eb934d: TEST_VIDEO camera rebind fix (Session 3) ⭐ NEW
 
-**Bugs Fixed**:
+**Bugs Fixed - All Complete**:
 1. ✅ **Video Save Location (P0)** - FIXED - Videos now save to `/sdcard/DCIM/Camera/`
 2. ✅ **TEST_CAPTURE Intent (P1)** - FIXED - Reliable photo capture testing
-3. ✅ **TEST_VIDEO Intent (P1)** - NEW - Automated video recording testing
+3. ✅ **TEST_VIDEO Intent (P1)** - FIXED - Automated video recording testing with camera rebind
 
-**Current Blocker**:
-- ⚠️ **ADB Connection Lost** - Wireless ADB disconnected during testing
-- **Impact**: Cannot test TEST_VIDEO intent or install updated APK
-- **User Action Required**:
-  - Ensure device awake and on WiFi
-  - Re-enable wireless ADB: `adb tcpip 5555` via USB, then `adb connect <IP>:5555`
-  - Or use USB connection for testing
+**Current Status**: All test intents operational, no blockers
 
 **Previous Session Work:**
 
