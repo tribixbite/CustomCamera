@@ -6,8 +6,8 @@
 # Tests all 8 activities, 23 plugins, settings, and capture functionality
 #
 # Author: Claude Code
-# Date: 2025-11-12
-# Version: 2.0 - Intent-based comprehensive coverage
+# Date: 2025-11-13
+# Version: 2.1 - Dynamic screen coordinates (device-independent)
 ################################################################################
 
 # set -e  # Commented out to allow test suite to continue despite individual test failures
@@ -42,7 +42,7 @@ init_log() {
 
 **Date**: $(date)
 **Tester**: Automated ADB Intent-Based Test System
-**Version**: 2.0 - Full Coverage
+**Version**: 2.1 - Dynamic Screen Coordinates
 **Device**: $(adb shell getprop ro.product.model)
 **Android Version**: $(adb shell getprop ro.build.version.release)
 **Package**: $APP_PACKAGE
@@ -153,6 +153,51 @@ clear_app_data() {
 take_screenshot() {
     local name="$1"
     adb shell screencap -p "/sdcard/test-screenshot-$name.png" 2>/dev/null || true
+}
+
+# Screen dimension caching for dynamic coordinate calculation
+SCREEN_WIDTH=""
+SCREEN_HEIGHT=""
+
+get_screen_dimensions() {
+    if [ -z "$SCREEN_WIDTH" ] || [ -z "$SCREEN_HEIGHT" ]; then
+        local size=$(adb shell wm size | grep "Physical size" | cut -d: -f2 | tr -d ' ')
+        SCREEN_WIDTH=$(echo "$size" | cut -dx -f1)
+        SCREEN_HEIGHT=$(echo "$size" | cut -dx -f2)
+
+        # Fallback if no physical size reported
+        if [ -z "$SCREEN_WIDTH" ]; then
+            size=$(adb shell wm size | grep "Override size" | cut -d: -f2 | tr -d ' ')
+            SCREEN_WIDTH=$(echo "$size" | cut -dx -f1)
+            SCREEN_HEIGHT=$(echo "$size" | cut -dx -f2)
+        fi
+
+        # Default to common resolution if all else fails
+        if [ -z "$SCREEN_WIDTH" ] || [ "$SCREEN_WIDTH" = "0" ]; then
+            SCREEN_WIDTH=1080
+            SCREEN_HEIGHT=2400
+            echo "⚠️  Warning: Could not detect screen size, using default 1080x2400"
+        fi
+    fi
+}
+
+calc_tap_coord() {
+    local x_percent="$1"  # 0-100
+    local y_percent="$2"  # 0-100
+
+    get_screen_dimensions
+
+    local x=$((SCREEN_WIDTH * x_percent / 100))
+    local y=$((SCREEN_HEIGHT * y_percent / 100))
+
+    echo "$x $y"
+}
+
+tap_at_percent() {
+    local x_percent="$1"
+    local y_percent="$2"
+    local coords=$(calc_tap_coord "$x_percent" "$y_percent")
+    adb shell input tap $coords
 }
 
 ################################################################################
@@ -273,8 +318,8 @@ test_activity_intents() {
         log_test "Launch CameraSelectionActivity" "PASS" "Camera selection UI opened" "$duration"
         take_screenshot "camera-selection"
 
-        # Select first camera
-        adb shell input tap 540 800
+        # Select first camera (dynamic: center-x 50%, upper-y 33%)
+        tap_at_percent 50 33
         sleep $WAIT_SHORT
     else
         log_test "Launch CameraSelectionActivity" "WARN" "May not be accessible directly"
@@ -484,8 +529,8 @@ test_capture_functionality() {
     local start=$(date +%s%3N)
     local before_count=$(adb shell "ls /sdcard/DCIM/CustomCamera/*.jpg /data/data/$APP_PACKAGE/files/*.jpg 2>/dev/null | wc -l" | tr -d ' ')
 
-    # Tap capture button (center bottom)
-    adb shell input tap 540 2200
+    # Tap capture button (dynamic: center-x 50%, bottom-y 92%)
+    tap_at_percent 50 92
     sleep $WAIT_MEDIUM
 
     local after_count=$(adb shell "ls /sdcard/DCIM/CustomCamera/*.jpg /data/data/$APP_PACKAGE/files/*.jpg 2>/dev/null | wc -l" | tr -d ' ')
@@ -523,11 +568,11 @@ test_gestures() {
     adb shell am start -n $APP_PACKAGE/.CameraActivityEngine > /dev/null 2>&1
     sleep $WAIT_MEDIUM
 
-    # Test 7.1: Multi-tap gesture (2-tap for grid)
+    # Test 7.1: Multi-tap gesture (2-tap for grid, dynamic: center 50%/50%)
     local start=$(date +%s%3N)
-    adb shell input tap 540 1200
+    tap_at_percent 50 50
     sleep 0.2
-    adb shell input tap 540 1200
+    tap_at_percent 50 50
     sleep $WAIT_SHORT
 
     if adb logcat -d -t 100 | grep -qi "grid\|overlay"; then
