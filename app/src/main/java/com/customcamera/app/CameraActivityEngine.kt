@@ -226,6 +226,52 @@ class CameraActivityEngine : AppCompatActivity() {
                     Log.i(TAG, "🧪 Photo captured via test intent")
                 }
             }
+            "com.customcamera.app.TEST_VIDEO" -> {
+                Log.i(TAG, "🧪 TEST_VIDEO intent received - will record video after camera starts")
+                lifecycleScope.launch {
+                    // Disable PiP mode for simpler test scenario (video doesn't work in PiP)
+                    val isPiPCurrentlyEnabled = dualCameraPiPPlugin?.isPiPEnabled?.value ?: false
+                    if (isPiPCurrentlyEnabled) {
+                        Log.i(TAG, "🧪 Disabling PiP mode for TEST_VIDEO")
+                        togglePiP() // Turn off PiP (required for video)
+                        kotlinx.coroutines.delay(2000) // Wait for mode switch
+                    }
+
+                    // Wait for camera to fully bind
+                    kotlinx.coroutines.delay(3000) // 3 seconds for camera binding
+
+                    // Verify video capture is available
+                    val videoCapture = cameraEngine.getVideoCapture()
+                    if (videoCapture == null) {
+                        Log.e(TAG, "🧪 TEST_VIDEO failed: VideoCapture not available")
+                        com.customcamera.app.presentation.EnhancedToast.error(this@CameraActivityEngine, "Camera not ready for video", android.widget.Toast.LENGTH_SHORT)
+                        return@launch
+                    }
+
+                    // Verify plugin is available
+                    val plugin = advancedVideoRecordingPlugin
+                    if (plugin == null) {
+                        Log.e(TAG, "🧪 TEST_VIDEO failed: AdvancedVideoRecordingPlugin not available")
+                        com.customcamera.app.presentation.EnhancedToast.error(this@CameraActivityEngine, "Video plugin not available", android.widget.Toast.LENGTH_SHORT)
+                        return@launch
+                    }
+
+                    Log.i(TAG, "🧪 Camera ready, starting video recording...")
+                    val startResult = plugin.startRecording()
+                    if (startResult.isFailure) {
+                        Log.e(TAG, "🧪 TEST_VIDEO failed to start recording: ${startResult.exceptionOrNull()?.message}")
+                        com.customcamera.app.presentation.EnhancedToast.error(this@CameraActivityEngine, "Failed to start recording", android.widget.Toast.LENGTH_SHORT)
+                        return@launch
+                    }
+
+                    Log.i(TAG, "🧪 Video recording started, will record for 5 seconds...")
+                    kotlinx.coroutines.delay(5000) // Record for 5 seconds
+
+                    Log.i(TAG, "🧪 Stopping video recording...")
+                    plugin.stopRecording()
+                    Log.i(TAG, "🧪 Video recording completed via test intent")
+                }
+            }
         }
     }
 

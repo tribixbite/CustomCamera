@@ -527,10 +527,14 @@ class AdvancedVideoRecordingPlugin : UIPlugin() {
         val timestamp = System.currentTimeMillis()
         val fileName = "video_${timestamp}.mp4"
 
-        return File(
-            cameraContext!!.context.getExternalFilesDir(android.os.Environment.DIRECTORY_MOVIES),
-            fileName
-        )
+        // Save to public DCIM/Camera directory so videos appear in gallery
+        val picturesDir = android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_DCIM)
+        val cameraDir = File(picturesDir, "Camera")
+        if (!cameraDir.exists()) {
+            cameraDir.mkdirs()
+        }
+
+        return File(cameraDir, fileName)
     }
 
     /**

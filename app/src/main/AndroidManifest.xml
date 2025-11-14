@@ -62,6 +62,10 @@
                 <action android:name="com.customcamera.app.TEST_CAPTURE" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
+            <intent-filter>
+                <action android:name="com.customcamera.app.TEST_VIDEO" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
         </activity>
 
         <activity
