@@ -1,14 +1,37 @@
-# Active TODOs - All P2 Testing Infrastructure Complete ✅
+# Active TODOs - ProControls Investigation Complete ✅
 
-**Last Updated**: 2025-11-13 (Continuation Session 4)
-**Priority**: Testing Infrastructure Improvements
-**Status**: Dynamic coordinates ✅ | Device-independent testing ✅ | Test script v2.1 🎉
+**Last Updated**: 2025-11-13 (Continuation Session 5)
+**Priority**: Feature Investigation & Testing Infrastructure
+**Status**: All P0-P2 tasks complete ✅ | P3 investigation complete ✅ | Awaiting user decision 📋
 
-## Current Session Context (2025-11-13 Continuation #4 - Testing Infrastructure)
+## Current Session Context (2025-11-13 Continuation #5 - ProControls Investigation)
 
-**User Request**: "go" (continue with next priority tasks)
+**User Request**: "go" (continue with next priority tasks → P3 Manual Controls UI)
 
 **Work Completed This Session:**
+
+### ✅ ProControlsPlugin UI Integration Investigation
+   - **Task**: P3 Manual Controls UI Integration - investigate user's "horrible ui" complaint
+   - **Investigation Result**: UI integration **never implemented** - cannot reproduce issue
+   - **Findings**:
+     - ProControlsPlugin has complete `createControlsUI()` implementation
+     - Settings toggle "Enable Manual Controls" exists in SettingsActivity
+     - UI creation code functional (exposure + ISO controls)
+     - `pluginOverlayContainer` available in layout for UI placement
+     - ❌ **createControlsUI() never called in CameraActivityEngine**
+   - **Root Cause**: Feature appears intentionally incomplete/abandoned
+   - **User Complaint Analysis**: Cannot reproduce - UI doesn't exist in view hierarchy
+   - **Documentation**: Created `memory/PROCONTROLS_INVESTIGATION.md` (350 lines)
+   - **Options Provided**:
+     - **Option A**: Integrate UI (30-60 min, adds manual controls overlay)
+     - **Option B**: Remove incomplete feature (15 min, clean up settings toggle)
+     - **Option C**: Status quo (defer, no immediate need)
+   - **Recommendation**: **Option C** (status quo) - ExposureControlPlugin provides basic exposure control
+   - **Decision Required**: User must choose Option A/B/C
+
+**Total Commits This Session**: 0 (pending user decision on ProControls)
+
+**Previous Session Work (Continuation #4):**
 
 ### ✅ Dynamic Screen Coordinate Calculation (commit 70ee2d0e)
    - **Issue**: Test script used hardcoded tap coordinates (540x800, 540x2200, 540x1200) that only work on 1080x2400 screens
@@ -137,7 +160,10 @@
 **Outstanding Tasks**:
 1. ✅ **Video Recording Functional Test (P2)** - COMPLETE - Verified .mp4 creation via TEST_VIDEO intent
 2. ✅ **Dynamic Photo Capture Coordinates (P2)** - COMPLETE - Implemented percentage-based tap coordinates
-3. ⏳ **Manual Controls UI Integration (P3)** - Complete ProControlsPlugin UI integration if needed (pending user verification)
+3. ✅ **Manual Controls UI Investigation (P3)** - COMPLETE - Investigation documented, awaiting user decision (see PROCONTROLS_INVESTIGATION.md)
+
+**User Decisions Required**:
+1. 📋 **ProControls UI Integration** - Choose Option A (integrate), B (remove), or C (defer) - See `memory/PROCONTROLS_INVESTIGATION.md`
 
 ---
 
