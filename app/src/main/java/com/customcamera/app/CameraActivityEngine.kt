@@ -256,6 +256,22 @@ class CameraActivityEngine : AppCompatActivity() {
                         return@launch
                     }
 
+                    // Enable the plugin (plugin defaults to disabled for cleaner photo-first UI)
+                    Log.i(TAG, "🧪 Enabling AdvancedVideoRecordingPlugin for test")
+                    plugin.enable()
+
+                    // Rebind camera to activate VideoCapture UseCase
+                    Log.i(TAG, "🧪 Rebinding camera to activate VideoCapture...")
+                    val rebindConfig = com.customcamera.app.engine.CameraConfig(
+                        cameraIndex = cameraIndex,
+                        enablePreview = true,
+                        enableImageCapture = true,
+                        enableVideoCapture = true,
+                        enableImageAnalysis = false
+                    )
+                    cameraEngine.bindCamera(rebindConfig)
+                    kotlinx.coroutines.delay(2000) // Wait for camera rebind to complete
+
                     Log.i(TAG, "🧪 Camera ready, starting video recording...")
                     val startResult = plugin.startRecording()
                     if (startResult.isFailure) {
@@ -264,11 +280,17 @@ class CameraActivityEngine : AppCompatActivity() {
                         return@launch
                     }
 
-                    Log.i(TAG, "🧪 Video recording started, will record for 5 seconds...")
-                    kotlinx.coroutines.delay(5000) // Record for 5 seconds
+                    Log.i(TAG, "🧪 Video recording started, waiting for encoder initialization...")
+                    kotlinx.coroutines.delay(2000) // Wait for video encoder to initialize and produce first frames
+
+                    Log.i(TAG, "🧪 Recording now active, will record for 6 more seconds...")
+                    kotlinx.coroutines.delay(6000) // Record for 6 seconds of actual video
 
                     Log.i(TAG, "🧪 Stopping video recording...")
                     plugin.stopRecording()
+
+                    // Wait a moment for finalization
+                    kotlinx.coroutines.delay(1000)
                     Log.i(TAG, "🧪 Video recording completed via test intent")
                 }
             }
