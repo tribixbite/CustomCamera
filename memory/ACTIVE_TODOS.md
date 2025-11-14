@@ -1,14 +1,59 @@
-# Active TODOs - TEST_CAPTURE Intent Fixed ✅
+# Active TODOs - Video Save Location Fixed + TEST_VIDEO Intent ✅
 
-**Last Updated**: 2025-11-13 (Continuation Session)
-**Priority**: P1 Automated Testing Improvements
-**Status**: TEST_CAPTURE fix committed ✅ | Build v2.1.50 ready 🔨 | Automated testing improved ✅
+**Last Updated**: 2025-11-13 (Continuation Session 2)
+**Priority**: P0 Critical Bug - Video Save Location
+**Status**: Video bug fixed ✅ | TEST_VIDEO intent added ✅ | Build v2.1.51 ready 🔨 | ADB testing blocked ⚠️
 
-## Current Session Context (2025-11-13 Continuation - TEST_CAPTURE Fix)
+## Current Session Context (2025-11-13 Continuation #2 - Video Fixes)
 
-**User Request**: "go" (continue pending tasks from previous session)
+**User Request**: "go" (continue with pending video recording testing)
 
 **Work Completed This Session:**
+
+### ✅ Video Save Location Bug Fix (commit 83b04687)
+   - **Issue Found**: Videos saving to private app storage instead of public DCIM
+   - **Root Cause**: `getExternalFilesDir(DIRECTORY_MOVIES)` at AdvancedVideoRecordingPlugin.kt:531
+   - **Fix Applied**: Changed to public DCIM/Camera directory (identical to photo fix)
+     ```kotlin
+     // Before: getExternalFilesDir(DIRECTORY_MOVIES)
+     // After: getExternalStoragePublicDirectory(DIRECTORY_DCIM)/Camera
+     ```
+   - **Code Changes**: `AdvancedVideoRecordingPlugin.kt:526-538` (12 lines)
+   - **Impact**: Videos now visible in gallery immediately, consistent with photo behavior
+
+### ✅ TEST_VIDEO Intent Implementation (commit 83b04687)
+   - **Intent Added**: `com.customcamera.app.TEST_VIDEO` in AndroidManifest.xml
+   - **Handler Implementation**: `CameraActivityEngine.kt:229-274` (46 lines)
+   - **Workflow**:
+     1. Disable PiP if active (video unavailable in PiP mode)
+     2. Wait 3s for camera binding
+     3. Validate VideoCapture and AdvancedVideoRecordingPlugin availability
+     4. Start recording
+     5. Record for 5 seconds
+     6. Stop recording automatically
+   - **Error Handling**: Comprehensive validation with user-facing toasts
+   - **Usage**: `adb shell am start -a com.customcamera.app.TEST_VIDEO -n com.customcamera.app/.CameraActivityEngine`
+
+**Total Commits This Session**: 4
+- 7872cccd: TEST_CAPTURE intent fix
+- 43adb443: ACTIVE_TODOS documentation
+- 109c2c26: Manual controls investigation
+- 83b04687: Video save location + TEST_VIDEO intent
+
+**Bugs Fixed**:
+1. ✅ **Video Save Location (P0)** - FIXED - Videos now save to `/sdcard/DCIM/Camera/`
+2. ✅ **TEST_CAPTURE Intent (P1)** - FIXED - Reliable photo capture testing
+3. ✅ **TEST_VIDEO Intent (P1)** - NEW - Automated video recording testing
+
+**Current Blocker**:
+- ⚠️ **ADB Connection Lost** - Wireless ADB disconnected during testing
+- **Impact**: Cannot test TEST_VIDEO intent or install updated APK
+- **User Action Required**:
+  - Ensure device awake and on WiFi
+  - Re-enable wireless ADB: `adb tcpip 5555` via USB, then `adb connect <IP>:5555`
+  - Or use USB connection for testing
+
+**Previous Session Work:**
 
 ### ✅ TEST_CAPTURE Intent Reliability Fix (commit 7872cccd)
    - **Issue Found**: TEST_CAPTURE intent failing with "Not bound to a valid Camera" error
