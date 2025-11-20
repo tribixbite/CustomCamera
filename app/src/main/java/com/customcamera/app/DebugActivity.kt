@@ -33,7 +33,7 @@ class DebugActivity : AppCompatActivity() {
     private lateinit var debugContainer: LinearLayout
     private lateinit var settingsManager: SettingsManager
     private var cameraAPIMonitor: CameraAPIMonitor? = null
-    private lateinit var cameraResetManager: CameraResetManager
+    private var cameraResetManager: CameraResetManager? = null
     private lateinit var cameraManager: CameraManager
 
     private var realTimeMonitoringJob: Job? = null
@@ -80,10 +80,10 @@ class DebugActivity : AppCompatActivity() {
             Log.w(TAG, "⚠️ No active camera session - API monitor not available")
         }
 
-        // Initialize debug systems (mock camera context for reset manager)
-        val mockContext = try {
+        // Initialize debug systems (camera context for reset manager)
+        cameraResetManager = try {
             val cameraProvider = ProcessCameraProvider.getInstance(this).get()
-            com.customcamera.app.engine.CameraContext(
+            val cameraContext = com.customcamera.app.engine.CameraContext(
                 context = this,
                 cameraProvider = cameraProvider,
                 debugLogger = com.customcamera.app.engine.DebugLogger(),
@@ -91,13 +91,12 @@ class DebugActivity : AppCompatActivity() {
                 cameraEngine = null,
                 apiMonitor = cameraAPIMonitor
             )
+            CameraResetManager(cameraContext).also {
+                Log.i(TAG, "✅ CameraResetManager initialized successfully")
+            }
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to create camera context for debug", e)
+            Log.e(TAG, "❌ Failed to initialize CameraResetManager: ${e.message}", e)
             null
-        }
-
-        if (mockContext != null) {
-            cameraResetManager = CameraResetManager(mockContext)
         }
     }
 
@@ -505,22 +504,24 @@ class DebugActivity : AppCompatActivity() {
 
     private suspend fun resetCameraSystem() {
         try {
+            val resetManager = cameraResetManager
+            if (resetManager == null) {
+                Toast.makeText(this, "⚠️ Reset manager not initialized. Try restarting the app.", Toast.LENGTH_LONG).show()
+                Log.w(TAG, "CameraResetManager is null - failed to initialize during onCreate")
+                return
+            }
+
             Toast.makeText(this, "Resetting camera system...", Toast.LENGTH_SHORT).show()
 
-            if (::cameraResetManager.isInitialized) {
-                // Reinitialize the entire camera provider
-                val success = cameraResetManager.reinitializeCameraProvider()
+            // Reinitialize the entire camera provider
+            val success = resetManager.reinitializeCameraProvider()
 
-                if (success) {
-                    Toast.makeText(this, "✅ Camera system reset complete", Toast.LENGTH_LONG).show()
-                    Log.i(TAG, "Camera system reset successful")
-                } else {
-                    Toast.makeText(this, "⚠️ Camera reset completed with warnings", Toast.LENGTH_LONG).show()
-                    Log.w(TAG, "Camera system reset had issues")
-                }
+            if (success) {
+                Toast.makeText(this, "✅ Camera system reset complete", Toast.LENGTH_LONG).show()
+                Log.i(TAG, "Camera system reset successful")
             } else {
-                Toast.makeText(this, "⚠️ Reset manager not available", Toast.LENGTH_SHORT).show()
-                Log.w(TAG, "CameraResetManager not initialized")
+                Toast.makeText(this, "⚠️ Camera reset completed with warnings", Toast.LENGTH_LONG).show()
+                Log.w(TAG, "Camera system reset had issues")
             }
 
         } catch (e: Exception) {
@@ -531,22 +532,24 @@ class DebugActivity : AppCompatActivity() {
 
     private suspend fun flushCameraQueue() {
         try {
+            val resetManager = cameraResetManager
+            if (resetManager == null) {
+                Toast.makeText(this, "⚠️ Reset manager not initialized. Try restarting the app.", Toast.LENGTH_LONG).show()
+                Log.w(TAG, "CameraResetManager is null - failed to initialize during onCreate")
+                return
+            }
+
             Toast.makeText(this, "Flushing camera queue...", Toast.LENGTH_SHORT).show()
 
-            if (::cameraResetManager.isInitialized) {
-                // Unbind all cameras and run garbage collection
-                val success = cameraResetManager.flushCameraQueue()
+            // Unbind all cameras and run garbage collection
+            val success = resetManager.flushCameraQueue()
 
-                if (success) {
-                    Toast.makeText(this, "✅ Camera queue flushed successfully", Toast.LENGTH_LONG).show()
-                    Log.i(TAG, "Camera queue flush successful")
-                } else {
-                    Toast.makeText(this, "⚠️ Flush completed with warnings", Toast.LENGTH_LONG).show()
-                    Log.w(TAG, "Camera queue flush had issues")
-                }
+            if (success) {
+                Toast.makeText(this, "✅ Camera queue flushed successfully", Toast.LENGTH_LONG).show()
+                Log.i(TAG, "Camera queue flush successful")
             } else {
-                Toast.makeText(this, "⚠️ Reset manager not available", Toast.LENGTH_SHORT).show()
-                Log.w(TAG, "CameraResetManager not initialized")
+                Toast.makeText(this, "⚠️ Flush completed with warnings", Toast.LENGTH_LONG).show()
+                Log.w(TAG, "Camera queue flush had issues")
             }
 
         } catch (e: Exception) {

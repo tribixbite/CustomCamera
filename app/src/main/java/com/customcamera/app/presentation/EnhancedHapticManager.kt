@@ -34,8 +34,7 @@ class EnhancedHapticManager(private val context: Context) {
      */
     fun lightTap(view: View? = null) {
         view?.performHapticFeedback(
-            HapticFeedbackConstants.VIRTUAL_KEY,
-            HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING
+            HapticFeedbackConstants.VIRTUAL_KEY
         ) ?: vibrate(10)
     }
 
@@ -44,8 +43,7 @@ class EnhancedHapticManager(private val context: Context) {
      */
     fun mediumTap(view: View? = null) {
         view?.performHapticFeedback(
-            HapticFeedbackConstants.KEYBOARD_TAP,
-            HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING
+            HapticFeedbackConstants.KEYBOARD_TAP
         ) ?: vibrate(15)
     }
 
@@ -58,8 +56,7 @@ class EnhancedHapticManager(private val context: Context) {
                 HapticFeedbackConstants.CONFIRM
             } else {
                 HapticFeedbackConstants.LONG_PRESS
-            },
-            HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING
+            }
         ) ?: vibrate(25)
     }
 
