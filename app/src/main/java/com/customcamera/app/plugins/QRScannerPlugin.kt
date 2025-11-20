@@ -1,16 +1,24 @@
 package com.customcamera.app.plugins
 
 import android.content.Intent
+import android.graphics.Point
+import android.graphics.Rect
 import android.net.Uri
 import android.util.Log
 import androidx.camera.core.Camera
 import androidx.camera.core.ImageProxy
+import com.google.mlkit.vision.barcode.BarcodeScanning
+import com.google.mlkit.vision.barcode.BarcodeScannerOptions
+import com.google.mlkit.vision.barcode.common.Barcode
+import com.google.mlkit.vision.common.InputImage
 import com.customcamera.app.engine.CameraContext
 import com.customcamera.app.engine.plugins.ProcessingPlugin
 import com.customcamera.app.engine.plugins.ProcessingResult
 import com.customcamera.app.engine.plugins.ProcessingMetadata
 import com.customcamera.app.barcode.DetectedBarcode
+import kotlinx.coroutines.suspendCancellableCoroutine
 import java.util.regex.Pattern
+import kotlin.coroutines.resume
 
 /**
  * QRScannerPlugin provides specialized QR code handling
@@ -28,6 +36,13 @@ class QRScannerPlugin : ProcessingPlugin() {
     override val priority: Int = 35 // Higher priority than general barcode
 
     private var cameraContext: CameraContext? = null
+
+    // ML Kit scanner configured for QR codes only
+    private val scanner = BarcodeScanning.getClient(
+        BarcodeScannerOptions.Builder()
+            .setBarcodeFormats(Barcode.FORMAT_QR_CODE)
+            .build()
+    )
 
     // QR scanning configuration
     private var autoActionEnabled: Boolean = true
@@ -94,8 +109,8 @@ class QRScannerPlugin : ProcessingPlugin() {
         lastProcessingTime = currentTime
 
         return try {
-            // Simulate QR detection (replace with actual ML Kit implementation)
-            val qrCodes = simulateQRDetection(image)
+            // Real ML Kit QR code detection
+            val qrCodes = performRealQRDetection(image)
 
             if (qrCodes.isNotEmpty()) {
                 detectedQRCodes = qrCodes
@@ -262,17 +277,67 @@ class QRScannerPlugin : ProcessingPlugin() {
 
         clearDetectedQRCodes()
         qrHistory.clear()
+
+        // Close ML Kit scanner to free resources
+        try {
+            scanner.close()
+            Log.d(TAG, "ML Kit QR scanner closed")
+        } catch (e: Exception) {
+            Log.w(TAG, "Error closing ML Kit scanner", e)
+        }
+
         cameraContext = null
     }
 
-    private fun simulateQRDetection(image: ImageProxy): List<QRCode> {
-        // Simulate QR detection - replace with actual ML Kit
-        return if (System.currentTimeMillis() % 8000 < 1500) {
-            listOf(
-                parseQRContent("https://github.com/tribixbite/CustomCamera"),
-                parseQRContent("WIFI:T:WPA;S:MyNetwork;P:password123;;")
-            )
-        } else {
+    /**
+     * Perform real ML Kit QR code detection with proper async-to-suspend conversion.
+     *
+     * Uses ML Kit barcode scanner configured for QR codes only,
+     * and converts Google Play Services Tasks to Kotlin coroutines.
+     */
+    private suspend fun performRealQRDetection(image: ImageProxy): List<QRCode> {
+        return try {
+            val mediaImage = image.image ?: run {
+                Log.w(TAG, "MediaImage is null, cannot detect QR codes")
+                return emptyList()
+            }
+            val inputImage = InputImage.fromMediaImage(mediaImage, image.imageInfo.rotationDegrees)
+            Log.d(TAG, "ML Kit processing QR image: ${image.width}x${image.height}, rotation: ${image.imageInfo.rotationDegrees}")
+
+            // Await ML Kit QR detection results using suspendCancellableCoroutine
+            val mlkitBarcodes = suspendCancellableCoroutine<List<Barcode>> { continuation ->
+                scanner.process(inputImage)
+                    .addOnSuccessListener { barcodes: List<Barcode> ->
+                        Log.d(TAG, "ML Kit QR detection success: ${barcodes.size} QR codes found")
+                        if (continuation.isActive) {
+                            continuation.resume(barcodes)
+                        }
+                    }
+                    .addOnFailureListener { e: Exception ->
+                        Log.e(TAG, "ML Kit QR detection failed", e)
+                        if (continuation.isActive) {
+                            continuation.resume(emptyList<Barcode>())
+                        }
+                    }
+            }
+
+            // Convert ML Kit barcodes to QRCode format with content parsing
+            val qrCodes = mlkitBarcodes.mapNotNull { barcode: Barcode ->
+                val rawData = barcode.rawValue ?: return@mapNotNull null
+                val qrCode = parseQRContent(rawData)
+
+                // Add bounding box info from ML Kit
+                qrCode.copy(boundingBox = barcode.boundingBox)
+            }
+
+            if (qrCodes.isNotEmpty()) {
+                Log.i(TAG, "ML Kit detected ${qrCodes.size} QR codes: ${qrCodes.map { it.contentType }}")
+            }
+
+            qrCodes
+
+        } catch (e: Exception) {
+            Log.e(TAG, "ML Kit QR detection setup failed", e)
             emptyList()
         }
     }
