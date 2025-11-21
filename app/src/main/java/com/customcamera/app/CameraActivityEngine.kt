@@ -1,9 +1,12 @@
 package com.customcamera.app
 
 import android.Manifest
+import android.content.ContentValues
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
+import android.provider.MediaStore
 import android.util.Log
 import android.view.View
 import android.widget.Toast
@@ -588,14 +591,28 @@ class CameraActivityEngine : AppCompatActivity() {
             )
 
             val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-            // Save to public DCIM/Camera directory so photos appear in gallery
-            val picturesDir = android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_DCIM)
-            val cameraDir = File(picturesDir, "Camera")
-            if (!cameraDir.exists()) {
-                cameraDir.mkdirs()
+            val displayName = "$timestamp.jpg"
+
+            // Use MediaStore for Android 10+ (API 29+) to save to DCIM
+            val contentValues = ContentValues().apply {
+                put(MediaStore.MediaColumns.DISPLAY_NAME, displayName)
+                put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    put(MediaStore.MediaColumns.RELATIVE_PATH, "DCIM/Camera")
+                    put(MediaStore.MediaColumns.IS_PENDING, 1) // Mark as pending during write
+                }
             }
-            val photoFile = File(cameraDir, "$timestamp.jpg")
-            val outputFileOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
+
+            val contentResolver = contentResolver
+            val imageUri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
+
+            if (imageUri == null) {
+                Log.e(TAG, "Failed to create MediaStore entry")
+                Toast.makeText(this, "Failed to create photo entry", Toast.LENGTH_SHORT).show()
+                return
+            }
+
+            val outputFileOptions = ImageCapture.OutputFileOptions.Builder(contentResolver, imageUri, contentValues).build()
 
             // Check if night mode is enabled for long exposure capture
             val nightModePlugin = cameraEngine.getPlugin("NightMode") as? NightModePlugin
@@ -610,10 +627,10 @@ class CameraActivityEngine : AppCompatActivity() {
                     )
                 )
                 // Use long exposure capture for night mode
-                captureLongExposurePhoto(outputFileOptions, photoFile, timestamp)
+                captureLongExposurePhoto(outputFileOptions, imageUri, displayName, contentValues)
             } else {
                 // Use regular photo capture
-                captureRegularPhoto(outputFileOptions, photoFile, timestamp)
+                captureRegularPhoto(outputFileOptions, imageUri, displayName, contentValues)
             }
 
         } catch (e: Exception) {
@@ -622,7 +639,7 @@ class CameraActivityEngine : AppCompatActivity() {
         }
     }
 
-    private fun captureRegularPhoto(outputFileOptions: ImageCapture.OutputFileOptions, photoFile: File, timestamp: String) {
+    private fun captureRegularPhoto(outputFileOptions: ImageCapture.OutputFileOptions, imageUri: android.net.Uri, displayName: String, contentValues: ContentValues) {
         val imageCapture = cameraEngine.getImageCapture() ?: return
 
         // Show photo capture loading
@@ -657,7 +674,7 @@ class CameraActivityEngine : AppCompatActivity() {
 
                             if (pipBitmap == null) {
                                 Log.e(TAG, "PiP bitmap not available, saving main camera only")
-                                saveSingleImage(mainImage, outputFileOptions, photoFile)
+                                saveSingleImage(mainImage, imageUri, displayName, contentValues)
                                 return
                             }
 
@@ -667,35 +684,41 @@ class CameraActivityEngine : AppCompatActivity() {
 
                                 Log.i(TAG, "PiP bitmap: ${pipBitmap.width}x${pipBitmap.height}, PiP rect: $pipRect")
 
-                                // Composite images using PreviewView.bitmap approach
-                                Log.i(TAG, "Calling DualCameraCompositor.compositeImages() with PreviewView bitmap...")
-                                val success = com.customcamera.app.utils.DualCameraCompositor.compositeImages(
+                                // Composite images using PreviewView.bitmap approach and save to MediaStore
+                                Log.i(TAG, "Calling DualCameraCompositor.compositeImages() with MediaStore URI...")
+                                val success = com.customcamera.app.utils.DualCameraCompositor.compositeImagesToUri(
                                     mainImage = mainImage,
                                     pipBitmap = pipBitmap,
                                     pipRect = pipRect,
-                                    outputFile = photoFile
+                                    contentResolver = contentResolver,
+                                    imageUri = imageUri,
+                                    contentValues = contentValues
                                 )
 
                                 mainImage.close()
 
                                 if (success) {
                                     loadingIndicatorManager.hideLoading()
-                                    com.customcamera.app.presentation.EnhancedToast.dualCameraPhoto(this@CameraActivityEngine, photoFile.name)
+                                    com.customcamera.app.presentation.EnhancedToast.dualCameraPhoto(this@CameraActivityEngine, displayName)
                                     hapticManager.photoCapture()
-                                    Log.i(TAG, "✅ Dual camera photo saved: ${photoFile.absolutePath}")
+                                    Log.i(TAG, "✅ Dual camera photo saved: $imageUri")
                                     animateCaptureButton()
                                 } else {
-                                    Log.e(TAG, "Composite failed, capturing screen view")
-                                    captureScreenFallback(photoFile)
+                                    Log.e(TAG, "Composite failed")
+                                    loadingIndicatorManager.hideLoading()
+                                    hapticManager.error()
+                                    com.customcamera.app.presentation.EnhancedToast.error(this@CameraActivityEngine, "Failed to save photo")
                                 }
                             } finally {
                                 // Always recycle PiP bitmap to prevent memory leak
                                 pipBitmap.recycle()
                             }
                         } catch (e: Exception) {
-                            Log.e(TAG, "Dual camera capture failed, capturing screen view", e)
+                            Log.e(TAG, "Dual camera capture failed", e)
                             mainImage.close()
-                            captureScreenFallback(photoFile)
+                            loadingIndicatorManager.hideLoading()
+                            hapticManager.error()
+                            com.customcamera.app.presentation.EnhancedToast.error(this@CameraActivityEngine, "Photo capture failed")
                         }
                     }
 
@@ -729,17 +752,24 @@ class CameraActivityEngine : AppCompatActivity() {
                                     image.close()
 
                                     if (croppedBitmap != null) {
-                                        // Save cropped bitmap to file
-                                        photoFile.outputStream().use { out ->
+                                        // Save cropped bitmap to MediaStore
+                                        contentResolver.openOutputStream(imageUri)?.use { out ->
                                             croppedBitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 95, out)
                                         }
                                         croppedBitmap.recycle()
 
+                                        // Mark as complete (remove IS_PENDING flag)
+                                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                                            contentValues.clear()
+                                            contentValues.put(MediaStore.MediaColumns.IS_PENDING, 0)
+                                            contentResolver.update(imageUri, contentValues, null, null)
+                                        }
+
                                         withContext(Dispatchers.Main) {
                                             loadingIndicatorManager.hideLoading()
-                                            com.customcamera.app.presentation.EnhancedToast.photoSaved(this@CameraActivityEngine, photoFile.name)
+                                            com.customcamera.app.presentation.EnhancedToast.photoSaved(this@CameraActivityEngine, displayName)
                                             hapticManager.photoCapture()
-                                            Log.i(TAG, "✅ Cropped photo saved: ${photoFile.absolutePath}")
+                                            Log.i(TAG, "✅ Cropped photo saved: $imageUri")
                                             animateCaptureButton()
                                         }
                                     } else {
@@ -770,17 +800,23 @@ class CameraActivityEngine : AppCompatActivity() {
                     }
                 )
             } else {
-                // Crop disabled: Save directly to file (faster)
+                // Crop disabled: Save directly to MediaStore (faster)
                 Log.i(TAG, "📸 Capturing photo without crop...")
                 imageCapture.takePicture(
                     outputFileOptions,
                     ContextCompat.getMainExecutor(this),
                     object : ImageCapture.OnImageSavedCallback {
                         override fun onImageSaved(output: ImageCapture.OutputFileResults) {
+                            // Mark as complete (remove IS_PENDING flag)
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                                contentValues.clear()
+                                contentValues.put(MediaStore.MediaColumns.IS_PENDING, 0)
+                                contentResolver.update(imageUri, contentValues, null, null)
+                            }
                             loadingIndicatorManager.hideLoading()
-                            com.customcamera.app.presentation.EnhancedToast.photoSaved(this@CameraActivityEngine, photoFile.name)
+                            com.customcamera.app.presentation.EnhancedToast.photoSaved(this@CameraActivityEngine, displayName)
                             hapticManager.photoCapture()
-                            Log.i(TAG, "Photo saved: ${photoFile.absolutePath}")
+                            Log.i(TAG, "Photo saved: $imageUri")
                             animateCaptureButton()
                         }
 
@@ -799,19 +835,28 @@ class CameraActivityEngine : AppCompatActivity() {
     /**
      * Helper method to save a single ImageProxy to file (fallback for dual camera)
      */
-    private fun saveSingleImage(image: ImageProxy, outputFileOptions: ImageCapture.OutputFileOptions, photoFile: File) {
+    private fun saveSingleImage(image: ImageProxy, imageUri: android.net.Uri, displayName: String, contentValues: ContentValues) {
         try {
-            // Convert ImageProxy to bitmap and save
+            // Convert ImageProxy to bytes and save to MediaStore
             val buffer = image.planes[0].buffer
             val bytes = ByteArray(buffer.remaining())
             buffer.get(bytes)
 
-            photoFile.writeBytes(bytes)
+            contentResolver.openOutputStream(imageUri)?.use { out ->
+                out.write(bytes)
+            }
             image.close()
 
+            // Mark as complete (remove IS_PENDING flag)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                contentValues.clear()
+                contentValues.put(MediaStore.MediaColumns.IS_PENDING, 0)
+                contentResolver.update(imageUri, contentValues, null, null)
+            }
+
             loadingIndicatorManager.hideLoading()
-            com.customcamera.app.presentation.EnhancedToast.photoSaved(this@CameraActivityEngine, photoFile.name)
-            Log.i(TAG, "Photo saved (single): ${photoFile.absolutePath}")
+            com.customcamera.app.presentation.EnhancedToast.photoSaved(this@CameraActivityEngine, displayName)
+            Log.i(TAG, "Photo saved (single): $imageUri")
             animateCaptureButton()
         } catch (e: Exception) {
             image.close()
@@ -821,7 +866,7 @@ class CameraActivityEngine : AppCompatActivity() {
         }
     }
 
-    private fun captureLongExposurePhoto(outputFileOptions: ImageCapture.OutputFileOptions, photoFile: File, timestamp: String) {
+    private fun captureLongExposurePhoto(outputFileOptions: ImageCapture.OutputFileOptions, imageUri: android.net.Uri, displayName: String, contentValues: ContentValues) {
         val nightModePlugin = cameraEngine.getPlugin("NightMode") as? NightModePlugin ?: return
 
         // Show long exposure capture loading
@@ -841,8 +886,14 @@ class CameraActivityEngine : AppCompatActivity() {
                 loadingIndicatorManager.hideLoading()
 
                 if (success) {
-                    com.customcamera.app.presentation.EnhancedToast.photoSaved(this@CameraActivityEngine, photoFile.name)
-                    Log.i(TAG, "Long exposure photo saved: ${photoFile.absolutePath}")
+                    // Mark as complete (remove IS_PENDING flag)
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        contentValues.clear()
+                        contentValues.put(MediaStore.MediaColumns.IS_PENDING, 0)
+                        contentResolver.update(imageUri, contentValues, null, null)
+                    }
+                    com.customcamera.app.presentation.EnhancedToast.photoSaved(this@CameraActivityEngine, displayName)
+                    Log.i(TAG, "Long exposure photo saved: $imageUri")
                     animateCaptureButton()
                 } else {
                     Log.e(TAG, "Long exposure photo capture failed")
