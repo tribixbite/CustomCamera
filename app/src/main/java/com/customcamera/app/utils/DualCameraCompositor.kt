@@ -344,8 +344,24 @@ object DualCameraCompositor {
      */
     private fun imageProxyToBitmap(image: ImageProxy): Bitmap? {
         return try {
-            // YUV_420_888 format: planes[0] = Y, planes[1] = U, planes[2] = V
             val planes = image.planes
+
+            // Check if image is JPEG format (format 256, single plane)
+            if (image.format == android.graphics.ImageFormat.JPEG || planes.size == 1) {
+                Log.d(TAG, "Converting JPEG image (format: ${image.format}, planes: ${planes.size})")
+                val buffer = planes[0].buffer
+                buffer.rewind()
+                val bytes = ByteArray(buffer.remaining())
+                buffer.get(bytes)
+                return BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+            }
+
+            // YUV_420_888 format: planes[0] = Y, planes[1] = U, planes[2] = V
+            if (planes.size < 3) {
+                Log.e(TAG, "Unexpected plane count: ${planes.size} for format ${image.format}")
+                return null
+            }
+
             val yPlane = planes[0]
             val uPlane = planes[1]
             val vPlane = planes[2]
