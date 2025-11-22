@@ -264,15 +264,33 @@ class GalleryActivity : AppCompatActivity() {
 
     private fun openPhotoExternally(mediaItem: MediaItem) {
         try {
-            val intent = Intent(Intent.ACTION_VIEW).apply {
-                setDataAndType(androidx.core.content.FileProvider.getUriForFile(
-                    this@GalleryActivity,
-                    "${packageName}.fileprovider",
-                    mediaItem.file
-                ), "image/*")
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            // Use content:// URI for MediaStore files (public storage)
+            val uri = android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+            val projection = arrayOf(android.provider.MediaStore.Images.Media._ID)
+            val selection = "${android.provider.MediaStore.Images.Media.DATA} = ?"
+            val selectionArgs = arrayOf(mediaItem.file.absolutePath)
+
+            val contentUri = contentResolver.query(uri, projection, selection, selectionArgs, null)?.use { cursor ->
+                if (cursor.moveToFirst()) {
+                    val id = cursor.getLong(cursor.getColumnIndexOrThrow(android.provider.MediaStore.Images.Media._ID))
+                    android.content.ContentUris.withAppendedId(
+                        android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                        id
+                    )
+                } else {
+                    null
+                }
             }
-            startActivity(intent)
+
+            if (contentUri != null) {
+                val intent = Intent(Intent.ACTION_VIEW).apply {
+                    setDataAndType(contentUri, "image/*")
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
+                startActivity(intent)
+            } else {
+                Toast.makeText(this, "Cannot find photo in MediaStore", Toast.LENGTH_SHORT).show()
+            }
         } catch (e: Exception) {
             Log.e(TAG, "Error opening photo externally", e)
             Toast.makeText(this, "Cannot open photo: ${e.message}", Toast.LENGTH_SHORT).show()
@@ -281,16 +299,34 @@ class GalleryActivity : AppCompatActivity() {
 
     private fun sharePhoto(mediaItem: MediaItem) {
         try {
-            val intent = Intent(Intent.ACTION_SEND).apply {
-                type = if (mediaItem.isVideo) "video/*" else "image/*"
-                putExtra(Intent.EXTRA_STREAM, androidx.core.content.FileProvider.getUriForFile(
-                    this@GalleryActivity,
-                    "${packageName}.fileprovider",
-                    mediaItem.file
-                ))
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            // Use content:// URI for MediaStore files (public storage)
+            val uri = android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+            val projection = arrayOf(android.provider.MediaStore.Images.Media._ID)
+            val selection = "${android.provider.MediaStore.Images.Media.DATA} = ?"
+            val selectionArgs = arrayOf(mediaItem.file.absolutePath)
+
+            val contentUri = contentResolver.query(uri, projection, selection, selectionArgs, null)?.use { cursor ->
+                if (cursor.moveToFirst()) {
+                    val id = cursor.getLong(cursor.getColumnIndexOrThrow(android.provider.MediaStore.Images.Media._ID))
+                    android.content.ContentUris.withAppendedId(
+                        android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                        id
+                    )
+                } else {
+                    null
+                }
             }
-            startActivity(Intent.createChooser(intent, "Share ${if (mediaItem.isVideo) "Video" else "Photo"}"))
+
+            if (contentUri != null) {
+                val intent = Intent(Intent.ACTION_SEND).apply {
+                    type = if (mediaItem.isVideo) "video/*" else "image/*"
+                    putExtra(Intent.EXTRA_STREAM, contentUri)
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
+                startActivity(Intent.createChooser(intent, "Share ${if (mediaItem.isVideo) "Video" else "Photo"}"))
+            } else {
+                Toast.makeText(this, "Cannot find media in MediaStore", Toast.LENGTH_SHORT).show()
+            }
         } catch (e: Exception) {
             Log.e(TAG, "Error sharing media", e)
             Toast.makeText(this, "Cannot share: ${e.message}", Toast.LENGTH_SHORT).show()
