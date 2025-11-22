@@ -54,24 +54,56 @@ class GalleryActivity : AppCompatActivity() {
     private fun loadMediaItems() {
         lifecycleScope.launch {
             try {
-                Log.i(TAG, "Loading media items from filesDir")
+                Log.i(TAG, "Loading media items from MediaStore")
 
-                val mediaFiles = filesDir.listFiles { file ->
-                    file.name.startsWith("CAMERA_") || file.name.startsWith("VIDEO_")
-                }?.sortedByDescending { it.lastModified() } ?: emptyList()
+                // Query MediaStore for images in DCIM/Camera
+                val projection = arrayOf(
+                    android.provider.MediaStore.Images.Media._ID,
+                    android.provider.MediaStore.Images.Media.DISPLAY_NAME,
+                    android.provider.MediaStore.Images.Media.DATE_MODIFIED,
+                    android.provider.MediaStore.Images.Media.SIZE,
+                    android.provider.MediaStore.Images.Media.DATA
+                )
 
-                mediaItems.clear()
-                mediaFiles.forEach { file ->
-                    val mediaItem = MediaItem(
-                        file = file,
-                        isVideo = file.name.startsWith("VIDEO_"),
-                        timestamp = file.lastModified(),
-                        size = file.length()
-                    )
-                    mediaItems.add(mediaItem)
+                val selection = "${android.provider.MediaStore.Images.Media.DATA} LIKE ?"
+                val selectionArgs = arrayOf("%/DCIM/Camera/%")
+                val sortOrder = "${android.provider.MediaStore.Images.Media.DATE_MODIFIED} DESC"
+
+                contentResolver.query(
+                    android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                    projection,
+                    selection,
+                    selectionArgs,
+                    sortOrder
+                )?.use { cursor ->
+                    mediaItems.clear()
+                    val idColumn = cursor.getColumnIndexOrThrow(android.provider.MediaStore.Images.Media._ID)
+                    val nameColumn = cursor.getColumnIndexOrThrow(android.provider.MediaStore.Images.Media.DISPLAY_NAME)
+                    val dateColumn = cursor.getColumnIndexOrThrow(android.provider.MediaStore.Images.Media.DATE_MODIFIED)
+                    val sizeColumn = cursor.getColumnIndexOrThrow(android.provider.MediaStore.Images.Media.SIZE)
+                    val dataColumn = cursor.getColumnIndexOrThrow(android.provider.MediaStore.Images.Media.DATA)
+
+                    while (cursor.moveToNext()) {
+                        val id = cursor.getLong(idColumn)
+                        val name = cursor.getString(nameColumn)
+                        val dateModified = cursor.getLong(dateColumn) * 1000 // Convert to milliseconds
+                        val size = cursor.getLong(sizeColumn)
+                        val filePath = cursor.getString(dataColumn)
+
+                        val file = File(filePath)
+                        if (file.exists()) {
+                            val mediaItem = MediaItem(
+                                file = file,
+                                isVideo = false, // Images only for now
+                                timestamp = dateModified,
+                                size = size
+                            )
+                            mediaItems.add(mediaItem)
+                        }
+                    }
                 }
 
-                Log.i(TAG, "Loaded ${mediaItems.size} media items")
+                Log.i(TAG, "Loaded ${mediaItems.size} media items from MediaStore")
 
                 // Setup adapter
                 galleryAdapter = GalleryAdapter(this@GalleryActivity, mediaItems) { mediaItem ->
