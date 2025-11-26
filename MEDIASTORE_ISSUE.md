@@ -53,9 +53,43 @@ E CameraActivityEngine: at androidx.camera.core.imagecapture.FileUtil.copyFileTo
 ### Legacy Permissions (Android 12 and below):
 - ⚠️ Not checked (device is Android 15)
 
-## Root Cause Analysis
+## ✅ ROOT CAUSE IDENTIFIED (2025-11-26 06:58 UTC)
 
-### Likely Causes:
+**Issue**: Using **Item URI** with `OutputFileOptions.Builder` when it expects a **Collection URI**
+
+### Analysis
+The constructor `OutputFileOptions.Builder(ContentResolver, Uri, ContentValues)` expects:
+- **Collection URI**: `MediaStore.Images.Media.EXTERNAL_CONTENT_URI`
+- **NOT Item URI**: `content://media/external/images/media/1000089341` (returned by insert())
+
+### What We Were Doing (WRONG):
+```kotlin
+val imageUri = contentResolver.insert(EXTERNAL_CONTENT_URI, contentValues)  // Returns ITEM URI
+val options = Builder(contentResolver, imageUri, ContentValues())  // Passes ITEM URI ❌
+```
+
+### What CameraX Does Internally:
+1. Receives the URI we passed (item URI)
+2. Attempts to call `contentResolver.insert()` on that URI
+3. System rejects: `UnsupportedOperationException: Invalid URI` (cannot insert into an item)
+
+### Correct Approach:
+```kotlin
+val collectionUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI  // COLLECTION URI
+val options = Builder(contentResolver, collectionUri, contentValues)  // ✅
+// CameraX handles insert(), write, and IS_PENDING internally
+```
+
+### Why This Worked Before:
+- Older Android versions had less strict enforcement
+- Older CameraX versions may have had different internal logic
+
+### Diagnostic Evidence:
+- ✅ Manual `contentResolver.openOutputStream(itemUri)` SUCCEEDS
+- ❌ CameraX `takePicture()` with item URI FAILS
+- Stack trace shows `FileUtil.copyFileToMediaStore:170` calling `insert()` on item URI
+
+### Previous Likely Causes (now ruled out):
 1. **Scoped Storage Restrictions (Android 10+)**
    - App targets API 34 (Android 14)
    - Using MediaStore correctly
@@ -115,7 +149,43 @@ adb shell pm grant com.customcamera.app android.permission.RECORD_AUDIO
 - Granted all permissions
 **Result**: Still fails at copyFileToMediaStore()
 
-## Recommended Fixes
+## ✅ SOLUTION
+
+### For Simple Photo Capture (No Post-Processing):
+Use collection URI approach - let CameraX handle everything:
+
+```kotlin
+val contentValues = ContentValues().apply {
+    put(MediaStore.MediaColumns.DISPLAY_NAME, displayName)
+    put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        put(MediaStore.MediaColumns.RELATIVE_PATH, "DCIM/Camera")
+        // DO NOT set IS_PENDING - let CameraX manage it
+    }
+}
+
+val collectionUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+val outputFileOptions = ImageCapture.OutputFileOptions.Builder(
+    contentResolver,
+    collectionUri,
+    contentValues
+).build()
+
+imageCapture.takePicture(outputFileOptions, ...)  // ✅ WORKS!
+```
+
+### For Dual Camera / Crop Modes (Requires Post-Processing):
+These modes need the item URI for manual bitmap compositing. Two approaches:
+
+**Option A**: Use File-based capture, then manually copy to MediaStore
+**Option B**: Refactor to use ImageAnalysis for preview, capture directly to MediaStore
+
+### Implementation Challenges:
+- `DualCameraPiPPlugin` needs item URI to save composited bitmap
+- `CropPlugin` needs item URI to save cropped bitmap
+- Both currently incompatible with collection URI approach
+
+## Recommended Fixes (DEPRECATED - See Solution Above)
 
 ### Priority 1: Runtime Permission Request
 **Action**: Ensure app properly requests media permissions at runtime
