@@ -2089,7 +2089,9 @@ class CameraActivityEngine : AppCompatActivity() {
                                 }
                             }
                         } else {
+                            // Single tap - perform tap-to-focus
                             tapCount = 0
+                            handleTapToFocus(event.x, event.y)
                         }
                         lastTapTime = currentTime
                         true
@@ -2102,6 +2104,66 @@ class CameraActivityEngine : AppCompatActivity() {
 
         } catch (e: Exception) {
             Log.e(TAG, "Error setting up pinch-to-zoom", e)
+        }
+    }
+
+    /**
+     * Handle tap-to-focus gesture
+     * Triggers camera focus and metering at the tapped point
+     */
+    private fun handleTapToFocus(x: Float, y: Float) {
+        lifecycleScope.launch {
+            try {
+                val camera = cameraEngine.getCurrentCamera()
+                if (camera == null) {
+                    Log.w(TAG, "Tap-to-focus: Camera not available")
+                    return@launch
+                }
+
+                // Create metering point factory based on preview view dimensions
+                val factory = SurfaceOrientedMeteringPointFactory(
+                    binding.previewView.width.toFloat(),
+                    binding.previewView.height.toFloat()
+                )
+
+                // Create metering point at tap coordinates
+                val point = factory.createPoint(x, y)
+
+                // Build focus and metering action
+                val action = FocusMeteringAction.Builder(point)
+                    .addPoint(point, FocusMeteringAction.FLAG_AF or FocusMeteringAction.FLAG_AE)
+                    .setAutoCancelDuration(5, java.util.concurrent.TimeUnit.SECONDS)
+                    .build()
+
+                Log.d(TAG, "Tap-to-focus at ($x, $y)")
+
+                // Haptic feedback for tap
+                hapticManager.lightTap()
+
+                // Start focus and metering
+                val result = camera.cameraControl.startFocusAndMetering(action)
+                result.addListener({
+                    try {
+                        val focusResult = result.get()
+                        if (focusResult.isFocusSuccessful) {
+                            Log.i(TAG, "Tap-to-focus: SUCCESS")
+                            // Success haptic feedback
+                            hapticManager.success()
+                        } else {
+                            Log.w(TAG, "Tap-to-focus: FAILED")
+                            // Light error feedback (not critical)
+                            hapticManager.lightTap()
+                        }
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error getting focus result", e)
+                    }
+                }, ContextCompat.getMainExecutor(this@CameraActivityEngine))
+
+            } catch (e: Exception) {
+                Log.e(TAG, "Tap-to-focus failed", e)
+                // Error haptic feedback
+                hapticManager.error()
+            }
         }
     }
 
