@@ -8,4 +8,7 @@
 
     <!-- Cache directory for temporary files -->
     <cache-path name="cache_files" path="." />
+
+    <!-- External storage root (for DCIM/Camera access) -->
+    <external-path name="external_storage" path="." />
 </paths>
