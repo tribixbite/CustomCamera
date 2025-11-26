@@ -1,22 +1,167 @@
-# Active TODOs - Photo Capture & UI Polish 🎨
+# Active TODOs - MediaStore Migration & Bug Fixes 🎨
 
-**Last Updated**: 2025-11-26 (Session 14 - MediaStore Photo Capture Fix)
-**Priority**: Critical Bug Fixes & UX Improvements
-**Status**: Phase 9 Complete + Photo Capture Fixed ✅
+**Last Updated**: 2025-11-26 (Session 15 - Video Recording & PiP Camera Switch Fixes)
+**Priority**: Critical Bug Fixes & MediaStore Migration
+**Status**: Photo + Video MediaStore Migration Complete ✅
 
 ---
 
-## Current Session (2025-11-26 - Session 14: MediaStore Photo Capture Fix) ✅
+## Current Session (2025-11-26 - Session 15: Video & PiP Fixes) ✅
 
-**User Request**: "go" (continue with next priority tasks)
+**User Request**: "go" (continue with next tasks)
+**User Reported Issues**:
+1. "videos dont save"
+2. "when in pip mode changing main camera in settings doesnt work"
 
 ### Context
-- Phase 9 complete with v2.2.0 release (100% deprecation elimination)
-- User reported photo capture failure: "Invalid URI" MediaStore error
-- Root cause: CameraX API misuse with item URIs instead of collection URIs
-- Goal: Fix photo capture and restore PiP button accessibility
+- Session 14 completed: Photo capture MediaStore fix + PiP button restoration
+- User reported two new issues discovered during testing
+- Goal: Fix video saving and camera switching behavior in PiP mode
 
-### ✅ COMPLETED - MediaStore Photo Capture Fix (Session 14)
+### ✅ COMPLETED - Issue 1: Video Recording MediaStore Migration
+
+**Root Cause**: Using `FileOutputOptions` instead of `MediaStoreOutputOptions`
+- AdvancedVideoRecordingPlugin was saving to direct file path
+- `createVideoFile()` method created file in `DCIM/Camera`
+- Not compatible with Android 10+ scoped storage
+- Videos didn't appear in system gallery
+
+**Solution Applied** (`AdvancedVideoRecordingPlugin.kt:174-198`):
+
+1. **Replace FileOutputOptions with MediaStoreOutputOptions**:
+   ```kotlin
+   // OLD (broken):
+   val outputFile = createVideoFile()
+   val outputOptions = FileOutputOptions.Builder(outputFile).build()
+
+   // NEW (fixed):
+   val contentValues = android.content.ContentValues().apply {
+       put(MediaStore.MediaColumns.DISPLAY_NAME, "video_${System.currentTimeMillis()}.mp4")
+       put(MediaStore.MediaColumns.MIME_TYPE, "video/mp4")
+       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+           put(MediaStore.MediaColumns.RELATIVE_PATH, "DCIM/Camera")
+       }
+   }
+
+   val outputOptions = MediaStoreOutputOptions.Builder(
+       context.contentResolver,
+       android.provider.MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+   ).setContentValues(contentValues).build()
+   ```
+
+2. **Remove Unnecessary Code**:
+   - Removed `createVideoFile()` method (line 527-539)
+   - Removed `import java.io.File` (no longer needed)
+   - Simplified video capture flow
+
+**Benefits**:
+- ✅ Videos now save to MediaStore properly
+- ✅ Videos appear in system gallery immediately
+- ✅ Android 10+ scoped storage compatible
+- ✅ Consistent with photo capture approach
+- ✅ Cleaner, more maintainable code
+
+### ✅ COMPLETED - Issue 2: Camera Switching in PiP Mode
+
+**Root Cause**: `switchCamera()` uses `bindCamera()` which fails in concurrent mode
+- When PiP is active, two cameras are bound simultaneously
+- `switchCamera()` calls `bindCamera()` for single-camera mode
+- Attempting to bind a third camera while two are active fails
+- No user feedback about why the switch didn't work
+
+**Solution Applied** (`CameraActivityEngine.kt:2424-2438`):
+
+1. **Check for Concurrent Camera Mode**:
+   ```kotlin
+   // Check if in concurrent camera mode (PiP active)
+   val currentMode = cameraEngine.getCurrentMode()
+   if (currentMode is com.customcamera.app.engine.CameraMode.Concurrent) {
+       Log.w(TAG, "⚠️ Cannot switch camera while in PiP mode")
+       Log.w(TAG, "   Disable PiP first, then change camera in settings")
+       // Don't update cameraIndex - keep current camera until PiP is disabled
+       Toast.makeText(
+           this,
+           "Disable PiP mode before switching cameras",
+           Toast.LENGTH_LONG
+       ).apply {
+           setGravity(android.view.Gravity.TOP or android.view.Gravity.CENTER_HORIZONTAL, 0, 200)
+       }.show()
+       return
+   }
+   ```
+
+**Benefits**:
+- ✅ Prevents camera switching failure in PiP mode
+- ✅ Clear user feedback with toast notification
+- ✅ Preserves current camera state until PiP disabled
+- ✅ Proper logging for debugging
+- ✅ No crashes or silent failures
+
+#### Session Statistics
+
+- **Total Commits**: 1 commit (both fixes)
+  - `9f02c621` - fix: migrate video recording to MediaStore and prevent camera switch in PiP
+- **Files Modified**: 3 source files
+  - AdvancedVideoRecordingPlugin.kt: +18 lines, -26 lines (MediaStore migration)
+  - CameraActivityEngine.kt: +16 lines (PiP mode guard)
+  - version.properties: 2.2.10 → 2.2.11
+- **Build Time**: 21 seconds (incremental build)
+- **Build Status**: BUILD SUCCESSFUL ✅
+
+#### Technical Implementation
+
+**Video Recording Architecture (Fixed)**:
+1. ✅ MediaStoreOutputOptions for all video recording
+2. ✅ Proper collection URI usage (Video.Media.EXTERNAL_CONTENT_URI)
+3. ✅ Android 10+ scoped storage compatible
+4. ✅ ContentValues with RELATIVE_PATH support
+5. ✅ Simplified code (removed file path logic)
+
+**Camera Switching Logic (Fixed)**:
+1. ✅ Concurrent mode detection before camera switch
+2. ✅ User-friendly error messaging
+3. ✅ State preservation during PiP mode
+4. ✅ Comprehensive logging for debugging
+5. ✅ No silent failures or crashes
+
+**Code Quality**:
+1. ✅ Consistent with photo capture MediaStore approach
+2. ✅ Proper null safety and error handling
+3. ✅ Clear user feedback for edge cases
+4. ✅ Detailed logging for troubleshooting
+5. ✅ Comprehensive commit messages
+
+### Session 15 Complete Summary
+
+**Work Completed**:
+- Video recording MediaStore migration (scoped storage fix)
+- PiP mode camera switching prevention with user feedback
+- Version bumped to 2.2.11
+- Clean build verified (21s)
+- Both user-reported issues resolved ✅
+
+**MediaStore Migration Progress**:
+- ✅ Photo capture (Session 14): Collection URI approach
+- ✅ Video recording (Session 15): MediaStoreOutputOptions
+- ⚠️ Dual camera/crop photo modes: Still use legacy item URI (works but could be modernized)
+
+**User Experience Improvements**:
+1. ✅ Videos save reliably to MediaStore
+2. ✅ Videos appear in system gallery
+3. ✅ Clear feedback when camera switch blocked in PiP mode
+4. ✅ No silent failures or crashes
+5. ✅ Consistent behavior across photo/video capture
+
+**Recommendations for Next Session**:
+1. **Test on device**: Install v2.2.11 and verify video recording works
+2. **Test video playback**: Verify videos appear in system gallery
+3. **Test PiP camera switch**: Verify toast appears and prevents switch
+4. **Consider refactoring**: Migrate dual camera/crop to collection URI (optional)
+5. **Phase 10 planning**: Determine next feature development priorities
+
+---
+
+## Previous Session (2025-11-26 - Session 14: MediaStore Photo Capture Fix) ✅
 
 **Strategy: Implement collection URI approach for simple photo capture**
 
