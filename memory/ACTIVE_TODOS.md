@@ -1,8 +1,43 @@
-# Active TODOs - Bug Fixes Complete 🎉
+# Active TODOs - Gallery Enhancement Complete 🎉
 
-**Last Updated**: 2025-11-26 (Session 28 Extended - COMPLETE)
-**Priority**: All Critical Bugs Fixed
-**Status**: v2.3.3 Released ✅
+**Last Updated**: 2025-11-26 (Session 29 - Gallery Video Support)
+**Priority**: P2 Enhancement Complete
+**Status**: v2.3.4 In Progress ✅
+
+---
+
+## Session 29 Summary (2025-11-26) ✅ COMPLETE
+
+**Focus**: Gallery video support enhancement (P2)
+**Duration**: Single focused session
+**Result**: In-app gallery now displays both photos and videos
+
+### Enhancement Implemented ✅
+
+#### Gallery Video Support (P2)
+**Original Issue**: Gallery only showed images, not videos
+**User Feedback**: "but the files aren't showing in the in app gallery"
+
+**Implementation**:
+- Split `loadMediaItems()` into separate `loadImages()` and `loadVideos()` functions
+- Added MediaStore.Video.Media query (GalleryActivity.kt:138-192)
+- Combined and sorted both media types by timestamp
+- MediaItem class already supported videos (no changes needed)
+
+**Changes Made**:
+- `app/src/main/java/com/customcamera/app/GalleryActivity.kt`
+  - Modified `loadMediaItems()` (lines 54-84)
+  - Added `loadImages()` function (lines 86-136)
+  - Added `loadVideos()` function (lines 138-192)
+
+**Verification**: ✅ COMPLETE
+- Gallery displays 10 total items (2 images + 8 videos)
+- Items sorted by timestamp (most recent first)
+- Video icons (📷) and image icons (🖼️) display correctly
+- File info shows name, date, and size for all media types
+- Existing video playback functionality works
+
+**Status**: ✅ FIXED (v2.3.4)
 
 ---
 
