@@ -1,9 +1,9 @@
 # Phase 10 Progress Dashboard
 
-**Last Updated**: 2025-11-26 (Session 27)
-**Current Version**: v2.3.0 (build 39)
+**Last Updated**: 2025-11-26 (Session 28)
+**Current Version**: v2.3.0 (build 39) - **TESTED ON DEVICE**
 **Overall Progress**: 20% (3 of 15 items)
-**Status**: Sprint 1 ✅ COMPLETE | Sprint 2 ✅ ANALYZED
+**Status**: Sprint 1 ✅ COMPLETE | Sprint 2 ✅ ANALYZED | ⚠️ 2 CRITICAL BUGS FOUND
 
 ---
 
@@ -11,12 +11,14 @@
 
 ```
 Sprint 1 (Code Quality):       ✅ 3/3 items (100%)  | v2.3.0
-Sprint 2 (Performance):        ✅ 3/3 analyzed      | v2.3.1 (planned)
+Session 28 (Baseline Testing): ✅ COMPLETE           | 2 bugs found (P0, P1)
+Sprint 2 (Performance):        ✅ 3/3 analyzed      | v2.3.1 (blocked by bugs)
 Sprint 3 (UX):                 ⏳ 0/3 items (0%)
 Sprint 4 (Testing):            ⏳ 0/3 items (0%)
 Sprint 5+ (Features):          ⏳ 0/3 items (0%)
 
 Overall: 3 completed, 3 analyzed, 9 pending
+Blockers: 2 critical bugs (video save, focus)
 ```
 
 ---
@@ -57,12 +59,29 @@ Overall: 3 completed, 3 analyzed, 9 pending
   - Memory: 50% reduction (200-500 MB → 100-200 MB)
   - APK: 35-40% per-device (77 MB → 40-50 MB)
 
+**Session 28 Baseline Testing** ⚠️:
+- **ACTUAL Baseline Performance** (ADB device testing):
+  - Startup: **574ms average** (3-7x BETTER than estimated!)
+  - Memory: **109 MB PSS** (2-5x BETTER than estimated!)
+  - Implication: Sprint 2 estimates were overly pessimistic
+- **CRITICAL BUGS FOUND**:
+  - ❌ P0: Video recording does not save file (blocking)
+  - ❌ P1: Focus not working (tap-to-focus, autofocus)
+  - ⚠️ P3: Version shows "vnull (0)" instead of "v2.3.0 (39)"
+
+**Revised Sprint 2 Targets** (Based on Actual Baseline):
+- Startup: 30-40% improvement (574ms → 350-450ms)
+- Memory: 25-30% reduction (109 MB → 75-85 MB)
+- APK: 35-40% per-device (77 MB → 40-50 MB) - UNCHANGED
+
 **Key Findings**:
 - CRITICAL: Startup bottleneck (plugin capability checking, 700ms)
 - HIGH: Memory leaks discovered (11.3 MB + 18 MB + minor)
 - HIGH: APK bloat (60 MB native libs, 4 architectures)
+- **NEW P0**: Video save failure (discovered in Session 28)
+- **NEW P1**: Focus not working (discovered in Session 28)
 
-**Status**: Ready for implementation after v2.2.11 user feedback
+**Status**: ⚠️ BLOCKED by 2 critical bugs - must fix before Sprint 2
 
 ---
 
@@ -231,7 +250,11 @@ v2.4.0+ (build 43+) ⏳ FUTURE (Sprint 5+)
 - SPRINT2_QUICK_START.md (266 lines) - Implementation guide
 - PHASE10_PLANNING.md (+140 lines) - Updated roadmap
 
-**Total**: 5,287 lines of Phase 10 documentation
+**Session 28 Documentation** (220 lines):
+- BASELINE_TESTING_v2.3.0.md (220 lines) - Device testing results, bug reports
+- PHASE10_DASHBOARD.md (updated) - Baseline results and revised targets
+
+**Total**: 5,507 lines of Phase 10 documentation
 
 ---
 
@@ -284,11 +307,15 @@ v2.4.0+ (build 43+) ⏳ FUTURE (Sprint 5+)
 
 ## Open Questions for User
 
-1. **v2.2.11 Testing**: Results from TESTING_CHECKLIST_v2.2.11.md?
-2. **Sprint 2 Priority**: Proceed with performance optimization?
-3. **Feature Requests**: Any new features desired?
-4. **Release Cadence**: How often to release updates?
-5. **Platform Support**: Android version range priorities?
+1. **⚠️ Critical Bugs** (Session 28): Can you confirm these issues on your device?
+   - Video recording completes but file not saved
+   - Focus (tap-to-focus, autofocus) not working
+2. **v2.2.11 Testing**: Results from TESTING_CHECKLIST_v2.2.11.md?
+3. **Bugfix Priority**: Fix v2.3.0 bugs before Sprint 2, or proceed with Sprint 2?
+4. **Sprint 2 Priority**: Proceed with performance optimization after bugfixes?
+5. **Feature Requests**: Any new features desired?
+6. **Release Cadence**: How often to release updates?
+7. **Platform Support**: Android version range priorities?
 
 ---
 
@@ -297,12 +324,22 @@ v2.4.0+ (build 43+) ⏳ FUTURE (Sprint 5+)
 ### Immediate (Current)
 1. ✅ Sprint 1 complete (v2.3.0 production ready)
 2. ✅ Sprint 2 fully analyzed (ready for implementation)
-3. ⏳ Await v2.2.11 user testing results
-4. ⏳ Sprint 2 Go/No-Go decision based on feedback
+3. ✅ Session 28 baseline testing complete (574ms, 109MB)
+4. ⚠️ **URGENT**: Investigate and fix 2 critical bugs (P0, P1)
+5. ⏳ Await user confirmation of bugs and v2.2.11 testing
+6. ⏳ Create v2.2.12 bugfix release (video save, focus, version)
+7. ⏳ Sprint 2 Go/No-Go decision after bugfixes
 
-### Short-Term (1-2 months)
-1. ⏳ Execute Sprint 2 (performance optimization)
-2. ⏳ Deploy v2.3.1 (50-60% performance improvement)
+### Short-Term (1-2 weeks)
+1. ⏳ Fix video recording save failure (P0)
+2. ⏳ Fix focus not working (P1)
+3. ⏳ Fix version display (P3, optional)
+4. ⏳ Deploy v2.2.12 bugfix release
+5. ⏳ Re-test baseline on device after bugfixes
+
+### Medium-Term (1-2 months)
+1. ⏳ Execute Sprint 2 (performance optimization with revised targets)
+2. ⏳ Deploy v2.3.1 (30-40% startup, 25-30% memory, 35-40% APK)
 3. ⏳ Plan Sprint 3 (UX enhancements)
 4. ⏳ Gather user feedback on performance gains
 
@@ -340,39 +377,45 @@ Sprint 5+ (User-driven features)
 
 ## Competitive Position
 
-### Current State (v2.3.0)
+### Current State (v2.3.0) - ACTUAL MEASURED
 ```
-CustomCamera:  77 MB, 1.6-3.8s startup, 200-500 MB memory
+CustomCamera:  77 MB, 574ms startup, 109 MB memory ✅ BETTER THAN EXPECTED
 Google Camera: 45 MB, ~1s startup, ~150 MB memory
 Open Camera:   8 MB,  <1s startup, ~100 MB memory
 ```
+**Note**: Session 28 baseline testing revealed CustomCamera is ALREADY faster than estimated and competitive with Google Camera on startup!
 
-### After Sprint 2 (v2.3.1)
+### After Sprint 2 (v2.3.1) - REVISED TARGETS
 ```
-CustomCamera:  40-50 MB, 0.8-1.5s startup, 100-200 MB memory
-→ Competitive with Google Camera
+CustomCamera:  40-50 MB, 350-450ms startup, 75-85 MB memory
+→ FASTER than Google Camera
+→ Smaller memory footprint than Google Camera
 → Retains all features + unique plugins
 ```
 
-**Goal**: Match Google Camera performance while maintaining feature differentiation.
+**Goal**: EXCEED Google Camera performance while maintaining feature differentiation.
+**Note**: With actual baseline of 574ms startup and 109 MB memory, revised Sprint 2 targets are more aggressive yet achievable.
 
 ---
 
 ## Phase 10 Summary
 
 **Sprint 1**: ✅ Code quality foundation established (v2.3.0)
-**Sprint 2**: ✅ Performance optimization analyzed (v2.3.1 ready)
+**Session 28**: ✅ Baseline testing complete ⚠️ 2 bugs found (P0, P1)
+**Sprint 2**: ✅ Performance optimization analyzed (v2.3.1 ready after bugfixes)
 **Sprint 3**: ⏳ UX enhancements planned
 **Sprint 4**: ⏳ Testing infrastructure planned
 **Sprint 5+**: ⏳ Feature roadmap defined
 
 **Overall Progress**: 40% (3 completed + 3 analyzed / 15 total)
-**Documentation Quality**: A+ (5,287 lines comprehensive)
-**Risk Level**: LOW-MEDIUM (phased approach)
-**User Impact**: HIGH (50-60% performance improvement in Sprint 2)
+**Documentation Quality**: A+ (5,507 lines comprehensive)
+**Risk Level**: MEDIUM (2 critical bugs blocking Sprint 2)
+**User Impact**:
+- IMMEDIATE: 2 critical bugs require attention (video save, focus)
+- FUTURE: 30-40% startup, 25-30% memory improvement in Sprint 2
 
 ---
 
-**Dashboard Version**: 1.0
-**Last Updated**: 2025-11-26 (Session 27)
-**Next Update**: After v2.2.11 user feedback and Sprint 2 Go/No-Go
+**Dashboard Version**: 1.1
+**Last Updated**: 2025-11-26 (Session 28)
+**Next Update**: After bug investigation and v2.2.12 bugfix release
