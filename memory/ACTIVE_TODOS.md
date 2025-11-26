@@ -1,10 +1,119 @@
-# Active TODOs - Critical Photo Capture & Gallery Fixes ✅
+# Active TODOs - UI/UX Improvements ✅
 
-**Last Updated**: 2025-11-22 (Continuation Session 9)
-**Priority**: P0 Critical Bug Fixes - Photo Capture & Gallery
-**Status**: All 3 critical issues resolved and tested ✅
+**Last Updated**: 2025-11-25 (Continuation Session 11)
+**Priority**: UI/UX Polish & Readability
+**Status**: Zoom indicator improved ✅
 
-## Current Session Context (2025-11-22 Continuation #9 - Photo Capture Crisis)
+---
+
+## Current Session (2025-11-25 Continuation #11 - UI/UX Improvements) ✅
+
+**User Request**: "go" (continue with Gemini's UI/UX recommendations)
+
+### Context
+- Previous screenshot analyzed by Gemini AI identified several UI/UX issues
+- Focus on readability and visual polish improvements
+- Low lighting conditions made visual testing challenging
+
+### ✅ COMPLETED - UI Improvements
+
+**Investigation Process:**
+1. **Screenshot Analysis** - Asked Gemini to analyze CustomCamera UI
+2. **Code Search** - Located zoom indicator implementation
+3. **UI Enhancement** - Improved zoom indicator readability
+4. **Top Bar Analysis** - Identified 5-button clutter in top bar
+
+#### Improvement #1: Pill-Shaped Zoom Indicator (commit 1bcb5919)
+
+**Issue Identified by Gemini:**
+> "The zoom indicator (1.0x) needs better background for readability"
+> "Text contrast could be improved with semi-transparent pill background"
+
+**Implementation:**
+- **Location**: `CameraActivityEngine.kt:1932-1950`
+- **Change**: Rectangular background → Pill-shaped with rounded corners
+- **Technical Details**:
+  ```kotlin
+  // OLD: Rectangular background
+  setBackgroundColor(android.graphics.Color.argb(180, 0, 0, 0))
+  setPadding(16, 8, 16, 8)
+
+  // NEW: Pill-shaped background
+  val pillBackground = android.graphics.drawable.GradientDrawable().apply {
+      shape = android.graphics.drawable.GradientDrawable.RECTANGLE
+      cornerRadius = 50f // Rounded corners for pill shape
+      setColor(android.graphics.Color.argb(200, 0, 0, 0)) // More opaque
+  }
+  background = pillBackground
+  setPadding(32, 12, 32, 12) // More horizontal padding
+  ```
+
+**Improvements:**
+- ✅ Rounded corners (50f radius) for modern pill shape
+- ✅ Increased opacity (180 → 200) for better contrast
+- ✅ Increased padding (16x8 → 32x12) for better visual balance
+- ✅ Better readability over varying backgrounds
+
+**Impact**: Modern, polished zoom indicator that's easier to read
+
+#### Analysis #2: Top Bar Icon Clutter
+
+**Issue Identified by Gemini:**
+> "Top bar has 5 icons (Flash, Night Mode, Video, PiP, Settings) which is cluttered"
+> "Modern camera apps typically use overflow menus for less frequently used controls"
+
+**Current Top Bar Layout** (`activity_camera.xml:20-88`):
+1. **Flash Button** - Toggle flash modes (off/on/auto)
+2. **Night Mode Button** - Enable/disable night mode
+3. **Video Record Button** - Switch to video recording mode
+4. **PiP Button** - Toggle dual camera picture-in-picture
+5. **Settings Button** - Open settings screen
+
+**Recommendations for Future Enhancement:**
+- **Keep in Top Bar**: Flash, Settings (most frequently used)
+- **Move to Overflow Menu**: Night Mode, Video, PiP
+- **Alternative**: Swipeable mode selector (PHOTO/VIDEO/NIGHT) like Google Camera
+- **Note**: This is a significant UI reorganization requiring user testing
+
+**Decision**: Documented for future consideration, no immediate changes
+**Reason**: Requires careful UX research and user preference analysis
+
+### Other Gemini Recommendations Investigated
+
+**"Default camera plugin is running" toast message:**
+- ❌ Could not locate in current codebase
+- Searched all `.kt` files for toast messages
+- Likely removed in previous update or misidentified by Gemini
+- **Status**: No action needed
+
+**"Plugins" terminology:**
+- Gemini suggested more user-friendly name
+- Current: "Plugins" menu button
+- **Status**: Deferred - would require UX research and string resource updates
+
+### Session Statistics
+- **Total Commits**: 1 UI improvement
+- **Files Modified**: 1 (CameraActivityEngine.kt)
+- **Lines Changed**: +10, -2
+- **Build Time**: 29s
+- **Testing Method**: Code analysis (low light prevented visual verification)
+- **Severity**: P2 Polish (UI/UX improvements)
+
+### Architecture Improvements
+- **Modern UI patterns**: Pill-shaped backgrounds instead of rectangles
+- **Better readability**: Increased opacity and padding
+- **Visual polish**: Rounded corners for softer, more modern appearance
+- **Maintainable code**: Well-documented GradientDrawable configuration
+
+### Pending Recommendations
+1. **Top Bar Reorganization** - Requires UX research and user testing
+2. **Mode Selector Pattern** - Consider Google Camera-style swipeable modes
+3. **"Plugins" Rebranding** - Consider more user-friendly terminology
+4. **Visual Testing** - Test zoom indicator in better lighting conditions
+
+---
+
+## Previous Session (2025-11-25 Continuation #10 - Photo/Video Capture Fix) ✅
 
 **User Report**: "when i try to take a picture it says image capture failed"
 **Secondary Issues Discovered**:
