@@ -64,6 +64,12 @@ class CameraActivityEngine : AppCompatActivity() {
     private var histogramView: com.customcamera.app.analysis.HistogramView? = null
     @Volatile private var isBarcodeScanningEnabled: Boolean = false
     @Volatile private var isPiPEnabled: Boolean = false
+
+    // Camera mode selector
+    private enum class CaptureMode {
+        PHOTO, VIDEO, NIGHT
+    }
+    @Volatile private var currentMode: CaptureMode = CaptureMode.PHOTO
     private var loadingIndicator: android.widget.TextView? = null
     private var pipOverlayView: com.customcamera.app.pip.PiPOverlayView? = null
     private var camera2ISOController: com.customcamera.app.camera2.Camera2ISOController? = null
@@ -346,7 +352,8 @@ class CameraActivityEngine : AppCompatActivity() {
 
     private fun setupUI() {
         // Enhanced button setup with animations and feedback
-        setupEnhancedButton(binding.captureButton, true) { capturePhoto() }
+        // Capture button now respects current mode (Photo/Video/Night)
+        setupEnhancedButton(binding.captureButton, true) { handleCapture() }
         setupEnhancedButton(binding.videoRecordButton) { toggleVideoRecording() }
         setupEnhancedButton(binding.nightModeButton) { toggleNightMode() }
         setupEnhancedButton(binding.pipButton) { togglePiP() }
@@ -360,6 +367,9 @@ class CameraActivityEngine : AppCompatActivity() {
 
         // Note: setupPluginDropdown() called AFTER camera engine initialization
         // See line ~290 after CameraEngine construction
+
+        // Setup mode selector strip (Photo/Video/Night)
+        setupModeSelector()
 
         // Add gesture controls for features including AI
         var lastTapTime = 0L
@@ -420,6 +430,120 @@ class CameraActivityEngine : AppCompatActivity() {
         }
 
         Log.i(TAG, "✅ UI setup complete with advanced controls")
+    }
+
+    /**
+     * Setup mode selector strip for Photo/Video/Night modes
+     * Modern Instagram/Snapchat style horizontal mode selector
+     */
+    private fun setupModeSelector() {
+        // Photo mode button
+        binding.photoModeButton.setOnClickListener {
+            switchToMode(CaptureMode.PHOTO)
+            hapticManager.mediumTap()
+        }
+
+        // Video mode button
+        binding.videoModeButton.setOnClickListener {
+            switchToMode(CaptureMode.VIDEO)
+            hapticManager.mediumTap()
+        }
+
+        // Night mode button
+        binding.nightModeSelector.setOnClickListener {
+            switchToMode(CaptureMode.NIGHT)
+            hapticManager.mediumTap()
+        }
+
+        // Initialize with photo mode active
+        updateModeUI(CaptureMode.PHOTO)
+
+        Log.i(TAG, "✅ Mode selector strip initialized")
+    }
+
+    /**
+     * Switch to a different capture mode
+     */
+    private fun switchToMode(mode: CaptureMode) {
+        if (currentMode == mode) {
+            // Already in this mode, no action needed
+            return
+        }
+
+        val previousMode = currentMode
+        currentMode = mode
+
+        Log.i(TAG, "Switching mode: $previousMode → $mode")
+
+        when (mode) {
+            CaptureMode.PHOTO -> {
+                // Disable video recording if active
+                if (isRecording) {
+                    toggleVideoRecording()
+                }
+                // Disable night mode if active
+                if (isNightModeEnabled) {
+                    toggleNightMode()
+                }
+                com.customcamera.app.presentation.EnhancedToast.info(this, "Photo mode")
+            }
+            CaptureMode.VIDEO -> {
+                // Disable night mode if active (video doesn't support night mode)
+                if (isNightModeEnabled) {
+                    toggleNightMode()
+                }
+                // Note: Video recording will be started on capture button press
+                com.customcamera.app.presentation.EnhancedToast.info(this, "Video mode - Tap capture to start recording")
+            }
+            CaptureMode.NIGHT -> {
+                // Disable video recording if active (night mode is photo only)
+                if (isRecording) {
+                    toggleVideoRecording()
+                }
+                // Enable night mode if not already enabled
+                if (!isNightModeEnabled) {
+                    toggleNightMode()
+                }
+                com.customcamera.app.presentation.EnhancedToast.info(this, "Night mode")
+            }
+        }
+
+        updateModeUI(mode)
+    }
+
+    /**
+     * Update mode selector UI to reflect active mode
+     */
+    private fun updateModeUI(mode: CaptureMode) {
+        // Reset all modes to inactive state (dimmed)
+        binding.photoModeButton.alpha = 0.5f
+        binding.photoModeButton.textSize = 14f
+        binding.photoModeButton.setBackgroundResource(0) // Remove background
+
+        binding.videoModeButton.alpha = 0.5f
+        binding.videoModeButton.textSize = 14f
+
+        binding.nightModeSelector.alpha = 0.5f
+        binding.nightModeSelector.textSize = 14f
+
+        // Highlight active mode
+        when (mode) {
+            CaptureMode.PHOTO -> {
+                binding.photoModeButton.alpha = 1.0f
+                binding.photoModeButton.textSize = 15f
+                binding.photoModeButton.setBackgroundResource(R.drawable.camera_control_background)
+            }
+            CaptureMode.VIDEO -> {
+                binding.videoModeButton.alpha = 1.0f
+                binding.videoModeButton.textSize = 15f
+                binding.videoModeButton.setBackgroundResource(R.drawable.camera_control_background)
+            }
+            CaptureMode.NIGHT -> {
+                binding.nightModeSelector.alpha = 1.0f
+                binding.nightModeSelector.textSize = 15f
+                binding.nightModeSelector.setBackgroundResource(R.drawable.camera_control_background)
+            }
+        }
     }
 
     private fun hasCameraPermission(): Boolean {
@@ -596,6 +720,26 @@ class CameraActivityEngine : AppCompatActivity() {
                 Log.e(TAG, "Failed to start camera with engine", e)
                 loadingIndicatorManager.hideLoading()
                 handleCameraError("Camera startup failed: ${e.message}")
+            }
+        }
+    }
+
+    /**
+     * Handle capture button press based on current mode
+     * Routes to appropriate action (photo, video start/stop, or night photo)
+     */
+    private fun handleCapture() {
+        when (currentMode) {
+            CaptureMode.PHOTO -> {
+                capturePhoto()
+            }
+            CaptureMode.VIDEO -> {
+                // Toggle video recording (start/stop)
+                toggleVideoRecording()
+            }
+            CaptureMode.NIGHT -> {
+                // Capture photo with night mode enabled
+                capturePhoto()
             }
         }
     }

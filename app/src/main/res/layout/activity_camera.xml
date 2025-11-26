@@ -106,6 +106,67 @@
         android:layout_marginBottom="100dp"
         android:elevation="8dp" />
 
+    <!-- Mode Selector Strip (Photo/Video/Night) -->
+    <!-- Positioned above bottom controls for easy thumb access -->
+    <LinearLayout
+        android:id="@+id/modeSelectorStrip"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="164dp"
+        android:orientation="horizontal"
+        android:padding="4dp"
+        android:background="@drawable/enhanced_button_background"
+        android:elevation="2dp">
+
+        <!-- Photo Mode Button -->
+        <TextView
+            android:id="@+id/photoModeButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="PHOTO"
+            android:textSize="14sp"
+            android:textColor="@android:color/white"
+            android:textStyle="bold"
+            android:paddingHorizontal="20dp"
+            android:paddingVertical="8dp"
+            android:background="@drawable/camera_control_background"
+            android:alpha="1.0"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <!-- Video Mode Button -->
+        <TextView
+            android:id="@+id/videoModeButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="VIDEO"
+            android:textSize="14sp"
+            android:textColor="@android:color/white"
+            android:paddingHorizontal="20dp"
+            android:paddingVertical="8dp"
+            android:layout_marginStart="4dp"
+            android:alpha="0.5"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <!-- Night Mode Button -->
+        <TextView
+            android:id="@+id/nightModeSelector"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="NIGHT"
+            android:textSize="14sp"
+            android:textColor="@android:color/white"
+            android:paddingHorizontal="20dp"
+            android:paddingVertical="8dp"
+            android:layout_marginStart="4dp"
+            android:alpha="0.5"
+            android:clickable="true"
+            android:focusable="true" />
+
+    </LinearLayout>
+
     <!-- Bottom Controls (SOTA Modern Design) -->
     <LinearLayout
         android:layout_width="match_parent"
