@@ -1,7 +1,12 @@
 package com.customcamera.app.gallery
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Color
+import android.media.ThumbnailUtils
+import android.provider.MediaStore
+import android.util.Size
 import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
@@ -37,18 +42,18 @@ class GalleryAdapter(
             setBackgroundColor(Color.GRAY)
         }
 
-        // Media type indicator
-        val iconView = ImageView(context).apply {
-            val iconRes = if (mediaItem.isVideo) {
-                android.R.drawable.ic_menu_camera // Video icon
-            } else {
-                android.R.drawable.ic_menu_gallery // Photo icon
+        // Thumbnail image
+        val thumbnailView = ImageView(context).apply {
+            layoutParams = LinearLayout.LayoutParams(200, 200).apply {
+                bottomMargin = 8
             }
-            setImageResource(iconRes)
-            layoutParams = LinearLayout.LayoutParams(80, 80)
-            scaleType = ImageView.ScaleType.CENTER_INSIDE
+            scaleType = ImageView.ScaleType.CENTER_CROP
+            setBackgroundColor(Color.DKGRAY)
+
+            // Load thumbnail asynchronously
+            loadThumbnail(mediaItem, this)
         }
-        container.addView(iconView)
+        container.addView(thumbnailView)
 
         // File name
         val nameView = TextView(context).apply {
@@ -80,5 +85,95 @@ class GalleryAdapter(
         }
 
         return container
+    }
+
+    /**
+     * Load thumbnail for media item (image or video)
+     */
+    private fun loadThumbnail(mediaItem: MediaItem, imageView: ImageView) {
+        Thread {
+            try {
+                val thumbnail: Bitmap? = if (mediaItem.isVideo) {
+                    // Video thumbnail using ThumbnailUtils
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                        // Android 10+ - use modern API
+                        ThumbnailUtils.createVideoThumbnail(
+                            mediaItem.file,
+                            Size(200, 200),
+                            null
+                        )
+                    } else {
+                        // Android 7-9 - use legacy API
+                        @Suppress("DEPRECATION")
+                        ThumbnailUtils.createVideoThumbnail(
+                            mediaItem.path,
+                            MediaStore.Video.Thumbnails.MINI_KIND
+                        )
+                    }
+                } else {
+                    // Image thumbnail using BitmapFactory with sampling
+                    val options = BitmapFactory.Options().apply {
+                        inJustDecodeBounds = true
+                    }
+                    BitmapFactory.decodeFile(mediaItem.path, options)
+
+                    // Calculate sample size for efficient memory usage
+                    options.inSampleSize = calculateInSampleSize(options, 200, 200)
+                    options.inJustDecodeBounds = false
+
+                    BitmapFactory.decodeFile(mediaItem.path, options)
+                }
+
+                // Update UI on main thread
+                (context as? android.app.Activity)?.runOnUiThread {
+                    if (thumbnail != null) {
+                        imageView.setImageBitmap(thumbnail)
+                    } else {
+                        // Fallback to icon if thumbnail generation fails
+                        val iconRes = if (mediaItem.isVideo) {
+                            android.R.drawable.ic_menu_camera
+                        } else {
+                            android.R.drawable.ic_menu_gallery
+                        }
+                        imageView.setImageResource(iconRes)
+                    }
+                }
+            } catch (e: Exception) {
+                // On error, show icon
+                (context as? android.app.Activity)?.runOnUiThread {
+                    val iconRes = if (mediaItem.isVideo) {
+                        android.R.drawable.ic_menu_camera
+                    } else {
+                        android.R.drawable.ic_menu_gallery
+                    }
+                    imageView.setImageResource(iconRes)
+                }
+            }
+        }.start()
+    }
+
+    /**
+     * Calculate appropriate sample size for bitmap loading
+     */
+    private fun calculateInSampleSize(
+        options: BitmapFactory.Options,
+        reqWidth: Int,
+        reqHeight: Int
+    ): Int {
+        val height = options.outHeight
+        val width = options.outWidth
+        var inSampleSize = 1
+
+        if (height > reqHeight || width > reqWidth) {
+            val halfHeight = height / 2
+            val halfWidth = width / 2
+
+            while ((halfHeight / inSampleSize) >= reqHeight &&
+                (halfWidth / inSampleSize) >= reqWidth) {
+                inSampleSize *= 2
+            }
+        }
+
+        return inSampleSize
     }
 }
