@@ -783,50 +783,59 @@ class CameraActivityEngine : AppCompatActivity() {
 
             val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
             val displayName = "$timestamp.jpg"
-            Log.i(TAG, "Creating MediaStore entry for: $displayName")
 
-            // Use MediaStore for Android 10+ (API 29+) to save to DCIM
-            val contentValues = ContentValues().apply {
-                put(MediaStore.MediaColumns.DISPLAY_NAME, displayName)
-                put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    put(MediaStore.MediaColumns.RELATIVE_PATH, "DCIM/Camera")
-                    // Note: DO NOT set IS_PENDING here - let CameraX manage it
+            // Check if in concurrent camera mode (dual camera capture)
+            val currentMode = cameraEngine.getCurrentMode()
+            val isDualCamera = currentMode is CameraMode.Concurrent && dualCameraPiPPlugin != null
+
+            // Check if crop is enabled
+            val isCropEnabled = cropPlugin!!.isEnabled && cropPlugin!!.isCropEnabled()
+
+            Log.i(TAG, "Photo capture setup: dualCamera=$isDualCamera, crop=$isCropEnabled")
+
+            if (isDualCamera || isCropEnabled) {
+                // Dual camera and crop modes need item URI for manual processing
+                Log.i(TAG, "Using item URI approach for dual camera/crop mode")
+
+                val contentValues = ContentValues().apply {
+                    put(MediaStore.MediaColumns.DISPLAY_NAME, displayName)
+                    put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        put(MediaStore.MediaColumns.RELATIVE_PATH, "DCIM/Camera")
+                        put(MediaStore.MediaColumns.IS_PENDING, 1)
+                    }
                 }
-            }
 
-            val contentResolver = contentResolver
-            val imageUri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
+                val imageUri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
+                if (imageUri == null) {
+                    Log.e(TAG, "Failed to create MediaStore entry")
+                    Toast.makeText(this, "Failed to create photo entry", Toast.LENGTH_SHORT).show()
+                    return
+                }
 
-            if (imageUri == null) {
-                Log.e(TAG, "Failed to create MediaStore entry")
-                Toast.makeText(this, "Failed to create photo entry", Toast.LENGTH_SHORT).show()
-                return
-            }
-            Log.i(TAG, "MediaStore URI created: $imageUri")
-
-            Log.i(TAG, "Building OutputFileOptions with ContentResolver")
-            // Pass empty ContentValues - CameraX will handle IS_PENDING internally
-            val outputFileOptions = ImageCapture.OutputFileOptions.Builder(contentResolver, imageUri, ContentValues()).build()
-            Log.i(TAG, "OutputFileOptions created successfully")
-
-            // Check if night mode is enabled for long exposure capture
-            val nightModePlugin = cameraEngine.getPlugin("NightMode") as? NightModePlugin
-
-            if (nightModePlugin?.isNightModeActive() == true) {
-                // Log long exposure capture
-                com.customcamera.app.debug.GlobalAPIMonitor.getInstance()?.logCameraControl(
-                    "captureLongExposure",
-                    mapOf(
-                        "exposureTime" to nightModePlugin.getCurrentExposureTime(),
-                        "timestamp" to System.currentTimeMillis()
-                    )
-                )
-                // Use long exposure capture for night mode
-                captureLongExposurePhoto(outputFileOptions, imageUri, displayName, contentValues)
+                // Use the legacy capture path that expects item URI
+                captureRegularPhoto(null, imageUri, displayName, contentValues)
             } else {
-                // Use regular photo capture
-                captureRegularPhoto(outputFileOptions, imageUri, displayName, contentValues)
+                // Simple capture - use collection URI approach
+                Log.i(TAG, "Using collection URI approach for simple capture")
+
+                val contentValues = ContentValues().apply {
+                    put(MediaStore.MediaColumns.DISPLAY_NAME, displayName)
+                    put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        put(MediaStore.MediaColumns.RELATIVE_PATH, "DCIM/Camera")
+                    }
+                }
+
+                val collectionUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+                val outputFileOptions = ImageCapture.OutputFileOptions.Builder(
+                    contentResolver,
+                    collectionUri,
+                    contentValues
+                ).build()
+
+                // Use the new collection URI capture path
+                captureRegularPhoto(outputFileOptions, null, displayName, null)
             }
 
         } catch (e: Exception) {
@@ -835,7 +844,12 @@ class CameraActivityEngine : AppCompatActivity() {
         }
     }
 
-    private fun captureRegularPhoto(outputFileOptions: ImageCapture.OutputFileOptions, imageUri: android.net.Uri, displayName: String, contentValues: ContentValues) {
+    private fun captureRegularPhoto(
+        outputFileOptions: ImageCapture.OutputFileOptions?,
+        imageUri: android.net.Uri?,
+        displayName: String,
+        contentValues: ContentValues?
+    ) {
         val imageCapture = cameraEngine.getImageCapture() ?: return
 
         // Show photo capture loading
@@ -870,7 +884,7 @@ class CameraActivityEngine : AppCompatActivity() {
 
                             if (pipBitmap == null) {
                                 Log.e(TAG, "PiP bitmap not available, saving main camera only")
-                                saveSingleImage(mainImage, imageUri, displayName, contentValues)
+                                saveSingleImage(mainImage, imageUri!!, displayName, contentValues!!)
                                 return
                             }
 
@@ -887,8 +901,8 @@ class CameraActivityEngine : AppCompatActivity() {
                                     pipBitmap = pipBitmap,
                                     pipRect = pipRect,
                                     contentResolver = contentResolver,
-                                    imageUri = imageUri,
-                                    contentValues = contentValues
+                                    imageUri = imageUri!!,
+                                    contentValues = contentValues!!
                                 )
 
                                 mainImage.close()
@@ -949,14 +963,14 @@ class CameraActivityEngine : AppCompatActivity() {
 
                                     if (croppedBitmap != null) {
                                         // Save cropped bitmap to MediaStore
-                                        contentResolver.openOutputStream(imageUri)?.use { out ->
+                                        contentResolver.openOutputStream(imageUri!!)?.use { out ->
                                             croppedBitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 95, out)
                                         }
                                         croppedBitmap.recycle()
 
                                         // Mark as complete (remove IS_PENDING flag)
                                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                                            contentValues.clear()
+                                            contentValues!!.clear()
                                             contentValues.put(MediaStore.MediaColumns.IS_PENDING, 0)
                                             contentResolver.update(imageUri, contentValues, null, null)
                                         }
@@ -998,28 +1012,43 @@ class CameraActivityEngine : AppCompatActivity() {
             } else {
                 // Crop disabled: Save directly to MediaStore (faster)
                 Log.i(TAG, "📸 Capturing photo without crop...")
+
+                // Collection URI path (outputFileOptions provided, imageUri/contentValues null)
+                val finalOutputFileOptions = outputFileOptions ?: run {
+                    // Fallback: Legacy item URI path (should not happen if logic above is correct)
+                    Log.w(TAG, "⚠️ OutputFileOptions is null, using legacy item URI fallback")
+                    ImageCapture.OutputFileOptions.Builder(contentResolver, imageUri!!, ContentValues()).build()
+                }
+
                 imageCapture.takePicture(
-                    outputFileOptions,
+                    finalOutputFileOptions,
                     ContextCompat.getMainExecutor(this),
                     object : ImageCapture.OnImageSavedCallback {
                         override fun onImageSaved(output: ImageCapture.OutputFileResults) {
-                            // Mark as complete (remove IS_PENDING flag)
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                                contentValues.clear()
-                                contentValues.put(MediaStore.MediaColumns.IS_PENDING, 0)
-                                contentResolver.update(imageUri, contentValues, null, null)
+                            val savedUri = output.savedUri
+
+                            // Only update IS_PENDING if using legacy item URI path
+                            if (imageUri != null && contentValues != null) {
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                                    contentValues.clear()
+                                    contentValues.put(MediaStore.MediaColumns.IS_PENDING, 0)
+                                    contentResolver.update(imageUri, contentValues, null, null)
+                                }
                             }
+                            // Collection URI path: CameraX handles IS_PENDING automatically
+
                             loadingIndicatorManager.hideLoading()
                             com.customcamera.app.presentation.EnhancedToast.photoSaved(this@CameraActivityEngine, displayName)
                             hapticManager.photoCapture()
-                            Log.i(TAG, "Photo saved: $imageUri")
+                            Log.i(TAG, "✅ Photo saved successfully: $savedUri")
                             animateCaptureButton()
                         }
 
                         override fun onError(exception: ImageCaptureException) {
                             loadingIndicatorManager.hideLoading()
                             hapticManager.error()
-                            Log.e(TAG, "Photo capture failed", exception)
+                            Log.e(TAG, "❌ Photo capture failed", exception)
+                            Log.e(TAG, "Exception details: ${exception.javaClass.simpleName}, code=${exception.imageCaptureError}")
                             com.customcamera.app.presentation.EnhancedToast.error(this@CameraActivityEngine, "Photo capture failed")
                         }
                     }
