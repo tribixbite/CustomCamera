@@ -57,7 +57,6 @@
     <!-- These buttons still exist in code but are hidden from UI -->
     <!-- Night Mode: Accessible via plugin menu -->
     <!-- Video Record: TODO - Add mode selector (Photo/Video modes) -->
-    <!-- PiP: Available in plugin dropdown menu -->
     <ImageButton
         android:id="@+id/nightModeButton"
         android:layout_width="0dp"
@@ -72,12 +71,22 @@
         android:visibility="gone"
         android:contentDescription="Record Video (Hidden - TODO: mode selector)" />
 
+    <!-- PiP Button (Left side, below flash button) -->
     <ImageButton
         android:id="@+id/pipButton"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:visibility="gone"
-        android:contentDescription="Picture in Picture (Hidden - use plugin menu)" />
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_gravity="start|center_vertical"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="180dp"
+        android:background="@drawable/enhanced_button_background"
+        android:src="@drawable/ic_pip"
+        android:scaleType="centerInside"
+        android:padding="12dp"
+        android:alpha="1.0"
+        android:contentDescription="Toggle Dual Camera PiP Mode"
+        android:elevation="4dp"
+        android:stateListAnimator="@animator/button_press_scale" />
 
     <!-- Master Plugin Button (right side) -->
     <ImageButton
