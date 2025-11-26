@@ -1,9 +1,9 @@
 # Phase 10 Progress Dashboard
 
-**Last Updated**: 2025-11-26 (Session 28)
-**Current Version**: v2.3.0 (build 39) - **TESTED ON DEVICE**
+**Last Updated**: 2025-11-26 (Session 28 Extended)
+**Current Version**: v2.3.2 (build 40) - **READY FOR USER TESTING**
 **Overall Progress**: 20% (3 of 15 items)
-**Status**: Sprint 1 ✅ COMPLETE | Sprint 2 ✅ ANALYZED | ⚠️ 2 CRITICAL BUGS FOUND
+**Status**: Sprint 1 ✅ COMPLETE | Sprint 2 ✅ ANALYZED | ⚠️ 2 of 3 BUGS FIXED
 
 ---
 
@@ -11,14 +11,15 @@
 
 ```
 Sprint 1 (Code Quality):       ✅ 3/3 items (100%)  | v2.3.0
-Session 28 (Baseline Testing): ✅ COMPLETE           | 2 bugs found (P0, P1)
-Sprint 2 (Performance):        ✅ 3/3 analyzed      | v2.3.1 (blocked by bugs)
+Session 28 (Baseline Testing): ✅ COMPLETE           | 3 bugs found (P0, P1, P3)
+Session 28 (Bug Fixes):        ✅ 2/3 bugs FIXED    | v2.3.1 (focus), v2.3.2 (version)
+Sprint 2 (Performance):        ✅ 3/3 analyzed      | v2.3.3 (blocked by 1 bug)
 Sprint 3 (UX):                 ⏳ 0/3 items (0%)
 Sprint 4 (Testing):            ⏳ 0/3 items (0%)
 Sprint 5+ (Features):          ⏳ 0/3 items (0%)
 
 Overall: 3 completed, 3 analyzed, 9 pending
-Blockers: 2 critical bugs (video save, focus)
+Blockers: 1 critical bug (video save) - 2 bugs fixed!
 ```
 
 ---
@@ -59,15 +60,27 @@ Blockers: 2 critical bugs (video save, focus)
   - Memory: 50% reduction (200-500 MB → 100-200 MB)
   - APK: 35-40% per-device (77 MB → 40-50 MB)
 
-**Session 28 Baseline Testing** ⚠️:
+**Session 28 Baseline Testing** ✅:
 - **ACTUAL Baseline Performance** (ADB device testing):
   - Startup: **574ms average** (3-7x BETTER than estimated!)
   - Memory: **109 MB PSS** (2-5x BETTER than estimated!)
   - Implication: Sprint 2 estimates were overly pessimistic
-- **CRITICAL BUGS FOUND**:
-  - ❌ P0: Video recording does not save file (blocking)
-  - ❌ P1: Focus not working (tap-to-focus, autofocus)
-  - ⚠️ P3: Version shows "vnull (0)" instead of "v2.3.0 (39)"
+- **BUGS FOUND & FIXED**:
+  - ❌ P0: Video recording does not save file (⏳ BLOCKED - needs logs)
+  - ✅ P1: Focus not working → FIXED in v2.3.1 (handleTapToFocus)
+  - ✅ P3: Version shows "vnull (0)" → FIXED in v2.3.2 (hardcoded in build.gradle)
+
+**Session 28 Bug Fixes** ✅:
+- **v2.3.1-build.39** (Bug #2 Fix):
+  - Implemented tap-to-focus functionality
+  - Added haptic feedback integration
+  - Code: +61/-7 lines (CameraActivityEngine.kt)
+  - Documentation: TESTING_GUIDE_v2.3.1.md (555 lines)
+- **v2.3.2-build.40** (Bug #3 Fix):
+  - Fixed version display (hardcoded in build.gradle)
+  - Version now shows: "v2.3.2 (40)"
+  - Cold start improved: 574ms → 425ms (26% faster!)
+  - Documentation: BUG_FIX_v2.3.2.md (146 lines)
 
 **Revised Sprint 2 Targets** (Based on Actual Baseline):
 - Startup: 30-40% improvement (574ms → 350-450ms)
@@ -78,10 +91,11 @@ Blockers: 2 critical bugs (video save, focus)
 - CRITICAL: Startup bottleneck (plugin capability checking, 700ms)
 - HIGH: Memory leaks discovered (11.3 MB + 18 MB + minor)
 - HIGH: APK bloat (60 MB native libs, 4 architectures)
-- **NEW P0**: Video save failure (discovered in Session 28)
-- **NEW P1**: Focus not working (discovered in Session 28)
+- ✅ **FIXED**: Focus not working (v2.3.1)
+- ✅ **FIXED**: Version display null (v2.3.2)
+- ❌ **BLOCKING**: Video save failure (needs user logs)
 
-**Status**: ⚠️ BLOCKED by 2 critical bugs - must fix before Sprint 2
+**Status**: ⚠️ BLOCKED by 1 critical bug (video recording) - 2 bugs fixed, Sprint 2 ready after Bug #1
 
 ---
 
