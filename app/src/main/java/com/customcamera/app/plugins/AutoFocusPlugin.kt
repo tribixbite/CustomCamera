@@ -279,14 +279,17 @@ class AutoFocusPlugin : ControlPlugin() {
                 )
             }
 
-            // Apply in background
-            // Note: In production, this would be done with proper coroutine scope
-            try {
-                kotlinx.coroutines.runBlocking {
-                    applyControls(camera)
+            // Apply in background using proper lifecycle scope
+            cameraContext?.let { context ->
+                if (context.context is androidx.lifecycle.LifecycleOwner) {
+                    (context.context as androidx.lifecycle.LifecycleOwner).lifecycleScope.launch {
+                        try {
+                            applyControls(camera)
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Failed to apply new focus mode", e)
+                        }
+                    }
                 }
-            } catch (e: Exception) {
-                Log.e(TAG, "Failed to apply new focus mode", e)
             }
         }
 
