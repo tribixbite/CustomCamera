@@ -505,7 +505,76 @@ fix(P1): implement tap-to-focus functionality
 
 ---
 
-**Document Version**: 1.0
+## Part 11: User Testing Guide Created
+
+### TESTING_GUIDE_v2.3.1.md (555 lines)
+
+**Purpose**: Comprehensive manual testing instructions for v2.3.1-build.39.
+
+**Contents**:
+1. **Installation Instructions** - APK installation via package installer or ADB
+2. **Tap-to-Focus Testing** - 4 detailed test cases
+3. **Video Recording Bug Investigation** - Log capture procedure
+4. **Performance Verification** - Cold start and memory checks
+5. **Regression Testing** - Existing features checklist
+6. **User Experience Feedback** - Subjective evaluation guide
+7. **Reporting Results** - How to report test outcomes
+8. **Expected Outcomes** - 4 scenarios with next steps
+9. **Quick Testing Checklist** - 5-minute smoke test
+10. **Technical Details** - Code changes and root cause explanation
+
+### Test Coverage
+
+**Tap-to-Focus Tests**:
+- Test 1: Basic tap-to-focus (haptic feedback, focus change)
+- Test 2: Multi-point focus (near/far objects)
+- Test 3: Low light focus (challenging conditions)
+- Test 4: Multi-tap gestures (no interference)
+
+**Video Recording Test**:
+- Test 5: Capture complete logcat for Bug #1 diagnosis
+
+**Performance Tests**:
+- Test 6: Cold start timing (no regressions)
+- Test 7: Memory usage (no leaks)
+
+**Regression Test**:
+- Test 8: All existing features work
+
+### Key Instructions for User
+
+**Priority 1 (Critical)**:
+1. Test tap-to-focus with haptic feedback verification
+2. Capture video recording logcat if save fails
+
+**Priority 2 (Important)**:
+3. Verify performance matches baseline
+4. Check for regressions in existing features
+
+**Priority 3 (Nice to Have)**:
+5. Provide subjective UX feedback
+6. Test edge cases (low light, rapid taps)
+
+### Expected User Actions
+
+**Immediate**:
+- Install v2.3.1-build.39 on device
+- Run 5-minute smoke test
+- Report basic results (works/doesn't work)
+
+**Detailed** (if time permits):
+- Run all 8 test cases
+- Capture video recording logs
+- Provide comprehensive feedback
+
+**Follow-Up**:
+- Share `video_recording_test.log` for Bug #1 analysis
+- Report any new bugs or regressions
+
+---
+
+**Document Version**: 1.1
 **Created**: 2025-11-26 (Session 28)
-**Status**: Session complete, 1 bug fixed, 1 under investigation
-**Next Session**: Test v2.3.1, fix video recording, release v2.2.12
+**Updated**: 2025-11-26 (Added testing guide section)
+**Status**: Session complete, 1 bug fixed, 1 under investigation, testing guide ready
+**Next Session**: Review user test results, fix video recording, release v2.2.12
