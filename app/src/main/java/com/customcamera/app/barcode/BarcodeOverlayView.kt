@@ -172,7 +172,9 @@ class BarcodeOverlayView(context: Context) : View(context) {
      * Set text size for barcode data
      */
     fun setTextSize(sizeSp: Float) {
-        textPaint.textSize = sizeSp * resources.displayMetrics.scaledDensity
+        // Use modern API instead of deprecated scaledDensity
+        val density = resources.configuration.fontScale * resources.displayMetrics.density
+        textPaint.textSize = sizeSp * density
         invalidate()
     }
 

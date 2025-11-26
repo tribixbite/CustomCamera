@@ -677,13 +677,13 @@ class LiveStreamingManager(
     private fun sendFrameToEncoder(session: StreamingSession, frameData: ByteArray) {
         try {
             session.encoder?.let { encoder ->
-                val inputBuffers = encoder.inputBuffers
                 val inputBufferIndex = encoder.dequeueInputBuffer(0)
 
                 if (inputBufferIndex >= 0) {
-                    val inputBuffer = inputBuffers[inputBufferIndex]
-                    inputBuffer.clear()
-                    inputBuffer.put(frameData)
+                    // Use modern API instead of deprecated inputBuffers
+                    val inputBuffer = encoder.getInputBuffer(inputBufferIndex)
+                    inputBuffer?.clear()
+                    inputBuffer?.put(frameData)
                     encoder.queueInputBuffer(inputBufferIndex, 0, frameData.size, System.currentTimeMillis() * 1000, 0)
                 }
 
