@@ -1,8 +1,9 @@
 # Testing Checklist - CustomCamera v2.2.11
 
 **Version**: 2.2.11 (build 38)
-**Build Date**: 2025-11-26 09:22
+**Build Date**: 2025-11-26 10:15 (verified fresh build)
 **APK Location**: `app/build/outputs/apk/debug/app-debug.apk` (77MB)
+**APK MD5**: `b5e586e7edb2c245a2ffb4c99397f92d`
 **Backup Location**: `/sdcard/CustomCamera/latest-debug.apk`
 
 ## Installation Steps
