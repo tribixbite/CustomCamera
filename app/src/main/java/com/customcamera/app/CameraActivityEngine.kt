@@ -2421,6 +2421,22 @@ class CameraActivityEngine : AppCompatActivity() {
             if (settingsDefaultCamera != cameraIndex) {
                 Log.i(TAG, "Camera selection changed in settings: $cameraIndex → $settingsDefaultCamera")
 
+                // Check if in concurrent camera mode (PiP active)
+                val currentMode = cameraEngine.getCurrentMode()
+                if (currentMode is com.customcamera.app.engine.CameraMode.Concurrent) {
+                    Log.w(TAG, "⚠️ Cannot switch camera while in PiP mode")
+                    Log.w(TAG, "   Disable PiP first, then change camera in settings")
+                    // Don't update cameraIndex - keep current camera until PiP is disabled
+                    Toast.makeText(
+                        this,
+                        "Disable PiP mode before switching cameras",
+                        Toast.LENGTH_LONG
+                    ).apply {
+                        setGravity(android.view.Gravity.TOP or android.view.Gravity.CENTER_HORIZONTAL, 0, 200)
+                    }.show()
+                    return
+                }
+
                 // TRUE ROOT CAUSE FIX: Don't switch camera if it's already in the process of opening
                 // This prevents rapid sequential camera binds that cause cameras to close immediately
                 val currentCameraState = cameraEngine.getCurrentCameraState()

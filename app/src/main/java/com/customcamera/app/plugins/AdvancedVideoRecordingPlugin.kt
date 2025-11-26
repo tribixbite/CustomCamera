@@ -15,7 +15,6 @@ import com.customcamera.app.video.VideoStabilizationManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import java.io.File
 
 /**
  * AdvancedVideoRecordingPlugin provides comprehensive video recording functionality
@@ -182,8 +181,20 @@ class AdvancedVideoRecordingPlugin : UIPlugin() {
                 IllegalStateException("Video capture not available from camera engine")
             )
 
-            val outputFile = createVideoFile()
-            val outputOptions = FileOutputOptions.Builder(outputFile).build()
+            // Use MediaStore for video output (Android 10+ scoped storage compatible)
+            val context = cameraContext!!.context
+            val contentValues = android.content.ContentValues().apply {
+                put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, "video_${System.currentTimeMillis()}.mp4")
+                put(android.provider.MediaStore.MediaColumns.MIME_TYPE, "video/mp4")
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                    put(android.provider.MediaStore.MediaColumns.RELATIVE_PATH, "DCIM/Camera")
+                }
+            }
+
+            val outputOptions = MediaStoreOutputOptions.Builder(
+                context.contentResolver,
+                android.provider.MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+            ).setContentValues(contentValues).build()
 
             // Check if RECORD_AUDIO permission is granted before enabling audio
             val hasAudioPermission = androidx.core.content.ContextCompat.checkSelfPermission(
@@ -521,22 +532,7 @@ class AdvancedVideoRecordingPlugin : UIPlugin() {
         }
     }
 
-    /**
-     * Create video output file
-     */
-    private fun createVideoFile(): File {
-        val timestamp = System.currentTimeMillis()
-        val fileName = "video_${timestamp}.mp4"
-
-        // Save to public DCIM/Camera directory so videos appear in gallery
-        val picturesDir = android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_DCIM)
-        val cameraDir = File(picturesDir, "Camera")
-        if (!cameraDir.exists()) {
-            cameraDir.mkdirs()
-        }
-
-        return File(cameraDir, fileName)
-    }
+    // Removed createVideoFile() - now using MediaStoreOutputOptions directly
 
     /**
      * Load settings from preferences
