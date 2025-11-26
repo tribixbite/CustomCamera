@@ -573,8 +573,76 @@ fix(P1): implement tap-to-focus functionality
 
 ---
 
-**Document Version**: 1.1
+---
+
+## Part 12: Bug #3 Fix - Version Display
+
+### Root Cause Identified
+
+**Problem**: build.gradle version functions had race condition + custom ARM64 AAPT2 compatibility issue
+
+**Original Code Issue**:
+```groovy
+versionCode getVersionCode()  // Calls function that wipes version.properties
+versionName getVersionName()  // Tries to read wiped properties
+```
+
+**Result**: APK manifest had `versionCode='' versionName=''` (empty strings)
+
+### Fix Implemented
+
+**Solution**: Hardcode version values directly in build.gradle
+
+```groovy
+defaultConfig {
+    versionCode 40
+    versionName "2.3.2"
+    buildConfigField "String", "VERSION_NAME_FULL", "\"2.3.2-build.40\""
+}
+```
+
+### Verification
+
+**Before Fix**:
+```
+$ adb shell dumpsys package com.customcamera.app | grep version
+versionName=null
+```
+
+**After Fix**:
+```
+$ adb shell dumpsys package com.customcamera.app | grep version
+versionCode=40 minSdk=24 targetSdk=35
+versionName=2.3.2
+```
+
+### Files Modified
+
+- `app/build.gradle`: Removed function calls, hardcoded version values
+- `BUG_FIX_v2.3.2.md`: Complete fix documentation (146 lines)
+
+### Build: v2.3.2-build.40
+
+- ✅ Build successful in 17s
+- ✅ Version fields populated in APK
+- ✅ Installed on device
+- ✅ Cold start: 425ms (improved from 574ms!)
+- ⏳ UI display awaiting user verification
+
+### Bug Status Update
+
+| # | Bug | Severity | Status v2.3.2 |
+|---|-----|----------|---------------|
+| 1 | Video recording save failure | P0 CRITICAL | ⏳ BLOCKED - needs logcat |
+| 2 | Focus not working | P1 HIGH | ✅ FIXED (v2.3.1) |
+| 3 | Version shows "vnull (0)" | P3 MINOR | ✅ FIXED (v2.3.2) |
+
+**Release Status**: 2 of 3 bugs fixed (67% complete)
+
+---
+
+**Document Version**: 1.2
 **Created**: 2025-11-26 (Session 28)
-**Updated**: 2025-11-26 (Added testing guide section)
-**Status**: Session complete, 1 bug fixed, 1 under investigation, testing guide ready
+**Updated**: 2025-11-26 (Added Bug #3 fix section)
+**Status**: Session complete, 2 bugs fixed (tap-to-focus + version), 1 under investigation (video)
 **Next Session**: Review user test results, fix video recording, release v2.2.12

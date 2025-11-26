@@ -3,31 +3,27 @@ plugins {
     id 'org.jetbrains.kotlin.android'
 }
 
+// Load version properties once and cache them
+def versionProps = new Properties()
+def versionFile = file("version.properties")
+if (versionFile.exists()) {
+    versionFile.withInputStream { versionProps.load(it) }
+}
+
 // Auto-incrementing version system
 def getVersionCode() {
-    def versionFile = file("version.properties")
-    def versionProps = new Properties()
-
-    if (versionFile.exists()) {
-        versionFile.withInputStream { versionProps.load(it) }
-    }
-
     def code = (versionProps['VERSION_CODE'] ?: '20').toInteger() + 1
     versionProps['VERSION_CODE'] = code.toString()
 
-    versionFile.withOutputStream { versionProps.store(it, "Auto-generated version info") }
+    // Save all properties (not just VERSION_CODE) to preserve VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH
+    versionFile.withOutputStream { stream ->
+        versionProps.store(stream, "Auto-generated version info")
+    }
 
     return code
 }
 
 def getVersionName() {
-    def versionFile = file("version.properties")
-    def versionProps = new Properties()
-
-    if (versionFile.exists()) {
-        versionFile.withInputStream { versionProps.load(it) }
-    }
-
     def major = versionProps['VERSION_MAJOR'] ?: '2'
     def minor = versionProps['VERSION_MINOR'] ?: '0'
     def patch = versionProps['VERSION_PATCH'] ?: '0'
@@ -44,14 +40,15 @@ android {
         applicationId "com.customcamera.app"
         minSdk 24
         targetSdk 35
-        versionCode getVersionCode()
-        versionName getVersionName()
+        versionCode 40
+        versionName "2.3.2"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         // Add build timestamp to BuildConfig
         buildConfigField "long", "BUILD_TIMESTAMP", System.currentTimeMillis() + "L"
         buildConfigField "String", "BUILD_DATE", "\"" + new Date().format("yyyy-MM-dd HH:mm") + "\""
+        buildConfigField "String", "VERSION_NAME_FULL", "\"2.3.2-build.40\""
     }
 
     buildTypes {
