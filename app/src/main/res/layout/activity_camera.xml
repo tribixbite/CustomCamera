@@ -17,19 +17,20 @@
         android:layout_height="match_parent" />
 
     <!-- Top Controls (Samsung/Google Style) -->
-    <LinearLayout
+    <!-- Top Bar: Minimalist 2-button design (Flash + Settings only) -->
+    <!-- Uses RelativeLayout for proper left/right positioning -->
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="32dp"
-        android:layout_marginHorizontal="24dp"
-        android:orientation="horizontal"
-        android:gravity="center">
+        android:layout_marginHorizontal="24dp">
 
+        <!-- Flash Button (left side) -->
         <ImageButton
             android:id="@+id/flashButton"
             android:layout_width="56dp"
             android:layout_height="56dp"
-            android:layout_marginEnd="16dp"
+            android:layout_alignParentStart="true"
             android:background="@drawable/enhanced_button_background"
             android:src="@drawable/ic_flash_off"
             android:scaleType="centerInside"
@@ -38,54 +39,45 @@
             android:importantForAccessibility="yes"
             android:stateListAnimator="@animator/button_press_scale" />
 
-        <ImageButton
-            android:id="@+id/nightModeButton"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            android:layout_marginEnd="16dp"
-            android:background="@drawable/enhanced_button_background"
-            android:src="@drawable/ic_night_mode"
-            android:scaleType="centerInside"
-            android:padding="16dp"
-            android:alpha="0.6"
-            android:contentDescription="Night Mode"
-            android:importantForAccessibility="yes"
-            android:stateListAnimator="@animator/button_press_scale" />
-
-        <ImageButton
-            android:id="@+id/videoRecordButton"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            android:layout_marginEnd="16dp"
-            android:background="@drawable/camera_control_background"
-            android:src="@drawable/ic_videocam"
-            android:scaleType="centerInside"
-            android:padding="16dp"
-            android:contentDescription="Record Video" />
-
-        <ImageButton
-            android:id="@+id/pipButton"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            android:layout_marginEnd="16dp"
-            android:background="@drawable/camera_control_background"
-            android:src="@drawable/ic_pip"
-            android:scaleType="centerInside"
-            android:padding="16dp"
-            android:alpha="0.6"
-            android:contentDescription="Picture in Picture" />
-
+        <!-- Settings Button (right side) -->
         <ImageButton
             android:id="@+id/settingsButton"
             android:layout_width="56dp"
             android:layout_height="56dp"
+            android:layout_alignParentEnd="true"
             android:background="@drawable/camera_control_background"
             android:src="@drawable/ic_settings"
             android:scaleType="centerInside"
             android:padding="16dp"
             android:contentDescription="@string/camera_settings" />
 
-    </LinearLayout>
+    </RelativeLayout>
+
+    <!-- Hidden buttons for code compatibility (visibility=gone) -->
+    <!-- These buttons still exist in code but are hidden from UI -->
+    <!-- Night Mode: Accessible via plugin menu -->
+    <!-- Video Record: TODO - Add mode selector (Photo/Video modes) -->
+    <!-- PiP: Available in plugin dropdown menu -->
+    <ImageButton
+        android:id="@+id/nightModeButton"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone"
+        android:contentDescription="Night Mode (Hidden - use plugin menu)" />
+
+    <ImageButton
+        android:id="@+id/videoRecordButton"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone"
+        android:contentDescription="Record Video (Hidden - TODO: mode selector)" />
+
+    <ImageButton
+        android:id="@+id/pipButton"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone"
+        android:contentDescription="Picture in Picture (Hidden - use plugin menu)" />
 
     <!-- Master Plugin Button (right side) -->
     <ImageButton
