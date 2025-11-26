@@ -1268,12 +1268,18 @@ class CameraActivityEngine : AppCompatActivity() {
                         setupPluginUIOverlays()
 
                         updateFlashButton()
+
+                        // ✅ CRITICAL FIX (Bug #1): Refresh plugin references to use new camera
+                        // After camera switch, plugins still hold references to OLD camera's use cases
+                        // This caused video recording to fail after switching cameras
+                        advancedVideoRecordingPlugin = cameraEngine.getPlugin("AdvancedVideoRecording") as? AdvancedVideoRecordingPlugin
+
                         animateSwitchButton()
 
                         // Haptic feedback for successful camera switch
                         hapticManager.success()
 
-                        Log.i(TAG, "✅ Camera switched successfully with video support and plugin states restored")
+                        Log.i(TAG, "✅ Camera switched successfully, plugins refreshed for new camera")
                     } else {
                         // Haptic feedback for error
                         hapticManager.error()
