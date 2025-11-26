@@ -1936,8 +1936,16 @@ class CameraActivityEngine : AppCompatActivity() {
                     text = "1.0x"
                     textSize = 18f
                     setTextColor(android.graphics.Color.WHITE)
-                    setBackgroundColor(android.graphics.Color.argb(180, 0, 0, 0))
-                    setPadding(16, 8, 16, 8)
+
+                    // Create pill-shaped background with rounded corners
+                    val pillBackground = android.graphics.drawable.GradientDrawable().apply {
+                        shape = android.graphics.drawable.GradientDrawable.RECTANGLE
+                        cornerRadius = 50f // Rounded corners for pill shape
+                        setColor(android.graphics.Color.argb(200, 0, 0, 0)) // Slightly more opaque for better readability
+                    }
+                    background = pillBackground
+
+                    setPadding(32, 12, 32, 12) // More horizontal padding for pill shape
                     gravity = android.view.Gravity.CENTER
                 }
 
