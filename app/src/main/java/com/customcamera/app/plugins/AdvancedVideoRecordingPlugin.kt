@@ -32,9 +32,10 @@ class AdvancedVideoRecordingPlugin : UIPlugin() {
     override val version: String = "1.0.0"
     override val priority: Int = 25 // High priority for video management
 
-    // Start disabled by default - video mode is opt-in for cleaner photo-first UI
+    // Start enabled by default to ensure VideoCapture UseCase is bound
+    // This fixes the issue where video recording fails when PiP is off
     init {
-        isEnabled = false
+        isEnabled = true
     }
 
     private var cameraContext: CameraContext? = null

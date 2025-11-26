@@ -513,8 +513,29 @@ class CameraActivityEngine : AppCompatActivity() {
                     return@launch
                 }
 
-                // Set up preview
+                // Verify UseCase binding after camera initialization
+                val imageCapture = cameraEngine.getImageCapture()
+                val videoCapture = cameraEngine.getVideoCapture()
                 val preview = cameraEngine.getPreview()
+
+                Log.i(TAG, "📋 UseCase Verification:")
+                Log.i(TAG, "   Preview: ${if (preview != null) "✅ Bound" else "❌ NULL"}")
+                Log.i(TAG, "   ImageCapture: ${if (imageCapture != null) "✅ Bound" else "❌ NULL"}")
+                Log.i(TAG, "   VideoCapture: ${if (videoCapture != null) "✅ Bound" else "❌ NULL"}")
+
+                if (imageCapture == null) {
+                    Log.e(TAG, "❌ CRITICAL: ImageCapture is NULL - photo capture will fail!")
+                    handleCameraError("Photo capture not available - camera initialization failed")
+                    return@launch
+                }
+
+                if (videoCapture == null) {
+                    Log.w(TAG, "⚠️ WARNING: VideoCapture is NULL - video recording will not work")
+                    Log.w(TAG, "   This may be because AdvancedVideoRecordingPlugin is disabled")
+                    // Don't abort - allow photo capture to work
+                }
+
+                // Set up preview
                 preview?.setSurfaceProvider(binding.previewView.surfaceProvider)
 
                 // Configure autofocus plugin with preview (with null check)
@@ -578,7 +599,31 @@ class CameraActivityEngine : AppCompatActivity() {
     }
 
     private fun capturePhoto() {
-        val imageCapture = cameraEngine.getImageCapture() ?: return
+        Log.i(TAG, "📸 capturePhoto() called")
+
+        // Detailed diagnostic logging
+        val imageCapture = cameraEngine.getImageCapture()
+        val currentMode = cameraEngine.getCurrentMode()
+        val isPiPActive = isPiPEnabled
+
+        Log.i(TAG, "📋 Capture State:")
+        Log.i(TAG, "   ImageCapture: ${if (imageCapture != null) "✅ Available" else "❌ NULL"}")
+        Log.i(TAG, "   Camera Mode: $currentMode")
+        Log.i(TAG, "   PiP Enabled: $isPiPActive")
+        Log.i(TAG, "   Camera Index: $cameraIndex")
+
+        if (imageCapture == null) {
+            Log.e(TAG, "❌ CRITICAL: ImageCapture is NULL - cannot take photo")
+            Log.e(TAG, "   This indicates camera was not properly initialized")
+            Log.e(TAG, "   Check UseCase binding logs above for details")
+
+            hapticManager.error()
+            com.customcamera.app.presentation.EnhancedToast.error(
+                this,
+                "Camera not ready - ImageCapture not available"
+            )
+            return
+        }
 
         try {
             // Log photo capture operation
@@ -592,6 +637,7 @@ class CameraActivityEngine : AppCompatActivity() {
 
             val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
             val displayName = "$timestamp.jpg"
+            Log.i(TAG, "Creating MediaStore entry for: $displayName")
 
             // Use MediaStore for Android 10+ (API 29+) to save to DCIM
             val contentValues = ContentValues().apply {
@@ -611,8 +657,11 @@ class CameraActivityEngine : AppCompatActivity() {
                 Toast.makeText(this, "Failed to create photo entry", Toast.LENGTH_SHORT).show()
                 return
             }
+            Log.i(TAG, "MediaStore URI created: $imageUri")
 
+            Log.i(TAG, "Building OutputFileOptions with ContentResolver")
             val outputFileOptions = ImageCapture.OutputFileOptions.Builder(contentResolver, imageUri, contentValues).build()
+            Log.i(TAG, "OutputFileOptions created successfully")
 
             // Check if night mode is enabled for long exposure capture
             val nightModePlugin = cameraEngine.getPlugin("NightMode") as? NightModePlugin
@@ -2638,20 +2687,28 @@ class CameraActivityEngine : AppCompatActivity() {
 
                 // Check if video capture is available from engine
                 val videoCapture = cameraEngine.getVideoCapture()
-                Log.i(TAG, "Video capture from engine: $videoCapture")
+
+                Log.i(TAG, "📋 Video Recording State:")
+                Log.i(TAG, "   VideoCapture: ${if (videoCapture != null) "✅ Available" else "❌ NULL"}")
+                Log.i(TAG, "   Plugin Enabled: ${plugin.isEnabled}")
+                Log.i(TAG, "   Camera Mode: ${cameraEngine.getCurrentMode()}")
 
                 if (videoCapture == null) {
                     // Haptic feedback for error
                     hapticManager.error()
 
-                    Log.e(TAG, "VideoCapture not initialized")
-                    Toast.makeText(
+                    Log.e(TAG, "❌ CRITICAL: VideoCapture is NULL - cannot record video")
+                    Log.e(TAG, "   This indicates VideoCapture UseCase was not bound")
+                    Log.e(TAG, "   Possible causes:")
+                    Log.e(TAG, "     1. AdvancedVideoRecordingPlugin was disabled during camera init")
+                    Log.e(TAG, "     2. Camera binding failed to create VideoCapture")
+                    Log.e(TAG, "     3. enableVideoCapture was false in CameraConfig")
+                    Log.e(TAG, "   Check UseCase binding logs above for details")
+
+                    com.customcamera.app.presentation.EnhancedToast.error(
                         this,
-                        "Video recording not available. Please restart the camera.",
-                        Toast.LENGTH_LONG
-                    ).apply {
-                        setGravity(android.view.Gravity.TOP or android.view.Gravity.CENTER_HORIZONTAL, 0, 200)
-                    }.show()
+                        "Video recording not available - VideoCapture not initialized"
+                    )
                     return
                 }
 
