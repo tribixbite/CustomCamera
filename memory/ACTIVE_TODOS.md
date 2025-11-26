@@ -1,12 +1,70 @@
 # Active TODOs - UI Polish & Code Quality (Phase 9D) 🎨
 
-**Last Updated**: 2025-11-26 (Session 12 Continuation - Phase 9D Part 1)
-**Priority**: Code Quality & Technical Debt
-**Status**: Toast.view deprecation eliminated ✅
+**Last Updated**: 2025-11-26 (Session 12 Continuation - Phase 9D Part 2)
+**Priority**: UI/UX Polish & Code Quality
+**Status**: Minimalist top bar redesign complete ✅
 
 ---
 
-## Current Session (2025-11-26 - Phase 9D Part 1: Toast.view Deprecation) ✅
+## Current Session (2025-11-26 - Phase 9D Part 2: Top Bar Reorganization) ✅
+
+**User Request**: "go" (continue with Phase 9D - Top Bar Reorganization)
+
+### Context
+- Session 11 identified top bar clutter (5 buttons)
+- Recommendation: Keep essential controls, move modes to selector
+- Goal: Clean, minimalist UI matching modern camera app standards
+
+### ✅ COMPLETED - Minimalist 2-Button Top Bar
+
+**Strategy: Reduce from 5 buttons to 2 essential buttons**
+
+**Button Analysis:**
+1. Flash - Essential camera control ✅ **KEEP**
+2. Night Mode - Special mode ❌ **REMOVE** (available in plugins)
+3. Video Record - Alternative mode ❌ **REMOVE** (TODO: mode selector)
+4. PiP - Special feature ❌ **REMOVE** (available in plugins)
+5. Settings - Essential configuration ✅ **KEEP**
+
+**Result**: Flash (left) + Settings (right) = Clean, balanced 2-button design
+
+#### Implementation (activity_camera.xml)
+
+**Before**: 5 buttons in horizontal LinearLayout with center gravity
+**After**: 2 buttons in RelativeLayout with left/right edge alignment
+**Hidden**: 3 buttons preserved with visibility="gone" (code compatibility)
+
+**Benefits:**
+- ✅ 60% reduction in top bar clutter (5 → 2 buttons)
+- ✅ Matches modern camera app standards
+- ✅ Better viewfinder focus
+- ✅ Essential controls remain accessible
+- ✅ Backward compatible (no code changes needed)
+
+### Build Verification
+
+**Build**: SUCCESS in 35s
+**Layout**: Valid RelativeLayout with proper alignment
+**Compatibility**: All button references preserved (hidden buttons prevent breakage)
+
+### Commit
+
+**c38c5a07** - feat(Phase 9D): implement minimalist 2-button top bar design
+- 1 file changed (+35, -43)
+- 60% button reduction
+- Modern minimalist UI
+
+### Next Steps
+
+**Option 1**: Mode Selector (Photo/Video/Night) - 2-3 sessions
+**Option 2**: HDR API Fix (final deprecation) - 1 session
+**Option 3**: Phase 9 Testing & Completion - 1-2 sessions
+
+**Recommended**: Mode Selector for complete UI modernization
+
+---
+
+## Previous Session (2025-11-26 - Phase 9D Part 1: Toast.view Deprecation) ✅
 
 **User Request**: "go" (continue with Phase 9D - Advanced UI Polish)
 
