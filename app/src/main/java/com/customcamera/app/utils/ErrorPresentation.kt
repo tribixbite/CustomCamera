@@ -87,24 +87,18 @@ object ErrorPresentation {
 
     /**
      * Show enhanced Toast with severity styling
+     *
+     * Note: Custom Toast views are deprecated as of Android 11.
+     * This method returns a basic Toast without custom styling.
+     * For custom styled notifications, use showSnackbar() instead.
      */
     fun showToast(
         context: Context,
         errorContext: ErrorContext,
         duration: Int = Toast.LENGTH_LONG
     ): Toast {
+        // Use basic toast without custom view (toast.view is deprecated)
         val toast = Toast.makeText(context, errorContext.message, duration)
-
-        // Customize toast view for better visibility
-        toast.view?.let { toastView ->
-            val backgroundColor = ContextCompat.getColor(context, errorContext.severity.colorRes)
-            toastView.setBackgroundColor(backgroundColor)
-
-            // Find TextView and update styling
-            val messageView = toastView.findViewById<TextView>(android.R.id.message)
-            messageView?.setTextColor(ContextCompat.getColor(context, android.R.color.white))
-        }
-
         toast.show()
         return toast
     }
