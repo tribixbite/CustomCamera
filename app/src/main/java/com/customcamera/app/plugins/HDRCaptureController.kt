@@ -5,7 +5,10 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.ImageFormat
 import android.hardware.camera2.*
+import android.hardware.camera2.params.OutputConfiguration
+import android.hardware.camera2.params.SessionConfiguration
 import android.media.ImageReader
+import android.os.Build
 import android.os.Handler
 import android.os.HandlerThread
 import android.util.Log
@@ -13,6 +16,7 @@ import androidx.camera.camera2.interop.Camera2Interop
 import androidx.camera.core.ImageCapture
 import kotlinx.coroutines.suspendCancellableCoroutine
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
@@ -33,6 +37,9 @@ class HDRCaptureController(private val context: Context) {
     // Background thread for camera operations
     private val handlerThread = HandlerThread("HDRCaptureThread").apply { start() }
     private val backgroundHandler = Handler(handlerThread.looper)
+
+    // Executor for modern SessionConfiguration API
+    private val backgroundExecutor = Executor { command -> backgroundHandler.post(command) }
 
     data class BracketedFrame(
         val bitmap: Bitmap,
@@ -135,13 +142,11 @@ class HDRCaptureController(private val context: Context) {
                     Log.d(TAG, "Camera opened for HDR capture")
 
                     try {
-                        // Create capture session
-                        camera.createCaptureSession(
-                            listOf(imageReader!!.surface),
-                            object : CameraCaptureSession.StateCallback() {
-                                override fun onConfigured(session: CameraCaptureSession) {
-                                    cameraCaptureSession = session
-                                    Log.d(TAG, "Capture session configured")
+                        // Create capture session using modern SessionConfiguration API
+                        val sessionStateCallback = object : CameraCaptureSession.StateCallback() {
+                            override fun onConfigured(session: CameraCaptureSession) {
+                                cameraCaptureSession = session
+                                Log.d(TAG, "Capture session configured")
 
                                     try {
                                         // Create capture requests for each EV value
@@ -206,14 +211,34 @@ class HDRCaptureController(private val context: Context) {
                                     }
                                 }
 
-                                override fun onConfigureFailed(session: CameraCaptureSession) {
-                                    Log.e(TAG, "Failed to configure capture session")
-                                    continuation.resume(null)
-                                    cleanup()
-                                }
-                            },
-                            backgroundHandler
-                        )
+                            override fun onConfigureFailed(session: CameraCaptureSession) {
+                                Log.e(TAG, "Failed to configure capture session")
+                                continuation.resume(null)
+                                cleanup()
+                            }
+                        }
+
+                        // Use modern SessionConfiguration API (Android 9+ / API 28+)
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                            val outputConfig = OutputConfiguration(imageReader!!.surface)
+                            val sessionConfig = SessionConfiguration(
+                                SessionConfiguration.SESSION_REGULAR,
+                                listOf(outputConfig),
+                                backgroundExecutor,
+                                sessionStateCallback
+                            )
+                            camera.createCaptureSession(sessionConfig)
+                            Log.d(TAG, "Created capture session with SessionConfiguration (modern API)")
+                        } else {
+                            // Fallback for Android 7-8 (API 24-27)
+                            @Suppress("DEPRECATION")
+                            camera.createCaptureSession(
+                                listOf(imageReader!!.surface),
+                                sessionStateCallback,
+                                backgroundHandler
+                            )
+                            Log.d(TAG, "Created capture session with legacy API (Android 7-8 compatibility)")
+                        }
                     } catch (e: Exception) {
                         Log.e(TAG, "Error creating capture session", e)
                         continuation.resumeWithException(e)
