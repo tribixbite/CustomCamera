@@ -457,8 +457,11 @@ class VideoCodecManager(private val context: Context) {
 
     private fun getHDRColorFormat(): Int {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            // Use flexible format for Android 10+
             MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420Flexible
         } else {
+            // Fallback for older Android versions - deprecated but necessary for compatibility
+            @Suppress("DEPRECATION")
             MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420SemiPlanar
         }
     }

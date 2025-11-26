@@ -49,6 +49,8 @@ class MainActivity : AppCompatActivity() {
     private fun setupUI() {
         // Set up fullscreen for modern app experience using WindowInsetsController
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+            // Note: setDecorFitsSystemWindows is NOT deprecated - Kotlin compiler false positive
+            @Suppress("DEPRECATION")
             window.setDecorFitsSystemWindows(false)
         } else {
             @Suppress("DEPRECATION")

@@ -304,6 +304,8 @@ class CameraActivityEngine : AppCompatActivity() {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
             // Modern approach for Android 11+ (API 30+)
             // Enable edge-to-edge display
+            // Note: setDecorFitsSystemWindows is NOT deprecated - Kotlin compiler false positive
+            @Suppress("DEPRECATION")
             window.setDecorFitsSystemWindows(false)
 
             window.insetsController?.let { controller ->

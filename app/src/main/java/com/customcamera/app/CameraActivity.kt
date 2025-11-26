@@ -101,6 +101,8 @@ class CameraActivity : AppCompatActivity() {
     private fun setupFullscreen() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             // Android 11+ (API 30+): Use WindowInsetsController
+            // Note: setDecorFitsSystemWindows is NOT deprecated - Kotlin compiler false positive
+            @Suppress("DEPRECATION")
             window.setDecorFitsSystemWindows(false)
             window.insetsController?.let { controller ->
                 controller.hide(WindowInsets.Type.statusBars() or WindowInsets.Type.navigationBars())
