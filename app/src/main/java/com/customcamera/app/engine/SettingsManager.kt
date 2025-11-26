@@ -195,7 +195,9 @@ class SettingsManager private constructor(context: Context) {
      * Plugin Settings
      */
     fun isPluginEnabled(pluginName: String): Boolean {
-        return getBoolean("plugin_enabled_$pluginName", true)
+        // DualCameraPiP should be disabled by default to prevent camera initialization issues
+        val defaultEnabled = pluginName != "DualCameraPiP"
+        return getBoolean("plugin_enabled_$pluginName", defaultEnabled)
     }
 
     fun setPluginEnabled(pluginName: String, enabled: Boolean) {
