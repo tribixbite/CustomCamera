@@ -181,9 +181,9 @@ class ProfessionalVideoManager(
             isInitialized = true
 
             debugLogger.logInfo("Professional video system initialized successfully", mapOf(
-                "hardwareAcceleration" to (hardwareProcessingManager != null),
-                "multiCameraSupport" to (multiCameraManager != null),
-                "stabilizationSupport" to (sensorFusionManager != null)
+                "hardwareAcceleration" to true,
+                "multiCameraSupport" to true,
+                "stabilizationSupport" to true
             ))
 
         } catch (e: Exception) {

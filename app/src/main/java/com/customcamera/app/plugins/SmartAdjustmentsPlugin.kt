@@ -117,7 +117,7 @@ class SmartAdjustmentsPlugin : ProcessingPlugin() {
             name,
             "camera_ready",
             mapOf(
-                "cameraControlAvailable" to (camera.cameraControl != null),
+                "cameraControlAvailable" to true,
                 "exposureLevel" to currentExposureLevel,
                 "whiteBalanceTemp" to currentWhiteBalanceTemp
             )
