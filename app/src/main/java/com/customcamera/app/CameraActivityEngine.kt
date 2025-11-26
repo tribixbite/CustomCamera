@@ -791,7 +791,7 @@ class CameraActivityEngine : AppCompatActivity() {
                 put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     put(MediaStore.MediaColumns.RELATIVE_PATH, "DCIM/Camera")
-                    put(MediaStore.MediaColumns.IS_PENDING, 1) // Mark as pending during write
+                    // Note: DO NOT set IS_PENDING here - let CameraX manage it
                 }
             }
 
@@ -806,7 +806,8 @@ class CameraActivityEngine : AppCompatActivity() {
             Log.i(TAG, "MediaStore URI created: $imageUri")
 
             Log.i(TAG, "Building OutputFileOptions with ContentResolver")
-            val outputFileOptions = ImageCapture.OutputFileOptions.Builder(contentResolver, imageUri, contentValues).build()
+            // Pass empty ContentValues - CameraX will handle IS_PENDING internally
+            val outputFileOptions = ImageCapture.OutputFileOptions.Builder(contentResolver, imageUri, ContentValues()).build()
             Log.i(TAG, "OutputFileOptions created successfully")
 
             // Check if night mode is enabled for long exposure capture

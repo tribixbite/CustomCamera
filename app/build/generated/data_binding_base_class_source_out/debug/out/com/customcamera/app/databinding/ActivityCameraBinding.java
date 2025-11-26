@@ -6,6 +6,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.camera.view.PreviewView;
@@ -43,10 +45,19 @@ public final class ActivityCameraBinding implements ViewBinding {
   public final ImageButton masterPluginButton;
 
   @NonNull
+  public final LinearLayout modeSelectorStrip;
+
+  @NonNull
   public final ImageButton nightModeButton;
 
   @NonNull
+  public final TextView nightModeSelector;
+
+  @NonNull
   public final PerformanceMonitor performanceMonitor;
+
+  @NonNull
+  public final TextView photoModeButton;
 
   @NonNull
   public final ImageButton pipButton;
@@ -67,16 +78,21 @@ public final class ActivityCameraBinding implements ViewBinding {
   public final ImageButton switchCameraButton;
 
   @NonNull
+  public final TextView videoModeButton;
+
+  @NonNull
   public final ImageButton videoRecordButton;
 
   private ActivityCameraBinding(@NonNull FrameLayout rootView, @NonNull ImageButton captureButton,
       @NonNull DiagnosticOverlay diagnosticOverlay, @NonNull ImageButton flashButton,
       @NonNull ImageButton galleryButton, @NonNull GestureHintsOverlay gestureHintsOverlay,
-      @NonNull ImageButton masterPluginButton, @NonNull ImageButton nightModeButton,
-      @NonNull PerformanceMonitor performanceMonitor, @NonNull ImageButton pipButton,
-      @NonNull PluginDropdownView pluginDropdownView, @NonNull FrameLayout pluginOverlayContainer,
-      @NonNull PreviewView previewView, @NonNull ImageButton settingsButton,
-      @NonNull ImageButton switchCameraButton, @NonNull ImageButton videoRecordButton) {
+      @NonNull ImageButton masterPluginButton, @NonNull LinearLayout modeSelectorStrip,
+      @NonNull ImageButton nightModeButton, @NonNull TextView nightModeSelector,
+      @NonNull PerformanceMonitor performanceMonitor, @NonNull TextView photoModeButton,
+      @NonNull ImageButton pipButton, @NonNull PluginDropdownView pluginDropdownView,
+      @NonNull FrameLayout pluginOverlayContainer, @NonNull PreviewView previewView,
+      @NonNull ImageButton settingsButton, @NonNull ImageButton switchCameraButton,
+      @NonNull TextView videoModeButton, @NonNull ImageButton videoRecordButton) {
     this.rootView = rootView;
     this.captureButton = captureButton;
     this.diagnosticOverlay = diagnosticOverlay;
@@ -84,14 +100,18 @@ public final class ActivityCameraBinding implements ViewBinding {
     this.galleryButton = galleryButton;
     this.gestureHintsOverlay = gestureHintsOverlay;
     this.masterPluginButton = masterPluginButton;
+    this.modeSelectorStrip = modeSelectorStrip;
     this.nightModeButton = nightModeButton;
+    this.nightModeSelector = nightModeSelector;
     this.performanceMonitor = performanceMonitor;
+    this.photoModeButton = photoModeButton;
     this.pipButton = pipButton;
     this.pluginDropdownView = pluginDropdownView;
     this.pluginOverlayContainer = pluginOverlayContainer;
     this.previewView = previewView;
     this.settingsButton = settingsButton;
     this.switchCameraButton = switchCameraButton;
+    this.videoModeButton = videoModeButton;
     this.videoRecordButton = videoRecordButton;
   }
 
@@ -158,15 +178,33 @@ public final class ActivityCameraBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.modeSelectorStrip;
+      LinearLayout modeSelectorStrip = ViewBindings.findChildViewById(rootView, id);
+      if (modeSelectorStrip == null) {
+        break missingId;
+      }
+
       id = R.id.nightModeButton;
       ImageButton nightModeButton = ViewBindings.findChildViewById(rootView, id);
       if (nightModeButton == null) {
         break missingId;
       }
 
+      id = R.id.nightModeSelector;
+      TextView nightModeSelector = ViewBindings.findChildViewById(rootView, id);
+      if (nightModeSelector == null) {
+        break missingId;
+      }
+
       id = R.id.performanceMonitor;
       PerformanceMonitor performanceMonitor = ViewBindings.findChildViewById(rootView, id);
       if (performanceMonitor == null) {
+        break missingId;
+      }
+
+      id = R.id.photoModeButton;
+      TextView photoModeButton = ViewBindings.findChildViewById(rootView, id);
+      if (photoModeButton == null) {
         break missingId;
       }
 
@@ -206,6 +244,12 @@ public final class ActivityCameraBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.videoModeButton;
+      TextView videoModeButton = ViewBindings.findChildViewById(rootView, id);
+      if (videoModeButton == null) {
+        break missingId;
+      }
+
       id = R.id.videoRecordButton;
       ImageButton videoRecordButton = ViewBindings.findChildViewById(rootView, id);
       if (videoRecordButton == null) {
@@ -213,9 +257,10 @@ public final class ActivityCameraBinding implements ViewBinding {
       }
 
       return new ActivityCameraBinding((FrameLayout) rootView, captureButton, diagnosticOverlay,
-          flashButton, galleryButton, gestureHintsOverlay, masterPluginButton, nightModeButton,
-          performanceMonitor, pipButton, pluginDropdownView, pluginOverlayContainer, previewView,
-          settingsButton, switchCameraButton, videoRecordButton);
+          flashButton, galleryButton, gestureHintsOverlay, masterPluginButton, modeSelectorStrip,
+          nightModeButton, nightModeSelector, performanceMonitor, photoModeButton, pipButton,
+          pluginDropdownView, pluginOverlayContainer, previewView, settingsButton,
+          switchCameraButton, videoModeButton, videoRecordButton);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));
