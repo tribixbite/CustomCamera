@@ -1,107 +1,114 @@
 # Deprecation Warnings - Technical Debt Documentation
 
-**Last Updated**: 2025-11-25  
-**Total Warnings**: 9  
+**Last Updated**: 2025-11-26 (Phase 9D Part 1)
+**Original Warnings (Phase 9C)**: 9
+**Remaining Warnings**: 1
+**Progress**: 89% reduction (8 of 9 warnings resolved)
 **Priority**: Low (app functions correctly, warnings are for future API compatibility)
 
 ## Overview
 
-This document tracks deprecation warnings found during Phase 9C optimization. All warnings are from official Android/Java APIs that have newer alternatives. The app functions correctly, but these should be addressed for long-term maintainability.
+This document tracks deprecation warnings found during Phase 9C-9D optimization. All warnings are from official Android/Java APIs that have newer alternatives. The app functions correctly, but these should be addressed for long-term maintainability.
+
+## Phase 9D Progress
+
+**Session 12 Continuation** (2025-11-26):
+- ✅ Fixed Toast.view deprecation (2 warnings) - EnhancedToast.kt, ErrorPresentation.kt
+- ✅ Verified build: 0 Toast.view warnings remaining
+- ⏭️ Remaining: 1 HDRCaptureController.createCaptureSession warning (P2 - future work)
 
 ## Warning Categories
 
-### 1. Window Insets API (3 warnings) - FALSE POSITIVE ⚠️
+### 1. Window Insets API (3 warnings) - ✅ SUPPRESSED (Phase 9C)
 
 **Files**:
-- `CameraActivity.kt:104`
-- `CameraActivityEngine.kt:307`  
-- `MainActivity.kt:52`
+- `CameraActivity.kt:104` ← **SUPPRESSED**
+- `CameraActivityEngine.kt:307` ← **SUPPRESSED**
+- `MainActivity.kt:52` ← **SUPPRESSED**
 
-**Warning**:
+**Status**: ✅ **Suppressed** in Phase 9C (2025-11-25) - False Positive
+
+**Warning** (before suppression):
 ```
 'fun setDecorFitsSystemWindows(p0: Boolean): Unit' is deprecated. Deprecated in Java.
 ```
 
-**Current Code**:
+**Solution Applied**:
 ```kotlin
 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+    // Note: setDecorFitsSystemWindows is NOT deprecated - Kotlin compiler false positive
+    @Suppress("DEPRECATION")
     window.setDecorFitsSystemWindows(false)
 }
 ```
 
 **Analysis**:
-- This is actually the MODERN API for Android 11+ (API 30+)
+- This IS the modern API for Android 11+ (API 30+)
 - The deprecation warning is a Kotlin compiler false positive
-- `setDecorFitsSystemWindows(false)` is the correct replacement for the old `SYSTEM_UI_FLAG_LAYOUT_*` flags
-- **Action**: Can be suppressed with `@Suppress("DEPRECATION")` or ignored
-- **Priority**: P4 (cosmetic warning only)
+- `setDecorFitsSystemWindows()` correctly replaces `View.SYSTEM_UI_FLAG_LAYOUT_*` flags
+- Suppression is the appropriate solution for false positives
 
 **References**:
 - [Android 11 Window Insets](https://developer.android.com/develop/ui/views/layout/edge-to-edge)
-- This replaced the deprecated `View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN`
+
+**Commit**: 4036a20e - "perf(Phase 9C): suppress deprecation warnings with proper annotations"
 
 ---
 
-### 2. Toast.view Property (2 warnings) - REAL DEPRECATION
+### 2. Toast.view Property (2 warnings) - ✅ FIXED (Phase 9D)
 
 **Files**:
-- `EnhancedToast.kt:135`
-- `ErrorPresentation.kt:99`
+- `EnhancedToast.kt:135`  ← **FIXED**
+- `ErrorPresentation.kt:99` ← **FIXED**
 
-**Warning**:
+**Status**: ✅ **Resolved** in Phase 9D Part 1 (2025-11-26)
+
+**Warning** (before fix):
 ```
 'var view: View?' is deprecated. Deprecated in Java.
 ```
 
-**Current Code**:
-```kotlin
-toast.view = layout
-toast.show()
-```
+**Solution Applied**:
+- EnhancedToast: Removed custom view creation, now uses basic Toast with icon prefix
+- ErrorPresentation: Removed toast.view customization, returns basic Toast
+- Both files refactored to use modern Toast API (no custom views)
 
 **Modern Alternative**:
-Use `Snackbar` or custom overlay with `WindowManager`:
-
 ```kotlin
-// Option 1: Snackbar (recommended for most cases)
+// Simple Toast without custom view (current implementation)
+val toast = Toast.makeText(context, message, duration)
+toast.show()
+
+// For custom styled notifications, use Snackbar instead:
 Snackbar.make(rootView, message, Snackbar.LENGTH_SHORT)
     .setBackgroundTint(backgroundColor)
     .show()
-
-// Option 2: Custom WindowManager overlay
-val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-val params = WindowManager.LayoutParams(...)
-windowManager.addView(customView, params)
 ```
 
-**Impact**: Low - Toast.view still works on all Android versions, just deprecated  
-**Effort**: Medium - Need to refactor EnhancedToast class  
-**Priority**: P2 (should fix in Phase 9D UI polish)
+**Impact**: Zero - Both files are currently unused in production code
+**Commit**: cd3222d3 - "refactor(Phase 9D): remove deprecated Toast.view API usage"
 
 ---
 
-### 3. Display.scaledDensity (1 warning)
+### 3. Display.scaledDensity (1 warning) - ✅ FIXED (Phase 9C)
 
-**File**: `BarcodeOverlayView.kt:175`
+**File**: `BarcodeOverlayView.kt:175` ← **FIXED**
 
-**Warning**:
+**Status**: ✅ **Resolved** in Phase 9C (2025-11-25)
+
+**Warning** (before fix):
 ```
 'field scaledDensity: Float' is deprecated. Deprecated in Java.
 ```
 
-**Current Code**:
+**Solution Applied**:
 ```kotlin
-val density = resources.displayMetrics.scaledDensity
-```
-
-**Modern Alternative**:
-```kotlin
+// Modern API using fontScale
 val density = resources.configuration.fontScale * resources.displayMetrics.density
+textPaint.textSize = sizeSp * density
 ```
 
-**Impact**: None - scaledDensity still works, just discouraged  
-**Effort**: Trivial - one line change  
-**Priority**: P3 (nice to fix)
+**Commit**: 733a7dfe - "perf(Phase 9C): fix deprecated API usage and document technical debt"
 
 ---
 
@@ -133,49 +140,54 @@ cameraDevice.createCaptureSession(sessionConfig)
 
 ---
 
-### 5. MediaCodec inputBuffers (1 warning)
+### 5. MediaCodec inputBuffers (1 warning) - ✅ FIXED (Phase 9C)
 
-**File**: `LiveStreamingManager.kt:680`
+**File**: `LiveStreamingManager.kt:680` ← **FIXED**
 
-**Warning**:
+**Status**: ✅ **Resolved** in Phase 9C (2025-11-25)
+
+**Warning** (before fix):
 ```
 'val inputBuffers: Array<(out) ByteBuffer!>' is deprecated. Deprecated in Java.
 ```
 
-**Modern Alternative**:
+**Solution Applied**:
 ```kotlin
-// Old way
-val inputBuffers = codec.inputBuffers
-val buffer = inputBuffers[index]
-
-// New way  
-val buffer = codec.getInputBuffer(index)
+// Modern API using getInputBuffer()
+val inputBuffer = encoder.getInputBuffer(inputBufferIndex)
+inputBuffer?.clear()
+inputBuffer?.put(frameData)
 ```
 
-**Impact**: Low - old API still works  
-**Effort**: Trivial - direct replacement  
-**Priority**: P3 (easy fix)
+**Commit**: 733a7dfe - "perf(Phase 9C): fix deprecated API usage and document technical debt"
 
 ---
 
-### 6. MediaCodecInfo Color Format (1 warning)
+### 6. MediaCodecInfo Color Format (1 warning) - ✅ SUPPRESSED (Phase 9C)
 
-**File**: `VideoCodecManager.kt:462`
+**File**: `VideoCodecManager.kt:462` ← **SUPPRESSED**
+
+**Status**: ✅ **Suppressed** in Phase 9C (2025-11-25) - Backward Compatibility
 
 **Warning**:
 ```
 'static field COLOR_FormatYUV420SemiPlanar: Int' is deprecated. Deprecated in Java.
 ```
 
-**Modern Alternative**:
+**Solution Applied**:
 ```kotlin
-// Use MediaFormat constants instead
-MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420Flexible
+// Use flexible format for Android 10+, fallback for older versions
+return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+    MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420Flexible
+} else {
+    // Fallback for pre-Android 10 - deprecated but necessary for compatibility
+    @Suppress("DEPRECATION")
+    MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420SemiPlanar
+}
 ```
 
-**Impact**: Low - affects codec selection but still works  
-**Effort**: Low - update color format preference  
-**Priority**: P3 (can fix when touching video code)
+**Rationale**: Deprecated constant still needed for Android 7-9 compatibility (minSdk 24)
+**Commit**: 4036a20e - "perf(Phase 9C): suppress deprecation warnings with proper annotations"
 
 ---
 
@@ -232,14 +244,21 @@ For each fix:
 
 ## Priority Summary
 
-- **P1 (Critical)**: None - no blocking issues
-- **P2 (High)**: Toast.view, Camera2 session creation
-- **P3 (Medium)**: scaledDensity, inputBuffers, color format
-- **P4 (Low)**: Window insets false positive
+**Original Warnings (Phase 9C Start)**: 9 total
+- P2 (High): 3 warnings (Toast.view x2, Camera2 session creation)
+- P3 (Medium): 3 warnings (scaledDensity, inputBuffers, color format)
+- P4 (Low): 3 warnings (Window insets false positives)
 
-**Overall Impact**: Low - app is production-ready, warnings are for future-proofing
+**Current Status (Phase 9D Part 1)**:
+- ✅ **Resolved**: 8 warnings (89% reduction)
+  - Fixed: 4 (scaledDensity, inputBuffers, Toast.view x2)
+  - Suppressed: 4 (Window insets x3, color format)
+- ⏭️ **Remaining**: 1 warning (HDRCaptureController.createCaptureSession - P2)
+
+**Overall Impact**: Minimal - app is production-ready, 1 remaining warning is for future HDR refactoring
 
 ---
 
-**Documentation Created**: 2025-11-25  
-**Next Review**: Phase 9D or when touching affected code
+**Documentation Created**: 2025-11-25 (Phase 9C)
+**Last Updated**: 2025-11-26 (Phase 9D Part 1)
+**Next Review**: When touching HDR code or major Android version updates
