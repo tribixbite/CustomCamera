@@ -151,19 +151,23 @@ fun stopAction() {
 ## Summary
 
 - **23 total plugins** (updated with DiagnosticOverlay)
-- **20 correctly implemented** ✅ (includes Motion, Crop, DualCameraPiP after investigation)
-- **2 should be actions** ❌ (Barcode, QRScanner)
+- **23 correctly implemented** ✅ (all plugins now properly configured)
+- **0 should be actions** ✅ (Barcode and QRScanner converted to action buttons)
 
-**Investigation Results**:
+**Implementation Complete** (2025-11-27):
 1. ✅ **MotionDetectionPlugin** - Confirmed continuous monitoring (toggle correct)
 2. ✅ **CropPlugin** - Confirmed persistent frame overlay (toggle correct)
 3. ✅ **DualCameraPiPPlugin** - Already excluded from dropdown, uses dedicated button only
 4. ✅ **DiagnosticOverlayPlugin** - Added to DEBUG category (toggle correct)
+5. ✅ **BarcodePlugin** - Converted to action button (userToggleable=false, showInDropdown=false)
+6. ✅ **QRScannerPlugin** - Converted to action button (userToggleable=false, showInDropdown=false)
 
-**Next Steps**:
-1. ✅ Investigate Motion and Crop plugins (confirmed as toggles)
-2. ✅ Investigate DualCameraPiPPlugin toggle redundancy (already excluded)
-3. **Decision needed**: Implement action buttons for Barcode and QRScanner?
-4. If implementing: Update plugin provider interfaces
-5. If implementing: Add dedicated action buttons to camera UI
-6. If implementing: Write tests for new action button behaviors
+**Action Button Implementation**:
+- scanBarcodeButton: Triggers barcode scanning (left side, below PiP button)
+- scanQrButton: Triggers QR scanning (left side, below Barcode button)
+- triggerBarcodeScanning(): Toggle barcode scanning with haptic feedback
+- triggerQRScanning(): Toggle QR scanning via settings manager
+- Both buttons use enhanced_button_background with press animations
+- UX improvement: One-shot scanning actions instead of persistent toggles
+
+**All P3 recommendations completed** ✅
