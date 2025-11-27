@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.customcamera.app.databinding.ActivitySettingsBinding
 import com.customcamera.app.engine.CameraEngine
 import com.customcamera.app.engine.DebugLogger
+import com.customcamera.app.engine.PluginStatisticsManager
 import com.customcamera.app.engine.SettingsManager
 import com.customcamera.app.plugins.*
 import com.customcamera.app.settings.*
@@ -39,6 +40,7 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var settingsManager: SettingsManager
     private lateinit var debugLogger: DebugLogger
     private lateinit var settingsAdapter: SettingsAdapter
+    private lateinit var pluginStatisticsManager: PluginStatisticsManager
 
     // Mock engine and plugins for settings configuration
     private var mockCameraEngine: CameraEngine? = null
@@ -98,6 +100,7 @@ class SettingsActivity : AppCompatActivity() {
     private fun initializeSettings() {
         settingsManager = SettingsManager.getInstance(this)
         debugLogger = DebugLogger()
+        pluginStatisticsManager = PluginStatisticsManager(this)
 
         Log.i(TAG, "Settings initialized")
     }
@@ -611,6 +614,90 @@ class SettingsActivity : AppCompatActivity() {
                 )
             )
         }
+
+        // Section 11: Plugin Statistics
+        try {
+            val allStats = pluginStatisticsManager.getAllStatistics()
+            val totalActivations = pluginStatisticsManager.getTotalActivations()
+            val totalActiveTime = pluginStatisticsManager.getTotalActiveTime()
+            val overallSuccessRate = pluginStatisticsManager.getOverallSuccessRate()
+            val mostUsed = pluginStatisticsManager.getMostUsedPlugins(1).firstOrNull()
+
+            // Format total active time
+            val hours = totalActiveTime / 3600000
+            val minutes = (totalActiveTime % 3600000) / 60000
+            val timeFormatted = when {
+                hours > 0 -> "${hours}h ${minutes}m"
+                minutes > 0 -> "${minutes}m"
+                else -> "< 1m"
+            }
+
+            // Format success rate
+            val successRateFormatted = String.format("%.1f%%", overallSuccessRate * 100)
+
+            settingsSections.add(
+                SettingsSection(
+                    title = "Plugin Statistics",
+                    icon = R.drawable.ic_extension,
+                    settings = listOf(
+                        SettingsItem.Info(
+                            key = "total_plugin_activations",
+                            title = "Total Activations",
+                            description = "Number of times plugins were activated",
+                            value = totalActivations.toString()
+                        ),
+                        SettingsItem.Info(
+                            key = "total_active_time",
+                            title = "Total Active Time",
+                            description = "Time plugins were active",
+                            value = timeFormatted
+                        ),
+                        SettingsItem.Info(
+                            key = "overall_success_rate",
+                            title = "Overall Success Rate",
+                            description = "Plugin operation success rate",
+                            value = successRateFormatted
+                        ),
+                        SettingsItem.Info(
+                            key = "most_used_plugin",
+                            title = "Most Used Plugin",
+                            description = "Plugin with highest usage score",
+                            value = mostUsed?.pluginName ?: "None"
+                        ),
+                        SettingsItem.Button(
+                            key = "view_statistics",
+                            title = "View Detailed Statistics",
+                            description = "See statistics for all plugins",
+                            buttonText = "View Details"
+                        ),
+                        SettingsItem.Button(
+                            key = "reset_statistics",
+                            title = "Reset Statistics",
+                            description = "Clear all plugin usage data",
+                            buttonText = "Reset All"
+                        )
+                    )
+                )
+            )
+            Log.i(TAG, "Plugin Statistics section created (${allStats.size} plugins tracked)")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error creating plugin statistics section", e)
+            // Add minimal statistics section on error
+            settingsSections.add(
+                SettingsSection(
+                    title = "Plugin Statistics",
+                    icon = R.drawable.ic_extension,
+                    settings = listOf(
+                        SettingsItem.Info(
+                            key = "stats_error",
+                            title = "Error",
+                            description = "Could not load statistics",
+                            value = "Check logs"
+                        )
+                    )
+                )
+            )
+        }
     }
 
     private fun handleSettingChange(setting: SettingsItem, value: Any) {
@@ -769,6 +856,14 @@ class SettingsActivity : AppCompatActivity() {
             // About Section
             "check_updates" -> {
                 checkForUpdates()
+            }
+
+            // Plugin Statistics Section
+            "view_statistics" -> {
+                showDetailedStatisticsDialog()
+            }
+            "reset_statistics" -> {
+                showResetStatisticsDialog()
             }
 
             else -> {
@@ -1473,6 +1568,132 @@ class SettingsActivity : AppCompatActivity() {
                 Toast.makeText(
                     this@SettingsActivity,
                     "Download failed: ${e.message}",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
+    }
+
+    private fun showDetailedStatisticsDialog() {
+        val allStats = pluginStatisticsManager.getAllStatistics()
+
+        val builder = androidx.appcompat.app.AlertDialog.Builder(this)
+        builder.setTitle("Plugin Statistics (${allStats.size} plugins tracked)")
+
+        // Build statistics message
+        val message = if (allStats.isEmpty()) {
+            "No plugin usage data available yet.\n\nPlugins will be tracked as you use the camera."
+        } else {
+            allStats.joinToString("\n\n") { stats ->
+                val statusIndicator = if (stats.currentlyActive) "✓" else "○"
+                val successRateColor = when {
+                    stats.successRate >= 0.95f -> "[HIGH]"
+                    stats.successRate >= 0.80f -> "[GOOD]"
+                    else -> "[LOW]"
+                }
+
+                "$statusIndicator ${stats.pluginName}\n" +
+                "  Activations: ${stats.totalActivations}\n" +
+                "  Success: ${String.format("%.1f%%", stats.successRate * 100)} $successRateColor\n" +
+                "  Total Time: ${stats.getTotalActiveTimeFormatted()}\n" +
+                "  Avg Session: ${stats.getAverageSessionFormatted()}"
+            }
+        }
+
+        builder.setMessage(message)
+        builder.setPositiveButton("Close", null)
+
+        builder.setNeutralButton("Export") { _, _ ->
+            exportPluginStatistics()
+        }
+
+        builder.show()
+    }
+
+    private fun showResetStatisticsDialog() {
+        val builder = androidx.appcompat.app.AlertDialog.Builder(this)
+        builder.setTitle("Reset Plugin Statistics?")
+        builder.setMessage(
+            "This will permanently delete all plugin usage statistics.\n\n" +
+            "This action cannot be undone.\n\n" +
+            "Consider exporting statistics first if you want to keep a backup."
+        )
+
+        builder.setPositiveButton("Reset") { _, _ ->
+            lifecycleScope.launch {
+                try {
+                    pluginStatisticsManager.resetStatistics()
+                    Toast.makeText(
+                        this@SettingsActivity,
+                        "Plugin statistics reset successfully",
+                        Toast.LENGTH_SHORT
+                    ).show()
+
+                    // Refresh the settings UI to show zeros
+                    settingsSections.clear()
+                    createSettingsSections()
+                    settingsAdapter.notifyDataSetChanged()
+
+                    Log.i(TAG, "Plugin statistics reset by user")
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error resetting statistics", e)
+                    Toast.makeText(
+                        this@SettingsActivity,
+                        "Failed to reset statistics: ${e.message}",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            }
+        }
+
+        builder.setNegativeButton("Cancel", null)
+        builder.setNeutralButton("Export First") { _, _ ->
+            exportPluginStatistics()
+        }
+
+        builder.show()
+    }
+
+    private fun exportPluginStatistics() {
+        lifecycleScope.launch {
+            try {
+                val statsJson = pluginStatisticsManager.exportStatistics()
+                val timestamp = java.text.SimpleDateFormat("yyyyMMdd_HHmmss", java.util.Locale.getDefault())
+                    .format(java.util.Date())
+                val fileName = "plugin_statistics_$timestamp.json"
+
+                // Write to app's files directory first
+                val file = File(filesDir, fileName)
+                file.writeText(statsJson)
+
+                // Share or save file
+                val uri = FileProvider.getUriForFile(
+                    this@SettingsActivity,
+                    "${packageName}.fileprovider",
+                    file
+                )
+
+                val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                    type = "application/json"
+                    putExtra(Intent.EXTRA_STREAM, uri)
+                    putExtra(Intent.EXTRA_SUBJECT, "CustomCamera Plugin Statistics")
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
+
+                startActivity(Intent.createChooser(shareIntent, "Export Plugin Statistics"))
+
+                Toast.makeText(
+                    this@SettingsActivity,
+                    "Statistics exported: $fileName",
+                    Toast.LENGTH_SHORT
+                ).show()
+
+                Log.i(TAG, "Plugin statistics exported to $fileName")
+            } catch (e: Exception) {
+                Log.e(TAG, "Error exporting statistics", e)
+                Toast.makeText(
+                    this@SettingsActivity,
+                    "Export failed: ${e.message}",
                     Toast.LENGTH_LONG
                 ).show()
             }
