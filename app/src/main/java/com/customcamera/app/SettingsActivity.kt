@@ -1,12 +1,15 @@
 package com.customcamera.app
 
+import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.MenuItem
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.FileProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.customcamera.app.databinding.ActivitySettingsBinding
@@ -21,6 +24,9 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
+import java.io.File
+import java.net.HttpURLConnection
+import java.net.URL
 import kotlin.coroutines.resume
 
 /**
@@ -760,6 +766,11 @@ class SettingsActivity : AppCompatActivity() {
                 settingsManager.setPluginSetting("SamsungCamera", "beautyLevel", value.toString())
             }
 
+            // About Section
+            "check_updates" -> {
+                checkForUpdates()
+            }
+
             else -> {
                 Log.w(TAG, "Unknown setting key: ${setting.key}")
             }
@@ -1286,6 +1297,186 @@ class SettingsActivity : AppCompatActivity() {
         builder.setMessage("$pluginName\n\n$pluginInfo")
         builder.setPositiveButton("OK", null)
         builder.show()
+    }
+
+    private fun checkForUpdates() {
+        lifecycleScope.launch {
+            try {
+                Log.i(TAG, "Checking for updates from GitHub...")
+                Toast.makeText(this@SettingsActivity, "Checking for updates...", Toast.LENGTH_SHORT).show()
+
+                // GitHub API endpoint for latest release
+                val url = URL("https://api.github.com/repos/tribixbite/CustomCamera/releases/latest")
+                val connection = url.openConnection() as HttpURLConnection
+                connection.requestMethod = "GET"
+                connection.setRequestProperty("Accept", "application/vnd.github.v3+json")
+                connection.connectTimeout = 10000
+                connection.readTimeout = 10000
+
+                withContext(Dispatchers.IO) {
+                    val responseCode = connection.responseCode
+                    if (responseCode == HttpURLConnection.HTTP_OK) {
+                        val response = connection.inputStream.bufferedReader().use { it.readText() }
+                        connection.disconnect()
+
+                        // Parse JSON response
+                        val jsonObject = org.json.JSONObject(response)
+                        val latestVersion = jsonObject.getString("tag_name")
+                        val releaseUrl = jsonObject.getString("html_url")
+                        val releaseName = jsonObject.getString("name")
+                        val publishedAt = jsonObject.getString("published_at")
+
+                        // Get download URL for debug APK
+                        val assets = jsonObject.getJSONArray("assets")
+                        var downloadUrl: String? = null
+                        for (i in 0 until assets.length()) {
+                            val asset = assets.getJSONObject(i)
+                            val name = asset.getString("name")
+                            if (name.endsWith("debug.apk")) {
+                                downloadUrl = asset.getString("browser_download_url")
+                                break
+                            }
+                        }
+
+                        // Get current version
+                        val packageInfo = packageManager.getPackageInfo(packageName, 0)
+                        val currentVersion = packageInfo.versionName
+
+                        withContext(Dispatchers.Main) {
+                            Log.i(TAG, "Current version: $currentVersion, Latest version: $latestVersion")
+
+                            if (latestVersion != currentVersion) {
+                                // Show update available dialog
+                                showUpdateDialog(latestVersion, releaseName, publishedAt, downloadUrl, releaseUrl)
+                            } else {
+                                Toast.makeText(
+                                    this@SettingsActivity,
+                                    "You're running the latest version ($currentVersion)",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            }
+                        }
+                    } else {
+                        connection.disconnect()
+                        withContext(Dispatchers.Main) {
+                            Log.e(TAG, "Failed to check for updates. Response code: $responseCode")
+                            Toast.makeText(
+                                this@SettingsActivity,
+                                "Failed to check for updates (HTTP $responseCode)",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error checking for updates", e)
+                Toast.makeText(
+                    this@SettingsActivity,
+                    "Error checking for updates: ${e.message}",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
+    }
+
+    private fun showUpdateDialog(version: String, name: String, publishedAt: String, downloadUrl: String?, releaseUrl: String) {
+        val builder = androidx.appcompat.app.AlertDialog.Builder(this)
+        builder.setTitle("Update Available")
+        builder.setMessage(
+            "Version: $version\n" +
+            "Release: $name\n" +
+            "Published: ${publishedAt.take(10)}\n\n" +
+            "A new version is available!"
+        )
+
+        if (downloadUrl != null) {
+            builder.setPositiveButton("Download & Install") { _, _ ->
+                downloadAndInstallUpdate(downloadUrl, version)
+            }
+        }
+
+        builder.setNeutralButton("View on GitHub") { _, _ ->
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(releaseUrl))
+            startActivity(intent)
+        }
+
+        builder.setNegativeButton("Later", null)
+        builder.show()
+    }
+
+    private fun downloadAndInstallUpdate(downloadUrl: String, version: String) {
+        lifecycleScope.launch {
+            try {
+                Log.i(TAG, "Downloading update from: $downloadUrl")
+                Toast.makeText(this@SettingsActivity, "Downloading update...", Toast.LENGTH_SHORT).show()
+
+                withContext(Dispatchers.IO) {
+                    val url = URL(downloadUrl)
+                    val connection = url.openConnection() as HttpURLConnection
+                    connection.requestMethod = "GET"
+                    connection.connectTimeout = 30000
+                    connection.readTimeout = 30000
+
+                    val totalBytes = connection.contentLength
+                    val outputFile = File(getExternalFilesDir(null), "CustomCamera-$version.apk")
+
+                    connection.inputStream.use { input ->
+                        outputFile.outputStream().use { output ->
+                            val buffer = ByteArray(8192)
+                            var bytesRead: Int
+                            var totalBytesRead = 0L
+
+                            while (input.read(buffer).also { bytesRead = it } != -1) {
+                                output.write(buffer, 0, bytesRead)
+                                totalBytesRead += bytesRead
+
+                                // Update progress on main thread
+                                if (totalBytes > 0) {
+                                    val progress = (totalBytesRead * 100 / totalBytes).toInt()
+                                    withContext(Dispatchers.Main) {
+                                        if (progress % 10 == 0) { // Update every 10%
+                                            Log.i(TAG, "Download progress: $progress%")
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    connection.disconnect()
+
+                    withContext(Dispatchers.Main) {
+                        Log.i(TAG, "Download complete: ${outputFile.absolutePath}")
+                        Toast.makeText(
+                            this@SettingsActivity,
+                            "Download complete. Installing...",
+                            Toast.LENGTH_SHORT
+                        ).show()
+
+                        // Install the APK
+                        val intent = Intent(Intent.ACTION_VIEW)
+                        val uri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                            FileProvider.getUriForFile(
+                                this@SettingsActivity,
+                                "${packageName}.fileprovider",
+                                outputFile
+                            )
+                        } else {
+                            Uri.fromFile(outputFile)
+                        }
+                        intent.setDataAndType(uri, "application/vnd.android.package-archive")
+                        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION
+                        startActivity(intent)
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error downloading update", e)
+                Toast.makeText(
+                    this@SettingsActivity,
+                    "Download failed: ${e.message}",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
     }
 
     companion object {
