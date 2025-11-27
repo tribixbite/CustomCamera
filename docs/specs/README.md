@@ -1,7 +1,7 @@
 # CustomCamera Specifications
 
-**Last Updated**: 2025-11-16
-**Total Specs**: 33 documents
+**Last Updated**: 2025-11-27
+**Total Specs**: 34 documents
 **Status**: All core features specified and implemented
 
 ---
@@ -51,6 +51,7 @@ This directory contains comprehensive technical specifications for the CustomCam
 | [Testing Infrastructure](testing-infrastructure.md) | Unit tests, UI tests, ADB test intents, CI/CD | ✅ Complete |
 | [UX Interaction System](ux-interaction-system.md) | Gesture controls, haptic feedback, UI patterns | ✅ Complete |
 | [CI/CD Automation](cicd-automation.md) | GitHub Actions, automated testing, releases | ✅ Complete |
+| [Plugin Usage Statistics](PLUGIN_USAGE_STATISTICS.md) | Plugin analytics, metrics tracking, export/import integration | ✅ Complete (v2.4.0) |
 
 ---
 
@@ -125,7 +126,7 @@ This directory contains comprehensive technical specifications for the CustomCam
 
 ### Implementation Status
 
-- **✅ Complete**: 32 specifications (97%)
+- **✅ Complete**: 33 specifications (97%)
 - **⚠️ Incomplete**: 1 specification (3%) - ProControlsPlugin UI integration
 
 ### Coverage by Category
@@ -133,7 +134,7 @@ This directory contains comprehensive technical specifications for the CustomCam
 - **Core Systems**: 4/4 complete (100%)
 - **Plugin Specs**: 22/23 complete (96%)
 - **Feature Specs**: 1/1 complete (100%)
-- **System Specs**: 4/4 complete (100%)
+- **System Specs**: 5/5 complete (100%)
 
 ---
 
@@ -226,6 +227,11 @@ All specs follow this template:
 ---
 
 ## Recent Updates
+
+### 2025-11-27
+- Added Plugin Usage Statistics specification (v2.4.0)
+- Updated total specs: 33 → 34 documents
+- System Specs now 5/5 complete (100%)
 
 ### 2025-11-16
 - Created specs/README.md with comprehensive ToC
