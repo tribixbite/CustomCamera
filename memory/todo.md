@@ -1,9 +1,15 @@
 # CustomCamera - Master Task List & Implementation Plan
 
+**NOTE**: This is a HISTORICAL document tracking development through v2.2.0.
+**Current Status**: See memory/ACTIVE_TODOS.md for latest status (v2.4.1)
+**Unchecked Items Below**: Aspirational future features, not current tasks
+
+---
+
 ## 🎉 PHASE 9 COMPLETE: 100% DEPRECATION ELIMINATION + UI MODERNIZATION (2025-11-26)
 
-**Status**: ✅ Production Ready - v2.2.0 Released
-**Version**: 2.2.0 (build 34)
+**Status**: ✅ Production Ready - v2.2.0 Released (HISTORICAL - Now at v2.4.1)
+**Version**: 2.2.0 (build 34) - See ACTIVE_TODOS.md for current version
 **Commits**: 13 commits (4 code + 8 docs + 1 version)
 **GitHub**: Released with tag v2.2.0
 
