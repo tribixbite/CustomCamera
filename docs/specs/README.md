@@ -1,7 +1,7 @@
 # CustomCamera Specifications
 
 **Last Updated**: 2025-11-27
-**Total Specs**: 34 documents
+**Total Specs**: 33 documents
 **Status**: All core features specified and implemented
 
 ---
@@ -230,8 +230,8 @@ All specs follow this template:
 
 ### 2025-11-27
 - Added Plugin Usage Statistics specification (v2.4.0)
-- Updated total specs: 33 → 34 documents
 - System Specs now 5/5 complete (100%)
+- Corrected total specs count: 33 documents (4 core + 5 systems + 23 plugins + 1 feature)
 
 ### 2025-11-16
 - Created specs/README.md with comprehensive ToC
