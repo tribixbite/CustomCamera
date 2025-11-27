@@ -1,14 +1,14 @@
 # CustomCamera Development Roadmap
 
 **Last Updated**: November 27, 2025
-**Current Version**: 2.4.0 (Build 41)
+**Current Version**: 2.4.1 (Build 42)
 **Status**: Production Ready
 
 ---
 
 ## Overview
 
-This roadmap outlines potential future enhancements for CustomCamera. All items are **optional** as the current v2.4.0 release is production-ready with zero critical issues.
+This roadmap outlines potential future enhancements for CustomCamera. All items are **optional** as the current v2.4.1 release is production-ready with zero critical issues.
 
 ---
 
@@ -33,7 +33,7 @@ This roadmap outlines potential future enhancements for CustomCamera. All items 
 - `app/src/main/res/layout/activity_camera.xml` (added 2 buttons)
 - `app/src/main/java/com/customcamera/app/CameraActivityEngine.kt` (handlers at lines 360-361, 1727-1781)
 
-**Release**: Included in v2.4.0-build41-20251127-145542
+**Release**: Included in v2.4.1 (build 42)
 **Documentation**: See `docs/sessions/SESSION_42.md` for full implementation details
 
 ---
@@ -45,7 +45,7 @@ This roadmap outlines potential future enhancements for CustomCamera. All items 
 **Impact**: User confidence, real-world validation
 
 **Test Plan**:
-- Install v2.4.0 APK on physical device
+- Install v2.4.1 APK on physical device
 - Test all 23 plugins
 - Verify Plugin Statistics tracking
 - Test export/import with statistics
@@ -358,6 +358,7 @@ This roadmap outlines potential future enhancements for CustomCamera. All items 
 
 ## Completed Features (Reference)
 
+✅ **v2.4.1 - Performance Optimization & Documentation** (Nov 2025)
 ✅ **v2.4.0 - Plugin Usage Statistics** (Nov 2025)
 - Core statistics tracking (15 metrics per plugin)
 - Settings UI with analytics dashboard
@@ -456,7 +457,7 @@ Track these metrics for feature decisions:
 4. **Quality**: Code coverage, deprecation count
 5. **Documentation**: Coverage percentage
 
-**Current Metrics (v2.4.0)**:
+**Current Metrics (v2.4.1)**:
 - ✅ 23/23 plugins complete
 - ✅ 34/34 specs documented
 - ✅ 38+ automated tests
@@ -467,10 +468,10 @@ Track these metrics for feature decisions:
 
 ## Conclusion
 
-CustomCamera v2.4.0 is production-ready with a solid foundation for future enhancements. All items in this roadmap are **optional** - the current release meets all core requirements.
+CustomCamera v2.4.1 is production-ready with a solid foundation for future enhancements. All items in this roadmap are **optional** - the current release meets all core requirements.
 
 **Next Steps**:
-1. Deploy v2.4.0 to users
+1. Deploy v2.4.1 to users
 2. Collect user feedback
 3. Prioritize roadmap based on real usage
 4. Iterate based on data
@@ -481,4 +482,4 @@ CustomCamera v2.4.0 is production-ready with a solid foundation for future enhan
 
 **Roadmap Version**: 1.0
 **Last Review**: 2025-11-27
-**Next Review**: After v2.4.0 user deployment
+**Next Review**: After v2.4.1 user deployment
