@@ -468,9 +468,9 @@ class QRScannerPlugin : ProcessingPlugin() {
         override val category: com.customcamera.app.engine.plugins.PluginCategory =
             com.customcamera.app.engine.plugins.PluginCategory.ANALYSIS
 
-        override val userToggleable: Boolean = true
+        override val userToggleable: Boolean = false  // Action button instead of toggle
 
-        override val showInDropdown: Boolean = true
+        override val showInDropdown: Boolean = false  // Removed from dropdown (uses action button)
 
         override fun isSupported(context: android.content.Context): Boolean {
             return try {

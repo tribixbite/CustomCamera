@@ -357,6 +357,8 @@ class CameraActivityEngine : AppCompatActivity() {
         setupEnhancedButton(binding.videoRecordButton) { toggleVideoRecording() }
         setupEnhancedButton(binding.nightModeButton) { toggleNightMode() }
         setupEnhancedButton(binding.pipButton) { togglePiP() }
+        setupEnhancedButton(binding.scanBarcodeButton) { triggerBarcodeScanning() }
+        setupEnhancedButton(binding.scanQrButton) { triggerQRScanning() }
         setupEnhancedButton(binding.switchCameraButton) { switchCamera() }
         setupEnhancedButton(binding.flashButton) { toggleFlash() }
         setupEnhancedButton(binding.galleryButton) { openGallery() }
@@ -1715,6 +1717,61 @@ class CameraActivityEngine : AppCompatActivity() {
         } catch (e: Exception) {
             Log.e(TAG, "Error toggling barcode scanning", e)
             com.customcamera.app.presentation.EnhancedToast.error(this, "Barcode scanning error: ${e.message}")
+        }
+    }
+
+    /**
+     * Trigger barcode scanning action (action button)
+     * Enables barcode scanning temporarily, shows results, then returns to normal camera
+     */
+    private fun triggerBarcodeScanning() {
+        try {
+            if (!isBarcodeScanningEnabled) {
+                // Enable barcode scanning (same as toggle)
+                toggleBarcodeScanning()
+
+                // Provide haptic feedback
+                hapticManager.mediumTap()
+                com.customcamera.app.presentation.EnhancedToast.info(this, "Scanning for barcodes...")
+            } else {
+                // Already scanning - disable
+                toggleBarcodeScanning()
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error triggering barcode scanning", e)
+            com.customcamera.app.presentation.EnhancedToast.error(this, "Barcode scan error: ${e.message}")
+        }
+    }
+
+    /**
+     * Trigger QR code scanning action (action button)
+     * Enables QR scanning temporarily, shows results, then returns to normal camera
+     */
+    private fun triggerQRScanning() {
+        try {
+            val qrPlugin = cameraEngine.getPlugin("QRScanner") as? QRScannerPlugin
+
+            if (qrPlugin != null) {
+                // Toggle QR scanner
+                val isEnabled = !qrPlugin.isEnabled
+                if (isEnabled) {
+                    cameraEngine.enablePlugin("QRScanner")
+                    hapticManager.mediumTap()
+                    com.customcamera.app.presentation.EnhancedToast.info(this, "Scanning for QR codes...")
+                } else {
+                    cameraEngine.disablePlugin("QRScanner")
+                    hapticManager.mediumTap()
+                    com.customcamera.app.presentation.EnhancedToast.info(this, "QR scanning stopped")
+                }
+
+                Log.i(TAG, "QR Scanner ${if (isEnabled) "enabled" else "disabled"}")
+            } else {
+                Log.w(TAG, "QRScannerPlugin not found")
+                com.customcamera.app.presentation.EnhancedToast.error(this, "QR scanner not available")
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error triggering QR scanning", e)
+            com.customcamera.app.presentation.EnhancedToast.error(this, "QR scan error: ${e.message}")
         }
     }
 

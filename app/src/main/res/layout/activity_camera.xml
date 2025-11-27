@@ -78,13 +78,47 @@
         android:layout_height="48dp"
         android:layout_gravity="start|center_vertical"
         android:layout_marginStart="24dp"
-        android:layout_marginTop="180dp"
+        android:layout_marginTop="100dp"
         android:background="@drawable/enhanced_button_background"
         android:src="@drawable/ic_pip"
         android:scaleType="centerInside"
         android:padding="12dp"
         android:alpha="1.0"
         android:contentDescription="Toggle Dual Camera PiP Mode"
+        android:elevation="4dp"
+        android:stateListAnimator="@animator/button_press_scale" />
+
+    <!-- Scan Barcode Action Button (Left side, below PiP button) -->
+    <ImageButton
+        android:id="@+id/scanBarcodeButton"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_gravity="start|center_vertical"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="164dp"
+        android:background="@drawable/enhanced_button_background"
+        android:src="@drawable/ic_barcode"
+        android:scaleType="centerInside"
+        android:padding="12dp"
+        android:alpha="1.0"
+        android:contentDescription="Scan Barcode"
+        android:elevation="4dp"
+        android:stateListAnimator="@animator/button_press_scale" />
+
+    <!-- Scan QR Code Action Button (Left side, below Barcode button) -->
+    <ImageButton
+        android:id="@+id/scanQrButton"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_gravity="start|center_vertical"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="228dp"
+        android:background="@drawable/enhanced_button_background"
+        android:src="@drawable/ic_focus"
+        android:scaleType="centerInside"
+        android:padding="12dp"
+        android:alpha="1.0"
+        android:contentDescription="Scan QR Code"
         android:elevation="4dp"
         android:stateListAnimator="@animator/button_press_scale" />
 
