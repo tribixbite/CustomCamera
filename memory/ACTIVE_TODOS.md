@@ -1,9 +1,61 @@
-# Active TODOs - All Sessions Complete ✅
+# Active TODOs - Session 33 In Progress
 
-**Last Updated**: 2025-11-27 08:25 (Session 32 Final)
-**Priority**: All P0-P1 Complete | P2 Available
-**Status**: ✅ Production-Ready v2.3.8 (Build 40)
+**Last Updated**: 2025-11-27 09:05 (Session 33 - Manual Testing Preparation)
+**Priority**: P2 Manual Testing Documentation | All P0-P1 Complete
+**Status**: ✅ Production-Ready v2.3.8 (Build 40) | Manual Testing Guide Created
 **Focus**: Manual Testing or New Features
+
+---
+
+## Session 33 Summary (2025-11-27) ⏳ IN PROGRESS
+
+**Session Type**: Manual Testing Preparation & Documentation
+**Duration**: ~15 minutes (ongoing)
+**Status**: ✅ Testing guide created, awaiting manual verification
+
+### Work Completed
+1. ✅ Downloaded latest APK from GitHub release (v2.3.6-build40-20251127-083540)
+2. ✅ Installed APK successfully via ADB (76MB debug build)
+3. ✅ Verified Settings screen launches with all 11 sections
+4. ✅ Confirmed new plugin sections present in logcat:
+   - Section 6: Plugin Browser & Import
+   - Section 7: Plugin Control
+5. ✅ Created comprehensive manual testing guide (`docs/MANUAL_TESTING_GUIDE.md`)
+
+### Testing Guide Created
+- **File**: `docs/MANUAL_TESTING_GUIDE.md` (400+ lines)
+- **Contents**:
+  - Pre-test verification (APK installation, Settings screen)
+  - Test 1: Export Plugin Configuration
+  - Test 2: Import Plugin Configuration
+  - Test 3: Plugin Browser
+  - Additional round-trip and error handling tests
+  - Expected JSON format and validation
+  - Logcat monitoring commands
+  - Test results template
+
+### Automated Verification ✅
+- ✅ CI/CD build passing (5 consecutive successful builds)
+- ✅ APK installation successful
+- ✅ Settings Activity launches without crashes
+- ✅ All 11 sections created correctly
+- ✅ Logs show proper initialization
+
+### Manual Testing Required
+Due to device UI state issues (notification shade), full manual testing via ADB automation
+was not possible. However, comprehensive manual testing guide has been created for:
+- Export plugin configuration workflow
+- Import plugin configuration workflow
+- Plugin browser functionality
+- Error handling and edge cases
+
+### Next Steps
+- [ ] Manual testing by user or tester with physical device access
+- [ ] Verify export creates valid JSON files
+- [ ] Verify import restores settings correctly
+- [ ] Verify plugin browser shows all 23 plugins
+- [ ] Test round-trip configuration export/import
+- [ ] Document any issues found
 
 ---
 
