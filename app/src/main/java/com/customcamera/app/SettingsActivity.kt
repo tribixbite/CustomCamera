@@ -101,6 +101,9 @@ class SettingsActivity : AppCompatActivity() {
             // Create settings sections
             createSettingsSections()
             Log.i(TAG, "Settings sections created: ${settingsSections.size}")
+            settingsSections.forEachIndexed { index, section ->
+                Log.i(TAG, "  Section $index: ${section.title}")
+            }
 
             // Setup RecyclerView
             settingsAdapter = SettingsAdapter(settingsSections) { setting, value ->
@@ -360,6 +363,7 @@ class SettingsActivity : AppCompatActivity() {
                 )
             )
         )
+        Log.i(TAG, "Added Plugin Browser & Import section. Total sections: ${settingsSections.size}")
 
         // Plugin Control Section
         settingsSections.add(
@@ -400,6 +404,7 @@ class SettingsActivity : AppCompatActivity() {
                 )
             )
         )
+        Log.i(TAG, "Added Plugin Control section. Total sections: ${settingsSections.size}")
 
         // Pixel Camera App Settings Section
         settingsSections.add(

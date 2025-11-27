@@ -30,12 +30,15 @@ class SettingsAdapter(
 
     private fun updateItems() {
         items.clear()
-        sections.forEach { section ->
+        android.util.Log.i("SettingsAdapter", "updateItems: Processing ${sections.size} sections")
+        sections.forEachIndexed { index, section ->
+            android.util.Log.i("SettingsAdapter", "  Section $index: ${section.title} with ${section.settings.size} settings")
             items.add(SettingsDisplayItem.Header(section))
             section.settings.forEach { setting ->
                 items.add(SettingsDisplayItem.Setting(setting))
             }
         }
+        android.util.Log.i("SettingsAdapter", "updateItems: Total items created: ${items.size}")
     }
 
     override fun getItemCount(): Int = items.size
