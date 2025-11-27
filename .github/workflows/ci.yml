@@ -259,9 +259,9 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "${{ steps.version.outputs.tag }}" \
-            --title "CustomCamera v${{ steps.version.outputs.version }} (Build ${{ steps.version.outputs.build }})" \
-            --notes "**Latest Build**: Automated release from commit ${{ github.sha }}
+          # Create release notes file to avoid shell escaping issues
+          cat > release_notes.md <<'RELEASE_NOTES_EOF'
+          **Latest Build**: Automated release from commit ${{ github.sha }}
 
           **Commit Message**:
           ${{ steps.version.outputs.commit_msg }}
@@ -269,10 +269,15 @@ jobs:
           **Changes**: See commit history
 
           **APKs Included**:
-          - \`app-debug.apk\` - Debug build with logging
-          - \`app-release-unsigned.apk\` - Release build (unsigned)
+          - `app-debug.apk` - Debug build with logging
+          - `app-release-unsigned.apk` - Release build (unsigned)
 
-          Built with GitHub Actions on $(date)" \
+          Built with GitHub Actions on $(date)
+          RELEASE_NOTES_EOF
+
+          gh release create "${{ steps.version.outputs.tag }}" \
+            --title "CustomCamera v${{ steps.version.outputs.version }} (Build ${{ steps.version.outputs.build }})" \
+            --notes-file release_notes.md \
             ./artifacts/debug/app-debug.apk \
             ./artifacts/release/app-release-unsigned.apk
 
