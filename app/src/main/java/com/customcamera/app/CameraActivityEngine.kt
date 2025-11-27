@@ -1752,14 +1752,17 @@ class CameraActivityEngine : AppCompatActivity() {
             val qrPlugin = cameraEngine.getPlugin("QRScanner") as? QRScannerPlugin
 
             if (qrPlugin != null) {
-                // Toggle QR scanner
+                // Toggle QR scanner (same approach as barcode)
                 val isEnabled = !qrPlugin.isEnabled
+
+                // Update plugin state
+                qrPlugin.isEnabled = isEnabled
+
+                // Provide haptic feedback
                 if (isEnabled) {
-                    cameraEngine.enablePlugin("QRScanner")
                     hapticManager.mediumTap()
                     com.customcamera.app.presentation.EnhancedToast.info(this, "Scanning for QR codes...")
                 } else {
-                    cameraEngine.disablePlugin("QRScanner")
                     hapticManager.mediumTap()
                     com.customcamera.app.presentation.EnhancedToast.info(this, "QR scanning stopped")
                 }
