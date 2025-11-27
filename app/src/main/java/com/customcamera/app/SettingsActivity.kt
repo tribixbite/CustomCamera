@@ -864,34 +864,88 @@ class SettingsActivity : AppCompatActivity() {
     private fun launchPluginBrowser() {
         lifecycleScope.launch {
             try {
-                // Create a simple plugin browser with mock data
-                val availablePlugins = listOf(
-                    "Pro Focus Plugin v2.1" to "Advanced autofocus with AI tracking",
-                    "HDR+ Plugin v1.5" to "Multi-frame HDR processing",
-                    "Night Vision Plugin v1.3" to "Enhanced low-light photography",
-                    "Portrait Mode Plugin v2.0" to "AI-powered background blur",
-                    "Timelapse Pro Plugin v1.7" to "Advanced timelapse features",
-                    "ML Enhance Plugin v1.2" to "Machine learning image enhancement"
+                // Get all built-in plugins from PluginRegistry
+                val pluginRegistry = com.customcamera.app.engine.plugins.PluginRegistry(this@SettingsActivity)
+                val allPlugins = pluginRegistry.getAllPlugins()
+
+                // Sort by category, then by display name
+                val sortedPlugins = allPlugins.sortedWith(
+                    compareBy<com.customcamera.app.engine.plugins.PluginRegistry.PluginInfo> { it.category.ordinal }
+                        .thenBy { it.displayName }
                 )
 
-                val pluginNames = availablePlugins.map { "${it.first}\n${it.second}" }.toTypedArray()
+                // Format plugin list with category grouping
+                val pluginsByCategory = sortedPlugins.groupBy { it.category }
+                val pluginItems = mutableListOf<String>()
+                val pluginData = mutableListOf<com.customcamera.app.engine.plugins.PluginRegistry.PluginInfo>()
+
+                pluginsByCategory.forEach { (category, plugins) ->
+                    // Add category header
+                    pluginItems.add("━━━ ${category.name} ━━━")
+                    pluginData.add(plugins.first()) // Dummy entry for header
+
+                    // Add plugins in this category
+                    plugins.forEach { plugin ->
+                        val status = if (settingsManager.isPluginEnabled(plugin.name)) "✓" else "○"
+                        pluginItems.add("$status ${plugin.displayName}\n   ${plugin.description}")
+                        pluginData.add(plugin)
+                    }
+                }
 
                 val builder = androidx.appcompat.app.AlertDialog.Builder(this@SettingsActivity)
-                builder.setTitle("Available Plugins")
-                builder.setItems(pluginNames) { _, which ->
-                    val selectedPlugin = availablePlugins[which]
-                    android.widget.Toast.makeText(
-                        this@SettingsActivity,
-                        "Selected: ${selectedPlugin.first}",
-                        android.widget.Toast.LENGTH_SHORT
-                    ).show()
-                    // In a real implementation, this would download and install the plugin
-                    debugLogger.logInfo("Plugin browser: selected ${selectedPlugin.first}", emptyMap(), "Settings")
+                builder.setTitle("Built-in Plugins (${allPlugins.size} total)")
+                builder.setItems(pluginItems.toTypedArray()) { _, which ->
+                    val selectedPlugin = pluginData[which]
+
+                    // Check if clicked on category header
+                    if (pluginItems[which].startsWith("━━━")) {
+                        return@setItems
+                    }
+
+                    // Show plugin details
+                    val isEnabled = settingsManager.isPluginEnabled(selectedPlugin.name)
+                    val statusText = if (isEnabled) "Enabled" else "Disabled"
+                    val toggleText = if (isEnabled) "Disable" else "Enable"
+
+                    val detailsBuilder = androidx.appcompat.app.AlertDialog.Builder(this@SettingsActivity)
+                    detailsBuilder.setTitle(selectedPlugin.displayName)
+                    detailsBuilder.setMessage(
+                        "${selectedPlugin.description}\n\n" +
+                        "Category: ${selectedPlugin.category.name}\n" +
+                        "Status: $statusText\n" +
+                        "User Toggleable: ${if (selectedPlugin.userToggleable) "Yes" else "No (System)"}"
+                    )
+
+                    if (selectedPlugin.userToggleable) {
+                        detailsBuilder.setPositiveButton(toggleText) { _, _ ->
+                            settingsManager.setPluginEnabled(selectedPlugin.name, !isEnabled)
+                            android.widget.Toast.makeText(
+                                this@SettingsActivity,
+                                "${selectedPlugin.displayName} ${if (isEnabled) "disabled" else "enabled"}",
+                                android.widget.Toast.LENGTH_SHORT
+                            ).show()
+
+                            // Refresh UI
+                            createSettingsSections()
+                            settingsAdapter.updateSections(settingsSections)
+
+                            // Refresh browser to show new status
+                            launchPluginBrowser()
+                        }
+                    }
+
+                    detailsBuilder.setNegativeButton("Close", null)
+                    detailsBuilder.show()
+
+                    debugLogger.logInfo("Plugin browser: viewed ${selectedPlugin.displayName}",
+                        mapOf("enabled" to isEnabled), "Settings")
                 }
                 builder.setNegativeButton("Close", null)
                 builder.show()
 
-                Log.i(TAG, "Plugin browser opened")
+                Log.i(TAG, "Plugin browser opened: ${allPlugins.size} built-in plugins")
+                debugLogger.logInfo("Plugin browser opened",
+                    mapOf("totalPlugins" to allPlugins.size), "Settings")
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to open plugin browser", e)
                 android.widget.Toast.makeText(this@SettingsActivity, "Plugin browser error: ${e.message}", android.widget.Toast.LENGTH_LONG).show()
