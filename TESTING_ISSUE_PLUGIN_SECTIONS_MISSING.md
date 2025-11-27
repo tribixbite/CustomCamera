@@ -166,14 +166,37 @@ cb06bdf3 docs: add comprehensive settings implementation session documentation
 
 ## Status
 
-**Issue**: ❌ CONFIRMED - Plugin sections not visible in v2.3.4 APK
+**Issue**: ❌ CONFIRMED - Plugin sections not visible in v2.3.4 and v2.3.6 APKs
 **Severity**: High - Prevents testing of implemented features
-**Root Cause**: Unknown - Requires further investigation
-**Workaround**: None available (can't build locally)
-**Next Action**: Investigate build process and commit history
+**Root Cause**: Sections created but not rendered by adapter (confirmed via logging)
+**Workaround**: None available
+**Next Action**: Add debug logging to SettingsAdapter to trace rendering
+
+---
+
+## Update 2025-11-26 22:20 UTC
+
+**Tested Versions**:
+- v2.3.4 (Build 40): Plugin sections missing ❌
+- v2.3.6 (Build 40): Plugin sections missing ❌
+
+**Investigation Results**:
+- Code analysis: Sections exist in source (lines 330-405) ✅
+- Icon resources: Both icons exist and valid ✅
+- Log output: "Settings sections created: 11" ✅
+- UI rendering: Only 8-9 sections visible ❌
+
+**Hypothesis**: Sections are created successfully but SettingsAdapter is not rendering them. Possible causes:
+1. RecyclerView item limit
+2. Silent filtering in adapter.updateItems()
+3. Icon loading failure causing skip
+4. Section ordering issue
+
+See SESSION_31_SETTINGS_UI_FIXES.md for detailed investigation.
 
 ---
 
 **Reported**: 2025-11-26 21:50 UTC
+**Updated**: 2025-11-26 22:20 UTC
 **Reporter**: Claude Code (Session 30 Continuation Testing)
-**Affects**: v2.3.4 (Build 40)
+**Affects**: v2.3.4, v2.3.6 (Build 40)
