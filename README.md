@@ -1,7 +1,8 @@
 # CustomCamera - Professional Plugin-Based Camera App
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-2.2.0-brightgreen.svg" alt="Version">
+  <img src="https://img.shields.io/badge/Version-2.3.8-brightgreen.svg" alt="Version">
+  <img src="https://img.shields.io/badge/Build-40-blue.svg" alt="Build">
   <img src="https://img.shields.io/badge/Platform-Android-brightgreen.svg" alt="Platform">
   <img src="https://img.shields.io/badge/Language-Kotlin-blue.svg" alt="Language">
   <img src="https://img.shields.io/badge/Architecture-Plugin%20System-orange.svg" alt="Architecture">
@@ -17,17 +18,26 @@
 
 A modern, extensible Android camera application built with a powerful plugin architecture that enables professional-grade camera controls, real-time processing, and advanced features through a modular design.
 
-## 🎉 Latest Release - v2.2.0 (Phase 9 Complete)
+## 🎉 Latest Release - v2.3.8 (Build 40)
 
-**Production Ready** - November 2025
+**Production Ready** - November 27, 2025
 
-Phase 9 delivers significant code quality improvements and a stunning minimalist UI redesign:
+Latest release delivers comprehensive plugin management system and automated update capabilities:
 
+- ✅ **Plugin Configuration Management** - Export/import plugin settings as JSON
+- ✅ **Plugin Browser** - Browse and manage all 23 plugins by category
+- ✅ **Automated Updates** - GitHub release integration with one-tap updates
+- ✅ **Settings System** - Complete StateFlow reactive architecture (16/16 settings)
+- ✅ **CI/CD Pipeline** - Robust automated builds with shell-safe release notes
+- ✅ **Device Tested** - Verified on Samsung hardware via ADB
+
+📖 **[Download Latest Release](https://github.com/tribixbite/CustomCamera/releases/latest)** | **[Session 30-32 Documentation](docs/sessions/)**
+
+### Previous Milestones
+**v2.2.0 (Phase 9)** - Code quality improvements and minimalist UI redesign:
 - ✅ **100% Deprecation Elimination** - Zero warnings, modern API adoption throughout
 - ✅ **Minimalist UI** - 60% reduction in top bar clutter (5 buttons → 2)
 - ✅ **Instagram-Style Mode Selector** - Seamless Photo/Video/Night mode switching
-- ✅ **Comprehensive Testing** - 22 test cases, 100% pass rate across all features
-- ✅ **Complete Documentation** - 2,854 lines of detailed technical documentation
 
 📖 **[Read Phase 9 Documentation Index](PHASE9_DOCUMENTATION_INDEX.md)** for complete details.
 
@@ -45,6 +55,10 @@ Phase 9 delivers significant code quality improvements and a stunning minimalist
 
 ### 🔧 Plugin Architecture
 - **100% Complete** - All 23 planned plugins fully implemented and production-ready
+- **Plugin Management** - Export/import configurations, browse plugins by category
+- **Configuration Backup** - Save all plugin states to timestamped JSON files
+- **One-Click Import** - Restore settings from previously exported configurations
+- **Plugin Browser** - Visual interface to manage and toggle all plugins
 - **Capability Detection** - All plugins detect device capabilities (hardware, software, OS)
 - **Modular Design** - Extensible plugin system with three specialized plugin types
 - **Hot-swappable Plugins** - Enable/disable features without app restart
@@ -54,6 +68,9 @@ Phase 9 delivers significant code quality improvements and a stunning minimalist
 
 ### 🎨 User Experience
 - **Modern UI** - Material3 design with floating camera controls
+- **Comprehensive Settings** - 11 organized sections covering all features
+- **Reactive Architecture** - StateFlow-based settings with instant UI updates
+- **Auto-Update System** - GitHub integration for one-tap app updates
 - **Intuitive Gestures** - Multi-tap gestures, pinch zoom, long-press for feature toggles
 - **Haptic Feedback** - Contextual vibration patterns for all camera interactions
 - **Professional Feedback** - Real-time exposure analysis and recommendations
