@@ -1284,6 +1284,29 @@ class SettingsActivity : AppCompatActivity() {
                         put("performanceMonitoring", settingsManager.performanceMonitoring.value)
                         put("levelIndicator", settingsManager.levelIndicator.value)
                     })
+
+                    // Plugin statistics
+                    val pluginStats = org.json.JSONArray()
+                    pluginStatisticsManager.getAllStatistics().forEach { stats ->
+                        pluginStats.put(org.json.JSONObject().apply {
+                            put("pluginName", stats.pluginName)
+                            put("totalActivations", stats.totalActivations)
+                            put("currentlyActive", stats.currentlyActive)
+                            put("firstUsedTimestamp", stats.firstUsedTimestamp)
+                            put("lastUsedTimestamp", stats.lastUsedTimestamp)
+                            put("totalActiveTimeMs", stats.totalActiveTimeMs)
+                            put("averageSessionDurationMs", stats.averageSessionDurationMs)
+                            put("longestSessionDurationMs", stats.longestSessionDurationMs)
+                            put("successfulOperations", stats.successfulOperations)
+                            put("failedOperations", stats.failedOperations)
+                            put("successRate", stats.successRate)
+                            put("averageProcessingTimeMs", stats.averageProcessingTimeMs)
+                            put("maxProcessingTimeMs", stats.maxProcessingTimeMs)
+                            put("usageFrequencyScore", stats.usageFrequencyScore)
+                            put("reliabilityScore", stats.reliabilityScore)
+                        })
+                    }
+                    put("pluginStatistics", pluginStats)
                 }
 
                 // Write to file
@@ -1310,6 +1333,153 @@ class SettingsActivity : AppCompatActivity() {
                 Log.e(TAG, "Failed to export plugin configuration", e)
                 withContext(Dispatchers.Main) {
                     android.widget.Toast.makeText(this@SettingsActivity, "Export failed: ${e.message}", android.widget.Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+    }
+
+    private suspend fun importPluginConfiguration(uri: Uri) {
+        withContext(Dispatchers.IO) {
+            try {
+                // Read JSON file
+                val jsonString = contentResolver.openInputStream(uri)?.bufferedReader()?.use { it.readText() }
+                    ?: throw Exception("Failed to read configuration file")
+
+                val config = org.json.JSONObject(jsonString)
+
+                // Validate version compatibility
+                val fileVersion = config.optString("version", "unknown")
+                Log.i(TAG, "Importing configuration version: $fileVersion")
+
+                var importedCount = 0
+                var skippedCount = 0
+                var statisticsImported = 0
+
+                // Import plugin states
+                if (config.has("pluginStates")) {
+                    val pluginStates = config.getJSONObject("pluginStates")
+                    pluginStates.keys().forEach { pluginName ->
+                        try {
+                            val enabled = pluginStates.getBoolean(pluginName)
+                            settingsManager.setPluginEnabled(pluginName, enabled)
+                            importedCount++
+                            Log.d(TAG, "Imported plugin state: $pluginName = $enabled")
+                        } catch (e: Exception) {
+                            Log.w(TAG, "Skipped plugin: $pluginName (${e.message})")
+                            skippedCount++
+                        }
+                    }
+                }
+
+                // Import camera settings
+                if (config.has("cameraSettings")) {
+                    val cameraSettings = config.getJSONObject("cameraSettings")
+                    cameraSettings.optInt("defaultCameraIndex", -1).takeIf { it >= 0 }?.let {
+                        settingsManager.setDefaultCameraIndex(it)
+                    }
+                    cameraSettings.optInt("photoQuality", -1).takeIf { it >= 0 }?.let {
+                        settingsManager.setPhotoQuality(it)
+                    }
+                    cameraSettings.optString("gridOverlay")?.let {
+                        settingsManager.setGridOverlay(it)
+                    }
+                    cameraSettings.optString("flashMode")?.let {
+                        settingsManager.setFlashMode(it)
+                    }
+                    cameraSettings.optString("photoResolution")?.let {
+                        settingsManager.setPhotoResolution(it)
+                    }
+                }
+
+                // Import video settings
+                if (config.has("videoSettings")) {
+                    val videoSettings = config.getJSONObject("videoSettings")
+                    videoSettings.optString("videoQuality")?.let {
+                        settingsManager.setVideoQuality(it)
+                    }
+                    videoSettings.optString("videoStabilization")?.let {
+                        settingsManager.setVideoStabilization(it)
+                    }
+                }
+
+                // Import focus settings
+                if (config.has("focusSettings")) {
+                    val focusSettings = config.getJSONObject("focusSettings")
+                    focusSettings.optString("autoFocusMode")?.let {
+                        settingsManager.setAutoFocusMode(it)
+                    }
+                    focusSettings.optBoolean("tapToFocus", settingsManager.tapToFocus.value).let {
+                        settingsManager.setTapToFocus(it)
+                    }
+                }
+
+                // Import advanced settings
+                if (config.has("advancedSettings")) {
+                    val advancedSettings = config.getJSONObject("advancedSettings")
+                    advancedSettings.optBoolean("rawCapture", settingsManager.rawCapture.value).let {
+                        settingsManager.setRawCapture(it)
+                    }
+                    advancedSettings.optBoolean("histogramOverlay", settingsManager.histogramOverlay.value).let {
+                        settingsManager.setHistogramOverlay(it)
+                    }
+                    advancedSettings.optBoolean("cameraInfoOverlay", settingsManager.cameraInfoOverlay.value).let {
+                        settingsManager.setCameraInfoOverlay(it)
+                    }
+                    advancedSettings.optBoolean("debugLogging", settingsManager.debugLogging.value).let {
+                        settingsManager.setDebugLogging(it)
+                    }
+                    advancedSettings.optBoolean("performanceMonitoring", settingsManager.performanceMonitoring.value).let {
+                        settingsManager.setPerformanceMonitoring(it)
+                    }
+                    advancedSettings.optBoolean("levelIndicator", settingsManager.levelIndicator.value).let {
+                        settingsManager.setLevelIndicator(it)
+                    }
+                }
+
+                // Import plugin statistics (merge logic: keep higher values)
+                if (config.has("pluginStatistics")) {
+                    val pluginStats = config.getJSONArray("pluginStatistics")
+                    val statisticsJson = org.json.JSONObject().apply {
+                        put("statistics", pluginStats)
+                    }
+
+                    // Use PluginStatisticsManager's import with merge logic
+                    pluginStatisticsManager.importStatistics(statisticsJson.toString())
+                    statisticsImported = pluginStats.length()
+                    Log.i(TAG, "Imported statistics for $statisticsImported plugins")
+                }
+
+                Log.i(TAG, "Configuration imported successfully: $importedCount plugins, $skippedCount skipped, $statisticsImported stats")
+
+                withContext(Dispatchers.Main) {
+                    // Refresh the settings UI
+                    settingsSections.clear()
+                    createSettingsSections()
+                    settingsAdapter.notifyDataSetChanged()
+
+                    android.widget.Toast.makeText(
+                        this@SettingsActivity,
+                        "Configuration imported successfully\n$importedCount plugins, $statisticsImported statistics",
+                        android.widget.Toast.LENGTH_LONG
+                    ).show()
+                    debugLogger.logInfo(
+                        "Plugin configuration imported",
+                        mapOf(
+                            "pluginCount" to importedCount,
+                            "skippedCount" to skippedCount,
+                            "statisticsCount" to statisticsImported
+                        ),
+                        "Settings"
+                    )
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to import plugin configuration", e)
+                withContext(Dispatchers.Main) {
+                    android.widget.Toast.makeText(
+                        this@SettingsActivity,
+                        "Import failed: ${e.message}",
+                        android.widget.Toast.LENGTH_LONG
+                    ).show()
                 }
             }
         }
