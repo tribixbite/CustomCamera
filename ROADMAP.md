@@ -14,27 +14,27 @@ This roadmap outlines potential future enhancements for CustomCamera. All items 
 
 ## Immediate Opportunities (P3 - Optional)
 
-### 1. Plugin UI Enhancement - Action Buttons
+### 1. Plugin UI Enhancement - Action Buttons ✅ COMPLETE
 
-**Status**: Optional UX improvement
-**Effort**: Low (~2 hours)
+**Status**: ✅ Implemented (Session 42, November 27, 2025)
+**Effort**: 2 hours (as estimated)
 **Impact**: Improved user experience for scanning features
 
-**Current State**:
-- BarcodePlugin and QRScannerPlugin use toggle controls
-- Toggles are semantically incorrect for one-shot actions
+**Completed Changes**:
+- ✅ Converted BarcodePlugin to action button (userToggleable=false, showInDropdown=false)
+- ✅ Converted QRScannerPlugin to action button (userToggleable=false, showInDropdown=false)
+- ✅ Added scanBarcodeButton and scanQrButton to camera UI (left side vertical stack)
+- ✅ Implemented click handlers with SettingsManager pattern
+- ✅ Haptic feedback and enhanced toasts for user feedback
 
-**Proposed Changes**:
-- Convert BarcodePlugin to action button
-- Convert QRScannerPlugin to action button
-- Action triggers scanning, shows result, returns to camera
+**Files Modified**:
+- `app/src/main/java/com/customcamera/app/plugins/BarcodePlugin.kt` (lines 466-468)
+- `app/src/main/java/com/customcamera/app/plugins/QRScannerPlugin.kt` (lines 471-473)
+- `app/src/main/res/layout/activity_camera.xml` (added 2 buttons)
+- `app/src/main/java/com/customcamera/app/CameraActivityEngine.kt` (handlers at lines 360-361, 1727-1781)
 
-**Files to Modify**:
-- `app/src/main/java/com/customcamera/app/plugins/BarcodePlugin.kt`
-- `app/src/main/java/com/customcamera/app/plugins/QRScannerPlugin.kt`
-- UI layouts for action buttons
-
-**Reference**: See `memory/PLUGIN_UI_AUDIT.md` for detailed analysis
+**Release**: Included in v2.4.0-build41-20251127-145542
+**Documentation**: See `docs/sessions/SESSION_42.md` for full implementation details
 
 ---
 
