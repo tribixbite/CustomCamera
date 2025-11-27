@@ -1020,24 +1020,17 @@ class SettingsActivity : AppCompatActivity() {
                     settings.optInt("photoQuality", -1).let {
                         if (it > 0) settingsManager.setPhotoQuality(it)
                     }
+                    settings.optBoolean("gridOverlay", false).let {
+                        settingsManager.setGridOverlay(it)
+                    }
                 }
 
                 // Apply video settings
                 config.optJSONObject("videoSettings")?.let { settings ->
-                    settings.optInt("videoQuality", -1).let {
-                        if (it > 0) settingsManager.setVideoQuality(it)
+                    settings.optString("videoQuality", "").let {
+                        if (it.isNotEmpty()) settingsManager.setVideoQuality(it)
                     }
-                }
-
-                // Apply focus settings
-                config.optJSONObject("focusSettings")?.let { settings ->
-                    settingsManager.setManualFocusEnabled(settings.optBoolean("manualFocusEnabled", false))
-                }
-
-                // Apply advanced settings
-                config.optJSONObject("advancedSettings")?.let { settings ->
-                    settingsManager.setHDREnabled(settings.optBoolean("hdrEnabled", false))
-                    settingsManager.setNightModeEnabled(settings.optBoolean("nightModeEnabled", false))
+                    settingsManager.setVideoStabilization(settings.optBoolean("videoStabilization", true))
                 }
 
                 Log.i(TAG, "Plugin configuration imported: $pluginsApplied plugins configured")
@@ -1150,32 +1143,30 @@ class SettingsActivity : AppCompatActivity() {
                         put("defaultCameraIndex", settingsManager.defaultCameraIndex.value)
                         put("photoQuality", settingsManager.photoQuality.value)
                         put("gridOverlay", settingsManager.gridOverlay.value)
+                        put("flashMode", settingsManager.flashMode.value)
+                        put("photoResolution", settingsManager.photoResolution.value)
                     })
 
                     // Video settings
                     put("videoSettings", org.json.JSONObject().apply {
                         put("videoQuality", settingsManager.videoQuality.value)
-                        put("videoFps", settingsManager.videoFps.value)
                         put("videoStabilization", settingsManager.videoStabilization.value)
                     })
 
                     // Focus settings
                     put("focusSettings", org.json.JSONObject().apply {
-                        put("manualFocusEnabled", settingsManager.manualFocusEnabled.value)
-                        put("focusPeakingEnabled", settingsManager.focusPeakingEnabled.value)
+                        put("autoFocusMode", settingsManager.autoFocusMode.value)
+                        put("tapToFocus", settingsManager.tapToFocus.value)
                     })
 
-                    // Exposure settings
-                    put("exposureSettings", org.json.JSONObject().apply {
-                        put("exposureCompensation", settingsManager.exposureCompensation.value)
-                        put("autoExposureEnabled", settingsManager.autoExposureEnabled.value)
-                    })
-
-                    // HDR and advanced settings
+                    // Advanced settings
                     put("advancedSettings", org.json.JSONObject().apply {
-                        put("hdrEnabled", settingsManager.hdrEnabled.value)
-                        put("nightModeEnabled", settingsManager.nightModeEnabled.value)
-                        put("rawCaptureEnabled", settingsManager.rawCaptureEnabled.value)
+                        put("rawCapture", settingsManager.rawCapture.value)
+                        put("histogramOverlay", settingsManager.histogramOverlay.value)
+                        put("cameraInfoOverlay", settingsManager.cameraInfoOverlay.value)
+                        put("debugLogging", settingsManager.debugLogging.value)
+                        put("performanceMonitoring", settingsManager.performanceMonitoring.value)
+                        put("levelIndicator", settingsManager.levelIndicator.value)
                     })
                 }
 
