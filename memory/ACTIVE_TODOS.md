@@ -1,17 +1,71 @@
-# Active TODOs - Settings Implementation Complete 🎉
+# Active TODOs - Session 32: CI/CD Workflow Fix
 
-**Last Updated**: 2025-11-26 21:16 (Session 30 - Settings Implementation)
-**Priority**: All Settings Implementation Complete
-**Status**: Awaiting CI/CD build verification
-**Focus**: Plugin configuration export/import and simplified plugin browser
+**Last Updated**: 2025-11-27 07:50 (Session 32 - CI/CD Fix)
+**Priority**: Fix GitHub Actions release creation
+**Status**: CI/CD workflow fixed, build in progress
+**Focus**: Shell escaping issue in release notes
 
 ---
 
-## Session 30 Summary (2025-11-26) ✅ IMPLEMENTATION COMPLETE
+## Session 32 Summary (2025-11-27) ✅ COMPLETE
+
+**Session Type**: Bug Fix - CI/CD Workflow
+**Duration**: ~40 minutes
+**Status**: ✅ Fix verified, working release created
+
+### Issue Identified
+**Problem**: GitHub Actions release creation failing with "command not found" error
+
+**Root Cause**:
+- Commit message from 4393313b contained special characters (& in "Download & Install")
+- CI/CD workflow used inline `--notes` with unescaped commit message
+- Shell interpreted `&` as command separator, causing "Install, View: command not found"
+
+**Impact**:
+- Release v2.3.6-build40-20251127-074025 created but with no APK assets
+- CI/CD build failed before uploading debug and release APKs
+
+### Fix Applied (commit 702f6c46)
+**Solution**: Use here-document for release notes to avoid shell escaping
+
+**Changes**:
+- `.github/workflows/ci.yml:258-282` - Modified Create Release step
+- Create `release_notes.md` file using here-document (`<<'RELEASE_NOTES_EOF'`)
+- Use `--notes-file release_notes.md` instead of inline `--notes`
+- Prevents shell interpretation of special characters (&, |, ;, etc.)
+
+**Benefits**:
+- Robust against any special characters in commit messages
+- No need to escape individual characters
+- Cleaner and more maintainable workflow code
+
+### CI/CD Status ✅ SUCCESS
+- ✅ Fix committed: 702f6c46
+- ✅ Fix pushed to origin/main
+- ✅ Build completed successfully (run 19728863978)
+- ✅ Release created: v2.3.6-build40-20251127-075155
+- ✅ APK assets uploaded successfully:
+  - app-debug.apk (79.5 MB)
+  - app-release-unsigned.apk (76.8 MB)
+
+### Verification Results
+**Build Status**: SUCCESS (7m 0s total)
+**Release URL**: https://github.com/tribixbite/CustomCamera/releases/tag/v2.3.6-build40-20251127-075155
+**Test Result**: Shell escaping issue fully resolved
+
+The here-document approach successfully prevents shell interpretation of special characters in commit messages, including:
+- Ampersands (&)
+- Pipe symbols (|)
+- Semicolons (;)
+- Other shell metacharacters
+
+---
+
+## Session 30-31 Summary (2025-11-26/27) ✅ IMPLEMENTATION COMPLETE
 
 **Session Type**: Feature Implementation + Security Review
-**Duration**: ~3 hours
-**Status**: ✅ All features implemented, awaiting CI/CD build verification
+**Duration**: ~4 hours total
+**Status**: ✅ All features implemented, multiple CI/CD builds tested
 
 ### What Was Requested
 User asked to:
