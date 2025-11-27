@@ -820,8 +820,10 @@ class CameraEngine(
                 .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                 .build()
                 .apply {
+                    // Performance Optimization (Session 44): Use background executor
+                    // to offload frame processing from main thread
                     setAnalyzer(
-                        ContextCompat.getMainExecutor(context)
+                        java.util.concurrent.Executors.newSingleThreadExecutor()
                     ) { image ->
                         processFrame(image)
                         image.close()
