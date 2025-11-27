@@ -1,21 +1,21 @@
 # Manual Testing Guide - Plugin Management Features
 
-**Version**: 2.3.8 (Build 40)
+**Version**: 2.4.0 (Build 41)
 **Date**: November 27, 2025
-**Features to Test**: Export/Import Plugin Configuration, Plugin Browser
+**Features to Test**: Export/Import Plugin Configuration, Plugin Browser, Plugin Usage Statistics
 
 ## Pre-Test Verification ✅
 
 ### APK Installation
-- **APK**: `v2.3.6-build40-20251127-083540` (76MB debug build)
-- **Installation**: ✅ SUCCESS
-- **Method**: `adb install ~/git/swype/CustomCamera/apk_downloads/app-debug.apk`
-- **Status**: Installed on device `192.168.1.247:38579`
+- **APK**: `v2.4.0-build41-20251127-104005` (75MB debug build)
+- **Installation**: ⏳ PENDING
+- **Method**: Download from [GitHub Releases](https://github.com/tribixbite/CustomCamera/releases/tag/v2.4.0-build41-20251127-104005)
+- **Status**: Ready for manual testing
 
 ### Settings Screen Verification
-- **Launch**: ✅ SUCCESS
+- **Launch**: ⏳ PENDING
 - **Command**: `adb shell am start -n com.customcamera.app/.SettingsActivity`
-- **Sections Created**: ✅ All 11 sections confirmed in logcat
+- **Sections Created**: ⏳ Should have 12 sections (added Plugin Statistics)
 
 ```
 11-27 03:57:39.371 I SettingsActivity:   Section 0: Camera Settings
@@ -29,6 +29,7 @@
 11-27 03:57:39.371 I SettingsActivity:   Section 8: Pixel Camera Style
 11-27 03:57:39.371 I SettingsActivity:   Section 9: Samsung Camera Style
 11-27 03:57:39.371 I SettingsActivity:   Section 10: About CustomCamera
+11-27 (new) SettingsActivity:   Section 11: Plugin Statistics ✅ NEW in v2.4.0
 ```
 
 ---
@@ -73,8 +74,8 @@
 ```json
 {
   "version": "1.0",
-  "appVersion": "2.3.8",
-  "appBuild": 40,
+  "appVersion": "2.4.0",
+  "appBuild": 41,
   "exportDate": 1732732680000,
   "exportDateFormatted": "2025-11-27 04:58:00",
   "pluginStates": {
@@ -155,8 +156,8 @@
      ```
      Import Plugin Configuration?
 
-     App Version: 2.3.8
-     Export Date: November 27, 2025 04:58:00
+     App Version: 2.4.0
+     Export Date: November 27, 2025 10:40:00
 
      This will replace your current plugin settings.
      ```
@@ -384,7 +385,7 @@ adb logcat | grep -i "plugin.*browser"
 ## Test Session: [Date]
 **Tester**: [Name]
 **Device**: [Device Model + Android Version]
-**APK Version**: 2.3.8 (Build 40)
+**APK Version**: 2.4.0 (Build 41)
 
 ### Test 1: Export Plugin Configuration
 - [ ] Passed  |  [X] Failed  |  [ ] Skipped
