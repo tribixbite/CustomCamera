@@ -72,6 +72,12 @@ public final class ActivityCameraBinding implements ViewBinding {
   public final PreviewView previewView;
 
   @NonNull
+  public final ImageButton scanBarcodeButton;
+
+  @NonNull
+  public final ImageButton scanQrButton;
+
+  @NonNull
   public final ImageButton settingsButton;
 
   @NonNull
@@ -91,6 +97,7 @@ public final class ActivityCameraBinding implements ViewBinding {
       @NonNull PerformanceMonitor performanceMonitor, @NonNull TextView photoModeButton,
       @NonNull ImageButton pipButton, @NonNull PluginDropdownView pluginDropdownView,
       @NonNull FrameLayout pluginOverlayContainer, @NonNull PreviewView previewView,
+      @NonNull ImageButton scanBarcodeButton, @NonNull ImageButton scanQrButton,
       @NonNull ImageButton settingsButton, @NonNull ImageButton switchCameraButton,
       @NonNull TextView videoModeButton, @NonNull ImageButton videoRecordButton) {
     this.rootView = rootView;
@@ -109,6 +116,8 @@ public final class ActivityCameraBinding implements ViewBinding {
     this.pluginDropdownView = pluginDropdownView;
     this.pluginOverlayContainer = pluginOverlayContainer;
     this.previewView = previewView;
+    this.scanBarcodeButton = scanBarcodeButton;
+    this.scanQrButton = scanQrButton;
     this.settingsButton = settingsButton;
     this.switchCameraButton = switchCameraButton;
     this.videoModeButton = videoModeButton;
@@ -232,6 +241,18 @@ public final class ActivityCameraBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.scanBarcodeButton;
+      ImageButton scanBarcodeButton = ViewBindings.findChildViewById(rootView, id);
+      if (scanBarcodeButton == null) {
+        break missingId;
+      }
+
+      id = R.id.scanQrButton;
+      ImageButton scanQrButton = ViewBindings.findChildViewById(rootView, id);
+      if (scanQrButton == null) {
+        break missingId;
+      }
+
       id = R.id.settingsButton;
       ImageButton settingsButton = ViewBindings.findChildViewById(rootView, id);
       if (settingsButton == null) {
@@ -259,8 +280,8 @@ public final class ActivityCameraBinding implements ViewBinding {
       return new ActivityCameraBinding((FrameLayout) rootView, captureButton, diagnosticOverlay,
           flashButton, galleryButton, gestureHintsOverlay, masterPluginButton, modeSelectorStrip,
           nightModeButton, nightModeSelector, performanceMonitor, photoModeButton, pipButton,
-          pluginDropdownView, pluginOverlayContainer, previewView, settingsButton,
-          switchCameraButton, videoModeButton, videoRecordButton);
+          pluginDropdownView, pluginOverlayContainer, previewView, scanBarcodeButton, scanQrButton,
+          settingsButton, switchCameraButton, videoModeButton, videoRecordButton);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));
