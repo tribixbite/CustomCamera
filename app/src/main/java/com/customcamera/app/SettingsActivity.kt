@@ -336,22 +336,26 @@ class SettingsActivity : AppCompatActivity() {
                     SettingsItem.Button(
                         key = "browse_plugins",
                         title = "Browse Available Plugins",
-                        description = "View and install plugins from the plugin store"
+                        description = "View and install plugins from the plugin store",
+                        buttonText = "Browse"
                     ),
                     SettingsItem.Button(
                         key = "import_plugin",
                         title = "Import Plugin",
-                        description = "Import plugin from file (.apk or .jar)"
+                        description = "Import plugin from file (.apk or .jar)",
+                        buttonText = "Import"
                     ),
                     SettingsItem.Button(
                         key = "export_plugins",
                         title = "Export Plugin Configuration",
-                        description = "Export current plugin settings and list"
+                        description = "Export current plugin settings and list",
+                        buttonText = "Export"
                     ),
                     SettingsItem.Button(
                         key = "manage_plugins",
                         title = "Manage Installed Plugins",
-                        description = "View, update, or remove installed plugins"
+                        description = "View, update, or remove installed plugins",
+                        buttonText = "Manage"
                     )
                 )
             )
@@ -572,7 +576,8 @@ class SettingsActivity : AppCompatActivity() {
                         SettingsItem.Button(
                             key = "check_updates",
                             title = "Check for Updates",
-                            description = "Check GitHub for latest version"
+                            description = "Check GitHub for latest version",
+                            buttonText = "Check Now"
                         )
                     )
                 )

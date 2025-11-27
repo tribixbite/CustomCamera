@@ -13,6 +13,8 @@ INJECTED from /data/data/com.termux/files/home/git/swype/CustomCamera/app/src/ma
 manifest
 ADDED from /data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:2:1-145:12
 INJECTED from /data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:2:1-145:12
+INJECTED from /data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:2:1-145:12
+INJECTED from /data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:2:1-145:12
 MERGED from [androidx.databinding:viewbinding:8.6.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/5032cfce403cef5793e06b83ca03e2cd/transformed/jetified-viewbinding-8.6.0/AndroidManifest.xml:2:1-7:12
 MERGED from [com.squareup.leakcanary:leakcanary-android:2.12] /data/data/com.termux/files/home/.gradle/caches/transforms-4/e611203552b04bb0d301e44842eae638/transformed/jetified-leakcanary-android-2.12/AndroidManifest.xml:17:1-22:12
 MERGED from [com.google.android.material:material:1.10.0] /data/data/com.termux/files/home/.gradle/caches/transforms-4/6a322ff1a680ad48b62d37f9adcf38fc/transformed/material-1.10.0/AndroidManifest.xml:17:1-24:12
@@ -104,8 +106,12 @@ MERGED from [com.squareup.curtains:curtains:1.2.4] /data/data/com.termux/files/h
 MERGED from [com.google.android.odml:image:1.0.0-beta1] /data/data/com.termux/files/home/.gradle/caches/transforms-4/0daaa8b2bae32a73cccd30d017a9d280/transformed/jetified-image-1.0.0-beta1/AndroidManifest.xml:2:1-9:12
 	package
 		INJECTED from /data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml
+	android:versionName
+		INJECTED from /data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml
 	xmlns:tools
 		ADDED from /data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:3:5-51
+	android:versionCode
+		INJECTED from /data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml
 	xmlns:android
 		ADDED from /data/data/com.termux/files/home/git/swype/CustomCamera/app/src/main/AndroidManifest.xml:2:11-69
 uses-permission#android.permission.CAMERA
