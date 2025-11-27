@@ -51,7 +51,7 @@ class CameraEngine(
     private var videoWasEnabled = false
     private var analysisWasEnabled = false
 
-    private val pluginManager = PluginManager()
+    private val pluginManager = PluginManager(context)
     private val _isInitialized = MutableStateFlow(false)
     private val _currentCameraIndex = MutableStateFlow(0)
     private val _availableCameras = MutableStateFlow<List<CameraInfo>>(emptyList())

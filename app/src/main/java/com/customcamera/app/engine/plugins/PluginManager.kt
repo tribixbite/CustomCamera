@@ -1,9 +1,11 @@
 package com.customcamera.app.engine.plugins
 
+import android.content.Context
 import android.util.Log
 import androidx.camera.core.Camera
 import androidx.camera.core.ImageProxy
 import com.customcamera.app.engine.CameraContext
+import com.customcamera.app.engine.PluginStatisticsManager
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -14,7 +16,7 @@ import java.util.concurrent.ConcurrentHashMap
  * Manages the lifecycle and execution of camera plugins.
  * Handles plugin registration, initialization, frame processing, and cleanup.
  */
-class PluginManager {
+class PluginManager(private val context: Context) {
 
     private val plugins = ConcurrentHashMap<String, CameraPlugin>()
     private val processingPlugins = mutableListOf<ProcessingPlugin>()
@@ -37,6 +39,9 @@ class PluginManager {
     // Performance tracking
     private val frameProcessingTimes = mutableMapOf<String, MutableList<Long>>()
     private var totalFramesProcessed = 0L
+
+    // Statistics tracking
+    private val statisticsManager = PluginStatisticsManager(context)
 
     /**
      * Initialize the plugin manager with camera context
@@ -242,8 +247,10 @@ class PluginManager {
                 processingPlugins.forEach { plugin ->
                     if (plugin.isEnabled) {
                         val pluginStartTime = System.currentTimeMillis()
+                        var success = false
                         try {
                             val result = plugin.processFrame(image)
+                            success = true
                             val processingTime = System.currentTimeMillis() - pluginStartTime
 
                             // Track performance
@@ -255,9 +262,17 @@ class PluginManager {
                                 }
                             }
 
+                            // Record successful operation in statistics
+                            statisticsManager.recordOperation(plugin.name, success = true, processingTime)
+
                             Log.d(TAG, "Plugin '${plugin.name}' processed frame in ${processingTime}ms: $result")
 
                         } catch (e: Exception) {
+                            val processingTime = System.currentTimeMillis() - pluginStartTime
+
+                            // Record failed operation in statistics
+                            statisticsManager.recordOperation(plugin.name, success = false, processingTime)
+
                             Log.e(TAG, "❌ Plugin '${plugin.name}' failed to process frame", e)
                         }
                     }
@@ -282,6 +297,7 @@ class PluginManager {
         if (plugin != null) {
             plugin.enable()
             updatePluginStates()
+            statisticsManager.recordActivation(pluginName)
             Log.i(TAG, "Plugin '$pluginName' enabled")
             return true
         } else {
@@ -298,6 +314,7 @@ class PluginManager {
         if (plugin != null) {
             plugin.disable()
             updatePluginStates()
+            statisticsManager.recordDeactivation(pluginName)
             Log.i(TAG, "Plugin '$pluginName' disabled")
             return true
         } else {
@@ -344,10 +361,27 @@ class PluginManager {
     }
 
     /**
+     * Get plugin statistics manager for accessing usage data
+     */
+    fun getStatisticsManager(): PluginStatisticsManager {
+        return statisticsManager
+    }
+
+    /**
      * Clean up all plugins and resources
      */
     fun cleanup() {
         Log.i(TAG, "Cleaning up PluginManager...")
+
+        // Persist statistics before cleanup
+        pluginScope.launch {
+            try {
+                statisticsManager.onAppPause()
+                Log.d(TAG, "✅ Plugin statistics persisted")
+            } catch (e: Exception) {
+                Log.e(TAG, "❌ Error persisting statistics", e)
+            }
+        }
 
         // Cancel all ongoing plugin operations
         pluginScope.cancel()
