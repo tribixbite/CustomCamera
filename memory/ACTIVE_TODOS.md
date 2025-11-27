@@ -1,9 +1,58 @@
-# Active TODOs - Session 36 Complete
+# Active TODOs - Session 37 Complete
 
-**Last Updated**: 2025-11-27 09:50 (Session 36 - Plugin Statistics Settings UI)
-**Priority**: P3 Feature Implementation | Settings UI Complete
-**Status**: ⏳ CI Build Queued (f8d1f55a) | Export/Import Integration Pending
+**Last Updated**: 2025-11-27 10:30 (Session 37 - Export/Import Integration)
+**Priority**: P3 Feature Implementation | Export/Import Complete
+**Status**: ⏳ CI Build Queued (37aaabd5) | Testing and Documentation Pending
 **Focus**: Plugin Usage Statistics (v2.4.0 Feature)
+
+---
+
+## Session 37 Summary (2025-11-27) ✅ EXPORT/IMPORT INTEGRATION COMPLETE
+
+**Session Type**: Feature Implementation - Plugin Configuration Export/Import
+**Duration**: ~40 minutes
+**Status**: ✅ Export/import integration complete, CI build queued
+
+### Work Completed
+1. ✅ Extended `writePluginConfiguration()` to include statistics
+   - Added `pluginStatistics` array to JSON export (+23 lines)
+   - Exports all 15 metrics per plugin
+   - Backward compatible with existing exports
+
+2. ✅ Created `importPluginConfiguration()` method (+147 lines)
+   - Parses JSON configuration from file
+   - Imports plugin states, camera/video/focus/advanced settings
+   - Imports statistics with intelligent merge logic
+   - Refreshes UI after import
+
+3. ✅ Verified UI infrastructure
+   - Confirmed `pluginConfigExporterLauncher` and `pluginConfigImporterLauncher` exist
+   - Confirmed "export_plugins" and "import_plugin" buttons connected
+   - No UI changes required
+
+### Code Changes
+- `SettingsActivity.kt`: +170 lines
+  * Extended `writePluginConfiguration()` with statistics export
+  * Created `importPluginConfiguration()` with full settings import
+  * Statistics merge delegated to `PluginStatisticsManager.importStatistics()`
+  * UI refresh after import
+
+### Build Status
+- ✅ Code committed: 37aaabd5
+- ✅ Pushed to origin/main
+- ⏳ CI build queued (awaiting GitHub Actions)
+- ✅ Previous build: Session 36 passed (f8d1f55a)
+
+### Remaining Work (Phase 4: Testing and Documentation)
+- [ ] Manual test export with statistics
+- [ ] Manual test import round-trip
+- [ ] Test backward compatibility (import old exports)
+- [ ] Update MANUAL_TESTING_GUIDE.md with export/import procedures
+- [ ] Update SESSION_HISTORY.md with Session 37 entry
+
+### Next Steps
+1. **Session 38**: Manual Testing and Documentation (30-45 min)
+2. **Release**: v2.4.0 with complete plugin statistics feature
 
 ---
 
