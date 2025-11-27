@@ -572,15 +572,60 @@ cb06bdf3 docs: add comprehensive settings implementation session documentation
 - ⏳ Play Store submission preparation
 
 ### P3 (Low) - Future Enhancements
-- Plugin usage statistics
+- 📊 **Plugin usage statistics** ⭐ PROPOSED - Spec created
 - Plugin crash reporting
 - Enhanced plugin configuration UI
 
 ---
 
-**Session Status**: ✅ ALL SESSIONS COMPLETE (30, 31, 32)
-**Build Status**: ✅ ALL CI/CD BUILDS PASSING
-**Next Action**: P2 Manual Testing or New Feature Development
+## Session 34 Proposal (2025-11-27) 📋 SPECIFICATION PHASE
 
-**Last Updated**: 2025-11-27 08:25 UTC
-**Updated By**: Claude Code (Session 32 - CI/CD Fix & Documentation)
+**Proposed Feature**: Plugin Usage Statistics
+**Priority**: P3 (Enhancement)
+**Target Version**: 2.4.0
+**Estimated Effort**: 2-3 hours
+**Status**: ✅ Specification Complete
+
+### Feature Overview
+Track and display plugin usage patterns to provide data-driven insights for both users and developers.
+
+### Key Capabilities
+1. **Activation Tracking**: Record when plugins are enabled/disabled
+2. **Duration Measurement**: Track how long plugins remain active
+3. **Success Monitoring**: Track operation success vs failure rates
+4. **Performance Metrics**: Measure average processing time per plugin
+5. **Statistics Display**: View usage data in Settings UI
+6. **Export Integration**: Include statistics in plugin configuration export
+
+### Implementation Components
+- `PluginStatisticsManager.kt` - Core statistics tracking and persistence
+- `PluginManager` integration - Hook into existing plugin lifecycle
+- Settings UI - New "Plugin Statistics" section (Section 11)
+- Export/Import - Extend JSON format to include statistics
+
+### Success Metrics
+- < 1ms overhead per plugin operation
+- < 50KB total storage for all statistics
+- < 100ms for statistics UI refresh
+- All 23 plugins tracked correctly
+
+### Documentation Created
+- ✅ `docs/specs/PLUGIN_USAGE_STATISTICS.md` (comprehensive spec)
+- Includes: data model, UI mockups, testing strategy, implementation checklist
+
+### Next Steps (If Approved)
+1. Create `PluginStatisticsManager.kt`
+2. Integrate with `PluginManager`
+3. Add Settings UI section
+4. Implement export/import integration
+5. Add comprehensive tests
+6. Update manual testing guide
+
+---
+
+**Session Status**: ✅ ALL SESSIONS COMPLETE (30-33) | Session 34 Specification Created
+**Build Status**: ✅ ALL CI/CD BUILDS PASSING
+**Next Action**: Await approval for Plugin Statistics implementation OR continue P2 manual testing
+
+**Last Updated**: 2025-11-27 09:15 UTC
+**Updated By**: Claude Code (Session 33 - Testing Guide | Session 34 - Feature Specification)
