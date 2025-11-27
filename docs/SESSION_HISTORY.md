@@ -84,6 +84,155 @@ This document contains historical session logs and completed work details.
 
 ---
 
+## ✅ SESSION 44: Performance Optimization - Background Executor (2025-11-27)
+
+### Implementation Complete
+**Feature**: ImageAnalysis Background Executor - Offload frame processing from main thread for improved UI responsiveness
+
+### What Was Built
+
+**Performance Optimization**:
+- Changed ImageAnalysis executor from main thread to dedicated background thread
+- File: `app/src/main/java/com/customcamera/app/engine/CameraEngine.kt` (lines 823-830)
+- Before: `ContextCompat.getMainExecutor(context)`
+- After: `java.util.concurrent.Executors.newSingleThreadExecutor()`
+- Expected improvement: 10-40% UI responsiveness during camera preview
+
+**Thread Safety Verification**:
+- Confirmed PluginManager uses `Dispatchers.Default` coroutine scope (line 30)
+- Verified ImageProxy lifecycle management (try/finally blocks)
+- No UI dependencies in processing path
+- Zero breaking changes to plugin API
+
+**Documentation**:
+- Created `docs/sessions/SESSION_44.md` (315 lines) - Technical deep-dive
+- Created `SESSION_44_SUMMARY.md` (219 lines) - Executive summary
+- Updated `docs/PERFORMANCE_BASELINE.md` - Marked Opportunity #1 as COMPLETE
+- Updated `ROADMAP.md` - P3 Enhancement #3 status
+- Updated `memory/ACTIVE_TODOS.md` - Session 44 entry
+
+### Files Modified
+- `app/src/main/java/com/customcamera/app/engine/CameraEngine.kt` (+3/-1 lines)
+- `docs/PERFORMANCE_BASELINE.md` (+31/-24 lines)
+- `docs/sessions/SESSION_44.md` (new, 315 lines)
+- `SESSION_44_SUMMARY.md` (new, 219 lines)
+- `memory/ACTIVE_TODOS.md` (+64 lines)
+- `ROADMAP.md` (+31/-18 lines)
+
+### Commits
+1. `95a8571a` - perf(camera): use background executor for ImageAnalysis processing
+2. `968a84f9` - docs(Session 44): complete Performance Optimization documentation
+3. `fb4e8d81` - docs(roadmap): update Performance Profiling & Optimization section
+4. `d7ccc4cb` - docs(Session 44): add final session summary
+
+### Build Status
+- All builds: ✅ PASSED
+- Feature: ✅ COMPLETE and ready for v2.4.1 release
+
+### Technical Highlights
+- **Risk Level**: LOW (minimal code change, verified thread-safe)
+- **Performance Impact**: Main thread freed from frame processing
+- **Compatibility**: 100% backward compatible (all 23 plugins)
+- **Code Quality**: 3 insertions, 1 deletion (clean implementation)
+
+---
+
+## ✅ SESSION 43: Performance Profiling & Baseline Establishment (2025-11-27)
+
+### Analysis Complete
+**Objective**: Establish performance baselines and identify optimization opportunities
+
+### What Was Analyzed
+
+**Performance Monitoring Systems** (3 systems):
+1. **PerformanceMonitor** - Real-time FPS/memory overlay (215 lines)
+2. **PluginStatisticsManager** - Per-plugin timing stats (480 lines)
+3. **PluginManager** - Frame processing time logging
+
+**Camera Preview Pipeline**:
+- ImageAnalysis sequential processing architecture
+- Plugin throttling mechanisms (200ms intervals)
+- Frame processing timing and warning system (>33ms logged)
+- Memory usage patterns (ImageProxy lifecycle)
+
+**Performance Baselines Established**:
+- Frame Processing: <33ms (30 FPS threshold)
+- Plugin Overhead: <1ms per operation
+- Memory Usage: <50KB for statistics
+- FPS Target: 30-60 FPS (device-dependent)
+
+**Optimization Opportunities Identified** (3):
+1. **Background Executor** (Medium priority) - Implemented in Session 44 ✅
+2. **Adaptive Throttling** (Low priority) - Optional enhancement
+3. **Plugin Priority Review** (Low priority) - Already well-optimized
+
+### Documentation Created
+- `docs/PERFORMANCE_BASELINE.md` (600+ lines) - Comprehensive baseline report
+- `docs/sessions/SESSION_43.md` (14KB) - Performance analysis session
+
+### Commits
+1. `3952b11f` - docs(Session 43): complete Performance Profiling (P3 Enhancement #3)
+2. `d165107a` - docs(roadmap): mark P3 Enhancement #3 (Performance Profiling) as complete
+
+### Key Findings
+- ✅ Sequential plugin processing is optimal (resource-efficient)
+- ✅ Throttling essential for ML Kit (200ms intervals maintain FPS)
+- ✅ Statistics overhead acceptable (<1ms per operation)
+- ✅ ImageProxy lifecycle management prevents memory leaks
+- ✅ Performance Monitor provides excellent debugging capability
+
+### Production Status
+**Assessment**: ✅ EXCELLENT - No critical performance issues identified
+
+---
+
+## ✅ SESSION 42: Plugin UI Enhancement - Action Buttons (2025-11-27)
+
+### Implementation Complete
+**Feature**: Convert BarcodePlugin and QRScannerPlugin to dedicated action buttons
+
+### What Was Built
+
+**UI Changes**:
+- Removed BarcodePlugin and QRScannerPlugin from dropdown menu
+- Added `scanBarcodeButton` and `scanQrButton` to camera UI (left side vertical stack)
+- Positioned below PiP button with consistent styling
+- Enhanced button backgrounds and haptic feedback
+
+**Plugin Configuration**:
+- Set `userToggleable = false` (no user toggle)
+- Set `showInDropdown = false` (hidden from menu)
+- Plugins always active but trigger via dedicated buttons
+
+**Integration**:
+- Wired buttons to SettingsManager state pattern
+- Click handlers enable plugin → capture → disable plugin
+- Enhanced toast notifications with icons and colors
+- Haptic feedback on button press (MEDIUM click)
+
+### Files Modified
+- `app/src/main/java/com/customcamera/app/plugins/BarcodePlugin.kt` (lines 466-468)
+- `app/src/main/java/com/customcamera/app/plugins/QRScannerPlugin.kt` (lines 471-473)
+- `app/src/main/res/layout/activity_camera.xml` (added 2 buttons)
+- `app/src/main/java/com/customcamera/app/CameraActivityEngine.kt` (handlers at lines 360-361, 1727-1781)
+
+### Commits
+1. `40e8b8ac` - feat(plugins): convert BarcodePlugin and QRScannerPlugin to action buttons
+2. `785150cd` - fix(plugins): correct QR scanner trigger to use plugin enable property
+3. `fd39fb92` - fix(plugins): use settings manager for QR scanner state
+4. `187e2b15` - docs(Session 42): complete Plugin UI Enhancement implementation
+
+### Build Status
+- All builds: ✅ PASSED
+- Feature: ✅ COMPLETE and included in v2.4.0-build41
+
+### User Experience Impact
+- **Improved**: Dedicated buttons more discoverable than dropdown menu
+- **Consistent**: Action-based UX matches modern camera apps
+- **Feedback**: Enhanced haptics and toasts provide clear user feedback
+
+---
+
 ## ✅ SESSION: Automatic GitHub Releases + Memory Leak Fixes (2025-10-16)
 
 ### Implementation Complete
