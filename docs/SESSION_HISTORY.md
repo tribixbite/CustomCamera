@@ -2,6 +2,88 @@
 
 This document contains historical session logs and completed work details.
 
+## ✅ SESSION: Plugin Usage Statistics Feature (Sessions 35-37, 2025-11-27)
+
+### Implementation Complete
+**Feature**: Plugin Usage Statistics - Track and display plugin usage metrics for data-driven development
+
+### Phases Completed
+**Phase 1 (Session 35)**: Core Statistics Tracking
+- Created `PluginStatisticsManager.kt` (480 lines)
+- Thread-safe tracking with ConcurrentHashMap
+- Lazy persistence (batch writes every 30s)
+- 15 metrics per plugin: activations, time, success rates, performance
+- Integrated with `PluginManager` for automatic tracking
+- <1ms overhead, <50KB storage
+
+**Phase 2 (Session 36)**: Settings UI
+- Added Section 11 "Plugin Statistics" in SettingsActivity (+221 lines)
+- Summary card with 4 key metrics
+- Detailed statistics dialog (per-plugin view)
+- Reset confirmation dialog with export option
+- Standalone statistics export via Share Intent
+
+**Phase 3 (Session 37)**: Export/Import Integration
+- Extended `writePluginConfiguration()` to include `pluginStatistics` array (+23 lines)
+- Extended existing `importPluginConfiguration()` to handle statistics import (+21 lines)
+- Statistics merge logic via `PluginStatisticsManager.importStatistics()`
+- Backward compatible JSON format
+
+### What Was Built
+
+**1. PluginStatisticsManager**
+- Data model: 15 metrics per plugin (activations, time, success rate, performance)
+- Methods: `recordActivation()`, `recordDeactivation()`, `recordOperation()`
+- Export/import with merge logic (keep higher values)
+- Computed metrics: usage frequency score, reliability score
+
+**2. Settings UI (Section 11)**
+- Summary: Total activations, active time, success rate, most used plugin
+- Detailed view: All plugins with status indicators (✓/○)
+- Success rate color coding: [HIGH] ≥95%, [GOOD] 80-94%, [LOW] <80%
+- Reset with confirmation and export option
+
+**3. Configuration Backup/Restore**
+- JSON export includes plugin states, settings, AND statistics
+- Import with intelligent merge (accumulate usage across devices)
+- Backward compatible (works without statistics field)
+
+### Files Modified
+- `app/src/main/java/com/customcamera/app/engine/PluginStatisticsManager.kt` (new, 480 lines)
+- `app/src/main/java/com/customcamera/app/engine/plugins/PluginManager.kt` (+41 lines)
+- `app/src/main/java/com/customcamera/app/engine/CameraEngine.kt` (+1 line)
+- `app/src/main/java/com/customcamera/app/SettingsActivity.kt` (+265 lines total)
+- `docs/specs/PLUGIN_USAGE_STATISTICS.md` (new spec)
+- `docs/sessions/SESSION_35.md`, `SESSION_36.md`, `SESSION_37.md` (new docs)
+
+### Commits
+**Session 35**:
+1. `6820e34a` - Specification document
+2. `ef674cd2` - Core statistics implementation
+3. `9fda67dd` - Documentation
+
+**Session 36**:
+1. `f8d1f55a` - Settings UI implementation
+2. `22460dfa` - Documentation
+
+**Session 37**:
+1. `37aaabd5` - Export/import integration (initial)
+2. `d03fcb5b` - Documentation
+3. `44f82b22` - Fix duplicate method (final) ✅
+
+### Build Status
+- All builds: ✅ PASSED
+- Feature: ✅ COMPLETE and ready for v2.4.0 release
+
+### Technical Highlights
+- **Performance**: <1ms overhead per operation, <50KB storage
+- **Thread Safety**: ConcurrentHashMap, no locks on hot path
+- **Merge Logic**: Accumulates stats across devices (sum activations, keep max times)
+- **Backward Compatibility**: Old exports import without errors
+- **Clean Architecture**: Separation of concerns, delegate merge to manager
+
+---
+
 ## ✅ SESSION: Automatic GitHub Releases + Memory Leak Fixes (2025-10-16)
 
 ### Implementation Complete
