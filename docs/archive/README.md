@@ -9,6 +9,7 @@ This directory contains historical documentation that is no longer actively main
 - **PRE_RELEASE_SUMMARY.md** - Pre-release documentation (now released)
 - **READY_TO_TEST.md** - Testing readiness checklist (testing complete)
 - **ROBOLECTRIC_STATUS.md** - Incomplete Robolectric implementation notes
+- **PROJECT_HEALTH_REPORT_v2.4.0.md** - Project health snapshot at v2.4.0 release (November 27, 2025)
 
 ### Historical Technical Analysis
 - **CAMERA_FIX_FORENSICS.md** - Camera issue forensic analysis
