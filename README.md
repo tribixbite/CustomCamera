@@ -1,7 +1,7 @@
 # CustomCamera - Professional Plugin-Based Camera App
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-2.4.1-brightgreen.svg" alt="Version">
+  <img src="https://img.shields.io/badge/Version-2.4.3-brightgreen.svg" alt="Version">
   <img src="https://img.shields.io/badge/Build-42-blue.svg" alt="Build">
   <img src="https://img.shields.io/badge/Platform-Android-brightgreen.svg" alt="Platform">
   <img src="https://img.shields.io/badge/Language-Kotlin-blue.svg" alt="Language">

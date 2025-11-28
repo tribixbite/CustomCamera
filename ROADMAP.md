@@ -1,7 +1,7 @@
 # CustomCamera Development Roadmap
 
 **Last Updated**: November 27, 2025
-**Current Version**: 2.4.1 (Build 42)
+**Current Version**: 2.4.3 (Build 42)
 **Status**: Production Ready
 
 ---
