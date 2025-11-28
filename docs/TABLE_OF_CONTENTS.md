@@ -119,7 +119,8 @@
 ### Setup & Configuration
 - [Build Guide](../CLAUDE.md#build-commands) - Gradle commands, build configuration
 - [ADB Testing Guide](guides/ADB_TESTING_GUIDE.md) - Device testing procedures
-- [Manual Testing Guide](MANUAL_TESTING_GUIDE.md) - UI/UX testing
+- [Manual Testing Guide](guides/MANUAL_TESTING_GUIDE.md) - UI/UX testing
+- [Testing Guide](guides/TESTING_GUIDE.md) - Complete testing procedures
 
 ### Development Workflows
 - [Plugin Development](specs/plugin-system.md#creating-plugins) - How to create plugins
