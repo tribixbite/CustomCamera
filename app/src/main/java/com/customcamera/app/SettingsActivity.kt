@@ -1258,8 +1258,8 @@ class SettingsActivity : AppCompatActivity() {
                 val config = org.json.JSONObject().apply {
                     // Metadata
                     put("version", "1.0")
-                    put("appVersion", "2.3.2")
-                    put("appBuild", 40)
+                    put("appVersion", BuildConfig.VERSION_NAME)
+                    put("appBuild", BuildConfig.VERSION_CODE)
                     put("exportDate", System.currentTimeMillis())
                     put("exportDateFormatted", java.text.SimpleDateFormat(
                         "yyyy-MM-dd HH:mm:ss",

@@ -48,7 +48,7 @@ android {
         // Add build timestamp to BuildConfig
         buildConfigField "long", "BUILD_TIMESTAMP", System.currentTimeMillis() + "L"
         buildConfigField "String", "BUILD_DATE", "\"" + new Date().format("yyyy-MM-dd HH:mm") + "\""
-        buildConfigField "String", "VERSION_NAME_FULL", "\"2.3.2-build.40\""
+        buildConfigField "String", "VERSION_NAME_FULL", "\"${versionName}-build.${versionCode}\""
     }
 
     buildTypes {
