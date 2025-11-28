@@ -36,6 +36,11 @@ Modern Kotlin camera app with Samsung/Google-style floating UI, robust camera se
 ./build-and-install.sh clean        # Clean build with app cleanup
 ```
 
+**Important for Termux ARM64 builds**:
+- Uncomment the `android.aapt2FromMavenOverride` line in `gradle.properties`
+- This enables custom ARM64 AAPT2 (standard Gradle AAPT2 is x86_64 only)
+- Keep commented for CI/CD builds (GitHub Actions uses x86_64 runners)
+
 **Note**: Script automatically stops and uninstalls existing app before building to prevent file locking issues.
 
 ### Manual Build Commands
