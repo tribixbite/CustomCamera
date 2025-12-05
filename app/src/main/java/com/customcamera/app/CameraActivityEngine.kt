@@ -2658,6 +2658,9 @@ class CameraActivityEngine : AppCompatActivity() {
         shutterSpeedController = null
         focusDistanceController = null
         camera2Controller = null
+
+        // Stop performance monitoring to prevent coroutine leak
+        performanceMonitor?.stopFPSMonitoring()
         performanceMonitor = null
 
         super.onDestroy()

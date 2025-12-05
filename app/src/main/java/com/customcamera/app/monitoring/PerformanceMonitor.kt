@@ -5,6 +5,9 @@ import android.util.Log
 import com.customcamera.app.engine.CameraContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicLong
@@ -36,6 +39,7 @@ class PerformanceMonitor(
     // Monitoring state
     private var isMonitoringActive: Boolean = false
     private var monitoringScope: CoroutineScope? = null
+    private var monitoringJob: Job? = null
 
     /**
      * Start real-time FPS monitoring
@@ -44,9 +48,9 @@ class PerformanceMonitor(
         if (isMonitoringActive) return
 
         isMonitoringActive = true
-        monitoringScope = CoroutineScope(Dispatchers.Default)
+        monitoringScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
-        monitoringScope!!.launch {
+        monitoringJob = monitoringScope?.launch {
             while (isMonitoringActive) {
                 try {
                     calculateFPS()
@@ -65,10 +69,13 @@ class PerformanceMonitor(
     }
 
     /**
-     * Stop FPS monitoring
+     * Stop FPS monitoring and cancel coroutine scope
      */
     fun stopFPSMonitoring() {
         isMonitoringActive = false
+        monitoringJob?.cancel()
+        monitoringJob = null
+        monitoringScope?.cancel()
         monitoringScope = null
         Log.i(TAG, "FPS monitoring stopped")
     }
