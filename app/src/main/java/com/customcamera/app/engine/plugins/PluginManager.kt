@@ -19,9 +19,10 @@ import java.util.concurrent.ConcurrentHashMap
 class PluginManager(private val context: Context) {
 
     private val plugins = ConcurrentHashMap<String, CameraPlugin>()
-    private val processingPlugins = mutableListOf<ProcessingPlugin>()
-    private val uiPlugins = mutableListOf<UIPlugin>()
-    private val controlPlugins = mutableListOf<ControlPlugin>()
+    // Thread-safe lists to prevent ConcurrentModificationException during iteration
+    private val processingPlugins = java.util.Collections.synchronizedList(mutableListOf<ProcessingPlugin>())
+    private val uiPlugins = java.util.Collections.synchronizedList(mutableListOf<UIPlugin>())
+    private val controlPlugins = java.util.Collections.synchronizedList(mutableListOf<ControlPlugin>())
 
     private var cameraContext: CameraContext? = null
     private var currentCamera: Camera? = null
@@ -244,7 +245,10 @@ class PluginManager(private val context: Context) {
         pluginScope.launch {
             try {
                 // Process plugins sequentially to respect priority and prevent resource exhaustion
-                processingPlugins.forEach { plugin ->
+                // Use synchronized block for thread-safe iteration
+                synchronized(processingPlugins) {
+                    processingPlugins.toList()
+                }.forEach { plugin ->
                     if (plugin.isEnabled) {
                         val pluginStartTime = System.currentTimeMillis()
                         var success = false

@@ -14,6 +14,8 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.customcamera.app.engine.plugins.CameraPlugin
@@ -67,6 +69,9 @@ class CameraEngine(
     private var videoCapture: VideoCapture<Recorder>? = null
     private var imageAnalysis: ImageAnalysis? = null
 
+    // Managed coroutine scope for camera operations (properly cancelled on cleanup)
+    private val engineScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
+
     /**
      * Initialize the camera engine and set up the camera provider
      */
@@ -104,10 +109,13 @@ class CameraEngine(
             }
 
             // Create API monitor for debugging
+            val provider = cameraProvider ?: return Result.failure(
+                IllegalStateException("Camera provider initialization failed")
+            )
             this.apiMonitor = com.customcamera.app.debug.CameraAPIMonitor(
                 com.customcamera.app.engine.CameraContext(
                     context = context,
-                    cameraProvider = cameraProvider!!,
+                    cameraProvider = provider,
                     debugLogger = DebugLogger(),
                     settingsManager = SettingsManager.getInstance(context),
                     cameraEngine = this,
@@ -116,7 +124,10 @@ class CameraEngine(
             )
 
             // Set as global instance for DebugActivity access
-            com.customcamera.app.debug.GlobalAPIMonitor.setInstance(this.apiMonitor!!)
+            val monitor = apiMonitor ?: return Result.failure(
+                IllegalStateException("API monitor initialization failed")
+            )
+            com.customcamera.app.debug.GlobalAPIMonitor.setInstance(monitor)
             Log.i(TAG, "✅ API monitor initialized and registered globally")
 
             // Log camera provider initialization
@@ -131,7 +142,7 @@ class CameraEngine(
             // Initialize plugin manager with camera context including API monitor
             val cameraContext = CameraContext(
                 context = context,
-                cameraProvider = cameraProvider!!,
+                cameraProvider = provider,
                 debugLogger = DebugLogger(),
                 settingsManager = SettingsManager.getInstance(context),
                 cameraEngine = this,
@@ -223,15 +234,22 @@ class CameraEngine(
             val useCases = buildUseCases(config)
 
             // Bind to lifecycle
+            val selector = currentCameraSelector ?: return Result.failure(
+                IllegalStateException("Camera selector not created")
+            )
             camera = provider.bindToLifecycle(
                 lifecycleOwner,
-                currentCameraSelector!!,
+                selector,
                 *useCases.toTypedArray()
+            )
+
+            val boundCamera = camera ?: return Result.failure(
+                IllegalStateException("Camera binding returned null")
             )
 
             // Query and log video frame rate capabilities if video is enabled
             if (config.enableVideoCapture && videoCapture != null) {
-                queryVideoFrameRateCapabilities(camera!!, config.videoFrameRate)
+                queryVideoFrameRateCapabilities(boundCamera, config.videoFrameRate)
             }
 
             // Log successful camera binding
@@ -334,10 +352,10 @@ class CameraEngine(
             }
 
             // Notify plugins that camera is ready
-            pluginManager.onCameraReady(camera!!)
+            pluginManager.onCameraReady(boundCamera)
 
             Log.i(TAG, "✅ Camera bound successfully")
-            Result.success(camera!!)
+            Result.success(boundCamera)
 
         } catch (e: Exception) {
             // Log failed camera binding with error details
@@ -462,8 +480,8 @@ class CameraEngine(
         onSuccess: () -> Unit,
         onFailure: (Exception) -> Unit
     ) {
-        // Launch in coroutine to handle async operations
-        CoroutineScope(Dispatchers.Main).launch {
+        // Launch in managed coroutine scope to handle async operations
+        engineScope.launch {
             try {
                 Log.i(TAG, "=== Switching to concurrent camera mode ===")
                 Log.i(TAG, "Main camera: $mainCameraIndex, PiP camera: $pipCameraIndex")
@@ -609,9 +627,10 @@ class CameraEngine(
             val useCases = buildUseCases(currentConfig)
             currentCameraSelector = createCameraSelector(currentConfig.cameraIndex)
 
+            val selector = currentCameraSelector ?: throw IllegalStateException("Camera selector not created")
             singleCamera = provider.bindToLifecycle(
                 lifecycleOwner,
-                currentCameraSelector!!,
+                selector,
                 *useCases.toTypedArray()
             )
 
@@ -620,7 +639,7 @@ class CameraEngine(
 
             // Notify plugins
             singleCamera?.let { cam ->
-                CoroutineScope(Dispatchers.Main).launch {
+                engineScope.launch {
                     pluginManager.onCameraReady(cam)
                 }
             }
@@ -660,6 +679,10 @@ class CameraEngine(
      */
     fun cleanup() {
         Log.i(TAG, "🧹 Cleaning up CameraEngine...")
+
+        // Cancel all coroutines in managed scope to prevent leaks
+        engineScope.cancel()
+        Log.i(TAG, "✅ Cancelled engine coroutine scope")
 
         // Clear global API monitor to prevent memory leak
         com.customcamera.app.debug.GlobalAPIMonitor.clearInstance()
@@ -753,8 +776,9 @@ class CameraEngine(
         val useCases = mutableListOf<UseCase>()
 
         if (config.enablePreview) {
-            preview = Preview.Builder().build()
-            useCases.add(preview!!)
+            val previewUseCase = Preview.Builder().build()
+            preview = previewUseCase
+            useCases.add(previewUseCase)
         }
 
         if (config.enableImageCapture) {
@@ -778,8 +802,9 @@ class CameraEngine(
                 Log.e(TAG, "Error configuring RAW capture", e)
             }
 
-            imageCapture = builder.build()
-            useCases.add(imageCapture!!)
+            val imageCaptureUseCase = builder.build()
+            imageCapture = imageCaptureUseCase
+            useCases.add(imageCaptureUseCase)
         }
 
         if (config.enableVideoCapture) {
@@ -811,12 +836,13 @@ class CameraEngine(
                 Log.i(TAG, "   Variable frame rate enabled (allows dynamic adjustment)")
             }
 
-            videoCapture = VideoCapture.withOutput(recorder)
-            useCases.add(videoCapture!!)
+            val videoCaptureUseCase = VideoCapture.withOutput(recorder)
+            videoCapture = videoCaptureUseCase
+            useCases.add(videoCaptureUseCase)
         }
 
         if (config.enableImageAnalysis) {
-            imageAnalysis = ImageAnalysis.Builder()
+            val imageAnalysisUseCase = ImageAnalysis.Builder()
                 .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                 .build()
                 .apply {
@@ -829,7 +855,8 @@ class CameraEngine(
                         image.close()
                     }
                 }
-            useCases.add(imageAnalysis!!)
+            imageAnalysis = imageAnalysisUseCase
+            useCases.add(imageAnalysisUseCase)
         }
 
         return useCases

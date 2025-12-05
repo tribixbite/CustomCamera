@@ -19,6 +19,8 @@ import com.customcamera.app.engine.plugins.UIEvent
 import com.customcamera.app.engine.plugins.UIPlugin
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
 /**
@@ -53,6 +55,9 @@ class ProControlsPlugin : ControlPlugin() {
 
     // Control mode
     private var isManualModeEnabled: Boolean = false
+
+    // Managed coroutine scope for control operations
+    private val controlScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
     // UI references
     private var exposureSeekBar: SeekBar? = null
@@ -196,7 +201,7 @@ class ProControlsPlugin : ControlPlugin() {
                 isAutoExposure = true
                 isAutoISO = true
                 currentCamera?.let { camera ->
-                    CoroutineScope(Dispatchers.Main).launch {
+                    controlScope.launch {
                         applyControls(camera)
                         updateControlsUI()
                     }
@@ -224,7 +229,7 @@ class ProControlsPlugin : ControlPlugin() {
             isAutoExposure = false
 
             currentCamera?.let { camera ->
-                CoroutineScope(Dispatchers.Main).launch {
+                controlScope.launch {
                     applyControls(camera)
                 }
             }
@@ -266,7 +271,7 @@ class ProControlsPlugin : ControlPlugin() {
         }
 
         currentCamera?.let { camera ->
-            CoroutineScope(Dispatchers.Main).launch {
+            controlScope.launch {
                 applyControls(camera)
             }
         }
@@ -289,6 +294,9 @@ class ProControlsPlugin : ControlPlugin() {
 
     override fun cleanup() {
         Log.i(TAG, "Cleaning up ProControlsPlugin")
+
+        // Cancel all coroutines in managed scope
+        controlScope.cancel()
 
         controlsView = null
         exposureSeekBar = null

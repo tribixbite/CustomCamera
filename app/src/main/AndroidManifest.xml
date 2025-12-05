@@ -49,10 +49,7 @@
             </intent-filter>
         </activity>
         
-        <activity
-            android:name=".CameraActivity"
-            android:exported="false"
-            android:screenOrientation="portrait" />
+        <!-- CameraActivity removed - deprecated in favor of CameraActivityEngine -->
 
         <activity
             android:name=".CameraActivityEngine"

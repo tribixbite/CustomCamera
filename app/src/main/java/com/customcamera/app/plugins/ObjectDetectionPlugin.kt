@@ -174,8 +174,9 @@ class ObjectDetectionPlugin : ProcessingPlugin() {
             val detector = objectDetector ?: return emptyList()
 
             // Convert ImageProxy to InputImage for ML Kit
+            val mediaImage = image.image ?: return emptyList()
             val inputImage = InputImage.fromMediaImage(
-                image.image!!,
+                mediaImage,
                 image.imageInfo.rotationDegrees
             )
 

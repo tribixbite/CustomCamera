@@ -17,6 +17,13 @@ import kotlinx.coroutines.*
 import java.util.concurrent.TimeUnit
 import kotlin.math.*
 
+private const val NIGHT_MODE_THRESHOLD = 0.15f
+private const val MAX_EXPOSURE_TIME_MS = 30000L
+private const val MIN_EXPOSURE_TIME_MS = 100L
+private const val DEFAULT_FRAME_STACKING_COUNT = 8
+private const val DEFAULT_ISO_BOOST = 2.0f
+private const val ANALYSIS_INTERVAL_MS = 500L
+
 /**
  * Night Mode Plugin - Advanced low-light photography capabilities
  *
@@ -46,17 +53,20 @@ class NightModePlugin : ProcessingPlugin() {
     private var isNightModeEnabled: Boolean = false
     private var isAutoNightModeEnabled: Boolean = true
     private var currentExposureTime = 1000L // milliseconds
-    private var nightModeThreshold = 0.15f // luminance threshold for auto night mode
+    private var nightModeThreshold = NIGHT_MODE_THRESHOLD
 
     // Long exposure settings
-    private var maxExposureTime = 30000L // 30 seconds max
-    private var minExposureTime = 100L // 100ms min
-    private var frameStackingCount = 8 // frames to stack for noise reduction
-    private var isoBoostFactor = 2.0f // ISO boost for night mode
+    private var maxExposureTime = MAX_EXPOSURE_TIME_MS
+    private var minExposureTime = MIN_EXPOSURE_TIME_MS
+    private var frameStackingCount = DEFAULT_FRAME_STACKING_COUNT
+    private var isoBoostFactor = DEFAULT_ISO_BOOST
 
     // Performance monitoring
     private var lastLuminanceAnalysis = 0L
-    private var analysisInterval = 500L // analyze every 500ms
+    private var analysisInterval = ANALYSIS_INTERVAL_MS
+
+    // Managed coroutine scope for night mode operations
+    private val nightModeScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
     // Night mode UI overlay
     private var nightModeOverlay: NightModeOverlayView? = null
@@ -481,9 +491,9 @@ class NightModePlugin : ProcessingPlugin() {
      */
     fun enableNightMode() {
         if (!isNightModeEnabled) {
-            // Use coroutine scope for async activation
+            // Use managed coroutine scope for async activation
             cameraContext?.let {
-                kotlinx.coroutines.CoroutineScope(Dispatchers.Main).launch {
+                nightModeScope.launch {
                     activateNightMode()
                 }
             }
@@ -495,9 +505,9 @@ class NightModePlugin : ProcessingPlugin() {
      */
     fun disableNightMode() {
         if (isNightModeEnabled) {
-            // Use coroutine scope for async deactivation
+            // Use managed coroutine scope for async deactivation
             cameraContext?.let {
-                kotlinx.coroutines.CoroutineScope(Dispatchers.Main).launch {
+                nightModeScope.launch {
                     deactivateNightMode()
                 }
             }
@@ -565,6 +575,9 @@ class NightModePlugin : ProcessingPlugin() {
 
     override fun cleanup() {
         Log.i(TAG, "Cleaning up NightModePlugin")
+
+        // Cancel all coroutines in managed scope
+        nightModeScope.cancel()
 
         isNightModeEnabled = false
         isLowLightDetected = false

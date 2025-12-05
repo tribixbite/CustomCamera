@@ -16,6 +16,8 @@ import androidx.camera.core.MeteringPoint
 import androidx.camera.view.PreviewView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
@@ -38,6 +40,9 @@ class TapToFocusHandler(
     private var focusTimeout: Long = 5000L // 5 seconds
     private var indicatorSize: Float = 120f // dp
     private var animationDuration: Long = 200L
+
+    // Managed coroutine scope for focus operations
+    private val focusScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
     /**
      * Setup touch listener on the preview view
@@ -102,7 +107,7 @@ class TapToFocusHandler(
             val listenableFuture = currentCamera.cameraControl.startFocusAndMetering(action)
 
             // Handle focus result
-            CoroutineScope(Dispatchers.Main).launch {
+            focusScope.launch {
                 try {
                     listenableFuture.get()
                     Log.i(TAG, "Focus completed successfully")
@@ -183,6 +188,9 @@ class TapToFocusHandler(
     fun cleanup() {
         Log.i(TAG, "Cleaning up TapToFocusHandler")
 
+        // Cancel all coroutines in managed scope
+        focusScope.cancel()
+
         camera = null
         hideFocusIndicator()
         previewView.setOnTouchListener(null)
@@ -197,7 +205,7 @@ class TapToFocusHandler(
         focusIndicator?.setFocusResult(success)
 
         // Hide indicator after delay
-        CoroutineScope(Dispatchers.Main).launch {
+        focusScope.launch {
             delay(1000) // Show result for 1 second
             hideFocusIndicator()
         }

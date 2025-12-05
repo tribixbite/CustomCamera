@@ -12,6 +12,8 @@ import com.customcamera.app.engine.plugins.ControlPlugin
 import com.customcamera.app.engine.plugins.ControlResult
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
 /**
@@ -42,6 +44,9 @@ class ManualFocusPlugin : ControlPlugin() {
     private var focusSlider: SeekBar? = null
     private var focusDistanceText: TextView? = null
     private var focusLockIndicator: TextView? = null
+
+    // Managed coroutine scope for focus operations
+    private val focusScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
     override suspend fun initialize(context: CameraContext) {
         this.cameraContext = context
@@ -160,7 +165,7 @@ class ManualFocusPlugin : ControlPlugin() {
             isManualFocusEnabled = enabled
 
             currentCamera?.let { camera ->
-                CoroutineScope(Dispatchers.Main).launch {
+                focusScope.launch {
                     applyControls(camera)
                 }
             }
@@ -189,7 +194,7 @@ class ManualFocusPlugin : ControlPlugin() {
 
             if (isManualFocusEnabled) {
                 currentCamera?.let { camera ->
-                    CoroutineScope(Dispatchers.Main).launch {
+                    focusScope.launch {
                         applyControls(camera)
                     }
                 }
@@ -227,7 +232,7 @@ class ManualFocusPlugin : ControlPlugin() {
         focusLocked = false
 
         currentCamera?.let { camera ->
-            CoroutineScope(Dispatchers.Main).launch {
+            focusScope.launch {
                 resetControls(camera)
             }
         }
@@ -249,6 +254,9 @@ class ManualFocusPlugin : ControlPlugin() {
 
     override fun cleanup() {
         Log.i(TAG, "Cleaning up ManualFocusPlugin")
+
+        // Cancel all coroutines in managed scope
+        focusScope.cancel()
 
         manualFocusView = null
         focusSlider = null
