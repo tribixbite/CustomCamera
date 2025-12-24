@@ -1,9 +1,69 @@
 # Active TODOs - v2.4.3 VERSION SYNCED ✅
 
-**Last Updated**: 2025-12-05 (Session 50 - Code Review & Bug Fixes)
+**Last Updated**: 2025-12-24 (Session 51 - Flash Control Research)
 **Priority**: Production Deployment Ready | All P1/P2 Issues Fixed
 **Status**: 🟢 v2.4.3 SYNCED | 0 Critical Issues | Memory Leaks Fixed
-**Focus**: Version 2.4.3 (Build 42) - Code Quality Improvements 🎊
+**Focus**: Version 2.4.3 (Build 42) - Flashlight Mini-App Research 🔦
+
+## 🔦 SESSION 51 - FLASHLIGHT MINI-APP RESEARCH
+
+**Session Type**: Feature Research & Specification
+**Duration**: ~1 hour
+**Status**: ✅ Complete - Comprehensive spec created
+
+### Research Completed
+
+**1. Camera2 API Flash Control**:
+- `CameraManager.setTorchMode()` - Basic on/off
+- `turnOnTorchWithStrengthLevel()` - Android 13+ strength control
+- `getTorchStrengthLevel()` - Current strength
+- `FLASH_INFO_STRENGTH_MAXIMUM_LEVEL` - Max supported level
+- `TorchCallback` - State monitoring
+
+**2. CameraX Flash Control**:
+- `cameraControl.enableTorch(boolean)` - On/off
+- `cameraControl.setTorchStrength(level)` - Strength (1.3+)
+- `cameraInfo.maxTorchStrength` - Max level
+- Flash modes: AUTO, ON, OFF, SCREEN
+
+**3. Samsung-Specific Controls**:
+- `Settings.System.Flashlight_brightness_level` - Values 1001-1005 (1=lowest, 5=highest)
+- ADB: `settings put system Flashlight_brightness_level 1003`
+- QS Tile: `cmd statusbar click-tile Flashlight` ✅ WORKS
+
+**4. ADB Commands**:
+- `cmd statusbar click-tile Flashlight` - Toggle via Quick Settings ✅
+- `settings get/put system Flashlight_brightness_level` - Samsung brightness
+- Broadcast: `am broadcast -a android.intent.action.TOGGLE_FLASHLIGHT` (limited)
+
+**5. Hardware sysfs (Root Required)**:
+- `/sys/class/leds/led:torch_0/brightness` - Direct LED control
+- `/sys/class/camera/flash/rear_flash` - Samsung camera flash
+- Flash strobe/timeout controls available
+
+**6. SOS/Strobe Patterns**:
+- Morse code timing: DOT=200ms, DASH=600ms, gaps
+- SOS pattern: ...---... (3 short, 3 long, 3 short)
+- Strobe: Configurable frequency (2-10 Hz) and duty cycle
+
+### Files Created
+- `docs/specs/FLASHLIGHT_MINI_APP.md` (400+ lines) - Comprehensive specification
+  - API reference for Camera2, CameraX, Samsung
+  - ADB control commands
+  - SOS/strobe pattern implementation
+  - Architecture for FlashlightMiniApp class
+  - Feature priority matrix (P0-P3)
+  - Testing checklist
+
+### Next Steps (Implementation)
+1. Create `FlashlightMiniApp.kt` with CameraManager torch control
+2. Add Samsung brightness slider (1-5 levels)
+3. Implement SOS pattern executor
+4. Add strobe mode with frequency control
+5. Create UI for flashlight mini-app
+6. Integrate with camera app as utility feature
+
+---
 
 ## 🎉 SESSION 50 COMPLETE - CODE REVIEW & BUG FIXES
 

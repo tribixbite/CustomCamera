@@ -119,6 +119,7 @@ This directory contains comprehensive technical specifications for the CustomCam
 | Feature | Description | Status |
 |---------|-------------|--------|
 | [Concurrent Camera PiP](features/concurrent-camera-pip.md) | Dual camera implementation with CameraX 1.5.0 fixes | ✅ Complete |
+| [Flashlight Mini-App](FLASHLIGHT_MINI_APP.md) | Advanced flashlight with brightness, SOS, strobe patterns | 📋 Spec Complete |
 
 ---
 
@@ -227,6 +228,10 @@ All specs follow this template:
 ---
 
 ## Recent Updates
+
+### 2025-12-24
+- Added Flashlight Mini-App specification with comprehensive flash control research
+- Documented Camera2 API, CameraX, Samsung-specific, and ADB flash control methods
 
 ### 2025-11-27
 - Added Plugin Usage Statistics specification (v2.4.0)
