@@ -72,10 +72,16 @@ class ExposureSliderView @JvmOverloads constructor(context: Context, attrs: Attr
                 update(yToValue(event.y))
             }
             MotionEvent.ACTION_MOVE -> update(yToValue(event.y))
-            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> onInteraction?.invoke(false)
+            MotionEvent.ACTION_UP -> {
+                onInteraction?.invoke(false)
+                performClick()
+            }
+            MotionEvent.ACTION_CANCEL -> onInteraction?.invoke(false)
         }
         return true
     }
+
+    override fun performClick(): Boolean = super.performClick()
 
     private fun update(newValue: Int) {
         if (newValue == value) return

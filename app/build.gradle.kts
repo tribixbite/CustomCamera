@@ -77,6 +77,16 @@ android {
             signingConfig = signingConfigs.findByName("release")
                 ?: signingConfigs.getByName("debug")
         }
+        // Release code (R8 + resource shrinking) under its own applicationId and the
+        // debug key, so the shrunk build can be installed and smoke-tested beside
+        // a Play-installed release.
+        create("staging") {
+            initWith(getByName("release"))
+            applicationIdSuffix = ".staging"
+            versionNameSuffix = "-staging"
+            signingConfig = signingConfigs.getByName("debug")
+            matchingFallbacks += listOf("release")
+        }
     }
 
     compileOptions {

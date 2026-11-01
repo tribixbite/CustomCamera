@@ -1,5 +1,6 @@
 package com.customcamera.app.gallery
 
+import android.annotation.SuppressLint
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.os.Bundle
@@ -87,9 +88,10 @@ class MediaViewerActivity : AppCompatActivity() {
 
     private fun load(start: android.net.Uri?) {
         lifecycleScope.launch {
+            val loaded = repository.loadAll()
             items.clear()
-            items += repository.loadAll()
-            adapter.notifyDataSetChanged()
+            items += loaded
+            adapter.notifyItemRangeInserted(0, loaded.size)
             val index = items.indexOfFirst { it.uri == start }.coerceAtLeast(0)
             binding.pager.setCurrentItem(index, false)
             updateEmptyState()
@@ -189,6 +191,8 @@ class MediaViewerActivity : AppCompatActivity() {
         }
     }
 
+    // The stream is closed by `?.use {}`; lint's Recycle check misreads the safe call.
+    @SuppressLint("Recycle")
     private fun exifRows(item: MediaItem): List<Pair<Int, String>> = runCatching {
         contentResolver.openInputStream(item.uri)?.use { stream ->
             val exif = ExifInterface(stream)

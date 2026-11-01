@@ -28,6 +28,8 @@ import androidx.camera.core.CameraInfo
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.CameraState as XCameraState
 import androidx.camera.core.DynamicRange
+import androidx.camera.core.ExperimentalGetImage
+import androidx.camera.core.ExperimentalZeroShutterLag
 import androidx.camera.core.FocusMeteringAction
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageCapture
@@ -44,6 +46,7 @@ import androidx.camera.core.resolutionselector.ResolutionStrategy
 import androidx.camera.extensions.ExtensionMode
 import androidx.camera.extensions.ExtensionsManager
 import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.video.ExperimentalPersistentRecording
 import androidx.camera.video.FallbackStrategy
 import androidx.camera.video.MediaStoreOutputOptions
 import androidx.camera.video.Quality
@@ -100,7 +103,13 @@ import java.util.concurrent.atomic.AtomicReference
  *
  * All public methods must be called on the main thread.
  */
-@OptIn(ExperimentalCamera2Interop::class, TransformExperimental::class)
+@OptIn(
+    ExperimentalCamera2Interop::class,
+    TransformExperimental::class,
+    ExperimentalZeroShutterLag::class,
+    ExperimentalGetImage::class,
+    ExperimentalPersistentRecording::class,
+)
 class CameraController(
     private val context: Context,
     private val lifecycleOwner: LifecycleOwner,

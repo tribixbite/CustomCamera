@@ -36,14 +36,13 @@
     <string name="hdr">HDR</string>
     <string name="ae_af_lock">AE/AF LOCK</string>
     <string name="hold_still">Hold still…</string>
-    <string name="recording_paused">Paused</string>
+    <string name="recording_paused_time">%1$s · Paused</string>
+    <string name="pro_ev_value">EV %1$s</string>
 
     <!-- Pro mode -->
     <string name="pro_iso">ISO</string>
     <string name="pro_shutter">Shutter</string>
     <string name="pro_wb">WB</string>
-    <string name="pro_focus">Focus</string>
-    <string name="pro_ev">EV</string>
     <string name="pro_auto">Auto</string>
     <string name="pro_value_auto">%1$s A</string>
     <string name="pro_unsupported">This camera does not support manual sensor control</string>
@@ -83,11 +82,8 @@
     <string name="error_camera_generic">Camera error: %1$s</string>
     <string name="error_no_camera">No working camera was found on this device</string>
     <string name="camera_fallback">Camera %1$s failed — switched to camera %2$s</string>
-    <string name="saved_photo">Photo saved</string>
-    <string name="saved_video">Video saved</string>
     <string name="copied">Copied to clipboard</string>
     <string name="no_app_for_action">No app can handle this</string>
-    <string name="storage_permission_needed">Storage permission is required to save on this Android version</string>
 
     <!-- Scan -->
     <string name="scan_hint">Point at a QR code or barcode</string>
@@ -117,7 +113,10 @@
     <string name="gallery_title">Gallery</string>
     <string name="gallery_empty_title">No captures yet</string>
     <string name="gallery_empty_body">Photos and videos you take with CustomCamera appear here.</string>
-    <string name="gallery_count">%1$d items</string>
+    <plurals name="gallery_count">
+        <item quantity="one">%1$d item</item>
+        <item quantity="other">%1$d items</item>
+    </plurals>
     <string name="viewer_share">Share</string>
     <string name="viewer_edit">Edit</string>
     <string name="viewer_delete">Delete</string>

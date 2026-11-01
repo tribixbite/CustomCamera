@@ -12,6 +12,7 @@ import android.provider.Settings
 import android.widget.Toast
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
+import androidx.core.net.toUri
 import com.customcamera.app.R
 import com.customcamera.app.core.ScanContent
 
@@ -47,21 +48,21 @@ object ScanActions {
     /** Runs the primary action (open link, dial, join Wi-Fi, ...). */
     fun performPrimary(context: Context, content: ScanContent) {
         when (content) {
-            is ScanContent.Url -> launch(context, Intent(Intent.ACTION_VIEW, Uri.parse(content.url)))
-            is ScanContent.Phone -> launch(context, Intent(Intent.ACTION_DIAL, Uri.parse("tel:${Uri.encode(content.number)}")))
+            is ScanContent.Url -> launch(context, Intent(Intent.ACTION_VIEW, content.url.toUri()))
+            is ScanContent.Phone -> launch(context, Intent(Intent.ACTION_DIAL, "tel:${Uri.encode(content.number)}".toUri()))
             is ScanContent.Sms -> launch(
                 context,
-                Intent(Intent.ACTION_SENDTO, Uri.parse("smsto:${Uri.encode(content.number)}")).putExtra("sms_body", content.message),
+                Intent(Intent.ACTION_SENDTO, "smsto:${Uri.encode(content.number)}".toUri()).putExtra("sms_body", content.message),
             )
             is ScanContent.Email -> launch(
                 context,
-                Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:")).apply {
+                Intent(Intent.ACTION_SENDTO, "mailto:".toUri()).apply {
                     putExtra(Intent.EXTRA_EMAIL, arrayOf(content.address))
                     content.subject?.let { putExtra(Intent.EXTRA_SUBJECT, it) }
                     content.body?.let { putExtra(Intent.EXTRA_TEXT, it) }
                 },
             )
-            is ScanContent.Geo -> launch(context, Intent(Intent.ACTION_VIEW, Uri.parse("geo:${content.latitude},${content.longitude}?q=${content.latitude},${content.longitude}")))
+            is ScanContent.Geo -> launch(context, Intent(Intent.ACTION_VIEW, "geo:${content.latitude},${content.longitude}?q=${content.latitude},${content.longitude}".toUri()))
             is ScanContent.Wifi -> connectWifi(context, content)
             is ScanContent.Text -> copy(context, content.raw)
         }

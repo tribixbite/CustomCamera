@@ -90,7 +90,7 @@ class ProPanelController(
         }
         binding.chipWb.text = if (m.awbMode == ManualSettings.AWB_AUTO) context.getString(R.string.pro_wb) else wbLabel(m.awbMode)
         binding.chipFocus.text = m.focusDiopters?.let { ExposureMath.formatFocusDistance(it) } ?: context.getString(R.string.focus_auto)
-        binding.chipEv.text = "${context.getString(R.string.pro_ev)} ${ExposureMath.formatEv(state.evIndex, state.evStep)}"
+        binding.chipEv.text = context.getString(R.string.pro_ev_value, ExposureMath.formatEv(state.evIndex, state.evStep))
         updateValueLabel()
     }
 

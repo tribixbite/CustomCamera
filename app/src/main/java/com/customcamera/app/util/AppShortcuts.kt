@@ -17,6 +17,14 @@ import com.customcamera.app.ui.CameraActivity
  */
 object AppShortcuts {
 
+    /** Intent extra carrying the shortcut id, so launches can be reported. */
+    const val EXTRA_SHORTCUT_ID = "com.customcamera.app.extra.SHORTCUT_ID"
+
+    /** Lets the launcher rank shortcuts by actual use. */
+    fun reportUsed(context: Context, id: String) {
+        runCatching { ShortcutManagerCompat.reportShortcutUsed(context, id) }
+    }
+
     fun publish(context: Context) {
         val shortcuts = listOf(
             build(context, "selfie", R.string.shortcut_selfie, R.drawable.ic_shortcut_selfie, CaptureMode.PHOTO, front = true),
@@ -31,6 +39,7 @@ object AppShortcuts {
             .setAction(Intent.ACTION_VIEW)
             .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
             .putExtra(CameraActivity.EXTRA_MODE, mode.key)
+            .putExtra(EXTRA_SHORTCUT_ID, id)
         front?.let { intent.putExtra(CameraActivity.EXTRA_FRONT, it) }
         return ShortcutInfoCompat.Builder(context, id)
             .setShortLabel(context.getString(label))

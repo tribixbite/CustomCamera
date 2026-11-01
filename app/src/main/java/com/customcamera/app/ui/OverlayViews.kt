@@ -15,6 +15,7 @@ import android.util.AttributeSet
 import android.view.View
 import android.view.animation.DecelerateInterpolator
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.withRotation
 import com.customcamera.app.R
 import com.customcamera.app.core.GridGeometry
 import com.customcamera.app.core.GridOption
@@ -137,10 +138,7 @@ class LevelView @JvmOverloads constructor(context: Context, attrs: AttributeSet?
         // Fixed reference ticks on both sides.
         canvas.drawLine(cx - half - 2 * gap - 16 * density, cy, cx - half - 2 * gap, cy, linePaint)
         canvas.drawLine(cx + half + 2 * gap, cy, cx + half + 2 * gap + 16 * density, cy, linePaint)
-        canvas.save()
-        canvas.rotate(-tilt, cx, cy)
-        canvas.drawLine(cx - half, cy, cx + half, cy, linePaint)
-        canvas.restore()
+        canvas.withRotation(-tilt, cx, cy) { drawLine(cx - half, cy, cx + half, cy, linePaint) }
     }
 }
 
@@ -286,6 +284,7 @@ class BarcodeOverlayView @JvmOverloads constructor(context: Context, attrs: Attr
     }
     private val reticlePaint = Paint(paint).apply { color = Color.argb(200, 255, 255, 255) }
     private var boxes: List<RectF> = emptyList()
+    private val drawRect = RectF()
     private val clearRunnable = Runnable { boxes = emptyList(); invalidate() }
 
     init {
@@ -304,9 +303,14 @@ class BarcodeOverlayView @JvmOverloads constructor(context: Context, attrs: Attr
             val size = minOf(width, height) * 0.6f
             val l = (width - size) / 2
             val t = (height - size) / 2
-            drawBrackets(canvas, RectF(l, t, l + size, t + size), reticlePaint)
+            drawRect.set(l, t, l + size, t + size)
+            drawBrackets(canvas, drawRect, reticlePaint)
         } else {
-            boxes.forEach { drawBrackets(canvas, RectF(it).apply { inset(-8 * density, -8 * density) }, paint) }
+            boxes.forEach {
+                drawRect.set(it)
+                drawRect.inset(-8 * density, -8 * density)
+                drawBrackets(canvas, drawRect, paint)
+            }
         }
     }
 

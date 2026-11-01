@@ -7,6 +7,7 @@ import android.graphics.ImageDecoder
 import android.graphics.Matrix
 import android.net.Uri
 import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.exifinterface.media.ExifInterface
 import java.io.File
 import kotlin.math.max
@@ -36,6 +37,7 @@ object BitmapDecoding {
             legacyDecode(open = { file.inputStream() }, maxDimension = maxDimension)
         }
 
+    @RequiresApi(Build.VERSION_CODES.P)
     private fun decodeWithImageDecoder(source: ImageDecoder.Source, maxDimension: Int): Bitmap? = try {
         ImageDecoder.decodeBitmap(source) { decoder, info, _ ->
             val largest = max(info.size.width, info.size.height)

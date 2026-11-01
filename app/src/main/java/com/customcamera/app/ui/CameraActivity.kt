@@ -1,6 +1,7 @@
 package com.customcamera.app.ui
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
@@ -24,6 +25,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.VisibleForTesting
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.content.edit
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
@@ -225,6 +227,7 @@ class CameraActivity : AppCompatActivity() {
             MediaStore.ACTION_VIDEO_CAPTURE -> LaunchMode.VIDEO_CAPTURE
             else -> LaunchMode.NORMAL
         }
+        intent.getStringExtra(AppShortcuts.EXTRA_SHORTCUT_ID)?.let { AppShortcuts.reportUsed(this, it) }
         secureLaunch = intent.action == MediaStore.INTENT_ACTION_STILL_IMAGE_CAMERA_SECURE ||
             intent.action == MediaStore.ACTION_IMAGE_CAPTURE_SECURE
         if (secureLaunch && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
@@ -302,7 +305,7 @@ class CameraActivity : AppCompatActivity() {
         binding.hdrButton.setOnClickListener {
             val enabled = !controller.state.value.hdrEnabled
             controller.setHdr(enabled)
-            getPreferences(MODE_PRIVATE).edit().putBoolean(STATE_HDR, enabled).apply()
+            getPreferences(MODE_PRIVATE).edit { putBoolean(STATE_HDR, enabled) }
         }
         binding.permissionButton.setOnClickListener {
             if (permanentlyDenied()) {
@@ -346,6 +349,9 @@ class CameraActivity : AppCompatActivity() {
 
     private val hideExposureSlider = Runnable { binding.exposureSlider.isVisible = false }
 
+    // The listener calls performClick() on ACTION_UP, and the container carries a
+    // content description, so accessibility services still see a clickable preview.
+    @SuppressLint("ClickableViewAccessibility")
     private fun setupGestures() {
         var scaling = false
         val scaleDetector = ScaleGestureDetector(this, object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
@@ -606,12 +612,12 @@ class CameraActivity : AppCompatActivity() {
         val recording = state.recording != RecordingStatus.IDLE
         binding.recordingChip.isVisible = recording
         binding.recordingTime.text = if (state.recording == RecordingStatus.PAUSED) {
-            "${TimeFormat.recording(state.recordingNanos)} · ${getString(R.string.recording_paused)}"
+            getString(R.string.recording_paused_time, TimeFormat.recording(state.recordingNanos))
         } else {
             TimeFormat.recording(state.recordingNanos)
         }
         binding.recordingDot.alpha = if (state.recording == RecordingStatus.PAUSED) 0.4f else 1f
-        binding.pauseButton.isVisible = recording && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N
+        binding.pauseButton.isVisible = recording
         binding.thumbnail.isVisible = !recording && launchMode == LaunchMode.NORMAL && !secureLaunch
         binding.pauseButton.setIconResource(if (state.recording == RecordingStatus.PAUSED) R.drawable.ic_videocam else R.drawable.ic_pause)
         binding.pauseButton.contentDescription = getString(
@@ -921,8 +927,9 @@ class CameraActivity : AppCompatActivity() {
 
     private fun cycleVideoQuality() {
         val next = VideoQualityOption.entries[(settings.videoQuality.ordinal + 1) % VideoQualityOption.entries.size]
-        androidx.preference.PreferenceManager.getDefaultSharedPreferences(this).edit()
-            .putString(AppSettings.Keys.VIDEO_QUALITY, next.key).apply()
+        androidx.preference.PreferenceManager.getDefaultSharedPreferences(this).edit {
+            putString(AppSettings.Keys.VIDEO_QUALITY, next.key)
+        }
         settingsDirty = false
         controller.refreshFromSettings()
         renderTopBar(controller.state.value)

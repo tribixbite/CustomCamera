@@ -1,6 +1,7 @@
 package com.customcamera.app.ui
 
 import android.animation.ValueAnimator
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
@@ -96,13 +97,18 @@ class ShutterButton @JvmOverloads constructor(
         }.start()
     }
 
+    // Click handling (and performClick) stays in View.onTouchEvent; this only animates.
+    @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent): Boolean {
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> animatePress(0.9f)
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> animatePress(1f)
         }
+        // super.onTouchEvent() dispatches performClick() on ACTION_UP.
         return super.onTouchEvent(event)
     }
+
+    override fun performClick(): Boolean = super.performClick()
 
     private fun animatePress(target: Float) {
         ValueAnimator.ofFloat(pressScale, target).apply {

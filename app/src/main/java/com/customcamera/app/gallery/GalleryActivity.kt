@@ -70,7 +70,7 @@ class GalleryActivity : AppCompatActivity() {
         val items = repository.loadAll()
         adapter.submitList(items)
         binding.emptyState.isVisible = items.isEmpty()
-        binding.toolbar.subtitle = if (items.isEmpty()) null else getString(R.string.gallery_count, items.size)
+        binding.toolbar.subtitle = if (items.isEmpty()) null else resources.getQuantityString(R.plurals.gallery_count, items.size, items.size)
     }
 
     companion object {

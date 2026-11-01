@@ -1,5 +1,6 @@
 package com.customcamera.app.gallery
 
+import android.annotation.SuppressLint
 import android.content.ContentResolver
 import android.content.ContentUris
 import android.content.Context
@@ -55,6 +56,8 @@ class MediaRepository private constructor(context: Context) {
 
     suspend fun latest(): MediaItem? = loadAll().firstOrNull()
 
+    // The cursor is closed by `?.use {}`; lint's Recycle check misreads the safe call.
+    @SuppressLint("Recycle")
     private fun query(isVideo: Boolean): List<MediaItem> {
         val collection = if (isVideo) MediaStoreHelper.videoCollection() else MediaStoreHelper.imageCollection()
         val projection = buildList {

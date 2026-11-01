@@ -11,3 +11,9 @@
 
 # Preference fragments are instantiated reflectively from XML by class name.
 -keep class com.customcamera.app.settings.SettingsFragment { <init>(); }
+
+# Strip verbose/debug logging from shrunk builds (warnings and errors are kept).
+-assumenosideeffects class android.util.Log {
+    public static int v(...);
+    public static int d(...);
+}
