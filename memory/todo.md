@@ -15,6 +15,13 @@ All owner steps (upload key, GitHub secrets, signed bundle, screenshots, Play
 Console forms, closed-testing gate) live in **`PLAY_RELEASE.md`** — keep that the
 single source; do not duplicate the list here.
 
+## Branches (decision pending, 2026-11-01)
+
+- `v3` (this work) branched from a stale local snapshot; GitHub `main` carries 586
+  further commits of the old v2 code base (v2.4.3, Sep–Dec 2025, targetSdk 35, ISO/
+  shutter controllers still stubbed). The owner chooses how `v3` lands on `main`
+  (see final session summary); never force-push without explicit approval.
+
 ## Verified on device (SM-S938U1)
 
 - [x] Camera binds (logical rear camera 0, 4 Camera2 devices listed with focal lengths)
@@ -47,5 +54,7 @@ single source; do not duplicate the list here.
 5. [ ] Upgrade to AGP 9.x + compileSdk 37 (unblocks core-ktx 1.19+).
 6. [ ] Localisation (strings are resource-based; arrays marked translatable).
 7. [ ] Baseline profile for faster cold start.
-8. [ ] Optional: replace ML Kit with an Apache-licensed scanner to shrink the APK
+8. [ ] Torch brightness (CameraX `setTorchStrengthLevel`, API 35+ devices) for video/scan
+       torch — idea carried over from the v2 line's flashlight spec.
+9. [ ] Optional: replace ML Kit with an Apache-licensed scanner to shrink the APK
        (~5 MB native lib per ABI) and drop the Google ToS dependency.
