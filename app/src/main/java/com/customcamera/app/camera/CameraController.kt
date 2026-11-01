@@ -162,12 +162,7 @@ class CameraController(
     suspend fun start(mode: CaptureMode, front: Boolean, cameraId: String?, flash: FlashOption, aspect: AspectOption, hdr: Boolean): Boolean {
         val p = ProcessCameraProvider.getInstance(context).await()
         provider = p
-        extensions = try {
-            ExtensionsManager.getInstanceAsync(context, p).await()
-        } catch (e: Exception) {
-            Log.w(TAG, "Extensions unavailable", e)
-            null
-        }
+        loadExtensionsInBackground(p)
         requestedCameraId = cameraId?.takeIf { id -> p.availableCameraInfos.any { idOf(it) == id } }
         _state.update {
             it.copy(
@@ -181,6 +176,63 @@ class CameraController(
         }
         return bind()
     }
+
+    /**
+     * Extension discovery can block for tens of seconds (on some Samsung builds
+     * the framework extension proxy times out ~2 s per query), and both
+     * ExtensionsManager initialisation and isExtensionAvailable() block their
+     * calling thread. All of it therefore runs on a background thread, results
+     * are cached per camera, and the main thread only ever reads the cache.
+     */
+    private fun loadExtensionsInBackground(p: ProcessCameraProvider) {
+        val selectors: Map<String, CameraSelector> = buildMap {
+            put(DEFAULT_BACK_KEY, CameraSelector.DEFAULT_BACK_CAMERA)
+            put(DEFAULT_FRONT_KEY, CameraSelector.DEFAULT_FRONT_CAMERA)
+            p.availableCameraInfos.forEach { info -> idOf(info).let { id -> put(id, selectorForId(id)) } }
+        }
+        extensionExecutor.execute {
+            val manager = runCatching { ExtensionsManager.getInstanceAsync(context, p).get(EXTENSION_INIT_TIMEOUT_S, TimeUnit.SECONDS) }
+                .onFailure { Log.w(TAG, "Extensions unavailable", it) }
+                .getOrNull() ?: return@execute
+            val cache = selectors.mapValues { (_, selector) ->
+                listOf(ExtensionIds.NIGHT, ExtensionIds.BOKEH, ExtensionIds.HDR).filter { mode ->
+                    runCatching { manager.isExtensionAvailable(selector, mode) }.getOrDefault(false)
+                }.toSet()
+            }
+            if (BuildConfig.DEBUG) Log.d(TAG, "Extension availability: $cache")
+            mainExecutor.execute {
+                extensions = manager
+                extensionCache = cache
+                refreshExtensionAvailability()
+            }
+        }
+    }
+
+    /** Recomputes extension-backed modes for the bound camera without rebinding it. */
+    private fun refreshExtensionAvailability() {
+        val supported = supportedExtensions(boundExtensionKey ?: return)
+        _state.update {
+            it.copy(
+                availableModes = CaptureMode.available(supported),
+                hdrAvailable = ExtensionIds.HDR in supported && it.mode == CaptureMode.PHOTO,
+            )
+        }
+        // HDR was requested before extensions were known: rebind once so it takes effect.
+        val st = _state.value
+        if (st.hdrEnabled && st.hdrAvailable && recording == null) rebind()
+    }
+
+    /** Cached extension modes for a camera key (Camera2 id or default-facing key); never blocks. */
+    private fun supportedExtensions(key: String): Set<Int> = extensionCache[key].orEmpty()
+
+    private fun selectorForId(cameraId: String): CameraSelector =
+        CameraSelector.Builder().addCameraFilter { list -> list.filter { idOf(it) == cameraId } }.build()
+
+    private val extensionExecutor: ExecutorService = Executors.newSingleThreadExecutor()
+    private var extensionCache: Map<String, Set<Int>> = emptyMap()
+
+    /** Extension-cache key of the currently bound camera. */
+    private var boundExtensionKey: String? = null
 
     // ---------------------------------------------------------------------
     // Binding
@@ -244,16 +296,14 @@ class CameraController(
                 .requireLensFacing(if (facingFront) CameraSelector.LENS_FACING_FRONT else CameraSelector.LENS_FACING_BACK)
                 .build()
         } else {
-            CameraSelector.Builder().addCameraFilter { list -> list.filter { idOf(it) == cameraId } }.build()
+            selectorForId(cameraId)
         }
         val baseInfo = baseSelector.filter(p.availableCameraInfos).firstOrNull()
             ?: throw IllegalStateException("No camera matches ${cameraId ?: "default facing"}")
 
         val ext = extensions
-        val supportedExtensions = if (ext == null) emptySet() else
-            listOf(ExtensionIds.NIGHT, ExtensionIds.BOKEH, ExtensionIds.HDR).filter { mode ->
-                runCatching { ext.isExtensionAvailable(baseSelector, mode) }.getOrDefault(false)
-            }.toSet()
+        val extensionKey = cameraId ?: if (facingFront) DEFAULT_FRONT_KEY else DEFAULT_BACK_KEY
+        val supportedExtensions = supportedExtensions(extensionKey)
 
         // Extension modes that disappeared on this camera fall back to PHOTO.
         var mode = st.mode
@@ -277,6 +327,7 @@ class CameraController(
         val group = UseCaseGroup.Builder().setViewPort(viewPort).apply { useCases.forEach { addUseCase(it) } }.build()
         val bound = p.bindToLifecycle(lifecycleOwner, selector, group)
         camera = bound
+        boundExtensionKey = extensionKey
 
         val boundId = idOf(baseInfo)
         observeCamera(bound.cameraInfo)
@@ -790,6 +841,7 @@ class CameraController(
         barcodeScanner?.close()
         barcodeScanner = null
         analysisExecutor.shutdown()
+        extensionExecutor.shutdownNow()
     }
 
     // ---------------------------------------------------------------------
@@ -840,6 +892,9 @@ class CameraController(
 
     companion object {
         private const val TAG = "CameraController"
+        private const val DEFAULT_BACK_KEY = "default-back"
+        private const val DEFAULT_FRONT_KEY = "default-front"
+        private const val EXTENSION_INIT_TIMEOUT_S = 60L
         private const val AUTO_CANCEL_SECONDS = 5L
         private const val HISTOGRAM_INTERVAL_MS = 125L
         private const val DEFAULT_ISO = 100

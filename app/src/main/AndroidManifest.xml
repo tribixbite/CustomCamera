@@ -17,6 +17,14 @@
         android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="28" />
 
+    <!--
+        The app never uses the network. ML Kit's bundled barcode model works
+        offline; its optional diagnostics transport merges these permissions in,
+        so they are removed to guarantee captures and scans never leave the device.
+    -->
+    <uses-permission android:name="android.permission.INTERNET" tools:node="remove" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" tools:node="remove" />
+
     <!-- Any camera (front-only devices and Chromebooks included). -->
     <uses-feature android:name="android.hardware.camera.any" android:required="true" />
     <uses-feature android:name="android.hardware.camera" android:required="false" />
@@ -53,11 +61,12 @@
         <!--
             Portrait-locked like system cameras: the preview never relayouts on
             rotation; icons rotate and captures are tagged with the real orientation.
+            Standard launch mode is required: IMAGE_CAPTURE / VIDEO_CAPTURE callers
+            use startActivityForResult, which cannot return across tasks (singleTask).
         -->
         <activity
             android:name=".ui.CameraActivity"
             android:exported="true"
-            android:launchMode="singleTask"
             android:screenOrientation="portrait"
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation|keyboardHidden|uiMode|density"
             android:resizeableActivity="true"

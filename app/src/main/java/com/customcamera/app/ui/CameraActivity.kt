@@ -21,6 +21,7 @@ import android.widget.FrameLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.VisibleForTesting
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
@@ -28,6 +29,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import androidx.lifecycle.Lifecycle
@@ -196,7 +198,21 @@ class CameraActivity : AppCompatActivity() {
         super.onNewIntent(intent)
         setIntent(intent)
         parseLaunchIntent(intent)
-        if (cameraStarted) controller.setMode(initialMode())
+        applyLaunchModeUi()
+        // Force the mode tabs to rebuild for the new launch mode.
+        renderedModes = emptyList()
+        if (cameraStarted) {
+            controller.setMode(initialMode())
+            render(controller.state.value)
+        }
+    }
+
+    /** Hides gallery/settings entry points for capture intents and lock-screen launches. */
+    private fun applyLaunchModeUi() {
+        val restricted = launchMode != LaunchMode.NORMAL || secureLaunch
+        binding.thumbnail.isVisible = !restricted
+        binding.settingsButton.isVisible = !secureLaunch
+        if (launchMode == LaunchMode.NORMAL) binding.reviewPanel.isVisible = false
     }
 
     // ---------------------------------------------------------------------
@@ -325,10 +341,7 @@ class CameraActivity : AppCompatActivity() {
             if (!dragging) binding.exposureSlider.postDelayed(hideExposureSlider, EV_HIDE_MS)
         }
 
-        if (launchMode != LaunchMode.NORMAL || secureLaunch) {
-            binding.thumbnail.isVisible = false
-            if (secureLaunch) binding.settingsButton.isVisible = false
-        }
+        applyLaunchModeUi()
     }
 
     private val hideExposureSlider = Runnable { binding.exposureSlider.isVisible = false }
@@ -456,7 +469,8 @@ class CameraActivity : AppCompatActivity() {
         renderRecording(state)
 
         val mode = state.mode
-        binding.shutterButton.isVisible = mode != CaptureMode.SCAN
+        // INVISIBLE (not GONE) keeps the thumbnail/flip positions anchored to the shutter.
+        binding.shutterButton.isInvisible = mode == CaptureMode.SCAN
         binding.shutterButton.style = when {
             state.recording != RecordingStatus.IDLE -> ShutterButton.Style.RECORDING
             mode == CaptureMode.VIDEO -> ShutterButton.Style.VIDEO
@@ -1047,6 +1061,14 @@ class CameraActivity : AppCompatActivity() {
     }
 
     private val Int.dp: Int get() = (this * resources.displayMetrics.density).toInt()
+
+    /** Current controller state, for instrumented tests. */
+    @VisibleForTesting
+    internal fun cameraStateForTest(): CameraState = controller.state.value
+
+    /** Binds a specific Camera2 id as the lens picker would, for instrumented tests. */
+    @VisibleForTesting
+    internal fun selectCameraForTest(cameraId: String) = controller.selectCamera(cameraId)
 
     companion object {
         /** Shortcut / deep-link extra: initial [CaptureMode] key. */

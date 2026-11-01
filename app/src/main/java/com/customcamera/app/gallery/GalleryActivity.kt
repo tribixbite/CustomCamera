@@ -8,7 +8,10 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
+import androidx.core.view.updatePadding
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -48,6 +51,11 @@ class GalleryActivity : AppCompatActivity() {
         binding.grid.layoutManager = GridLayoutManager(this, span)
         binding.grid.adapter = adapter
         binding.grid.setHasFixedSize(true)
+        val basePadding = binding.grid.paddingBottom
+        ViewCompat.setOnApplyWindowInsetsListener(binding.grid) { v, insets ->
+            v.updatePadding(bottom = basePadding + insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom)
+            insets
+        }
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {

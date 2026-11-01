@@ -39,6 +39,8 @@
     <style name="Widget.CustomCamera.IconButton" parent="Widget.Material3.Button.IconButton">
         <item name="iconTint">@color/white</item>
         <item name="iconSize">24dp</item>
+        <item name="iconGravity">textStart</item>
+        <item name="iconPadding">0dp</item>
         <item name="android:minWidth">@dimen/icon_button</item>
         <item name="android:minHeight">@dimen/icon_button</item>
     </style>
@@ -53,6 +55,7 @@
         <item name="android:paddingStart">8dp</item>
         <item name="android:paddingEnd">8dp</item>
         <item name="iconPadding">4dp</item>
+        <item name="iconGravity">textStart</item>
     </style>
 
     <style name="TextAppearance.CustomCamera.Mode" parent="TextAppearance.Material3.LabelLarge">
@@ -67,5 +70,11 @@
         <item name="chipStrokeWidth">0dp</item>
         <item name="checkedIconVisible">false</item>
         <item name="chipMinTouchTargetSize">40dp</item>
+        <item name="chipMinHeight">34dp</item>
+        <item name="android:textSize">13sp</item>
+        <item name="chipStartPadding">6dp</item>
+        <item name="chipEndPadding">6dp</item>
+        <item name="textStartPadding">2dp</item>
+        <item name="textEndPadding">2dp</item>
     </style>
 </resources>
