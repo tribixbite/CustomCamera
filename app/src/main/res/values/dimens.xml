@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="top_bar_height">56dp</dimen>
+    <dimen name="icon_button">48dp</dimen>
+    <dimen name="shutter_size">78dp</dimen>
+    <dimen name="thumb_size">52dp</dimen>
+    <dimen name="bottom_row_height">104dp</dimen>
+    <dimen name="mode_bar_height">44dp</dimen>
+    <dimen name="zoom_chip">38dp</dimen>
+    <dimen name="screen_margin">16dp</dimen>
+    <dimen name="gallery_spacing">2dp</dimen>
+</resources>

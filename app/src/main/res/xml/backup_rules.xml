@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Android 11 and lower: back up only preferences. Media lives in MediaStore, not app storage. -->
 <full-backup-content>
-    <exclude domain="sharedpref" path="device_prefs.xml"/>
+    <include domain="sharedpref" path="." />
 </full-backup-content>

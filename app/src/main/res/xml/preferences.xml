@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Keys must match AppSettings.Keys (verified by SettingsKeysTest). -->
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory app:title="@string/settings_cat_viewfinder" app:iconSpaceReserved="false">
+        <ListPreference
+            app:defaultValue="off"
+            app:entries="@array/grid_entries"
+            app:entryValues="@array/grid_values"
+            app:iconSpaceReserved="false"
+            app:key="pref_grid"
+            app:title="@string/pref_grid"
+            app:useSimpleSummaryProvider="true" />
+        <SwitchPreferenceCompat
+            app:defaultValue="true"
+            app:iconSpaceReserved="false"
+            app:key="pref_level"
+            app:summary="@string/pref_level_summary"
+            app:title="@string/pref_level" />
+        <SwitchPreferenceCompat
+            app:defaultValue="false"
+            app:iconSpaceReserved="false"
+            app:key="pref_histogram"
+            app:summary="@string/pref_histogram_summary"
+            app:title="@string/pref_histogram" />
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/settings_cat_photo" app:iconSpaceReserved="false">
+        <ListPreference
+            app:defaultValue="quality"
+            app:entries="@array/photo_quality_entries"
+            app:entryValues="@array/photo_quality_values"
+            app:iconSpaceReserved="false"
+            app:key="pref_photo_quality"
+            app:title="@string/pref_photo_quality"
+            app:useSimpleSummaryProvider="true" />
+        <SeekBarPreference
+            android:max="100"
+            app:defaultValue="95"
+            app:iconSpaceReserved="false"
+            app:key="pref_jpeg_quality"
+            app:min="50"
+            app:showSeekBarValue="true"
+            app:title="@string/pref_jpeg_quality" />
+        <SwitchPreferenceCompat
+            app:defaultValue="false"
+            app:iconSpaceReserved="false"
+            app:key="pref_ultra_hdr"
+            app:summary="@string/pref_ultra_hdr_summary"
+            app:title="@string/pref_ultra_hdr" />
+        <SwitchPreferenceCompat
+            app:defaultValue="false"
+            app:iconSpaceReserved="false"
+            app:key="pref_raw"
+            app:summary="@string/pref_raw_summary"
+            app:title="@string/pref_raw" />
+        <SwitchPreferenceCompat
+            app:defaultValue="true"
+            app:iconSpaceReserved="false"
+            app:key="pref_mirror_front"
+            app:summary="@string/pref_mirror_front_summary"
+            app:title="@string/pref_mirror_front" />
+        <SwitchPreferenceCompat
+            app:defaultValue="false"
+            app:iconSpaceReserved="false"
+            app:key="pref_location"
+            app:summary="@string/pref_location_summary"
+            app:title="@string/pref_location" />
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/settings_cat_video" app:iconSpaceReserved="false">
+        <ListPreference
+            app:defaultValue="fhd"
+            app:entries="@array/video_quality_entries"
+            app:entryValues="@array/video_quality_values"
+            app:iconSpaceReserved="false"
+            app:key="pref_video_quality"
+            app:title="@string/pref_video_quality"
+            app:useSimpleSummaryProvider="true" />
+        <SwitchPreferenceCompat
+            app:defaultValue="true"
+            app:iconSpaceReserved="false"
+            app:key="pref_video_audio"
+            app:title="@string/pref_video_audio" />
+        <SwitchPreferenceCompat
+            app:defaultValue="true"
+            app:iconSpaceReserved="false"
+            app:key="pref_video_stabilization"
+            app:summary="@string/pref_video_stabilization_summary"
+            app:title="@string/pref_video_stabilization" />
+        <SwitchPreferenceCompat
+            app:defaultValue="false"
+            app:iconSpaceReserved="false"
+            app:key="pref_video_hdr"
+            app:summary="@string/pref_video_hdr_summary"
+            app:title="@string/pref_video_hdr" />
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/settings_cat_general" app:iconSpaceReserved="false">
+        <SwitchPreferenceCompat
+            app:defaultValue="true"
+            app:iconSpaceReserved="false"
+            app:key="pref_shutter_sound"
+            app:summary="@string/pref_shutter_sound_summary"
+            app:title="@string/pref_shutter_sound" />
+        <SwitchPreferenceCompat
+            app:defaultValue="true"
+            app:iconSpaceReserved="false"
+            app:key="pref_haptics"
+            app:title="@string/pref_haptics" />
+        <ListPreference
+            app:defaultValue="shutter"
+            app:entries="@array/volume_entries"
+            app:entryValues="@array/volume_values"
+            app:iconSpaceReserved="false"
+            app:key="pref_volume_keys"
+            app:title="@string/pref_volume_keys"
+            app:useSimpleSummaryProvider="true" />
+        <SwitchPreferenceCompat
+            app:defaultValue="true"
+            app:iconSpaceReserved="false"
+            app:key="pref_remember_mode"
+            app:title="@string/pref_remember_mode" />
+        <Preference
+            app:iconSpaceReserved="false"
+            app:key="action_reset"
+            app:title="@string/pref_reset" />
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/settings_cat_about" app:iconSpaceReserved="false">
+        <Preference
+            app:iconSpaceReserved="false"
+            app:key="about_version"
+            app:selectable="false"
+            app:title="@string/pref_version" />
+        <Preference
+            app:iconSpaceReserved="false"
+            app:key="about_privacy"
+            app:summary="@string/pref_privacy_summary"
+            app:title="@string/pref_privacy" />
+        <Preference
+            app:iconSpaceReserved="false"
+            app:key="about_licenses"
+            app:title="@string/pref_licenses" />
+    </PreferenceCategory>
+</PreferenceScreen>

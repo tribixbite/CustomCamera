@@ -1,128 +1,453 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    Viewfinder. The preview container is sized in code to the chosen aspect
+    ratio (3:4, 9:16, 1:1) and placed under the top bar; controls float above
+    it on scrims so the layout works from small phones to tall 21:9 screens.
+-->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/black">
+    android:background="@color/black"
+    tools:context=".ui.CameraActivity">
 
-    <!-- Camera Preview -->
-    <androidx.camera.view.PreviewView
-        android:id="@+id/previewView"
+    <FrameLayout
+        android:id="@+id/previewContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/cd_preview"
+        android:focusable="true">
+
+        <androidx.camera.view.PreviewView
+            android:id="@+id/previewView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:importantForAccessibility="no"
+            app:implementationMode="performance"
+            app:scaleType="fillCenter" />
+
+        <com.customcamera.app.ui.GridOverlayView
+            android:id="@+id/gridOverlay"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone" />
+
+        <com.customcamera.app.ui.LevelView
+            android:id="@+id/levelView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone" />
+
+        <com.customcamera.app.ui.BarcodeOverlayView
+            android:id="@+id/barcodeOverlay"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone" />
+
+        <com.customcamera.app.ui.FocusIndicatorView
+            android:id="@+id/focusIndicator"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <com.customcamera.app.ui.ExposureSliderView
+            android:id="@+id/exposureSlider"
+            android:layout_width="40dp"
+            android:layout_height="180dp"
+            android:visibility="gone" />
+
+        <!-- Brief black blink on capture, like a shutter closing. -->
+        <View
+            android:id="@+id/shutterBlink"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:alpha="0"
+            android:background="@color/black"
+            android:importantForAccessibility="no" />
+    </FrameLayout>
+
+    <!-- Front-camera "flash": a full-brightness white screen during capture. -->
+    <androidx.camera.view.ScreenFlashView
+        android:id="@+id/screenFlashView"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <!-- Top Controls (Samsung/Google Style) -->
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/controls"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
-        android:layout_marginHorizontal="24dp"
-        android:orientation="horizontal"
-        android:gravity="center">
+        android:layout_height="match_parent">
 
-        <ImageButton
-            android:id="@+id/flashButton"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            android:layout_marginEnd="16dp"
-            android:background="@drawable/camera_control_background"
-            android:src="@drawable/ic_flash_off"
-            android:scaleType="centerInside"
-            android:padding="16dp"
-            android:contentDescription="@string/toggle_flash"
-            android:importantForAccessibility="yes" />
+        <View
+            android:id="@+id/topScrim"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="@drawable/bg_top_gradient"
+            app:layout_constraintBottom_toBottomOf="@id/topBar"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
-        <ImageButton
-            android:id="@+id/nightModeButton"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            android:layout_marginEnd="16dp"
-            android:background="@drawable/camera_control_background"
-            android:src="@drawable/ic_settings"
-            android:scaleType="centerInside"
-            android:padding="16dp"
-            android:alpha="0.6"
-            android:contentDescription="Night Mode"
-            android:importantForAccessibility="yes" />
+        <LinearLayout
+            android:id="@+id/topBar"
+            android:layout_width="0dp"
+            android:layout_height="@dimen/top_bar_height"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
 
-        <ImageButton
-            android:id="@+id/videoRecordButton"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            android:layout_marginEnd="16dp"
-            android:background="@drawable/camera_control_background"
-            android:src="@drawable/ic_videocam"
-            android:scaleType="centerInside"
-            android:padding="16dp"
-            android:contentDescription="Record Video" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/settingsButton"
+                style="@style/Widget.CustomCamera.IconButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:contentDescription="@string/cd_settings"
+                app:icon="@drawable/ic_settings" />
 
-        <ImageButton
-            android:id="@+id/pipButton"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            android:layout_marginEnd="16dp"
-            android:background="@drawable/camera_control_background"
-            android:src="@drawable/ic_pip"
-            android:scaleType="centerInside"
-            android:padding="16dp"
-            android:alpha="0.6"
-            android:contentDescription="Picture in Picture" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/flashButton"
+                style="@style/Widget.CustomCamera.IconButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:contentDescription="@string/cd_flash_off"
+                app:icon="@drawable/ic_flash_off" />
 
-        <ImageButton
-            android:id="@+id/settingsButton"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            android:background="@drawable/camera_control_background"
-            android:src="@drawable/ic_settings"
-            android:scaleType="centerInside"
-            android:padding="16dp"
-            android:contentDescription="@string/camera_settings" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/timerButton"
+                style="@style/Widget.CustomCamera.TopBarText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                app:icon="@drawable/ic_timer"
+                tools:text="3s" />
 
-    </LinearLayout>
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/aspectButton"
+                style="@style/Widget.CustomCamera.TopBarText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                tools:text="3:4" />
 
-    <!-- Bottom Controls (SOTA Modern Design) -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
-        android:layout_marginBottom="48dp"
-        android:layout_marginHorizontal="32dp"
-        android:orientation="horizontal"
-        android:gravity="center">
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/hdrButton"
+                style="@style/Widget.CustomCamera.TopBarText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:contentDescription="@string/cd_hdr"
+                android:text="@string/hdr" />
 
-        <!-- Gallery Button -->
-        <ImageButton
-            android:id="@+id/galleryButton"
-            android:layout_width="64dp"
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/lensButton"
+                style="@style/Widget.CustomCamera.IconButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:contentDescription="@string/cd_lenses"
+                app:icon="@drawable/ic_lens" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/recordingChip"
+            android:layout_width="wrap_content"
+            android:layout_height="32dp"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/bg_record_chip"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="12dp"
+            android:paddingEnd="14dp"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/topBar"
+            tools:visibility="visible">
+
+            <View
+                android:id="@+id/recordingDot"
+                android:layout_width="8dp"
+                android:layout_height="8dp"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/dot_record" />
+
+            <TextView
+                android:id="@+id/recordingTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFeatureSettings="tnum"
+                android:textAppearance="@style/TextAppearance.Material3.LabelLarge"
+                android:textColor="@color/white"
+                tools:text="00:12" />
+        </LinearLayout>
+
+        <com.customcamera.app.ui.HistogramView
+            android:id="@+id/histogram"
+            android:layout_width="120dp"
             android:layout_height="64dp"
-            android:background="@drawable/camera_control_background"
-            android:src="@drawable/ic_gallery"
-            android:scaleType="centerInside"
-            android:padding="18dp"
-            android:contentDescription="@string/open_gallery" />
+            android:layout_marginStart="@dimen/screen_margin"
+            android:layout_marginTop="8dp"
+            android:visibility="gone"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/topBar"
+            tools:visibility="visible" />
 
-        <!-- Main Capture Button (Large, Center) -->
-        <ImageButton
-            android:id="@+id/captureButton"
-            android:layout_width="88dp"
-            android:layout_height="88dp"
-            android:layout_marginHorizontal="40dp"
-            android:background="@drawable/capture_button_background"
+        <TextView
+            android:id="@+id/countdownText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:shadowColor="#AA000000"
+            android:shadowRadius="12"
+            android:textColor="@color/white"
+            android:textSize="120sp"
+            android:textStyle="bold"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="3" />
+
+        <TextView
+            android:id="@+id/statusText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:background="@drawable/bg_pill_scrim"
+            android:paddingStart="14dp"
+            android:paddingTop="6dp"
+            android:paddingEnd="14dp"
+            android:paddingBottom="6dp"
+            android:textAppearance="@style/TextAppearance.Material3.LabelLarge"
+            android:textColor="@color/white"
+            android:visibility="gone"
+            app:layout_constraintBottom_toTopOf="@id/aboveModeArea"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            tools:text="Hold still…"
+            tools:visibility="visible" />
+
+        <!-- Stack of contextual panels directly above the mode selector. -->
+        <FrameLayout
+            android:id="@+id/aboveModeArea"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            app:layout_constraintBottom_toTopOf="@id/modeTabs"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent">
+
+            <LinearLayout
+                android:id="@+id/zoomBar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal|bottom"
+                android:background="@drawable/bg_pill_scrim"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:padding="4dp" />
+
+            <include
+                android:id="@+id/proPanel"
+                layout="@layout/panel_pro"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom"
+                android:visibility="gone" />
+
+            <include
+                android:id="@+id/scanCard"
+                layout="@layout/panel_scan_result"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom"
+                android:visibility="gone" />
+        </FrameLayout>
+
+        <View
+            android:id="@+id/bottomScrim"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="@drawable/bg_bottom_gradient"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@id/modeTabs" />
+
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/modeTabs"
+            android:layout_width="0dp"
+            android:layout_height="@dimen/mode_bar_height"
+            android:background="@android:color/transparent"
+            app:layout_constraintBottom_toTopOf="@id/bottomRow"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:tabGravity="center"
+            app:tabIndicator="@drawable/dot_record"
+            app:tabIndicatorColor="@color/accent"
+            app:tabIndicatorGravity="bottom"
+            app:tabMinWidth="64dp"
+            app:tabMode="scrollable"
+            app:tabRippleColor="@android:color/transparent"
+            app:tabSelectedTextColor="@color/accent"
+            app:tabTextAppearance="@style/TextAppearance.CustomCamera.Mode"
+            app:tabTextColor="@color/on_surface_variant" />
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/bottomRow"
+            android:layout_width="0dp"
+            android:layout_height="@dimen/bottom_row_height"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent">
+
+            <FrameLayout
+                android:id="@+id/leftSlot"
+                android:layout_width="@dimen/thumb_size"
+                android:layout_height="@dimen/thumb_size"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/shutterButton"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
+
+                <com.google.android.material.imageview.ShapeableImageView
+                    android:id="@+id/thumbnail"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/bg_thumb"
+                    android:contentDescription="@string/cd_gallery"
+                    android:padding="2dp"
+                    android:scaleType="centerCrop"
+                    app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full"
+                    app:strokeColor="@color/white"
+                    app:strokeWidth="2dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/pauseButton"
+                    style="@style/Widget.CustomCamera.IconButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/bg_round_scrim"
+                    android:contentDescription="@string/cd_pause_recording"
+                    android:visibility="gone"
+                    app:icon="@drawable/ic_pause" />
+            </FrameLayout>
+
+            <com.customcamera.app.ui.ShutterButton
+                android:id="@+id/shutterButton"
+                android:layout_width="@dimen/shutter_size"
+                android:layout_height="@dimen/shutter_size"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/flipButton"
+                style="@style/Widget.CustomCamera.IconButton"
+                android:layout_width="@dimen/thumb_size"
+                android:layout_height="@dimen/thumb_size"
+                android:background="@drawable/bg_round_scrim"
+                android:contentDescription="@string/cd_flip"
+                app:icon="@drawable/ic_flip_camera"
+                app:iconSize="26dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@id/shutterButton"
+                app:layout_constraintTop_toTopOf="parent" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- ACTION_IMAGE_CAPTURE review: shown after capture when another app asked for a photo. -->
+    <FrameLayout
+        android:id="@+id/reviewPanel"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/black"
+        android:visibility="gone">
+
+        <ImageView
+            android:id="@+id/reviewImage"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:contentDescription="@null"
+            android:scaleType="fitCenter" />
+
+        <LinearLayout
+            android:id="@+id/reviewActions"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:background="@drawable/bg_bottom_gradient"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:padding="24dp">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/reviewRetake"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="16dp"
+                android:text="@string/review_retake"
+                app:icon="@drawable/ic_close" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/reviewUse"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/review_use"
+                app:icon="@drawable/ic_check" />
+        </LinearLayout>
+    </FrameLayout>
+
+    <!-- Camera permission rationale. -->
+    <LinearLayout
+        android:id="@+id/permissionPanel"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/surface"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="32dp"
+        android:visibility="gone">
+
+        <ImageView
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:layout_marginBottom="24dp"
+            android:contentDescription="@null"
             android:src="@drawable/ic_camera"
-            android:scaleType="centerInside"
-            android:contentDescription="@string/capture_photo"
-            android:elevation="8dp" />
+            app:tint="@color/accent" />
 
-        <!-- Switch Camera Button -->
-        <ImageButton
-            android:id="@+id/switchCameraButton"
-            android:layout_width="64dp"
-            android:layout_height="64dp"
-            android:background="@drawable/camera_control_background"
-            android:src="@drawable/ic_switch_camera"
-            android:scaleType="centerInside"
-            android:padding="18dp"
-            android:contentDescription="@string/switch_camera" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:gravity="center"
+            android:text="@string/permission_title"
+            android:textAppearance="@style/TextAppearance.Material3.HeadlineSmall" />
 
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="32dp"
+            android:gravity="center"
+            android:maxWidth="360dp"
+            android:text="@string/permission_body"
+            android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+            android:textColor="@color/on_surface_variant" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/permissionButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/permission_grant" />
     </LinearLayout>
-
 </FrameLayout>

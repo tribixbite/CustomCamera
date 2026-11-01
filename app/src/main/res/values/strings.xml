@@ -1,35 +1,188 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">CustomCamera</string>
-    <string name="app_description">Professional Plugin-Based Camera App</string>
-    <string name="camera_permission_required">Camera permission is required</string>
-    <string name="no_cameras_available">No cameras available on this device</string>
-    <string name="camera_selection_title">Select Camera</string>
-    <string name="camera_selection_subtitle">Choose which camera to use for this session</string>
-    <string name="continue_button">Continue</string>
-    <string name="skip_button">Skip</string>
-    <string name="back_button">Back</string>
-    <string name="capture_photo">Capture Photo</string>
-    <string name="switch_camera">Switch Camera</string>
-    <string name="toggle_flash">Toggle Flash</string>
-    <string name="open_gallery">Open Gallery</string>
-    <string name="camera_settings">Camera Settings</string>
 
-    <!-- Main Activity -->
-    <string name="select_camera">Select Camera</string>
-    <string name="quick_camera">Quick Camera</string>
-    <string name="settings">Settings</string>
-    <string name="about">About</string>
-    <string name="exit">Exit</string>
+    <!-- Modes -->
+    <string name="mode_night">Night</string>
+    <string name="mode_portrait">Portrait</string>
+    <string name="mode_photo">Photo</string>
+    <string name="mode_video">Video</string>
+    <string name="mode_pro">Pro</string>
+    <string name="mode_scan">Scan</string>
 
+    <!-- Viewfinder controls -->
+    <string name="cd_settings">Settings</string>
+    <string name="cd_flash_off">Flash off</string>
+    <string name="cd_flash_auto">Flash auto</string>
+    <string name="cd_flash_on">Flash on</string>
+    <string name="cd_torch_on">Torch on</string>
+    <string name="cd_torch_off">Torch off</string>
+    <string name="cd_timer">Self-timer: %1$s</string>
+    <string name="cd_aspect">Aspect ratio %1$s</string>
+    <string name="cd_hdr">HDR</string>
+    <string name="cd_lenses">Choose camera</string>
+    <string name="cd_flip">Switch camera</string>
+    <string name="cd_gallery">Open last capture</string>
+    <string name="cd_take_photo">Take photo</string>
+    <string name="cd_start_recording">Start recording</string>
+    <string name="cd_stop_recording">Stop recording</string>
+    <string name="cd_pause_recording">Pause recording</string>
+    <string name="cd_resume_recording">Resume recording</string>
+    <string name="cd_exposure">Exposure compensation</string>
+    <string name="cd_zoom">Zoom %1$s</string>
+    <string name="cd_preview">Camera preview. Tap to focus, long press to lock, pinch to zoom, swipe sideways to change mode, swipe up or down to switch camera.</string>
+    <string name="timer_off">Off</string>
+    <string name="timer_seconds">%1$ds</string>
+    <string name="hdr">HDR</string>
+    <string name="ae_af_lock">AE/AF LOCK</string>
+    <string name="hold_still">Hold still…</string>
+    <string name="recording_paused">Paused</string>
+
+    <!-- Pro mode -->
+    <string name="pro_iso">ISO</string>
+    <string name="pro_shutter">Shutter</string>
+    <string name="pro_wb">WB</string>
+    <string name="pro_focus">Focus</string>
+    <string name="pro_ev">EV</string>
+    <string name="pro_auto">Auto</string>
+    <string name="pro_value_auto">%1$s A</string>
+    <string name="pro_unsupported">This camera does not support manual sensor control</string>
+    <string name="wb_auto">Auto</string>
+    <string name="wb_incandescent">Incandescent</string>
+    <string name="wb_fluorescent">Fluorescent</string>
+    <string name="wb_warm_fluorescent">Warm fluorescent</string>
+    <string name="wb_daylight">Daylight</string>
+    <string name="wb_cloudy">Cloudy</string>
+    <string name="wb_twilight">Twilight</string>
+    <string name="wb_shade">Shade</string>
+    <string name="focus_auto">AF</string>
+
+    <!-- Lens picker -->
+    <string name="lens_picker_title">Cameras on this device</string>
+    <string name="lens_default_back">Rear (automatic lens switching)</string>
+    <string name="lens_default_front">Front (default)</string>
+    <string name="lens_front">Front</string>
+    <string name="lens_back">Rear</string>
+    <string name="lens_ultra_wide">Ultra-wide</string>
+    <string name="lens_wide">Wide</string>
+    <string name="lens_standard">Standard</string>
+    <string name="lens_tele">Telephoto</string>
+    <string name="lens_item">%1$s · %2$s · camera %3$s</string>
+    <string name="lens_item_focal">%1$s · %2$s %3$dmm · camera %4$s</string>
+    <string name="lens_multi">multi-lens</string>
+
+    <!-- Permissions -->
+    <string name="permission_title">Camera access needed</string>
+    <string name="permission_body">CustomCamera needs the camera to show the viewfinder and take photos. Nothing leaves your device.</string>
+    <string name="permission_grant">Allow camera</string>
+    <string name="permission_settings">Open app settings</string>
+    <string name="permission_audio_denied">Recording without sound — microphone permission denied</string>
+    <string name="permission_location_denied">Location tagging needs location permission</string>
+
+    <!-- Messages -->
+    <string name="error_camera_generic">Camera error: %1$s</string>
+    <string name="error_no_camera">No working camera was found on this device</string>
+    <string name="camera_fallback">Camera %1$s failed — switched to camera %2$s</string>
+    <string name="saved_photo">Photo saved</string>
+    <string name="saved_video">Video saved</string>
+    <string name="copied">Copied to clipboard</string>
+    <string name="no_app_for_action">No app can handle this</string>
+    <string name="storage_permission_needed">Storage permission is required to save on this Android version</string>
+
+    <!-- Scan -->
+    <string name="scan_hint">Point at a QR code or barcode</string>
+    <string name="scan_open">Open</string>
+    <string name="scan_copy">Copy</string>
+    <string name="scan_share">Share</string>
+    <string name="scan_connect">Connect</string>
+    <string name="scan_call">Call</string>
+    <string name="scan_email">Email</string>
+    <string name="scan_message">Message</string>
+    <string name="scan_map">Map</string>
+    <string name="scan_type_url">Link</string>
+    <string name="scan_type_wifi">Wi-Fi network</string>
+    <string name="scan_type_email">Email</string>
+    <string name="scan_type_phone">Phone number</string>
+    <string name="scan_type_sms">SMS</string>
+    <string name="scan_type_geo">Location</string>
+    <string name="scan_type_text">Text</string>
+    <string name="scan_wifi_detail">%1$s · %2$s</string>
+    <string name="scan_wifi_password_copied">Password copied — paste it when Android asks</string>
+
+    <!-- Capture intent review -->
+    <string name="review_retake">Retake</string>
+    <string name="review_use">Use photo</string>
+
+    <!-- Gallery -->
+    <string name="gallery_title">Gallery</string>
+    <string name="gallery_empty_title">No captures yet</string>
+    <string name="gallery_empty_body">Photos and videos you take with CustomCamera appear here.</string>
+    <string name="gallery_count">%1$d items</string>
+    <string name="viewer_share">Share</string>
+    <string name="viewer_edit">Edit</string>
+    <string name="viewer_delete">Delete</string>
+    <string name="viewer_info">Details</string>
+    <string name="viewer_play">Play video</string>
+    <string name="delete_title">Delete this item?</string>
+    <string name="delete_body">It will be removed from your device.</string>
+    <string name="delete_confirm">Delete</string>
+    <string name="cancel">Cancel</string>
+    <string name="deleted">Deleted</string>
+    <string name="delete_failed">Could not delete</string>
+    <string name="details_name">Name</string>
+    <string name="details_date">Taken</string>
+    <string name="details_resolution">Resolution</string>
+    <string name="details_size">Size</string>
+    <string name="details_duration">Duration</string>
+    <string name="details_camera">Camera</string>
+    <string name="details_exposure">Exposure</string>
+    <string name="details_location">Location</string>
+    <string name="close">Close</string>
+    <string name="back">Back</string>
+
+    <!-- Shortcuts -->
+    <string name="shortcut_selfie">Selfie</string>
+    <string name="shortcut_video">Record video</string>
+    <string name="shortcut_scan">Scan QR code</string>
     <!-- Settings -->
-    <string name="export_settings">Export Settings</string>
-    <string name="reset_settings">Reset to Defaults</string>
-    <string name="debug_log">View Debug Log</string>
-
-    <!-- About -->
-    <string name="about_title">About CustomCamera</string>
-    <string name="about_description">Professional plugin-based camera application with advanced manual controls, real-time processing, and modular architecture.</string>
-    <string name="version_info">Version Info</string>
-    <string name="plugin_system">Plugin System</string>
-    <string name="open_source">Open Source</string>
+    <string name="settings_title">Settings</string>
+    <string name="settings_cat_viewfinder">Viewfinder</string>
+    <string name="settings_cat_photo">Photo</string>
+    <string name="settings_cat_video">Video</string>
+    <string name="settings_cat_general">General</string>
+    <string name="settings_cat_about">About</string>
+    <string name="pref_grid">Grid lines</string>
+    <string name="pref_level">Level indicator</string>
+    <string name="pref_level_summary">Horizon line that turns yellow when the camera is level</string>
+    <string name="pref_histogram">Live histogram</string>
+    <string name="pref_histogram_summary">Brightness distribution with clipping warnings</string>
+    <string name="pref_photo_quality">Capture priority</string>
+    <string name="pref_jpeg_quality">JPEG quality</string>
+    <string name="pref_ultra_hdr">Ultra HDR photos</string>
+    <string name="pref_ultra_hdr_summary">Brighter highlights on HDR screens, when the camera supports it</string>
+    <string name="pref_raw">RAW (DNG) in Pro mode</string>
+    <string name="pref_raw_summary">Saves a DNG alongside each JPEG, when the camera supports it</string>
+    <string name="pref_mirror_front">Mirror front camera</string>
+    <string name="pref_mirror_front_summary">Save selfies as shown in the preview</string>
+    <string name="pref_location">Save location</string>
+    <string name="pref_location_summary">Adds GPS coordinates to photos and videos. Stored only in the files on your device.</string>
+    <string name="pref_video_quality">Resolution</string>
+    <string name="pref_video_audio">Record audio</string>
+    <string name="pref_video_stabilization">Stabilization</string>
+    <string name="pref_video_stabilization_summary">Smoother handheld video, when supported</string>
+    <string name="pref_video_hdr">HDR video (10-bit HLG)</string>
+    <string name="pref_video_hdr_summary">Wider dynamic range, when supported. Some apps cannot play HDR video.</string>
+    <string name="pref_shutter_sound">Shutter sound</string>
+    <string name="pref_shutter_sound_summary">Always on where required by law</string>
+    <string name="pref_haptics">Haptic feedback</string>
+    <string name="pref_volume_keys">Volume keys</string>
+    <string name="pref_remember_mode">Remember last mode</string>
+    <string name="pref_version">Version</string>
+    <string name="pref_privacy">Privacy policy</string>
+    <string name="pref_privacy_summary">No data collected. No ads. No network access.</string>
+    <string name="pref_licenses">Open-source licenses</string>
+    <string name="pref_reset">Reset settings</string>
+    <string name="pref_reset_done">Settings reset to defaults</string>
+    <string name="licenses_body">CustomCamera is released under the MIT License.\n\nIt uses the following open-source libraries, all under the Apache License 2.0:\n• AndroidX (CameraX, AppCompat, Core, Lifecycle, Preference, RecyclerView, ViewPager2, ExifInterface, SplashScreen)\n• Material Components for Android\n• Kotlin and kotlinx.coroutines\n\nBarcode scanning uses Google ML Kit, provided under the ML Kit Terms of Service.</string>
+    <string name="privacy_url" translatable="false">https://github.com/tribixbite/CustomCamera/blob/main/PRIVACY.md</string>
 </resources>

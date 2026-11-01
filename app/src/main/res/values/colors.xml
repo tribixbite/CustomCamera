@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Dark camera palette: near-black surfaces, warm yellow accent (high contrast over imagery). -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-    <color name="transparent">#00000000</color>
-    
-    <!-- Modern Camera UI Colors -->
-    <color name="camera_overlay">#80000000</color>
-    <color name="camera_button_bg">#CC000000</color>
-    <color name="camera_button_stroke">#FFFFFFFF</color>
-    <color name="capture_button">#FFFFFFFF</color>
-    <color name="capture_button_pressed">#CCFFFFFF</color>
-    
-    <!-- Material Design Colors -->
-    <color name="md_theme_primary">#FFBB86FC</color>
-    <color name="md_theme_on_primary">#FF000000</color>
-    <color name="md_theme_surface">#FF121212</color>
-    <color name="md_theme_on_surface">#FFFFFFFF</color>
+    <color name="accent">#FFFFD54F</color>
+    <color name="on_accent">#FF1C1500</color>
+    <color name="record_red">#FFFF3B30</color>
+    <color name="surface">#FF0E0E10</color>
+    <color name="surface_container">#FF1A1A1E</color>
+    <color name="surface_container_high">#FF26262B</color>
+    <color name="on_surface">#FFF2F2F4</color>
+    <color name="on_surface_variant">#FFB4B4BC</color>
+    <color name="outline">#FF46464E</color>
+    <color name="scrim">#99000000</color>
+    <color name="control_scrim">#59000000</color>
+    <color name="chip_bg">#66000000</color>
+    <color name="ic_launcher_background">#FF111114</color>
 </resources>

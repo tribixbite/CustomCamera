@@ -1,15 +1,71 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
-    <style name="Base.Theme.CustomCamera" parent="Theme.Material3.DayNight.NoActionBar">
-        <item name="colorPrimary">@color/md_theme_primary</item>
-        <item name="colorOnPrimary">@color/md_theme_on_primary</item>
-        <item name="android:statusBarColor">@color/black</item>
-        <item name="android:navigationBarColor">@color/black</item>
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.CustomCamera" parent="Theme.Material3.Dark.NoActionBar">
+        <item name="colorPrimary">@color/accent</item>
+        <item name="colorOnPrimary">@color/on_accent</item>
+        <item name="colorPrimaryContainer">#FF4A3C00</item>
+        <item name="colorOnPrimaryContainer">#FFFFE08A</item>
+        <item name="colorSecondary">@color/accent</item>
+        <item name="colorOnSecondary">@color/on_accent</item>
+        <item name="colorSecondaryContainer">@color/surface_container_high</item>
+        <item name="colorOnSecondaryContainer">@color/on_surface</item>
+        <item name="colorSurface">@color/surface</item>
+        <item name="colorOnSurface">@color/on_surface</item>
+        <item name="colorOnSurfaceVariant">@color/on_surface_variant</item>
+        <item name="colorSurfaceContainer">@color/surface_container</item>
+        <item name="colorSurfaceContainerHigh">@color/surface_container_high</item>
+        <item name="colorOutline">@color/outline</item>
+        <item name="android:colorBackground">@color/surface</item>
+        <item name="android:windowBackground">@color/surface</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
     </style>
 
-    <style name="Theme.CustomCamera" parent="Base.Theme.CustomCamera" />
-    
-    <style name="FullscreenTheme" parent="Theme.CustomCamera">
-        <item name="android:windowFullscreen">true</item>
-        <item name="android:windowContentOverlay">@null</item>
+    <!-- Viewfinder: pure black, laid out edge-to-edge under the cutout. -->
+    <style name="Theme.CustomCamera.Viewfinder">
+        <item name="android:windowBackground">@color/black</item>
+        <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
+    </style>
+
+    <!-- Cold-start splash (core-splashscreen) handing off to the viewfinder theme. -->
+    <style name="Theme.CustomCamera.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/black</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+        <item name="postSplashScreenTheme">@style/Theme.CustomCamera.Viewfinder</item>
+    </style>
+
+    <style name="Widget.CustomCamera.IconButton" parent="Widget.Material3.Button.IconButton">
+        <item name="iconTint">@color/white</item>
+        <item name="iconSize">24dp</item>
+        <item name="android:minWidth">@dimen/icon_button</item>
+        <item name="android:minHeight">@dimen/icon_button</item>
+    </style>
+
+    <style name="Widget.CustomCamera.TopBarText" parent="Widget.Material3.Button.TextButton">
+        <item name="android:textColor">@color/white</item>
+        <item name="iconTint">@color/white</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:minWidth">@dimen/icon_button</item>
+        <item name="android:minHeight">@dimen/icon_button</item>
+        <item name="android:paddingStart">8dp</item>
+        <item name="android:paddingEnd">8dp</item>
+        <item name="iconPadding">4dp</item>
+    </style>
+
+    <style name="TextAppearance.CustomCamera.Mode" parent="TextAppearance.Material3.LabelLarge">
+        <item name="android:textAllCaps">true</item>
+        <item name="android:letterSpacing">0.08</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="Widget.CustomCamera.ProChip" parent="Widget.Material3.Chip.Filter">
+        <item name="chipBackgroundColor">@color/pro_chip_bg</item>
+        <item name="android:textColor">@color/pro_chip_text</item>
+        <item name="chipStrokeWidth">0dp</item>
+        <item name="checkedIconVisible">false</item>
+        <item name="chipMinTouchTargetSize">40dp</item>
     </style>
 </resources>

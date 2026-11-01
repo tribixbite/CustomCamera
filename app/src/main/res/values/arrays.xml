@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="grid_entries">
+        <item>Off</item>
+        <item>Rule of thirds</item>
+        <item>Golden ratio</item>
+        <item>Square</item>
+    </string-array>
+    <string-array name="grid_values" translatable="false">
+        <item>off</item>
+        <item>thirds</item>
+        <item>golden</item>
+        <item>square</item>
+    </string-array>
+
+    <string-array name="volume_entries">
+        <item>Take photo / record</item>
+        <item>Zoom</item>
+        <item>Change volume</item>
+    </string-array>
+    <string-array name="volume_values" translatable="false">
+        <item>shutter</item>
+        <item>zoom</item>
+        <item>volume</item>
+    </string-array>
+
+    <string-array name="photo_quality_entries">
+        <item>Best quality</item>
+        <item>Fastest shutter</item>
+        <item>Zero shutter lag (when supported)</item>
+    </string-array>
+    <string-array name="photo_quality_values" translatable="false">
+        <item>quality</item>
+        <item>latency</item>
+        <item>zsl</item>
+    </string-array>
+
+    <string-array name="video_quality_entries">
+        <item>4K (2160p)</item>
+        <item>Full HD (1080p)</item>
+        <item>HD (720p)</item>
+        <item>SD (480p)</item>
+    </string-array>
+    <string-array name="video_quality_values" translatable="false">
+        <item>uhd</item>
+        <item>fhd</item>
+        <item>hd</item>
+        <item>sd</item>
+    </string-array>
+</resources>
