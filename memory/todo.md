@@ -11,16 +11,9 @@ smoke-tested on device (capture, settings, scan, viewer — no crashes).
 
 ## Before the first Play upload (owner actions)
 
-- [ ] Create the upload keystore + `keystore.properties` (docs/RELEASE.md §1).
-- [ ] Push to GitHub so the privacy-policy URL in the app and listing resolves
-      (`PRIVACY.md` on `main`); confirm CI passes (`.github/workflows/android.yml`).
-- [ ] Phone screenshots (≥2, 9:16, lit scene) → `fastlane/metadata/android/en-US/images/phoneScreenshots/`.
-      Dev-box screenshots so far are black: the test phone's camera faces a dark surface.
-- [ ] Decide on the final applicationId before the first upload — it can never change
-      afterwards. `com.customcamera.app` has no public Play listing (404 on 2026-11-01),
-      but an unpublished/draft app elsewhere could still hold it; a domain you own
-      (e.g. `io.github.tribixbite.customcamera`) avoids collisions.
-- [ ] Fill Play Console Data safety / content rating per docs/RELEASE.md §4.
+All owner steps (upload key, GitHub secrets, signed bundle, screenshots, Play
+Console forms, closed-testing gate) live in **`PLAY_RELEASE.md`** — keep that the
+single source; do not duplicate the list here.
 
 ## Verified on device (SM-S938U1)
 

@@ -45,11 +45,11 @@ Preview + barcode analysis) to stay within guaranteed stream combinations.
 Requirements: JDK 17+, Android SDK with platform 36.
 
 ```bash
-./gradlew :app:assembleDebug            # debug APK (applicationId com.customcamera.app.debug)
+./gradlew :app:assembleDebug            # debug APK (applicationId tribixbite.customcamera.debug)
 ./gradlew :app:testDebugUnitTest        # 60 JVM unit tests
 ./gradlew :app:lintDebug
 ./gradlew :app:assembleStaging          # R8-shrunk build, installable beside a release
-./gradlew :app:bundleRelease            # Play bundle (see docs/RELEASE.md for signing)
+./gradlew :app:bundleRelease            # Play bundle (see PLAY_RELEASE.md for signing)
 ```
 
 On-device tests (13 instrumented tests; they delete every capture they make):
@@ -58,7 +58,7 @@ On-device tests (13 instrumented tests; they delete every capture they make):
 ./gradlew :app:assembleDebug :app:assembleDebugAndroidTest
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 adb install -r -t app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
-adb shell am instrument -w com.customcamera.app.debug.test/androidx.test.runner.AndroidJUnitRunner
+adb shell am instrument -w tribixbite.customcamera.debug.test/androidx.test.runner.AndroidJUnitRunner
 ```
 
 **Termux / ARM64 hosts:** AGP's Maven aapt2 is x86_64; set
@@ -68,8 +68,8 @@ device-wide `~/.gradle/gradle.properties`). `scripts/gradle-locked.sh` wraps
 
 ## Releasing
 
-See [docs/RELEASE.md](docs/RELEASE.md) for the upload key, versioning, Play
-Console Data safety answers and store-listing assets
+See [PLAY_RELEASE.md](PLAY_RELEASE.md) — the single checklist for the upload
+key, signed bundles, Play Console forms and store-listing assets
 (`fastlane/metadata/android/en-US/`). Privacy policy: [PRIVACY.md](PRIVACY.md).
 
 ## License

@@ -12,7 +12,7 @@ scripts/gradle-locked.sh :app:lintDebug              # should report only AGP-9 
 scripts/gradle-locked.sh :app:assembleDebug :app:assembleDebugAndroidTest
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 adb install -r -t app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
-adb shell am instrument -w com.customcamera.app.debug.test/androidx.test.runner.AndroidJUnitRunner   # 13 tests
+adb shell am instrument -w tribixbite.customcamera.debug.test/androidx.test.runner.AndroidJUnitRunner   # 13 tests
 scripts/gradle-locked.sh :app:assembleStaging :app:bundleRelease   # shrunk builds
 scripts/generate-store-assets.sh                     # Play icon + feature graphic
 ```
@@ -22,9 +22,15 @@ Always build through `scripts/gradle-locked.sh` on the Termux box (shared
 `connectedAndroidTest` is not used: the SDK's adb is x86_64 — install the two APKs
 and run `am instrument` with Termux's adb instead.
 
-Application ids: `.debug` (debug), `.staging` (R8 + debug key), plain id for release.
-The device also has the **old v2 app** `com.customcamera.app` installed with photos in
-its private storage — never uninstall it without asking.
+applicationId `tribixbite.customcamera` (+ `.debug`, `.staging`); the Kotlin
+namespace stays `com.customcamera.app`. Release steps for the owner: `PLAY_RELEASE.md`
+(keep it the single source). The S25 Ultra (this host) also has the **old v2 app**
+`com.customcamera.app` with photos in private storage — never uninstall it.
+
+**Do not test on the host phone (S25 Ultra).** Use the test devices listed in
+`../swype/cleverkeys` notes: Pixel 8 Pro `192.168.0.216` (port rotates; 5555 or
+wireless-debug port), Saga `192.168.1.243:5555` (never `stop`/`start` it),
+Seeker `192.168.0.170:5555`.
 
 ## Layout
 
@@ -52,7 +58,10 @@ its private storage — never uninstall it without asking.
   placeholders in resources) — shortcuts are published dynamically instead.
 - **core-ktx ≥ 1.19 needs AGP 9.1 + compileSdk 37.** Pinned to 1.18.0 until the
   toolchain moves; android-37 platform is not installed on the dev box.
+- **Termux Gradle daemons ignore new env vars** (no native env injection on Android):
+  `CC_KEYSTORE_*` set on a later invocation are invisible to a running daemon. Use
+  `keystore.properties` locally, or `--no-daemon`. CI is unaffected.
 - Lint-vital on release variants needs `MaxMetaspaceSize=1g` (OOM at 512m).
-- adb UI testing happens on the user's own phone: guard every `input` with a
-  focus check (the session's Termux window can be in front and taps become typing),
-  and return to Termux afterwards.
+- The host phone runs this Claude session: an earlier test pass on it sent taps
+  into the Termux prompt when the app lost focus. Test on the dedicated devices
+  above; on any shared device guard each `adb shell input` with a focus check.

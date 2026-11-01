@@ -41,7 +41,7 @@ android {
     compileSdk = libs.versions.compileSdk.get().toInt()
 
     defaultConfig {
-        applicationId = "com.customcamera.app"
+        applicationId = "tribixbite.customcamera"
         minSdk = libs.versions.minSdk.get().toInt()
         targetSdk = libs.versions.targetSdk.get().toInt()
         versionCode = versionMajor * 10_000 + versionMinor * 100 + versionPatch
@@ -130,6 +130,10 @@ kotlin {
 gradle.taskGraph.whenReady {
     val buildingRelease = allTasks.any { it.name.contains("Release") && it.project == project }
     if (buildingRelease && releaseStoreFile == null) {
+        // CI release builds pass -PrequireReleaseSigning so a debug-signed bundle can never ship.
+        if (project.hasProperty("requireReleaseSigning")) {
+            throw GradleException("Release signing required but no keystore is configured (keystore.properties or CC_KEYSTORE_* env).")
+        }
         logger.warn(
             "CustomCamera: no release keystore configured — the release build is signed " +
                 "with the DEBUG key and must not be uploaded to Google Play."
