@@ -31,6 +31,16 @@ single source; do not duplicate the list here.
 - [x] Scan mode loads ML Kit's bundled model with no network permission
 - [x] Front camera, lens picker, settings, gallery, viewer, IMAGE_CAPTURE review
 
+## Pending: run on a dedicated test device
+
+The test phones (Pixel 8 Pro, Saga, Seeker) were unreachable on 2026-11-01
+(polled 11:00–12:30 EST; nmap reported all three hosts down). When one is up:
+
+```bash
+scripts/gradle-locked.sh :app:assembleDebug :app:assembleDebugAndroidTest :app:assembleStaging
+scripts/device-test.sh <ip:port>          # 13 instrumented tests + staging smoke test
+```
+
 ## Not yet verified on device
 
 - [ ] Actual QR decode + bounding-box alignment (needs a code in front of the camera)
