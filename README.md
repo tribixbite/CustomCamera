@@ -1,485 +1,77 @@
-# CustomCamera - Professional Plugin-Based Camera App
+# CustomCamera
 
-<p align="center">
-  <img src="https://img.shields.io/badge/Platform-Android-brightgreen.svg" alt="Platform">
-  <img src="https://img.shields.io/badge/Language-Kotlin-blue.svg" alt="Language">
-  <img src="https://img.shields.io/badge/Architecture-Plugin%20System-orange.svg" alt="Architecture">
-  <img src="https://img.shields.io/badge/Camera-CameraX-red.svg" alt="Camera">
-  <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License">
-</p>
+A fast, private Android camera with real manual controls. Built on CameraX 1.6
+with Camera2 interop, Material 3 and Kotlin. No ads, no accounts, and no
+network access (the `INTERNET` permission is removed from the merged manifest).
 
-A modern, extensible Android camera application built with a powerful plugin architecture that enables professional-grade camera controls, real-time processing, and advanced features through a modular design.
+<p align="center"><img src="fastlane/metadata/android/en-US/images/featureGraphic.png" width="600" alt="CustomCamera"></p>
 
-## 🌟 Features
+## Features
 
-### 📷 Complete Camera System
-- **Enhanced Camera Selection** - Detailed camera info with animations and visual indicators
-- **Professional Manual Controls** - ISO (50-6400), Exposure (-6 to +6 EV), White Balance (2000K-10000K)
-- **Advanced Focus System** - Tap-to-focus, manual distance, focus lock, hyperfocal calculator
-- **Video Recording** - Complete video capture with start/stop controls and file management
-- **Gallery System** - Photo/video browsing with metadata and external app integration
-- **Real-time Analysis** - Live histogram (RGB+luminance), exposure analysis, sharpness monitoring
+| Area | What you get |
+| --- | --- |
+| **Modes** | Photo, Video, Pro, QR Scan — plus Night and Portrait (CameraX Extensions) when the device supports them. Extension modes are discovered in the background and only shown if available. |
+| **Pro mode** | Manual ISO, shutter speed, white balance and focus distance applied through `Camera2CameraControl`, with live auto readings from the capture results. RAW (DNG) + JPEG when supported. |
+| **Photo** | Flash off/auto/on, front **screen flash**, HDR extension toggle, Ultra HDR (JPEG_R), 3:4 / 9:16 / 1:1 via a CameraX `ViewPort` so the preview matches the file, capture priority (quality / latency / zero shutter lag), JPEG quality, mirrored selfies, optional geotagging. |
+| **Video** | 4K / 1080p / 720p / 480p with automatic fallback, stabilization, 10-bit HLG HDR, pause / resume, torch, and **camera switching while recording** (persistent recordings). |
+| **Viewfinder** | Tap to focus with exposure slider, long-press AE/AF lock, pinch and preset zoom chips (0.6× … 5×), swipe to change mode or flip camera, self-timer, grids (thirds / golden / square), level indicator, live histogram with clipping warnings, volume-key shutter or zoom, haptics. Icons rotate with the device while the preview stays portrait. |
+| **Cameras** | Lens picker listing every camera Camera2 exposes (with 35 mm-equivalent focal length); if a camera fails to bind, the app falls back to the next working one automatically. |
+| **Scanner** | ML Kit on-device QR / barcode scanning with boxes mapped onto the preview; one-tap actions for links, Wi-Fi (system "add network" sheet), phone, SMS, email and geo codes. |
+| **Gallery** | Grid of your captures and a swipeable viewer with pinch / double-tap zoom, video playback, share, edit, EXIF details and delete. Captures are saved to `DCIM/CustomCamera` via MediaStore. |
+| **System integration** | Handles `IMAGE_CAPTURE` (with review), `VIDEO_CAPTURE`, `STILL_IMAGE_CAMERA(_SECURE)` and `VIDEO_CAMERA`; launcher shortcuts for Selfie, Video and Scan; splash screen; adaptive + themed icon. |
 
-### 🎛️ Professional Features
-- **Manual Camera Controls** - Accessible through settings button with live UI sliders
-- **Night Mode** - Auto low-light detection with extended exposure handling
-- **Picture-in-Picture** - Dual camera system with simultaneous front/rear capture
-- **Barcode/QR Scanning** - ML Kit integration with real-time detection
-- **Interactive Crop System** - Pre-shot cropping with aspect ratio constraints
-- **Performance Monitoring** - Real-time memory usage and system metrics
-
-### 🔧 Advanced Plugin System
-- **18+ Working Plugins** - All three plugin types (Control/UI/Processing) implemented
-- **Real UI Integration** - All plugins accessible through camera interface
-- **Settings Control** - Plugin enable/disable through working settings interface
-- **Debug Interface** - Comprehensive camera testing and troubleshooting tools
-- **Performance Optimization** - Memory management and battery-aware processing
-
-### 🎨 Polished User Experience
-- **Gesture Controls** - Double tap (grid), triple tap (barcode), quad tap (performance)
-- **Button Controls** - Flash, night mode, video, PiP, settings, gallery
-- **Manual Controls Panel** - Professional sliders for exposure, ISO, white balance
-- **Multiple Overlays** - Grid, histogram, performance monitor, crop overlay
-- **Enhanced Animations** - Smooth button feedback and loading states
-- **Accessibility Support** - Proper content descriptions and touch targets
-
-## 🏗️ Architecture
-
-### Plugin System Overview
-
-The CustomCamera app is built around a sophisticated plugin architecture that separates concerns and enables easy feature extension:
+## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    CameraEngine                             │
-│  ┌─────────────────────────────────────────────────────┐    │
-│  │              PluginManager                          │    │
-│  │  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐   │    │
-│  │  │ControlPlugin│ │  UIPlugin   │ │ProcessPlugin│   │    │
-│  │  └─────────────┘ └─────────────┘ └─────────────┘   │    │
-│  └─────────────────────────────────────────────────────┘    │
-│  ┌─────────────────────────────────────────────────────┐    │
-│  │              CameraContext                          │    │
-│  │  • DebugLogger  • SettingsManager  • CameraProvider│    │
-│  └─────────────────────────────────────────────────────┘    │
-└─────────────────────────────────────────────────────────────┘
+app/src/main/java/com/customcamera/app/
+├── core/            Pure Kotlin, unit-tested: options, exposure / zoom / lens /
+│                    orientation math, histogram, barcode content parsing, naming
+├── camera/          CameraController (CameraX session owner) + state / event models
+├── ui/              CameraActivity, Pro panel binder, custom views (shutter, grid,
+│                    level, focus ring, histogram, barcode overlay, EV slider)
+├── gallery/         MediaStore repository + helpers, GalleryActivity, MediaViewerActivity
+├── settings/        AppSettings (typed prefs) + SettingsActivity / fragment
+├── scan/            Scan result presentation and actions
+└── util/            Coroutine/future bridge, EXIF-aware decoding, feedback, location, shortcuts
 ```
 
-### Core Components
+`CameraController` exposes a `StateFlow<CameraState>` and a `SharedFlow<CameraEvent>`;
+the activity renders state and reacts to events. Use cases are composed per mode
+(Preview + ImageCapture [+ histogram analysis], Preview + VideoCapture, or
+Preview + barcode analysis) to stay within guaranteed stream combinations.
 
-#### 🎯 CameraEngine
-Central coordination engine that manages camera lifecycle, plugin registration, and provides unified interfaces for camera operations.
+## Building
 
-```kotlin
-class CameraEngine(context: Context, lifecycleOwner: LifecycleOwner) {
-    suspend fun initialize(): Result<Unit>
-    suspend fun bindCamera(config: CameraConfig): Result<Camera>
-    fun registerPlugin(plugin: CameraPlugin)
-    fun processFrame(image: ImageProxy)
-}
-```
+Requirements: JDK 17+, Android SDK with platform 36.
 
-#### 🔌 Plugin System
-
-**Three Plugin Types:**
-
-1. **ControlPlugin** - Camera control operations (focus, exposure, ISO)
-2. **UIPlugin** - User interface overlays and controls
-3. **ProcessingPlugin** - Real-time frame analysis and processing
-
-```kotlin
-abstract class CameraPlugin {
-    abstract val name: String
-    abstract suspend fun initialize(context: CameraContext)
-    abstract suspend fun onCameraReady(camera: Camera)
-    abstract fun cleanup()
-}
-```
-
-#### ⚙️ Supporting Systems
-
-- **DebugLogger** - Comprehensive logging with real-time monitoring
-- **SettingsManager** - Reactive settings with StateFlow integration
-- **PluginManager** - Parallel execution with performance tracking
-
-## 🚀 Quick Start
-
-### Prerequisites
-- Android Studio Arctic Fox (2020.3.1) or newer
-- Android SDK API 21+ (Android 5.0)
-- Kotlin 1.8.0+
-- CameraX 1.3.0+
-
-### Installation
-
-1. **Clone the repository**
 ```bash
-git clone https://github.com/yourusername/CustomCamera.git
-cd CustomCamera
+./gradlew :app:assembleDebug            # debug APK (applicationId com.customcamera.app.debug)
+./gradlew :app:testDebugUnitTest        # 60 JVM unit tests
+./gradlew :app:lintDebug
+./gradlew :app:assembleStaging          # R8-shrunk build, installable beside a release
+./gradlew :app:bundleRelease            # Play bundle (see docs/RELEASE.md for signing)
 ```
 
-2. **Open in Android Studio**
-```bash
-# Or open the project folder in Android Studio
-./gradlew assembleDebug
-```
+On-device tests (13 instrumented tests; they delete every capture they make):
 
-3. **Install on device**
 ```bash
+./gradlew :app:assembleDebug :app:assembleDebugAndroidTest
 adb install -r app/build/outputs/apk/debug/app-debug.apk
+adb install -r -t app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+adb shell am instrument -w com.customcamera.app.debug.test/androidx.test.runner.AndroidJUnitRunner
 ```
 
-### Basic Usage
+**Termux / ARM64 hosts:** AGP's Maven aapt2 is x86_64; set
+`android.aapt2FromMavenOverride` to a native aapt2 (this repo relies on the
+device-wide `~/.gradle/gradle.properties`). `scripts/gradle-locked.sh` wraps
+`./gradlew` with the shared build lock used on the development device.
 
-1. **Launch the app** - Select from available cameras or skip to use default
-2. **Take photos** - Tap capture button or use volume keys
-3. **Advanced controls** - Tap settings button for camera information and controls
-4. **Toggle grid** - Double-tap preview for composition grid overlay
-5. **Focus control** - Tap anywhere on preview for manual focus
+## Releasing
 
-## 📱 Complete Plugin Ecosystem (18+ Plugins)
+See [docs/RELEASE.md](docs/RELEASE.md) for the upload key, versioning, Play
+Console Data safety answers and store-listing assets
+(`fastlane/metadata/android/en-US/`). Privacy policy: [PRIVACY.md](PRIVACY.md).
 
-### 🎯 AutoFocusPlugin (ControlPlugin)
-Professional focus control with multiple modes:
+## License
 
-```kotlin
-class AutoFocusPlugin : ControlPlugin() {
-    enum class AutoFocusMode { CONTINUOUS, MANUAL, SINGLE }
-
-    suspend fun performTapToFocus(x: Float, y: Float): ControlResult
-    suspend fun lockFocus(): ControlResult
-    fun setAutoFocusMode(mode: AutoFocusMode)
-}
-```
-
-**Features:**
-- Continuous autofocus with camera center point
-- Tap-to-focus with touch event handling
-- Focus lock capability for stable shots
-- Settings persistence and comprehensive logging
-
-### 🎨 GridOverlayPlugin (UIPlugin)
-Composition assistance with multiple grid types:
-
-```kotlin
-class GridOverlayPlugin : UIPlugin() {
-    enum class GridType {
-        RULE_OF_THIRDS, GOLDEN_RATIO, CENTER_CROSS,
-        DIAGONAL_LINES, SQUARE_GRID
-    }
-
-    fun showGrid()
-    fun hideGrid()
-    fun setGridType(type: GridType)
-}
-```
-
-**Features:**
-- Rule of thirds, golden ratio, center cross grids
-- Custom GridOverlayView with dynamic Canvas drawing
-- Real-time visibility control and grid type switching
-- Settings integration with instant updates
-
-### 📊 CameraInfoPlugin (ProcessingPlugin)
-Real-time camera analysis and monitoring:
-
-```kotlin
-class CameraInfoPlugin : ProcessingPlugin() {
-    override suspend fun processFrame(image: ImageProxy): ProcessingResult
-    fun getCameraInfo(): Map<String, Any>
-    fun getProcessingStats(): Map<String, Any>
-}
-```
-
-**Features:**
-- Real-time frame processing and information extraction
-- Performance monitoring with configurable intervals
-- Camera characteristics collection and logging
-- Frame statistics tracking and analysis
-
-### 🎛️ ProControlsPlugin (ControlPlugin)
-Professional manual camera controls:
-
-```kotlin
-class ProControlsPlugin : ControlPlugin() {
-    fun setManualModeEnabled(enabled: Boolean)
-    fun setExposureCompensation(exposureIndex: Int)
-    fun setISO(iso: Int)
-    fun createControlsUI(context: Context): View?
-}
-```
-
-**Features:**
-- Professional UI controls for exposure and ISO adjustment
-- Real-time control value display and feedback
-- Manual mode toggle with auto/manual switching
-- Settings persistence across camera sessions
-
-### 📸 ExposureControlPlugin (ControlPlugin)
-Advanced exposure management system:
-
-```kotlin
-class ExposureControlPlugin : ControlPlugin() {
-    suspend fun setExposureCompensation(index: Int): ControlResult
-    suspend fun lockExposure(): ControlResult
-    suspend fun performExposureBracketing(steps: IntArray): ControlResult
-    fun analyzeExposure(): ExposureAnalysis?
-}
-```
-
-**Features:**
-- Exposure compensation with camera capability detection
-- Exposure lock/unlock functionality for stable shots
-- Exposure bracketing for HDR-like captures
-- Real-time exposure analysis with recommendations
-- EV (exposure value) calculations and display
-
-### 🏆 Complete Plugin Ecosystem Summary
-
-**Control Plugins (Camera Controls):**
-- **AutoFocusPlugin** - Tap-to-focus, continuous AF, focus lock
-- **ProControlsPlugin** - Manual camera settings with UI controls
-- **ExposureControlPlugin** - Advanced exposure management and bracketing
-- **ManualFocusPlugin** - Manual focus distance with hyperfocal calculator
-
-**UI Plugins (Interface Overlays):**
-- **GridOverlayPlugin** - Composition grids (rule of thirds, golden ratio, etc.)
-- **ScanningOverlayPlugin** - Barcode highlighting and scan result display
-- **PiPPlugin** - Picture-in-picture dual camera overlay system
-
-**Processing Plugins (Frame Analysis):**
-- **CameraInfoPlugin** - Real-time frame analysis and performance monitoring
-- **HistogramPlugin** - RGB and luminance histogram with exposure warnings
-- **ExposureAnalysisPlugin** - Exposure monitoring with automatic recommendations
-- **SharpnessAnalysisPlugin** - Focus confirmation and optimal aperture suggestions
-- **BarcodePlugin** - ML Kit barcode/QR scanning with real-time detection
-- **QRScannerPlugin** - Specialized QR code handling with content parsing
-- **CropPlugin** - Pre-shot cropping with interactive aspect ratio controls
-- **NightModePlugin** - Low-light detection with multi-frame noise reduction
-- **HDRPlugin** - High dynamic range capture with tone mapping
-
-**Supporting Systems:**
-- **TapToFocusHandler** - Advanced focus handling with visual indicators
-- **DualCameraManager** - Simultaneous camera management for PiP
-- **CameraAPIMonitor** - API call monitoring and debug reporting
-- **CameraResetManager** - Camera recovery and troubleshooting tools
-- **MemoryManager** - Memory optimization and efficient image processing
-- **BatteryOptimizer** - Battery-aware processing and power management
-
-**All plugins are accessible through the camera interface with real UI controls!**
-
-## 🔧 Development
-
-### Creating Custom Plugins
-
-#### 1. Control Plugin Example
-```kotlin
-class MyControlPlugin : ControlPlugin() {
-    override val name = "MyControl"
-    override val version = "1.0.0"
-
-    override suspend fun initialize(context: CameraContext) {
-        // Plugin initialization
-    }
-
-    override suspend fun onCameraReady(camera: Camera) {
-        // Configure camera controls
-    }
-
-    override suspend fun applyControls(camera: Camera): ControlResult {
-        // Apply your custom controls
-        return ControlResult.Success("Controls applied")
-    }
-
-    override fun getCurrentSettings(): Map<String, Any> {
-        return mapOf("setting1" to "value1")
-    }
-}
-```
-
-#### 2. UI Plugin Example
-```kotlin
-class MyUIPlugin : UIPlugin() {
-    override val name = "MyUI"
-
-    override fun createUIView(context: CameraContext): View? {
-        // Return your custom UI view
-        return MyCustomView(context.context)
-    }
-
-    override fun onUIEvent(event: UIEvent) {
-        when (event) {
-            is UIEvent.Show -> showUI()
-            is UIEvent.Hide -> hideUI()
-        }
-    }
-}
-```
-
-#### 3. Processing Plugin Example
-```kotlin
-class MyProcessingPlugin : ProcessingPlugin() {
-    override val name = "MyProcessor"
-
-    override suspend fun processFrame(image: ImageProxy): ProcessingResult {
-        // Analyze the camera frame
-        val analysis = analyzeFrame(image)
-
-        return ProcessingResult.Success(
-            data = mapOf("result" to analysis),
-            metadata = ProcessingMetadata(/* ... */)
-        )
-    }
-}
-```
-
-### Plugin Registration
-
-```kotlin
-// In your Activity
-private fun initializeCameraEngine() {
-    cameraEngine = CameraEngine(this, this)
-
-    // Register your custom plugins
-    cameraEngine.registerPlugin(MyControlPlugin())
-    cameraEngine.registerPlugin(MyUIPlugin())
-    cameraEngine.registerPlugin(MyProcessingPlugin())
-}
-```
-
-### Building and Testing
-
-```bash
-# Build debug version
-./gradlew assembleDebug
-
-# Run tests
-./gradlew test
-
-# Check code style
-./gradlew lint
-
-# Type checking
-./gradlew compileDebugKotlin
-```
-
-## 📁 Project Structure
-
-```
-CustomCamera/
-├── app/
-│   ├── src/main/java/com/customcamera/app/
-│   │   ├── engine/                          # Core engine components
-│   │   │   ├── CameraEngine.kt              # Central camera coordinator
-│   │   │   ├── CameraContext.kt             # Shared plugin context
-│   │   │   ├── DebugLogger.kt               # Comprehensive logging
-│   │   │   ├── SettingsManager.kt           # Reactive settings
-│   │   │   └── plugins/                     # Plugin system
-│   │   │       ├── CameraPlugin.kt          # Base plugin classes
-│   │   │       └── PluginManager.kt         # Plugin lifecycle management
-│   │   ├── plugins/                         # Implemented plugins
-│   │   │   ├── AutoFocusPlugin.kt           # Focus control
-│   │   │   ├── GridOverlayPlugin.kt         # Composition grids
-│   │   │   ├── CameraInfoPlugin.kt          # Frame analysis
-│   │   │   ├── ProControlsPlugin.kt         # Manual controls
-│   │   │   └── ExposureControlPlugin.kt     # Exposure management
-│   │   ├── MainActivity.kt                  # App entry point
-│   │   ├── CameraSelectionActivity.kt       # Camera selection
-│   │   ├── CameraActivity.kt                # Original camera (legacy)
-│   │   └── CameraActivityEngine.kt          # Plugin-enabled camera
-│   └── src/main/res/                        # Resources
-├── memory/
-│   └── todo.md                             # Development task tracking
-├── README.md                               # This file
-└── build.gradle                            # Build configuration
-```
-
-## 🎯 Roadmap
-
-### Phase 4 Options (Next Development Cycle)
-- [ ] **Dual Camera PiP System** - Simultaneous front/rear camera capture
-- [ ] **Computer Vision Integration** - Barcode/QR scanning with ML Kit
-- [ ] **Custom Pre-Shot Crop System** - Interactive crop before capture
-- [ ] **Video Recording Controls** - Manual controls for video capture
-- [ ] **Advanced Settings UI** - Complete settings management interface
-
-### Future Enhancements
-- [ ] **Night Mode** - Low-light optimization with extended exposure
-- [ ] **Portrait Mode** - Depth-based background blur effects
-- [ ] **RAW Capture** - Professional RAW photo format support
-- [ ] **Histogram Display** - Real-time exposure histogram overlay
-- [ ] **Focus Peaking** - Manual focus assistance visualization
-- [ ] **Time-lapse Recording** - Automated time-lapse capture
-- [ ] **Burst Mode** - High-speed continuous capture
-- [ ] **HDR Processing** - Real-time HDR image processing
-
-## 🤝 Contributing
-
-We welcome contributions! Please see our contributing guidelines:
-
-### Development Setup
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Make your changes following our coding standards
-4. Test thoroughly on multiple devices
-5. Commit your changes (`git commit -m 'Add amazing feature'`)
-6. Push to your branch (`git push origin feature/amazing-feature`)
-7. Create a Pull Request
-
-### Coding Standards
-- Use Kotlin coding conventions
-- Add comprehensive documentation for new plugins
-- Include unit tests for new functionality
-- Follow the existing plugin architecture patterns
-- Ensure all builds pass before submitting
-
-## 📋 Requirements
-
-- **Minimum SDK:** Android API 21 (Android 5.0)
-- **Target SDK:** Android API 34 (Android 14)
-- **Language:** Kotlin 1.8.0+
-- **Architecture:** MVVM with Plugin System
-- **Camera:** CameraX 1.3.0+
-- **UI:** Material Design 3
-- **Permissions:** CAMERA, RECORD_AUDIO
-
-### Device Compatibility
-- Supports devices with multiple cameras
-- Graceful fallback for single-camera devices
-- Handles broken/unavailable cameras gracefully
-- Works on phones and tablets
-- Optimized for various screen sizes
-
-## 🐛 Known Issues
-
-- Deprecated `systemUiVisibility` warnings (Android 11+) - Will be updated to WindowInsetsController
-- ISO control limited by CameraX API - Full manual control requires Camera2 API
-- Some advanced features require specific camera hardware support
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- **CameraX Team** - For the excellent camera API
-- **Material Design** - For UI components and guidelines
-- **Kotlin Team** - For the amazing programming language
-- **Android Architecture Components** - For lifecycle management
-- **Open Source Community** - For inspiration and feedback
-
-## 📞 Support
-
-- **Issues:** [GitHub Issues](https://github.com/yourusername/CustomCamera/issues)
-- **Documentation:** [Wiki](https://github.com/yourusername/CustomCamera/wiki)
-- **Discussions:** [GitHub Discussions](https://github.com/yourusername/CustomCamera/discussions)
-
----
-
-<p align="center">
-  <strong>🤖 Built with Claude Code - Professional AI-Powered Development</strong>
-</p>
-
-<p align="center">
-  Made with ❤️ for the Android camera development community
-</p>
+MIT — see [LICENSE](LICENSE).

@@ -576,7 +576,9 @@ class CameraActivity : AppCompatActivity() {
         val showBar = state.mode != CaptureMode.PRO && state.mode != CaptureMode.SCAN && state.maxZoom > state.minZoom
         binding.zoomBar.isVisible = showBar
         if (!showBar) return
-        val presets = ZoomMath.presets(state.minZoom, state.maxZoom)
+        // Front cameras only offer digital zoom; chips beyond 2x are noise there (pinch still reaches max).
+        val chipMax = if (state.isFront) min(state.maxZoom, FRONT_ZOOM_CHIP_MAX) else state.maxZoom
+        val presets = ZoomMath.presets(state.minZoom, chipMax)
         if (presets != renderedPresets) {
             renderedPresets = presets
             binding.zoomBar.removeAllViews()
@@ -1087,6 +1089,7 @@ class CameraActivity : AppCompatActivity() {
         private const val STATE_HDR = "hdr"
         private const val FRONT_DEFAULT = "__front_default__"
         private const val EV_HIDE_MS = 3_000L
+        private const val FRONT_ZOOM_CHIP_MAX = 2f
         private const val LIVE_LABEL_INTERVAL_MS = 300L
         private const val THUMB_PX = 192
         private const val REVIEW_MAX_PX = 2048

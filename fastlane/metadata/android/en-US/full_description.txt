@@ -1,0 +1,36 @@
+CustomCamera is a fast, private camera with real manual controls — no ads, no account, and no network access at all.
+
+<b>Pro mode with real sensor control</b>
+• Set ISO, shutter speed, white balance and manual focus directly on the camera sensor
+• Live readouts of the automatic exposure while you shoot
+• Save RAW (DNG) next to every JPEG on supported cameras
+• Live histogram with highlight and shadow clipping warnings
+
+<b>Every lens, every mode</b>
+• Photo, Video, Pro and QR Scan modes, plus Night and Portrait where your phone supports them
+• One-tap zoom presets (0.6×, 1×, 2×, 3×, 5× depending on your phone) and pinch to zoom
+• Choose any camera your phone exposes, with automatic fallback if one fails
+• Ultra HDR photos and 10-bit HDR video on supported devices
+
+<b>Video</b>
+• Up to 4K, with stabilization and pause / resume
+• Switch between front and back cameras while recording
+
+<b>Made to be quick</b>
+• Tap to focus, long-press to lock focus and exposure, slide to adjust brightness
+• Swipe sideways to change mode, swipe up or down to flip the camera
+• Self-timer, composition grids, level indicator and volume-key shutter
+• Screen flash for selfies
+
+<b>QR and barcode scanner</b>
+• Open links, join Wi-Fi networks, call, email, text or view locations straight from a code
+• Scanning runs entirely on your phone
+
+<b>Private by design</b>
+• Photos and videos are saved to your gallery under DCIM/CustomCamera
+• Location tagging is off unless you turn it on, and is only stored inside your files
+• The app cannot access the internet and collects no data
+
+Works with other apps: CustomCamera can take photos and videos when another app asks for the camera.
+
+Some features depend on what your phone's camera hardware and Android version support; unsupported options are hidden automatically.
