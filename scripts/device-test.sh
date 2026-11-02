@@ -29,13 +29,14 @@ echo "$out" | rg -q '^OK \(' && result=0 || result=1
 
 echo "== staging (R8) cold start"
 adb_ install -r -g "$APK/staging/app-staging.apk" >/dev/null
-adb_ logcat -c
+# Shared device: filter logcat from now on instead of clearing other agents' logs.
+since=$(adb_ shell "date +'%m-%d %H:%M:%S.000'")
 adb_ shell am start -W -n "$ID.staging/com.customcamera.app.ui.CameraActivity" | rg 'TotalTime|Status'
 sleep 4
-if adb_ shell pidof "$ID.staging" >/dev/null && ! adb_ logcat -d | rg -q "FATAL EXCEPTION.*|Process: $ID.staging"; then
+if adb_ shell pidof "$ID.staging" >/dev/null && ! adb_ logcat -d -T "$since" | rg -q "Process: $ID.staging"; then
     echo "  staging alive, no crash"
 else
-    echo "  staging CRASHED"; adb_ logcat -d | rg -A15 'FATAL EXCEPTION' | head -30; result=1
+    echo "  staging CRASHED"; adb_ logcat -d -T "$since" | rg -A15 'FATAL EXCEPTION' | head -30; result=1
 fi
 adb_ shell am force-stop "$ID.staging"
 

@@ -17,10 +17,13 @@ single source; do not duplicate the list here.
 
 ## Branches (decision pending, 2026-11-01)
 
-- `v3` (this work) branched from a stale local snapshot; GitHub `main` carries 586
-  further commits of the old v2 code base (v2.4.3, Sep–Dec 2025, targetSdk 35, ISO/
-  shutter controllers still stubbed). The owner chooses how `v3` lands on `main`
-  (see final session summary); never force-push without explicit approval.
+History: this checkout forked at c9f2cea1 (2025-09-15) and continued to 9771e3dd
+(v2.0.0, also pushed as `origin/mb`); a different clone made the 586 commits now on
+`main` (v2.4.3, Sep–Dec 2025). This checkout never had them; local `main` was created
+from `origin/main` on 2026-11-01. A code audit of main v2.4.3 found manual ISO/shutter/
+WB/focus, Night, HDR, RAW, histogram and focus peaking stubbed or unreachable; v3
+covers every working feature except those listed under "Ported from main" below.
+Owner chooses how `v3` lands on `main`; never force-push without explicit approval.
 
 ## Verified on device (SM-S938U1)
 
@@ -31,26 +34,33 @@ single source; do not duplicate the list here.
 - [x] Scan mode loads ML Kit's bundled model with no network permission
 - [x] Front camera, lens picker, settings, gallery, viewer, IMAGE_CAPTURE review
 
-## Pending: run on a dedicated test device
+## Verified on Pixel 8 Pro (API 37, 2026-11-01)
 
-The test phones (Pixel 8 Pro, Saga, Seeker) were unreachable on 2026-11-01
-(polled 11:00–12:30 EST; nmap reported all three hosts down). When one is up:
-
-```bash
-scripts/gradle-locked.sh :app:assembleDebug :app:assembleDebugAndroidTest :app:assembleStaging
-scripts/device-test.sh <ip:port>          # 13 instrumented tests + staging smoke test
-```
+- [x] 13/13 instrumented tests (`scripts/device-test.sh 192.168.0.216:5555`)
+- [x] R8 staging build cold start 330 ms, no crash
+- [x] Night extension listed and captures (ext=3, 2560×1920 JPEG). Portrait and HDR
+      are not offered by this device's extension service, so they stay hidden.
+- Shared test phones: check out/in via `/sdcard/agent-sharing.md` on the device.
 
 ## Not yet verified on device
 
 - [ ] Actual QR decode + bounding-box alignment (needs a code in front of the camera)
-- [ ] Night / Portrait / HDR extensions — the S25 Ultra's extension proxy times out,
-      so these modes stay hidden there; test on a Pixel or another vendor
+- [ ] Portrait / HDR extensions (Night verified on Pixel; S25 Ultra's proxy times out)
 - [ ] RAW (DNG) and Ultra HDR output files; 10-bit HLG video; ZSL
 - [ ] Location tagging end-to-end (permission flow + EXIF GPS)
 - [ ] Volume-key shutter/zoom, self-timer, level indicator in a lit scene
 - [ ] API 26–28 storage path (WRITE_EXTERNAL_STORAGE + DATA column) — needs an old device/emulator
 - [ ] TalkBack pass (Pro slider did not appear in a uiautomator dump)
+
+## Ported from main (v2.4.3) — candidates
+
+- [ ] Dual-camera picture-in-picture (main `CameraEngine.kt` ConcurrentCamera bind,
+      `pip/ConcurrentCameraCapability.kt`); capture the PiP frame at sensor resolution
+      instead of main's `PreviewView.bitmap` composite. Spec: main
+      `docs/specs/features/concurrent-camera-pip.md`.
+- [ ] Freeform crop overlay (main `crop/CropOverlayView.kt`), mapped through the ViewPort.
+- [ ] Focus peaking in Pro mode (main's version was never reachable — new work).
+- [ ] Torch strength / SOS: spec in main `docs/specs/FLASHLIGHT_MINI_APP.md` (backlog #8).
 
 ## Backlog (prioritised)
 
