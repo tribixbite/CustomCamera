@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Photo editor (crop & rotate). Kept apart from strings.xml so the editor can evolve independently. -->
+<resources>
+    <string name="viewer_crop">Crop &amp; rotate</string>
+    <string name="editor_title">Crop &amp; rotate</string>
+    <string name="editor_save">Save copy</string>
+    <string name="editor_saving">Saving copy…</string>
+    <string name="editor_saved">Saved copy</string>
+    <string name="editor_save_failed">Could not save the edited copy</string>
+    <string name="editor_load_failed">Could not open this photo</string>
+    <string name="editor_rotate">Rotate</string>
+    <string name="editor_flip">Flip</string>
+    <string name="editor_reset">Reset</string>
+    <string name="editor_aspect_free">Free</string>
+    <string name="editor_aspect_original">Original</string>
+    <string name="editor_discard_title">Discard changes?</string>
+    <string name="editor_discard_body">The original photo is never changed. Your crop and rotation will be lost.</string>
+    <string name="editor_discard">Discard</string>
+    <string name="cd_editor_close">Close editor</string>
+    <string name="cd_editor_rotate">Rotate 90 degrees clockwise</string>
+    <string name="cd_editor_flip">Flip horizontally</string>
+    <string name="cd_editor_reset">Undo all changes</string>
+    <string name="cd_crop_area">Crop area. Drag a corner or edge to resize, or drag inside to move it.</string>
+</resources>

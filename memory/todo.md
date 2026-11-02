@@ -58,7 +58,13 @@ Owner chooses how `v3` lands on `main`; never force-push without explicit approv
       `pip/ConcurrentCameraCapability.kt`); capture the PiP frame at sensor resolution
       instead of main's `PreviewView.bitmap` composite. Spec: main
       `docs/specs/features/concurrent-camera-pip.md`.
-- [ ] Freeform crop overlay (main `crop/CropOverlayView.kt`), mapped through the ViewPort.
+- [x] Freeform crop → rebuilt as a non-destructive photo editor (branch `feat/crop-editor`):
+      viewer "Crop & rotate" → `gallery/PhotoEditorActivity` (aspect presets, rotate 90°,
+      mirror, reset) saves a NEW `IMG_<time>_edit.jpg` with copied EXIF. Geometry in
+      `core/CropMath.kt` (JVM-tested); `PhotoEditorActivityTest` covers a 1:1 save.
+      - [ ] Run `PhotoEditorActivityTest` on a test phone; check handles/gesture-nav
+            exclusion and landscape insets by hand.
+      - [ ] Ultra HDR originals are re-encoded as plain JPEG (gain map dropped).
 - [ ] Focus peaking in Pro mode (main's version was never reachable — new work).
 - [ ] Torch strength / SOS: spec in main `docs/specs/FLASHLIGHT_MINI_APP.md` (backlog #8).
 

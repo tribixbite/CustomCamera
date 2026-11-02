@@ -78,6 +78,16 @@
             app:icon="@drawable/ic_share" />
 
         <com.google.android.material.button.MaterialButton
+            android:id="@+id/cropButton"
+            style="@style/Widget.CustomCamera.IconButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:contentDescription="@string/viewer_crop"
+            android:tooltipText="@string/viewer_crop"
+            app:icon="@drawable/ic_crop" />
+
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/editButton"
             style="@style/Widget.CustomCamera.IconButton"
             android:layout_width="0dp"

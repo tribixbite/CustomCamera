@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Half a 48dp touch target, so edge handles on the image border stay fully grabbable. -->
+    <dimen name="editor_crop_padding">24dp</dimen>
+</resources>

@@ -113,6 +113,13 @@
             android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout"
             android:theme="@style/Theme.CustomCamera.Viewfinder" />
 
+        <!-- In-app crop & rotate; saves a new copy, never edits the original. -->
+        <activity
+            android:name=".gallery.PhotoEditorActivity"
+            android:exported="false"
+            android:label="@string/editor_title"
+            android:theme="@style/Theme.CustomCamera.Viewfinder" />
+
         <activity
             android:name=".settings.SettingsActivity"
             android:exported="false"
