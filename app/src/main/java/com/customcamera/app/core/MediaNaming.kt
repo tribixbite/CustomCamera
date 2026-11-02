@@ -41,7 +41,17 @@ object MediaNaming {
     fun fileName(kind: Kind, time: Date, timeZone: TimeZone = TimeZone.getDefault()): String =
         "${baseName(kind, time, timeZone)}.${kind.extension}"
 
+    /** Suffix marking an edited copy made by the in-app photo editor. */
+    const val EDIT_SUFFIX = "_edit"
+
+    /**
+     * File name for an edited copy saved at [time], e.g. `IMG_20261101_150210_042_edit.jpg`.
+     * The edit time (not the original's) keeps repeated edits of one photo unique.
+     */
+    fun editedFileName(time: Date, timeZone: TimeZone = TimeZone.getDefault()): String =
+        "${baseName(Kind.PHOTO, time, timeZone)}$EDIT_SUFFIX.${Kind.PHOTO.extension}"
+
     /** True when a display name was produced by this app (used to filter legacy queries). */
     fun isOwnName(displayName: String): Boolean =
-        Regex("""^(IMG|VID)_\d{8}_\d{6}_\d{3}\.(jpg|dng|mp4)$""").matches(displayName)
+        Regex("""^(IMG|VID)_\d{8}_\d{6}_\d{3}($EDIT_SUFFIX)?\.(jpg|dng|mp4)$""").matches(displayName)
 }

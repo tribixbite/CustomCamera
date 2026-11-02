@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One aspect preset in the photo editor; text and tag are set in code from CropAspect. -->
+<com.google.android.material.chip.Chip xmlns:android="http://schemas.android.com/apk/res/android"
+    style="@style/Widget.CustomCamera.EditorChip"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content" />

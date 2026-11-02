@@ -8,6 +8,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.MediaController
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
@@ -45,6 +46,15 @@ class MediaViewerActivity : AppCompatActivity() {
     private lateinit var adapter: PageAdapter
     private var chromeVisible = true
 
+    /** In-app crop & rotate: on success, reload and show the new copy. */
+    private val editorLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        val saved = result.data?.data
+        if (result.resultCode == RESULT_OK && saved != null) {
+            Toast.makeText(this, R.string.editor_saved, Toast.LENGTH_SHORT).show()
+            load(saved)
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityViewerBinding.inflate(layoutInflater)
@@ -74,6 +84,9 @@ class MediaViewerActivity : AppCompatActivity() {
             }
         })
         binding.shareButton.setOnClickListener { current()?.let(::share) }
+        binding.cropButton.setOnClickListener {
+            current()?.takeUnless { it.isVideo }?.let { editorLauncher.launch(PhotoEditorActivity.intent(this, it.uri)) }
+        }
         binding.editButton.setOnClickListener { current()?.let(::edit) }
         binding.infoButton.setOnClickListener { current()?.let(::showDetails) }
         binding.deleteButton.setOnClickListener { current()?.let(::confirmDelete) }
@@ -86,10 +99,13 @@ class MediaViewerActivity : AppCompatActivity() {
         super.onPause()
     }
 
+    /** (Re)loads the album and shows [start] (or the newest item if it is not found). */
     private fun load(start: android.net.Uri?) {
         lifecycleScope.launch {
             val loaded = repository.loadAll()
+            val previous = items.size
             items.clear()
+            if (previous > 0) adapter.notifyItemRangeRemoved(0, previous)
             items += loaded
             adapter.notifyItemRangeInserted(0, loaded.size)
             val index = items.indexOfFirst { it.uri == start }.coerceAtLeast(0)
@@ -106,6 +122,7 @@ class MediaViewerActivity : AppCompatActivity() {
         binding.toolbar.title = item?.let { DateFormat.getDateInstance(DateFormat.MEDIUM).format(Date(it.dateTaken)) }
         binding.toolbar.subtitle = item?.let { DateFormat.getTimeInstance(DateFormat.SHORT).format(Date(it.dateTaken)) }
         binding.editButton.isVisible = item?.isVideo == false
+        binding.cropButton.isVisible = item?.isVideo == false
     }
 
     private fun updateEmptyState() {

@@ -29,6 +29,13 @@ class MediaNamingTest {
     }
 
     @Test
+    fun `edited copies get a recognisable suffix`() {
+        assertEquals("IMG_20261026_073320_123_edit.jpg", MediaNaming.editedFileName(time, utc))
+        assertTrue(MediaNaming.isOwnName(MediaNaming.editedFileName(time, utc)))
+        assertFalse(MediaNaming.isOwnName("VID_20261026_073320_123_copy.mp4"))
+    }
+
+    @Test
     fun `raw photo shares the jpeg base name`() {
         assertEquals(
             MediaNaming.baseName(MediaNaming.Kind.PHOTO, time, utc),

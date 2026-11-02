@@ -17,7 +17,7 @@ network access (the `INTERNET` permission is removed from the merged manifest).
 | **Viewfinder** | Tap to focus with exposure slider, long-press AE/AF lock, pinch and preset zoom chips (0.6× … 5×), swipe to change mode or flip camera, self-timer, grids (thirds / golden / square), level indicator, live histogram with clipping warnings, volume-key shutter or zoom, haptics. Icons rotate with the device while the preview stays portrait. |
 | **Cameras** | Lens picker listing every camera Camera2 exposes (with 35 mm-equivalent focal length); if a camera fails to bind, the app falls back to the next working one automatically. |
 | **Scanner** | ML Kit on-device QR / barcode scanning with boxes mapped onto the preview; one-tap actions for links, Wi-Fi (system "add network" sheet), phone, SMS, email and geo codes. |
-| **Gallery** | Grid of your captures and a swipeable viewer with pinch / double-tap zoom, video playback, share, edit, EXIF details and delete. Captures are saved to `DCIM/CustomCamera` via MediaStore. |
+| **Gallery** | Grid of your captures and a swipeable viewer with pinch / double-tap zoom, video playback, share, edit, EXIF details and delete. A built-in **Crop & rotate** editor (free or fixed aspect, 90° rotation, mirror) saves a new `_edit` copy with the original EXIF and never changes the original. Captures are saved to `DCIM/CustomCamera` via MediaStore. |
 | **System integration** | Handles `IMAGE_CAPTURE` (with review), `VIDEO_CAPTURE`, `STILL_IMAGE_CAMERA(_SECURE)` and `VIDEO_CAMERA`; launcher shortcuts for Selfie, Video and Scan; splash screen; adaptive + themed icon. |
 
 ## Architecture
@@ -25,11 +25,12 @@ network access (the `INTERNET` permission is removed from the merged manifest).
 ```
 app/src/main/java/com/customcamera/app/
 ├── core/            Pure Kotlin, unit-tested: options, exposure / zoom / lens /
-│                    orientation math, histogram, barcode content parsing, naming
+│                    orientation / crop math, histogram, barcode content parsing, naming
 ├── camera/          CameraController (CameraX session owner) + state / event models
 ├── ui/              CameraActivity, Pro panel binder, custom views (shutter, grid,
 │                    level, focus ring, histogram, barcode overlay, EV slider)
-├── gallery/         MediaStore repository + helpers, GalleryActivity, MediaViewerActivity
+├── gallery/         MediaStore repository + helpers, GalleryActivity, MediaViewerActivity,
+│                    PhotoEditorActivity + CropOverlayView (crop & rotate copies)
 ├── settings/        AppSettings (typed prefs) + SettingsActivity / fragment
 ├── scan/            Scan result presentation and actions
 └── util/            Coroutine/future bridge, EXIF-aware decoding, feedback, location, shortcuts
