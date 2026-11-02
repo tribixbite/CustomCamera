@@ -66,6 +66,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.Observer
 import com.customcamera.app.BuildConfig
+import com.customcamera.app.R
 import com.customcamera.app.core.AspectOption
 import com.customcamera.app.core.CaptureMode
 import com.customcamera.app.core.Composition
@@ -154,22 +155,22 @@ class CameraController(
     /** Screen-flash implementation supplied by the activity (front cameras without a flash unit). */
     var screenFlash: ImageCapture.ScreenFlash? = null
 
-    /** Whether the histogram analyzer should run in photo/pro modes. */
+    /**
+     * Whether the histogram analyzer should run in photo/pro modes. Takes effect
+     * on the next bind; callers follow a change with [refreshFromSettings].
+     */
     var histogramEnabled: Boolean = false
-        set(value) {
-            if (field == value) return
-            field = value
-            if (_state.value.ready && _state.value.mode.isPhotoLike) rebind()
-        }
 
-    /** Whether Pro mode binds frame analysis for focus peaking (the setting). */
+    /** Whether Pro mode binds frame analysis for focus peaking (the setting); see [histogramEnabled]. */
     var focusPeakingEnabled: Boolean = false
-        set(value) {
-            if (field == value) return
-            field = value
-            if (_state.value.ready && _state.value.mode == CaptureMode.PRO) rebind()
-        }
 
+    /** Whether the current binding includes peaking analysis (set while building use cases). */
+    private var boundPeaking = false
+
+    /** Facing to restore when leaving DUAL (DUAL reports the main camera's facing). */
+    private var nonDualFront = false
+    private var insetCameraInfo: CameraInfo? = null
+    private var insetStateObserver: Observer<XCameraState>? = null
     /**
      * Read on the analysis thread: peaking is only computed while focus is
      * manual, so the analysis use case can stay bound as focus switches modes.
@@ -201,6 +202,7 @@ class CameraController(
         loadExtensionsInBackground(p)
         requestedCameraId = cameraId?.takeIf { id -> p.availableCameraInfos.any { idOf(it) == id } }
         dualPair = findDualPair(p)
+        nonDualFront = front
         _state.update {
             it.copy(
                 mode = mode,
@@ -329,7 +331,7 @@ class CameraController(
                 // Concurrent streaming is advertised but failed (camera busy, unsupported
                 // stream combination…): drop to single-camera video rather than show nothing.
                 Log.w(TAG, "Dual camera bind failed", e)
-                emit(CameraEvent.Error("Dual camera is unavailable right now", e))
+                emit(CameraEvent.Error(context.getString(R.string.error_dual_unavailable), e))
                 _state.update { it.copy(mode = CaptureMode.VIDEO) }
                 return bind()
             }
@@ -345,16 +347,18 @@ class CameraController(
 
         var lastError: Throwable? = null
         for ((index, id) in candidates.withIndex()) {
-            for (safeMode in listOf(false, true)) {
+            // Full config, then without frame analysis (an extra YUV stream is the most common
+            // reason a combination is rejected, e.g. Pro + RAW + peaking), then safe mode.
+            for ((safeMode, allowAnalysis) in listOf(false to true, false to false, true to false)) {
                 try {
-                    val boundId = bindTo(p, id, st, safeMode)
+                    val boundId = bindTo(p, id, st, safeMode, allowAnalysis)
                     if (index > 0) {
                         emit(CameraEvent.CameraFallback(requestedCameraId, boundId))
                     }
                     return true
                 } catch (e: Exception) {
                     lastError = e
-                    Log.w(TAG, "Bind failed for camera=${id ?: "default"} safe=$safeMode", e)
+                    Log.w(TAG, "Bind failed for camera=${id ?: "default"} safe=$safeMode analysis=$allowAnalysis", e)
                 }
             }
         }
@@ -369,7 +373,7 @@ class CameraController(
      *
      * @return the Camera2 id that was bound.
      */
-    private fun bindTo(p: ProcessCameraProvider, cameraId: String?, st: CameraState, safeMode: Boolean): String {
+    private fun bindTo(p: ProcessCameraProvider, cameraId: String?, st: CameraState, safeMode: Boolean, allowAnalysis: Boolean): String {
         val facingFront = if (cameraId == null) st.isFront else p.availableCameraInfos.first { idOf(it) == cameraId }.let(::isFront)
         val baseSelector = if (cameraId == null) {
             CameraSelector.Builder()
@@ -399,7 +403,7 @@ class CameraController(
         // A persistent recording keeps running across unbind/rebind of its VideoCapture.
         p.unbindAll()
 
-        val useCases = buildUseCases(mode, baseInfo, extensionMode, baseSelector, facingFront, safeMode)
+        val useCases = buildUseCases(mode, baseInfo, extensionMode, baseSelector, facingFront, safeMode, allowAnalysis)
         val ratio = if (mode == CaptureMode.VIDEO) Rational(9, 16) else Rational(st.aspect.width, st.aspect.height)
         val viewPort = ViewPort.Builder(ratio, previewView.display?.rotation ?: Surface.ROTATION_0)
             .setScaleType(ViewPort.FILL_CENTER)
@@ -429,6 +433,8 @@ class CameraController(
         val torchMax = runCatching {
             if (bound.cameraInfo.isTorchStrengthSupported) bound.cameraInfo.maxTorchStrengthLevel else 0
         }.getOrDefault(0)
+        // Until the user picks a level, show (and keep) the device's default torch strength.
+        val deviceTorch = runCatching { bound.cameraInfo.torchStrengthLevel.value }.getOrNull() ?: torchMax
         _state.update {
             it.copy(
                 ready = true,
@@ -445,7 +451,8 @@ class CameraController(
                 manualCapabilities = if (manualAllowed) manualCapabilities(info) else ManualCapabilities.NONE,
                 focusLocked = false,
                 torchStrengthMax = torchMax,
-                torchStrength = (settings.torchLevel ?: it.torchStrength.takeIf { l -> l > 0 } ?: torchMax).coerceIn(0, torchMax),
+                torchStrength = (settings.torchLevel ?: deviceTorch).coerceIn(0, torchMax),
+                peakingAvailable = boundPeaking,
             )
         }
         applyFlash()
@@ -469,6 +476,7 @@ class CameraController(
             .also { it.surfaceProvider = previewView.surfaceProvider }
         imageCapture = null
         analysis = null
+        boundPeaking = false
         val video = obtainVideoCapture(mainInfo, front = st.dualFrontMain, safeMode = true, dual = true)
         // The same UseCaseGroup goes to both cameras; CameraX composes them per CompositionSettings.
         val group = UseCaseGroup.Builder().addUseCase(preview).addUseCase(video).build()
@@ -481,6 +489,7 @@ class CameraController(
         val main = concurrent.cameras.first()
         boundExtensionKey = idOf(mainInfo)
         val boundId = publishBound(main, mainInfo, CaptureMode.DUAL, st.dualFrontMain, supportedExtensions(idOf(mainInfo)), manualAllowed = false)
+        concurrent.cameras.getOrNull(1)?.let { observeInsetCamera(it.cameraInfo) }
         if (BuildConfig.DEBUG) Log.d(TAG, "Bound dual main=$boundId inset=${idOf(insetInfo)} corner=${st.pipCorner}")
     }
 
@@ -497,6 +506,7 @@ class CameraController(
         baseSelector: CameraSelector,
         front: Boolean,
         safeMode: Boolean,
+        allowAnalysis: Boolean,
     ): List<UseCase> {
         val st = _state.value
         val aspectStrategy = when {
@@ -514,17 +524,24 @@ class CameraController(
 
         imageCapture = null
         analysis = null
+        boundPeaking = false
         when (mode) {
             CaptureMode.VIDEO -> useCases += obtainVideoCapture(info, front, safeMode, dual = false)
             CaptureMode.DUAL -> error("DUAL is bound by bindDual()")
             CaptureMode.SCAN -> useCases += buildBarcodeAnalysis()
             else -> {
-                useCases += buildImageCapture(mode, info, extensionMode, front, safeMode)
-                val analysisAllowed = extensionMode == null ||
-                    runCatching { extensions?.isImageAnalysisSupported(baseSelector, extensionMode) == true }.getOrDefault(false)
+                val capture = buildImageCapture(mode, info, extensionMode, front, safeMode)
+                useCases += capture
+                val analysisAllowed = allowAnalysis && !safeMode &&
+                    // RAW + JPEG already uses three streams; a fourth (YUV) is not guaranteed, and
+                    // RAW is the explicit choice, so analysis features yield to it.
+                    capture.outputFormat != ImageCapture.OUTPUT_FORMAT_RAW_JPEG &&
+                    (extensionMode == null ||
+                        runCatching { extensions?.isImageAnalysisSupported(baseSelector, extensionMode) == true }.getOrDefault(false))
                 val peaking = mode == CaptureMode.PRO && focusPeakingEnabled && extensionMode == null
-                if (!safeMode && (histogramEnabled || peaking) && analysisAllowed) {
+                if (analysisAllowed && (histogramEnabled || peaking)) {
                     useCases += buildFrameAnalysis(aspectStrategy, histogramEnabled, peaking)
+                    boundPeaking = peaking
                 }
             }
         }
@@ -621,6 +638,7 @@ class CameraController(
         var lastHistogram = 0L
         var lastPeaking = 0L
         val transformFactory = ImageProxyTransformFactory().apply { isUsingRotationDegrees = true }
+        val peakingScratch = FocusPeaking.Scratch()
         // Peaking needs more detail than a histogram; 1280x960 with step 2 is ~300k cells.
         val target = if (peaking) Size(1280, 960) else Size(640, 480)
         return ImageAnalysis.Builder()
@@ -643,7 +661,7 @@ class CameraController(
                         }
                         if (peaking && peakingActive && now - lastPeaking >= PEAKING_INTERVAL_MS) {
                             lastPeaking = now
-                            val mask = FocusPeaking.detect(plane.buffer, proxy.width, proxy.height, plane.rowStride, plane.pixelStride)
+                            val mask = FocusPeaking.detect(plane.buffer, proxy.width, proxy.height, plane.rowStride, plane.pixelStride, scratch = peakingScratch)
                                 .rotated(proxy.imageInfo.rotationDegrees)
                             val source = transformFactory.getOutputTransform(proxy)
                             mainExecutor.execute {
@@ -709,7 +727,28 @@ class CameraController(
         }
     }
 
+    /**
+     * DUAL: the inset camera can fail on its own (e.g. taken by another app); only
+     * the main camera is observed by [observeCamera], so report the inset's errors too.
+     */
+    private fun observeInsetCamera(info: CameraInfo) {
+        clearInsetObserver()
+        val observer = Observer<XCameraState> { s ->
+            if (s.error != null) emit(CameraEvent.Error(context.getString(R.string.error_dual_inset), s.error?.cause))
+        }
+        info.cameraState.observe(lifecycleOwner, observer)
+        insetCameraInfo = info
+        insetStateObserver = observer
+    }
+
+    private fun clearInsetObserver() {
+        insetStateObserver?.let { o -> insetCameraInfo?.cameraState?.removeObserver(o) }
+        insetCameraInfo = null
+        insetStateObserver = null
+    }
+
     private fun observeCamera(info: CameraInfo) {
+        clearInsetObserver()
         observedInfo?.let { old ->
             zoomObserver?.let { old.zoomState.removeObserver(it) }
             cameraStateObserver?.let { old.cameraState.removeObserver(it) }
@@ -751,7 +790,10 @@ class CameraController(
             st.flash == FlashOption.TORCH -> FlashOption.OFF
             else -> st.flash
         }
-        _state.update { it.copy(mode = mode, flash = flash) }
+        // DUAL reports the main camera's facing; restore the user's own facing on the way out.
+        if (mode == CaptureMode.DUAL) nonDualFront = st.isFront
+        val front = if (st.mode == CaptureMode.DUAL) nonDualFront else st.isFront
+        _state.update { it.copy(mode = mode, flash = flash, isFront = front) }
         rebind()
     }
 
@@ -833,8 +875,8 @@ class CameraController(
         val cam = camera ?: return
         val torch = st.mode.usesTorch && st.flash == FlashOption.TORCH && cam.cameraInfo.hasFlashUnit()
         cam.cameraControl.enableTorch(torch)
-        if (torch && st.torchStrengthAdjustable && st.torchStrength > 0) {
-            // Ignored by the framework while the torch is off, so only sent when it is on.
+        if (torch && st.torchStrengthAdjustable && settings.torchLevel != null) {
+            // Only once the user has chosen a level; otherwise the device default stays in effect.
             cam.cameraControl.setTorchStrengthLevel(st.torchStrength)
         }
         val ic = imageCapture ?: return

@@ -80,6 +80,7 @@ object FocusPeaking {
         step: Int = DEFAULT_STEP,
         topFraction: Float = DEFAULT_TOP_FRACTION,
         minGradient: Int = DEFAULT_MIN_GRADIENT,
+        scratch: Scratch = Scratch(),
     ): PeakingMask {
         require(width > 0 && height > 0) { "invalid size ${width}x$height" }
         require(step >= 1) { "step must be ≥ 1" }
@@ -89,7 +90,7 @@ object FocusPeaking {
         val limit = yPlane.limit()
 
         // Sub-sampled luma grid; out-of-buffer samples (truncated last row) read as 0.
-        val luma = IntArray(w * h)
+        val luma = scratch.luma(w * h)
         for (y in 0 until h) {
             val rowOffset = y * step * rowStride
             for (x in 0 until w) {
@@ -99,8 +100,8 @@ object FocusPeaking {
         }
 
         // Gradient magnitudes plus their histogram (border cells stay 0).
-        val gradient = IntArray(w * h)
-        val histogram = IntArray(MAX_GRADIENT + 1)
+        val gradient = scratch.gradient(w * h)
+        val histogram = scratch.histogram()
         for (y in 1 until h - 1) {
             for (x in 1 until w - 1) {
                 val i = y * w + x
@@ -113,6 +114,29 @@ object FocusPeaking {
         val threshold = maxOf(minGradient, thresholdForTopFraction(histogram, (w * h * topFraction).toInt()))
         val cells = BooleanArray(w * h) { gradient[it] >= threshold }
         return PeakingMask(w, h, step, cells)
+    }
+
+    /**
+     * Working buffers reused between frames by one analyzer thread, so steady-state
+     * detection allocates only the result mask (~0.3 MB) instead of ~3 MB per frame.
+     * Not thread-safe.
+     */
+    class Scratch {
+        private var lumaBuf = IntArray(0)
+        private var gradientBuf = IntArray(0)
+        private val histogramBuf = IntArray(MAX_GRADIENT + 1)
+
+        internal fun luma(size: Int): IntArray {
+            if (lumaBuf.size != size) lumaBuf = IntArray(size)
+            return lumaBuf // fully overwritten by detect()
+        }
+
+        internal fun gradient(size: Int): IntArray {
+            if (gradientBuf.size != size) gradientBuf = IntArray(size) else gradientBuf.fill(0)
+            return gradientBuf
+        }
+
+        internal fun histogram(): IntArray = histogramBuf.also { it.fill(0) }
     }
 
     /**

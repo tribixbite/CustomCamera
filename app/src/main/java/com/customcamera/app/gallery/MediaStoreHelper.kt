@@ -42,7 +42,9 @@ object MediaStoreHelper {
 
     /**
      * Insert target for an edited copy made at [editTime]. The name carries the edit
-     * time (unique per edit); DATE_TAKEN is the original's so the copy sorts beside it.
+     * time (unique per edit); DATE_TAKEN keeps the original's capture time, so gallery
+     * apps that sort by it place the copy beside the original (this app sorts by
+     * DATE_ADDED, so the copy shows first, next to where the user just was).
      */
     fun editTarget(editTime: Date, originalDateTaken: Long): Target =
         target(MediaNaming.editedFileName(editTime), MediaNaming.Kind.PHOTO, originalDateTaken)

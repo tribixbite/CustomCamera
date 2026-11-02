@@ -160,7 +160,9 @@
     <string name="pref_histogram">Live histogram</string>
     <string name="pref_histogram_summary">Brightness distribution with clipping warnings</string>
     <string name="pref_focus_peaking">Focus peaking</string>
-    <string name="pref_focus_peaking_summary">Highlight sharp edges while focusing manually in Pro mode</string>
+    <string name="pref_focus_peaking_summary">Highlight sharp edges while focusing manually in Pro mode (off while RAW capture is on)</string>
+    <string name="error_dual_unavailable">Dual camera is unavailable right now</string>
+    <string name="error_dual_inset">The second camera stopped; switch modes to restart it</string>
     <string name="pref_photo_quality">Capture priority</string>
     <string name="pref_jpeg_quality">JPEG quality</string>
     <string name="pref_ultra_hdr">Ultra HDR photos</string>

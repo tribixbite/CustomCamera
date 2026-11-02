@@ -521,7 +521,7 @@ class CameraActivity : AppCompatActivity() {
         binding.statusText.isVisible = mode == CaptureMode.SCAN && currentScan == null || captureBusy
         if (mode == CaptureMode.SCAN && currentScan == null) binding.statusText.setText(R.string.scan_hint)
         binding.histogram.isVisible = controller.histogramEnabled && mode.isPhotoLike && !mode.usesExtension
-        val peaking = mode == CaptureMode.PRO && settings.focusPeaking && state.manual.focusDiopters != null &&
+        val peaking = mode == CaptureMode.PRO && state.peakingAvailable && state.manual.focusDiopters != null &&
             state.manualCapabilities.manualFocus
         if (binding.focusPeaking.isVisible && !peaking) binding.focusPeaking.clear()
         binding.focusPeaking.isVisible = peaking
@@ -536,7 +536,8 @@ class CameraActivity : AppCompatActivity() {
             updateLiveLabelLoop(mode == CaptureMode.PRO)
             if (mode == CaptureMode.DUAL && previous != null) Toast.makeText(this, R.string.dual_hint, Toast.LENGTH_SHORT).show()
         }
-        if (previous?.currentCameraId != state.currentCameraId && state.currentCameraId != null) {
+        // DUAL reports its main camera; it must not overwrite the user's normal camera choice.
+        if (previous?.currentCameraId != state.currentCameraId && state.currentCameraId != null && mode != CaptureMode.DUAL) {
             settings.lastFacingFront = state.isFront
             settings.lastCameraId = controller.selectedCameraId
         }
@@ -980,7 +981,12 @@ class CameraActivity : AppCompatActivity() {
     }
 
     private fun cycleVideoQuality() {
-        val next = VideoQualityOption.entries[(settings.videoQuality.ordinal + 1) % VideoQualityOption.entries.size]
+        val options = VideoQualityOption.entries.let { all ->
+            // DUAL records at most FHD, so UHD would look like a no-op there.
+            if (controller.state.value.mode == CaptureMode.DUAL) all - VideoQualityOption.UHD else all
+        }
+        val current = options.indexOf(settings.videoQuality).let { if (it < 0) options.indexOf(VideoQualityOption.FHD) else it }
+        val next = options[(current + 1) % options.size]
         androidx.preference.PreferenceManager.getDefaultSharedPreferences(this).edit {
             putString(AppSettings.Keys.VIDEO_QUALITY, next.key)
         }

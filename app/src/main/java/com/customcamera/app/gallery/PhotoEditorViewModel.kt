@@ -90,6 +90,10 @@ class PhotoEditorViewModel(
                 SaveState.Saved(withContext(Dispatchers.IO) { saver.save(uri, snapshot) })
             } catch (e: CancellationException) {
                 throw e
+            } catch (e: OutOfMemoryError) {
+                // An Error, not an Exception: without this the coroutine would crash the process.
+                Log.w(TAG, "Out of memory saving edited copy of $uri", e)
+                SaveState.Failed
             } catch (e: Exception) {
                 // Decode/encode/MediaStore failures (including OOM-adjacent decode nulls) end here.
                 Log.w(TAG, "Saving edited copy of $uri failed", e)

@@ -90,6 +90,8 @@ data class CameraState(
     /** DUAL mode layout. */
     val pipCorner: PipCorner = PipCorner.DEFAULT,
     val dualFrontMain: Boolean = false,
+    /** The binding includes the focus-peaking analyzer (false e.g. with RAW or after a fallback). */
+    val peakingAvailable: Boolean = false,
 ) {
     val evSupported: Boolean get() = evMax > evMin
     val torchStrengthAdjustable: Boolean get() = torchStrengthMax > 1

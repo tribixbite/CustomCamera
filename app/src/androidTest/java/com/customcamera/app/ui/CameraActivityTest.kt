@@ -204,11 +204,13 @@ class CameraActivityTest {
 
     @Test
     fun focusPeakingAppearsWithManualFocus() {
-        prefs.edit().putBoolean(AppSettings.Keys.FOCUS_PEAKING, true).commit()
+        // RAW capture takes priority over the peaking analyzer, so make sure it is off.
+        prefs.edit().putBoolean(AppSettings.Keys.FOCUS_PEAKING, true).putBoolean(AppSettings.Keys.RAW, false).commit()
         ActivityScenario.launch(CameraActivity::class.java).use { scenario ->
             scenario.awaitReady()
             scenario.selectMode(CaptureMode.PRO)
             assumeTrue("camera has no manual focus", scenario.state().manualCapabilities.manualFocus)
+            assertTrue("peaking analyzer not bound", scenario.state().peakingAvailable)
             val peaking = { var v = false; scenario.onActivity { v = it.findViewById<View>(R.id.focusPeaking).visibility == View.VISIBLE }; v }
             scenario.onActivity { it.setManualFocusForTest(null) }
             waitUntil(5_000, message = "peaking hidden on autofocus") { !peaking() }

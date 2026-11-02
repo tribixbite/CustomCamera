@@ -54,6 +54,18 @@ class FocusPeakingTest {
     }
 
     @Test
+    fun `reused scratch gives the same result as fresh buffers`() {
+        val scratch = FocusPeaking.Scratch()
+        val edge = plane(64, 48) { x, _ -> if (x < 32) 20 else 230 }
+        val flat = plane(64, 48) { _, _ -> 90 }
+        FocusPeaking.detect(edge, 64, 48, 64, scratch = scratch)
+        // A stale gradient/histogram from the previous frame must not leak into this one.
+        assertEquals(0, FocusPeaking.detect(flat, 64, 48, 64, scratch = scratch).count)
+        val again = FocusPeaking.detect(edge, 64, 48, 64, scratch = scratch)
+        assertEquals(FocusPeaking.detect(edge, 64, 48, 64).cells.toList(), again.cells.toList())
+    }
+
+    @Test
     fun `threshold for budget`() {
         val histogram = IntArray(511).also { it[10] = 100; it[200] = 5; it[300] = 3 }
         // Exactly the 8 strongest fit: any threshold in 11..200 marks them; the smallest is returned.

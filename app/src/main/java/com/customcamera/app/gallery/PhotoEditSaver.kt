@@ -33,10 +33,25 @@ class PhotoEditSaver(context: Context) {
     private val appContext = context.applicationContext
     private val resolver = appContext.contentResolver
 
+    /**
+     * Full-resolution cap for this device. A decode plus its cropped/rotated copy
+     * can briefly need ~8 bytes per pixel (twice that on API 26–27, where EXIF
+     * rotation makes an extra copy), so low-RAM devices and small app memory
+     * classes get a lower cap than [BitmapDecoding.MAX_FULL_RESOLUTION_PIXELS].
+     */
+    private fun pixelBudget(): Long {
+        val am = appContext.getSystemService(android.app.ActivityManager::class.java)
+        return when {
+            am == null -> BitmapDecoding.MAX_FULL_RESOLUTION_PIXELS
+            am.isLowRamDevice || am.largeMemoryClass < LARGE_MEMORY_CLASS_MB -> LOW_MEMORY_PIXELS
+            else -> BitmapDecoding.MAX_FULL_RESOLUTION_PIXELS
+        }
+    }
+
     /** Saves [edit] of [source] and returns the new item's Uri. Throws on failure. */
     @WorkerThread
     fun save(source: Uri, edit: PhotoEdit): Uri {
-        val decoded = BitmapDecoding.decodeFullResolution(resolver, source)
+        val decoded = BitmapDecoding.decodeFullResolution(resolver, source, maxPixels = pixelBudget())
             ?: throw IOException("Cannot decode $source")
         val rendered = try {
             render(decoded, edit)
@@ -118,6 +133,12 @@ class PhotoEditSaver(context: Context) {
 
     private companion object {
         const val TEMP_DIR = "editor"
+
+        /** 24 MP keeps the edit under ~200 MB of native memory on constrained devices. */
+        const val LOW_MEMORY_PIXELS = 24_000_000L
+
+        /** Devices whose largeHeap class is below this are treated as memory-constrained. */
+        const val LARGE_MEMORY_CLASS_MB = 384
         const val EXIF_DATE_PATTERN = "yyyy:MM:dd HH:mm:ss"
 
         /** Metadata worth keeping on an edited copy. Size/orientation tags are rewritten instead. */
