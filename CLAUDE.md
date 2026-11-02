@@ -65,3 +65,12 @@ Seeker `192.168.0.170:5555`.
 - The host phone runs this Claude session: an earlier test pass on it sent taps
   into the Termux prompt when the app lost focus. Test on the dedicated devices
   above; on any shared device guard each `adb shell input` with a focus check.
+- **`am instrument` reports `assumeTrue` skips inside `OK (N tests)`.** Hardware-gated
+  tests (DUAL, torch strength, manual focus) can silently skip; run them one at a time
+  with `-e class …#method` and check for `AssumptionViolatedException` before claiming coverage.
+- **CameraX `CompositionSettings` (DUAL) use NDC:** −1..1, origin centre, +y up; `offset`
+  moves the scaled stream's centre (`core/PipLayout`). Verified on Pixel 8 Pro by pulling a
+  frame from a recorded clip. Concurrent cameras allow 2 use cases per camera (Preview +
+  VideoCapture here) and cap resolution below 4K.
+- **Pro + RAW + an ImageAnalysis = 4 streams**, not guaranteed below LEVEL_3: the bind
+  falls back silently. RAW wins; peaking/histogram analysis is skipped while RAW is on.
