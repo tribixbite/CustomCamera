@@ -27,13 +27,22 @@ enum class CaptureMode(val key: String, val extensionMode: Int?) {
     PHOTO("photo", null),
     VIDEO("video", null),
 
+    /**
+     * Picture-in-picture video from the front and back cameras at once (CameraX
+     * concurrent cameras). Only listed when the device reports a concurrent pair.
+     */
+    DUAL("dual", null),
+
     /** Manual ISO / shutter / white balance / focus. */
     PRO("pro", null),
 
     /** QR / barcode scanner. */
     SCAN("scan", null);
 
-    val isPhotoLike: Boolean get() = this != VIDEO && this != SCAN
+    /** Modes whose shutter records video. */
+    val isVideo: Boolean get() = this == VIDEO || this == DUAL
+
+    val isPhotoLike: Boolean get() = !isVideo && this != SCAN
     val usesExtension: Boolean get() = extensionMode != null
 
     /** Modes whose flash button controls a continuous torch instead of a capture flash. */
@@ -44,10 +53,17 @@ enum class CaptureMode(val key: String, val extensionMode: Int?) {
 
         /**
          * Modes to display, in order. Extension modes are dropped when the bound
-         * camera does not offer them, so users never see a mode that cannot work.
+         * camera does not offer them, and DUAL when the device has no concurrent
+         * front/back pair, so users never see a mode that cannot work.
          */
-        fun available(supportedExtensions: Set<Int>): List<CaptureMode> =
-            entries.filter { it.extensionMode == null || it.extensionMode in supportedExtensions }
+        fun available(supportedExtensions: Set<Int>, dualSupported: Boolean = false): List<CaptureMode> =
+            entries.filter {
+                when {
+                    it == DUAL -> dualSupported
+                    it.extensionMode != null -> it.extensionMode in supportedExtensions
+                    else -> true
+                }
+            }
     }
 }
 

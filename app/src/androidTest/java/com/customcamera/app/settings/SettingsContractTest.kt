@@ -10,6 +10,7 @@ import com.customcamera.app.core.CaptureMode
 import com.customcamera.app.core.FlashOption
 import com.customcamera.app.core.GridOption
 import com.customcamera.app.core.PhotoQualityOption
+import com.customcamera.app.core.PipCorner
 import com.customcamera.app.core.TimerOption
 import com.customcamera.app.core.VideoQualityOption
 import com.customcamera.app.core.VolumeKeyAction
@@ -70,6 +71,7 @@ class SettingsContractTest {
         assertEquals(defaults[AppSettings.Keys.GRID], settings.grid.key)
         assertEquals(defaults[AppSettings.Keys.LEVEL]?.toBoolean(), settings.showLevel)
         assertEquals(defaults[AppSettings.Keys.HISTOGRAM]?.toBoolean(), settings.showHistogram)
+        assertEquals(defaults[AppSettings.Keys.FOCUS_PEAKING]?.toBoolean(), settings.focusPeaking)
         assertEquals(defaults[AppSettings.Keys.PHOTO_QUALITY], settings.photoQuality.key)
         assertEquals(defaults[AppSettings.Keys.JPEG_QUALITY]?.toInt(), settings.jpegQuality)
         assertEquals(defaults[AppSettings.Keys.ULTRA_HDR]?.toBoolean(), settings.ultraHdr)
@@ -119,6 +121,37 @@ class SettingsContractTest {
 
         reread.lastCameraId = null
         assertNull(AppSettings(prefs).lastCameraId)
+    }
+
+    @Test
+    fun proTorchAndDualStateRoundTrips() {
+        val settings = AppSettings(prefs)
+        assertNull(settings.proIso)
+        assertNull(settings.proExposureNs)
+        assertNull(settings.proAwb)
+        assertNull(settings.proFocusDiopters)
+        assertNull(settings.torchLevel)
+        settings.proIso = 400
+        settings.proExposureNs = 8_000_000L
+        settings.proAwb = 5
+        settings.proFocusDiopters = 0f // infinity is a valid manual value
+        settings.torchLevel = 3
+        settings.pipCorner = PipCorner.TOP_LEFT
+        settings.dualFrontMain = true
+
+        val reread = AppSettings(prefs)
+        assertEquals(400, reread.proIso)
+        assertEquals(8_000_000L, reread.proExposureNs)
+        assertEquals(5, reread.proAwb)
+        assertEquals(0f, reread.proFocusDiopters)
+        assertEquals(3, reread.torchLevel)
+        assertEquals(PipCorner.TOP_LEFT, reread.pipCorner)
+        assertTrue(reread.dualFrontMain)
+
+        reread.proIso = null
+        reread.proFocusDiopters = null
+        assertNull(AppSettings(prefs).proIso)
+        assertNull(AppSettings(prefs).proFocusDiopters)
     }
 
     @Test

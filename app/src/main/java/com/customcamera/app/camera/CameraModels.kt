@@ -1,11 +1,14 @@
 package com.customcamera.app.camera
 
+import android.graphics.Matrix
 import android.graphics.RectF
 import android.net.Uri
 import com.customcamera.app.core.AspectOption
 import com.customcamera.app.core.CaptureMode
 import com.customcamera.app.core.FlashOption
 import com.customcamera.app.core.LensMath
+import com.customcamera.app.core.PeakingMask
+import com.customcamera.app.core.PipCorner
 import com.customcamera.app.core.ScanContent
 
 /** A camera exposed by CameraX, described for the lens picker. */
@@ -80,8 +83,16 @@ data class CameraState(
     val recording: RecordingStatus = RecordingStatus.IDLE,
     val recordingNanos: Long = 0L,
     val focusLocked: Boolean = false,
+    /** Highest torch strength level of the bound camera; 0 when strength is not adjustable. */
+    val torchStrengthMax: Int = 0,
+    /** Current torch strength level (1..[torchStrengthMax]); meaningful only when adjustable. */
+    val torchStrength: Int = 0,
+    /** DUAL mode layout. */
+    val pipCorner: PipCorner = PipCorner.DEFAULT,
+    val dualFrontMain: Boolean = false,
 ) {
     val evSupported: Boolean get() = evMax > evMin
+    val torchStrengthAdjustable: Boolean get() = torchStrengthMax > 1
 }
 
 /** One-shot notifications from the controller to the UI. */
@@ -96,6 +107,12 @@ sealed class CameraEvent {
     /** Barcodes found in the latest frame, with boxes in PreviewView coordinates. */
     data class BarcodesDetected(val results: List<DetectedCode>) : CameraEvent()
     data class HistogramUpdated(val histogram: com.customcamera.app.core.Histogram) : CameraEvent()
+
+    /**
+     * In-focus edges of the latest analysis frame. [mask] is upright; [toPreview]
+     * maps mask cell coordinates onto PreviewView coordinates.
+     */
+    data class FocusPeakingUpdated(val mask: PeakingMask, val toPreview: Matrix) : CameraEvent()
 
     /** Fallback happened: the requested camera failed and another was bound. */
     data class CameraFallback(val failedCameraId: String?, val boundCameraId: String) : CameraEvent()

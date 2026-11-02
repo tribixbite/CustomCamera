@@ -45,6 +45,14 @@
             android:layout_height="match_parent"
             android:visibility="gone" />
 
+        <!-- Pro mode: in-focus edges while focusing manually. -->
+        <com.customcamera.app.ui.FocusPeakingView
+            android:id="@+id/focusPeaking"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:importantForAccessibility="no"
+            android:visibility="gone" />
+
         <com.customcamera.app.ui.FocusIndicatorView
             android:id="@+id/focusIndicator"
             android:layout_width="match_parent"
@@ -184,6 +192,42 @@
                 android:textAppearance="@style/TextAppearance.Material3.LabelLarge"
                 android:textColor="@color/white"
                 tools:text="00:12" />
+        </LinearLayout>
+
+        <!-- Torch brightness (devices with adjustable torch strength, video/scan torch on). -->
+        <LinearLayout
+            android:id="@+id/torchBar"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/bg_pill_scrim"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="14dp"
+            android:paddingEnd="6dp"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/recordingChip"
+            app:layout_goneMarginTop="8dp"
+            tools:visibility="visible">
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_torch"
+                app:tint="@color/accent" />
+
+            <com.google.android.material.slider.Slider
+                android:id="@+id/torchSlider"
+                android:layout_width="200dp"
+                android:layout_height="wrap_content"
+                android:contentDescription="@string/cd_torch_strength"
+                android:stepSize="1"
+                android:valueFrom="1"
+                android:valueTo="2"
+                app:labelBehavior="gone" />
         </LinearLayout>
 
         <com.customcamera.app.ui.HistogramView

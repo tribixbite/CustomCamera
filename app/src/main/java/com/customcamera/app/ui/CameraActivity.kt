@@ -46,6 +46,7 @@ import com.customcamera.app.core.AspectOption
 import com.customcamera.app.core.CaptureMode
 import com.customcamera.app.core.FlashOption
 import com.customcamera.app.core.OrientationMath
+import com.customcamera.app.core.PipLayout
 import com.customcamera.app.core.ScanContent
 import com.customcamera.app.core.TimeFormat
 import com.customcamera.app.core.TimerOption
@@ -169,6 +170,7 @@ class CameraActivity : AppCompatActivity() {
         if (settingsDirty && cameraStarted) {
             settingsDirty = false
             controller.histogramEnabled = histogramWanted()
+            controller.focusPeakingEnabled = settings.focusPeaking
             controller.refreshFromSettings()
         }
         if (!cameraStarted && hasCameraPermission()) {
@@ -287,14 +289,31 @@ class CameraActivity : AppCompatActivity() {
             if (!st.mode.usesTorch && !st.hasFlashUnit && next == FlashOption.AUTO) next = FlashOption.ON
             controller.setFlash(next)
             if (!st.mode.usesTorch) settings.flash = next
+            if (next == FlashOption.TORCH) showTorchBar()
         }
+        // Long-press re-opens the torch brightness slider while the torch is on.
+        binding.flashButton.setOnLongClickListener {
+            val st = controller.state.value
+            (st.mode.usesTorch && st.flash == FlashOption.TORCH && st.torchStrengthAdjustable).also { if (it) showTorchBar() }
+        }
+        binding.torchSlider.addOnChangeListener { _, value, fromUser ->
+            if (fromUser) controller.setTorchStrength(value.toInt())
+        }
+        binding.torchSlider.addOnSliderTouchListener(object : com.google.android.material.slider.Slider.OnSliderTouchListener {
+            override fun onStartTrackingTouch(slider: com.google.android.material.slider.Slider) {
+                binding.torchBar.removeCallbacks(hideTorchBar)
+            }
+            override fun onStopTrackingTouch(slider: com.google.android.material.slider.Slider) {
+                binding.torchBar.postDelayed(hideTorchBar, EV_HIDE_MS)
+            }
+        })
         binding.timerButton.setOnClickListener {
             settings.timer = settings.timer.next()
             renderTopBar(controller.state.value)
         }
         binding.aspectButton.setOnClickListener {
             val st = controller.state.value
-            if (st.mode == CaptureMode.VIDEO) {
+            if (st.mode.isVideo) {
                 cycleVideoQuality()
             } else {
                 val next = st.aspect.next()
@@ -348,6 +367,18 @@ class CameraActivity : AppCompatActivity() {
     }
 
     private val hideExposureSlider = Runnable { binding.exposureSlider.isVisible = false }
+    private val hideTorchBar = Runnable { binding.torchBar.isVisible = false }
+
+    /** Shows the torch brightness slider briefly (only on devices with adjustable torch strength). */
+    private fun showTorchBar() {
+        val st = controller.state.value
+        if (!st.torchStrengthAdjustable) return
+        binding.torchSlider.valueTo = st.torchStrengthMax.toFloat()
+        binding.torchSlider.value = st.torchStrength.coerceIn(1, st.torchStrengthMax).toFloat()
+        binding.torchBar.isVisible = true
+        binding.torchBar.removeCallbacks(hideTorchBar)
+        binding.torchBar.postDelayed(hideTorchBar, EV_HIDE_MS)
+    }
 
     // The listener calls performClick() on ACTION_UP, and the container carries a
     // content description, so accessibility services still see a clickable preview.
@@ -449,6 +480,7 @@ class CameraActivity : AppCompatActivity() {
         if (cameraStarted) return
         cameraStarted = true
         controller.histogramEnabled = histogramWanted()
+        controller.focusPeakingEnabled = settings.focusPeaking
         val front = if (intent.hasExtra(EXTRA_FRONT)) intent.getBooleanExtra(EXTRA_FRONT, false) else settings.lastFacingFront
         val hdr = getPreferences(MODE_PRIVATE).getBoolean(STATE_HDR, false)
         lifecycleScope.launch {
@@ -479,7 +511,7 @@ class CameraActivity : AppCompatActivity() {
         binding.shutterButton.isInvisible = mode == CaptureMode.SCAN
         binding.shutterButton.style = when {
             state.recording != RecordingStatus.IDLE -> ShutterButton.Style.RECORDING
-            mode == CaptureMode.VIDEO -> ShutterButton.Style.VIDEO
+            mode.isVideo -> ShutterButton.Style.VIDEO
             else -> ShutterButton.Style.PHOTO
         }
         binding.proPanel.root.isVisible = mode == CaptureMode.PRO
@@ -489,6 +521,11 @@ class CameraActivity : AppCompatActivity() {
         binding.statusText.isVisible = mode == CaptureMode.SCAN && currentScan == null || captureBusy
         if (mode == CaptureMode.SCAN && currentScan == null) binding.statusText.setText(R.string.scan_hint)
         binding.histogram.isVisible = controller.histogramEnabled && mode.isPhotoLike && !mode.usesExtension
+        val peaking = mode == CaptureMode.PRO && settings.focusPeaking && state.manual.focusDiopters != null &&
+            state.manualCapabilities.manualFocus
+        if (binding.focusPeaking.isVisible && !peaking) binding.focusPeaking.clear()
+        binding.focusPeaking.isVisible = peaking
+        if (!(mode.usesTorch && state.flash == FlashOption.TORCH && state.torchStrengthAdjustable)) binding.torchBar.isVisible = false
         applyViewSettings()
 
         if (previous == null || previous.mode != mode || previous.aspect != state.aspect) layoutPreview(state)
@@ -497,6 +534,7 @@ class CameraActivity : AppCompatActivity() {
             binding.exposureSlider.isVisible = false
             binding.focusIndicator.clear()
             updateLiveLabelLoop(mode == CaptureMode.PRO)
+            if (mode == CaptureMode.DUAL && previous != null) Toast.makeText(this, R.string.dual_hint, Toast.LENGTH_SHORT).show()
         }
         if (previous?.currentCameraId != state.currentCameraId && state.currentCameraId != null) {
             settings.lastFacingFront = state.isFront
@@ -533,7 +571,7 @@ class CameraActivity : AppCompatActivity() {
         val recording = state.recording != RecordingStatus.IDLE
         val flashUsable = when {
             mode.usesTorch -> state.hasFlashUnit
-            mode.usesExtension -> false
+            mode.usesExtension || mode == CaptureMode.DUAL -> false
             else -> state.hasFlashUnit || state.isFront
         }
         binding.flashButton.isVisible = flashUsable
@@ -559,7 +597,12 @@ class CameraActivity : AppCompatActivity() {
         binding.timerButton.iconTint = ContextCompat.getColorStateList(this, if (timer == TimerOption.OFF) R.color.white else R.color.accent)
 
         binding.aspectButton.isVisible = mode != CaptureMode.SCAN && !recording
-        binding.aspectButton.text = if (mode == CaptureMode.VIDEO) settings.videoQuality.label else state.aspect.label
+        binding.aspectButton.text = when {
+            // Concurrent streams top out below 4K; the controller records DUAL at most at FHD.
+            mode == CaptureMode.DUAL && settings.videoQuality == VideoQualityOption.UHD -> VideoQualityOption.FHD.label
+            mode.isVideo -> settings.videoQuality.label
+            else -> state.aspect.label
+        }
         binding.aspectButton.contentDescription = getString(R.string.cd_aspect, binding.aspectButton.text)
 
         binding.hdrButton.isVisible = state.hdrAvailable && mode == CaptureMode.PHOTO
@@ -567,9 +610,11 @@ class CameraActivity : AppCompatActivity() {
         binding.hdrButton.alpha = if (state.hdrEnabled) 1f else 0.7f
 
         val extraLenses = state.lenses.size > 2
-        binding.lensButton.isVisible = extraLenses && !recording
+        binding.lensButton.isVisible = extraLenses && !recording && mode != CaptureMode.DUAL
         binding.settingsButton.isVisible = !recording && !secureLaunch
-        binding.flipButton.isVisible = state.lenses.any { it.isFront } && state.lenses.any { !it.isFront }
+        binding.flipButton.isVisible = state.lenses.any { it.isFront } && state.lenses.any { !it.isFront } &&
+            !(mode == CaptureMode.DUAL && recording)
+        binding.flipButton.contentDescription = getString(if (mode == CaptureMode.DUAL) R.string.cd_swap_dual else R.string.cd_flip)
     }
 
     private fun renderZoom(state: CameraState) {
@@ -632,7 +677,7 @@ class CameraActivity : AppCompatActivity() {
         val w = binding.root.width
         val h = binding.root.height
         if (w == 0 || h == 0) return
-        val ratio = if (state.mode == CaptureMode.VIDEO) 16f / 9f else state.aspect.heightOverWidth
+        val ratio = if (state.mode.isVideo) 16f / 9f else state.aspect.heightOverWidth
         val previewHeight = min((w * ratio).toInt(), h)
         val topBarBottom = binding.topBar.bottom
         val top = if (topBarBottom + previewHeight <= h) topBarBottom else max(0, (h - previewHeight) / 2)
@@ -658,6 +703,7 @@ class CameraActivity : AppCompatActivity() {
             CaptureMode.PORTRAIT -> R.string.mode_portrait
             CaptureMode.PHOTO -> R.string.mode_photo
             CaptureMode.VIDEO -> R.string.mode_video
+            CaptureMode.DUAL -> R.string.mode_dual
             CaptureMode.PRO -> R.string.mode_pro
             CaptureMode.SCAN -> R.string.mode_scan
         },
@@ -703,6 +749,7 @@ class CameraActivity : AppCompatActivity() {
             is CameraEvent.FocusResult -> binding.focusIndicator.onFocusResult(event.success)
             is CameraEvent.BarcodesDetected -> onBarcodes(event)
             is CameraEvent.HistogramUpdated -> if (binding.histogram.isVisible) binding.histogram.update(event.histogram)
+            is CameraEvent.FocusPeakingUpdated -> if (binding.focusPeaking.isVisible) binding.focusPeaking.update(event.mask, event.toPreview)
             is CameraEvent.CameraFallback -> Toast.makeText(
                 this, getString(R.string.camera_fallback, event.failedCameraId ?: "default", event.boundCameraId), Toast.LENGTH_LONG,
             ).show()
@@ -751,7 +798,7 @@ class CameraActivity : AppCompatActivity() {
     }
 
     private fun trigger(mode: CaptureMode) {
-        if (mode == CaptureMode.VIDEO) startRecordingFlow() else capturePhoto()
+        if (mode.isVideo) startRecordingFlow() else capturePhoto()
     }
 
     private fun capturePhoto() {
@@ -878,6 +925,11 @@ class CameraActivity : AppCompatActivity() {
         binding.flipButton.animate().rotationBy(180f).setDuration(300).start()
         binding.focusIndicator.clear()
         binding.exposureSlider.isVisible = false
+        if (st.mode == CaptureMode.DUAL) {
+            controller.swapDualCameras()
+            feedback.haptic(binding.flipButton, settings.haptics)
+            return
+        }
         controller.switchFacing()
         settings.lastFacingFront = !st.isFront
         feedback.haptic(binding.flipButton, settings.haptics)
@@ -940,6 +992,16 @@ class CameraActivity : AppCompatActivity() {
     private fun onPreviewTap(x: Float, y: Float, lock: Boolean) {
         val st = controller.state.value
         if (!st.ready || st.mode == CaptureMode.SCAN) return
+        if (st.mode == CaptureMode.DUAL && !lock && st.recording == RecordingStatus.IDLE) {
+            // Tapping the inset walks it to the next corner.
+            val container = binding.previewContainer
+            val inset = PipLayout.insetRect(PipLayout.inset(st.pipCorner))
+            if (inset.contains(x / container.width, y / container.height)) {
+                controller.setPipCorner(st.pipCorner.next())
+                feedback.haptic(container, settings.haptics)
+                return
+            }
+        }
         if (!lock && st.focusLocked) {
             controller.unlockFocus()
             binding.focusIndicator.clear()
@@ -1078,6 +1140,17 @@ class CameraActivity : AppCompatActivity() {
     /** Binds a specific Camera2 id as the lens picker would, for instrumented tests. */
     @VisibleForTesting
     internal fun selectCameraForTest(cameraId: String) = controller.selectCamera(cameraId)
+
+    @VisibleForTesting
+    internal fun setPipCornerForTest(corner: com.customcamera.app.core.PipCorner) = controller.setPipCorner(corner)
+
+    /** Sets (or with null clears) manual focus as the Pro focus slider would. */
+    @VisibleForTesting
+    internal fun setManualFocusForTest(diopters: Float?) =
+        controller.setManual(controller.state.value.manual.copy(focusDiopters = diopters))
+
+    @VisibleForTesting
+    internal fun setTorchStrengthForTest(level: Int) = controller.setTorchStrength(level)
 
     companion object {
         /** Shortcut / deep-link extra: initial [CaptureMode] key. */

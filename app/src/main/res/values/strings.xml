@@ -7,6 +7,7 @@
     <string name="mode_portrait">Portrait</string>
     <string name="mode_photo">Photo</string>
     <string name="mode_video">Video</string>
+    <string name="mode_dual">Dual</string>
     <string name="mode_pro">Pro</string>
     <string name="mode_scan">Scan</string>
 
@@ -16,6 +17,9 @@
     <string name="cd_flash_auto">Flash auto</string>
     <string name="cd_flash_on">Flash on</string>
     <string name="cd_torch_on">Torch on</string>
+    <string name="cd_torch_strength">Torch brightness</string>
+    <string name="cd_swap_dual">Swap front and back cameras</string>
+    <string name="dual_hint">Tap the inset to move it · flip button swaps cameras</string>
     <string name="cd_torch_off">Torch off</string>
     <string name="cd_timer">Self-timer: %1$s</string>
     <string name="cd_aspect">Aspect ratio %1$s</string>
@@ -155,6 +159,8 @@
     <string name="pref_level_summary">Horizon line that turns yellow when the camera is level</string>
     <string name="pref_histogram">Live histogram</string>
     <string name="pref_histogram_summary">Brightness distribution with clipping warnings</string>
+    <string name="pref_focus_peaking">Focus peaking</string>
+    <string name="pref_focus_peaking_summary">Highlight sharp edges while focusing manually in Pro mode</string>
     <string name="pref_photo_quality">Capture priority</string>
     <string name="pref_jpeg_quality">JPEG quality</string>
     <string name="pref_ultra_hdr">Ultra HDR photos</string>

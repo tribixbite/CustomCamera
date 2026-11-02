@@ -21,6 +21,22 @@ class CameraOptionsTest {
     }
 
     @Test
+    fun `dual mode is listed only with a concurrent camera pair`() {
+        assertFalse(CaptureMode.DUAL in CaptureMode.available(emptySet()))
+        val modes = CaptureMode.available(emptySet(), dualSupported = true)
+        assertEquals(listOf(CaptureMode.PHOTO, CaptureMode.VIDEO, CaptureMode.DUAL, CaptureMode.PRO, CaptureMode.SCAN), modes)
+    }
+
+    @Test
+    fun `dual records video and has no capture flash or torch`() {
+        assertTrue(CaptureMode.DUAL.isVideo)
+        assertTrue(CaptureMode.VIDEO.isVideo)
+        assertFalse(CaptureMode.DUAL.isPhotoLike)
+        assertFalse(CaptureMode.DUAL.usesTorch)
+        assertFalse(CaptureMode.PHOTO.isVideo)
+    }
+
+    @Test
     fun `mode keys round trip and unknown keys fall back to photo`() {
         CaptureMode.entries.forEach { assertEquals(it, CaptureMode.fromKey(it.key)) }
         assertEquals(CaptureMode.PHOTO, CaptureMode.fromKey("bogus"))

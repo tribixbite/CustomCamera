@@ -16,6 +16,7 @@ import androidx.test.rule.GrantPermissionRule
 import com.customcamera.app.R
 import com.customcamera.app.camera.RecordingStatus
 import com.customcamera.app.core.CaptureMode
+import com.customcamera.app.core.FlashOption
 import com.customcamera.app.core.TimerOption
 import com.customcamera.app.gallery.MediaItem
 import com.customcamera.app.gallery.MediaRepository
@@ -120,7 +121,7 @@ class CameraActivityTest {
                     assertEquals("pro panel in $mode", mode == CaptureMode.PRO, pro.visibility == View.VISIBLE)
                     assertEquals("scan overlay in $mode", mode == CaptureMode.SCAN, scan.visibility == View.VISIBLE)
                     assertEquals("shutter in $mode", mode != CaptureMode.SCAN, shutter.visibility == View.VISIBLE)
-                    if (mode == CaptureMode.VIDEO) assertEquals(ShutterButton.Style.VIDEO, shutter.style)
+                    if (mode.isVideo) assertEquals(ShutterButton.Style.VIDEO, shutter.style)
                     if (mode.isPhotoLike) assertEquals(ShutterButton.Style.PHOTO, shutter.style)
                 }
             }
@@ -174,6 +175,71 @@ class CameraActivityTest {
             val video = newItems().first { it.isVideo }
             assertTrue(video.displayName.endsWith(".mp4"))
             assertTrue("video too short: ${video.durationMs}ms", video.durationMs >= 1_000)
+        }
+    }
+
+    @Test
+    fun dualModeRecordsPictureInPictureVideo() {
+        ActivityScenario.launch(CameraActivity::class.java).use { scenario ->
+            scenario.awaitReady()
+            assumeTrue("device reports no concurrent front+back pair", CaptureMode.DUAL in scenario.state().availableModes)
+            scenario.selectMode(CaptureMode.DUAL)
+            // Moving the inset and swapping cameras both rebind the concurrent session.
+            val corner = scenario.state().pipCorner
+            scenario.onActivity { it.setPipCornerForTest(corner.next()) }
+            waitUntil(10_000, message = "inset moved") { scenario.state().let { it.ready && it.pipCorner == corner.next() } }
+            val frontMain = scenario.state().dualFrontMain
+            scenario.onActivity { it.findViewById<View>(R.id.flipButton).performClick() }
+            waitUntil(10_000, message = "cameras swapped") { scenario.state().let { it.ready && it.dualFrontMain != frontMain && it.mode == CaptureMode.DUAL } }
+
+            scenario.clickShutter()
+            waitUntil(10_000, message = "recording started") { scenario.state().recording == RecordingStatus.RECORDING }
+            Thread.sleep(2_000)
+            scenario.clickShutter()
+            waitUntil(15_000, message = "video in MediaStore") { newItems().any { it.isVideo } }
+            waitUntil(15_000, message = "video duration indexed") { newItems().any { it.isVideo && it.durationMs > 0 } }
+            assertTrue(newItems().first { it.isVideo }.durationMs >= 1_000)
+        }
+    }
+
+    @Test
+    fun focusPeakingAppearsWithManualFocus() {
+        prefs.edit().putBoolean(AppSettings.Keys.FOCUS_PEAKING, true).commit()
+        ActivityScenario.launch(CameraActivity::class.java).use { scenario ->
+            scenario.awaitReady()
+            scenario.selectMode(CaptureMode.PRO)
+            assumeTrue("camera has no manual focus", scenario.state().manualCapabilities.manualFocus)
+            val peaking = { var v = false; scenario.onActivity { v = it.findViewById<View>(R.id.focusPeaking).visibility == View.VISIBLE }; v }
+            scenario.onActivity { it.setManualFocusForTest(null) }
+            waitUntil(5_000, message = "peaking hidden on autofocus") { !peaking() }
+            scenario.onActivity { it.setManualFocusForTest(0f) }
+            waitUntil(5_000, message = "peaking shown on manual focus") { peaking() }
+            waitUntil(5_000, message = "peaking frame delivered") {
+                var drawn = false
+                scenario.onActivity { drawn = it.findViewById<FocusPeakingView>(R.id.focusPeaking).hasFrame }
+                drawn
+            }
+            scenario.onActivity { it.setManualFocusForTest(null) }
+            waitUntil(5_000, message = "peaking hidden again") { !peaking() }
+        }
+    }
+
+    @Test
+    fun torchStrengthIsAdjustable() {
+        ActivityScenario.launch(CameraActivity::class.java).use { scenario ->
+            scenario.awaitReady()
+            scenario.selectMode(CaptureMode.VIDEO)
+            val st = scenario.state()
+            assumeTrue("torch strength not adjustable", st.hasFlashUnit && st.torchStrengthAdjustable)
+            scenario.onActivity { it.findViewById<View>(R.id.flashButton).performClick() }
+            waitUntil(5_000, message = "torch on") { scenario.state().flash == FlashOption.TORCH }
+            scenario.onActivity { a ->
+                assertEquals(View.VISIBLE, a.findViewById<View>(R.id.torchBar).visibility)
+                a.setTorchStrengthForTest(1)
+            }
+            waitUntil(5_000, message = "torch level 1") { scenario.state().torchStrength == 1 }
+            scenario.onActivity { it.findViewById<View>(R.id.flashButton).performClick() }
+            waitUntil(5_000, message = "torch off") { scenario.state().flash == FlashOption.OFF }
         }
     }
 

@@ -24,6 +24,12 @@
             app:key="pref_histogram"
             app:summary="@string/pref_histogram_summary"
             app:title="@string/pref_histogram" />
+        <SwitchPreferenceCompat
+            app:defaultValue="true"
+            app:iconSpaceReserved="false"
+            app:key="pref_focus_peaking"
+            app:summary="@string/pref_focus_peaking_summary"
+            app:title="@string/pref_focus_peaking" />
     </PreferenceCategory>
 
     <PreferenceCategory app:title="@string/settings_cat_photo" app:iconSpaceReserved="false">

@@ -19,3 +19,6 @@ keystore.properties
 
 # Store-listing scratch renders
 /dist/
+
+# Agent worktrees
+.claude/worktrees/

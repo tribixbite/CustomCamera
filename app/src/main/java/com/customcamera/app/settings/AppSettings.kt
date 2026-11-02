@@ -9,6 +9,7 @@ import com.customcamera.app.core.CaptureMode
 import com.customcamera.app.core.FlashOption
 import com.customcamera.app.core.GridOption
 import com.customcamera.app.core.PhotoQualityOption
+import com.customcamera.app.core.PipCorner
 import com.customcamera.app.core.TimerOption
 import com.customcamera.app.core.VideoQualityOption
 import com.customcamera.app.core.VolumeKeyAction
@@ -29,6 +30,7 @@ class AppSettings(private val prefs: SharedPreferences) {
         const val GRID = "pref_grid"
         const val LEVEL = "pref_level"
         const val HISTOGRAM = "pref_histogram"
+        const val FOCUS_PEAKING = "pref_focus_peaking"
         const val SHUTTER_SOUND = "pref_shutter_sound"
         const val HAPTICS = "pref_haptics"
         const val VOLUME_KEYS = "pref_volume_keys"
@@ -51,6 +53,13 @@ class AppSettings(private val prefs: SharedPreferences) {
         const val FLASH = "state_flash"
         const val TIMER = "state_timer"
         const val ASPECT = "state_aspect"
+        const val TORCH_LEVEL = "state_torch_level"
+        const val PIP_CORNER = "state_pip_corner"
+        const val DUAL_FRONT_MAIN = "state_dual_front_main"
+        const val PRO_ISO = "state_pro_iso"
+        const val PRO_EXPOSURE_NS = "state_pro_exposure_ns"
+        const val PRO_AWB = "state_pro_awb"
+        const val PRO_FOCUS = "state_pro_focus"
     }
 
     var grid: GridOption
@@ -59,6 +68,9 @@ class AppSettings(private val prefs: SharedPreferences) {
 
     val showLevel: Boolean get() = prefs.getBoolean(Keys.LEVEL, true)
     val showHistogram: Boolean get() = prefs.getBoolean(Keys.HISTOGRAM, false)
+
+    /** Highlight in-focus edges while focusing manually in Pro mode. */
+    val focusPeaking: Boolean get() = prefs.getBoolean(Keys.FOCUS_PEAKING, true)
     val shutterSound: Boolean get() = prefs.getBoolean(Keys.SHUTTER_SOUND, true)
     val haptics: Boolean get() = prefs.getBoolean(Keys.HAPTICS, true)
     val volumeKeyAction: VolumeKeyAction
@@ -107,6 +119,38 @@ class AppSettings(private val prefs: SharedPreferences) {
     var aspect: AspectOption
         get() = AspectOption.fromKey(prefs.getString(Keys.ASPECT, AspectOption.RATIO_4_3.key))
         set(value) = prefs.edit { putString(Keys.ASPECT, value.key) }
+
+    /** Torch brightness level (1..max) on devices with adjustable torch strength; null = device default. */
+    var torchLevel: Int?
+        get() = prefs.getInt(Keys.TORCH_LEVEL, 0).takeIf { it > 0 }
+        set(value) = prefs.edit { if (value == null) remove(Keys.TORCH_LEVEL) else putInt(Keys.TORCH_LEVEL, value) }
+
+    /** Corner of the picture-in-picture inset in DUAL mode. */
+    var pipCorner: PipCorner
+        get() = PipCorner.fromKey(prefs.getString(Keys.PIP_CORNER, null))
+        set(value) = prefs.edit { putString(Keys.PIP_CORNER, value.key) }
+
+    /** DUAL mode: true = front camera fills the frame and the back camera is the inset. */
+    var dualFrontMain: Boolean
+        get() = prefs.getBoolean(Keys.DUAL_FRONT_MAIN, false)
+        set(value) = prefs.edit { putBoolean(Keys.DUAL_FRONT_MAIN, value) }
+
+    /**
+     * Pro-mode manual values, restored on the next session. Each is null when
+     * that control is on auto. White balance is a CONTROL_AWB_MODE_* value.
+     */
+    var proIso: Int?
+        get() = prefs.getInt(Keys.PRO_ISO, 0).takeIf { it > 0 }
+        set(value) = prefs.edit { if (value == null) remove(Keys.PRO_ISO) else putInt(Keys.PRO_ISO, value) }
+    var proExposureNs: Long?
+        get() = prefs.getLong(Keys.PRO_EXPOSURE_NS, 0L).takeIf { it > 0L }
+        set(value) = prefs.edit { if (value == null) remove(Keys.PRO_EXPOSURE_NS) else putLong(Keys.PRO_EXPOSURE_NS, value) }
+    var proAwb: Int?
+        get() = prefs.getInt(Keys.PRO_AWB, -1).takeIf { it >= 0 }
+        set(value) = prefs.edit { if (value == null) remove(Keys.PRO_AWB) else putInt(Keys.PRO_AWB, value) }
+    var proFocusDiopters: Float?
+        get() = prefs.getFloat(Keys.PRO_FOCUS, -1f).takeIf { it >= 0f }
+        set(value) = prefs.edit { if (value == null) remove(Keys.PRO_FOCUS) else putFloat(Keys.PRO_FOCUS, value) }
 
     fun registerListener(listener: SharedPreferences.OnSharedPreferenceChangeListener) =
         prefs.registerOnSharedPreferenceChangeListener(listener)

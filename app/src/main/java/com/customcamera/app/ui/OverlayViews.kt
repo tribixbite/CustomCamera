@@ -2,8 +2,10 @@ package com.customcamera.app.ui
 
 import android.animation.ValueAnimator
 import android.content.Context
+import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.RectF
@@ -15,12 +17,14 @@ import android.util.AttributeSet
 import android.view.View
 import android.view.animation.DecelerateInterpolator
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.createBitmap
 import androidx.core.graphics.withRotation
 import com.customcamera.app.R
 import com.customcamera.app.core.GridGeometry
 import com.customcamera.app.core.GridOption
 import com.customcamera.app.core.Histogram
 import com.customcamera.app.core.OrientationMath
+import com.customcamera.app.core.PeakingMask
 import kotlin.math.abs
 
 /** Composition grid drawn over the preview. */
@@ -328,6 +332,60 @@ class BarcodeOverlayView @JvmOverloads constructor(context: Context, attrs: Attr
 
     override fun onDetachedFromWindow() {
         removeCallbacks(clearRunnable)
+        super.onDetachedFromWindow()
+    }
+}
+
+/**
+ * Focus-peaking overlay: paints the in-focus cells of a [PeakingMask] in red
+ * over the preview. The mask is uploaded into a small reusable bitmap and
+ * scaled onto the preview with the analysis → preview transform.
+ */
+class FocusPeakingView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null) : View(context, attrs) {
+
+    private val peakColor = ContextCompat.getColor(context, R.color.record_red)
+    private val paint = Paint(Paint.FILTER_BITMAP_FLAG)
+    private var bitmap: Bitmap? = null
+    private var pixels = IntArray(0)
+    private val matrix = Matrix()
+
+    /** True once a mask has been drawn since the last [clear] (used by instrumented tests). */
+    var hasFrame = false
+        private set
+
+    init {
+        isClickable = false
+        importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO
+    }
+
+    fun update(mask: PeakingMask, toPreview: Matrix) {
+        val reuse = bitmap?.takeIf { it.width == mask.width && it.height == mask.height }
+        val bmp = reuse ?: createBitmap(mask.width, mask.height).also {
+            bitmap?.recycle()
+            bitmap = it
+            pixels = IntArray(mask.width * mask.height)
+        }
+        for (i in pixels.indices) pixels[i] = if (mask.cells[i]) peakColor else Color.TRANSPARENT
+        bmp.setPixels(pixels, 0, mask.width, 0, 0, mask.width, mask.height)
+        matrix.set(toPreview)
+        hasFrame = true
+        invalidate()
+    }
+
+    fun clear() {
+        bitmap?.eraseColor(Color.TRANSPARENT)
+        hasFrame = false
+        invalidate()
+    }
+
+    override fun onDraw(canvas: Canvas) {
+        val bmp = bitmap ?: return
+        canvas.drawBitmap(bmp, matrix, paint)
+    }
+
+    override fun onDetachedFromWindow() {
+        bitmap?.recycle()
+        bitmap = null
         super.onDetachedFromWindow()
     }
 }
