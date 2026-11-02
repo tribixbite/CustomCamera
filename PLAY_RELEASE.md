@@ -165,7 +165,7 @@ permissions (no `READ_MEDIA_*`, `MANAGE_EXTERNAL_STORAGE`, background location,
 | --- | --- |
 | App name | `title.txt` (29/30 chars) |
 | Short description | `short_description.txt` (80/80) |
-| Full description | `full_description.txt` (≈1.8k/4000) |
+| Full description | `full_description.txt` (≈2.2k/4000) |
 | App icon | `fastlane/metadata/android/en-US/images/icon.png` (512×512 RGBA) |
 | Feature graphic | `fastlane/metadata/android/en-US/images/featureGraphic.png` (1024×500) |
 | Phone screenshots | step 4 |

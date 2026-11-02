@@ -10,10 +10,11 @@ network access (the `INTERNET` permission is removed from the merged manifest).
 
 | Area | What you get |
 | --- | --- |
-| **Modes** | Photo, Video, Pro, QR Scan — plus Night and Portrait (CameraX Extensions) when the device supports them. Extension modes are discovered in the background and only shown if available. |
-| **Pro mode** | Manual ISO, shutter speed, white balance and focus distance applied through `Camera2CameraControl`, with live auto readings from the capture results. RAW (DNG) + JPEG when supported. |
+| **Modes** | Photo, Video, Pro, QR Scan — plus Night and Portrait (CameraX Extensions) and **Dual** (front + back picture-in-picture video) when the device supports them. Optional modes are discovered in the background and only shown if available. |
+| **Dual video** | Both cameras record at once through CameraX concurrent cameras; CameraX composites the inset into the recording itself (not a screenshot). Tap the inset to move it to another corner; the flip button swaps which camera fills the frame. |
+| **Pro mode** | Manual ISO, shutter speed, white balance and focus distance applied through `Camera2CameraControl`, with live auto readings from the capture results. **Focus peaking** highlights sharp edges while focusing manually. Values are remembered between sessions. RAW (DNG) + JPEG when supported. |
 | **Photo** | Flash off/auto/on, front **screen flash**, HDR extension toggle, Ultra HDR (JPEG_R), 3:4 / 9:16 / 1:1 via a CameraX `ViewPort` so the preview matches the file, capture priority (quality / latency / zero shutter lag), JPEG quality, mirrored selfies, optional geotagging. |
-| **Video** | 4K / 1080p / 720p / 480p with automatic fallback, stabilization, 10-bit HLG HDR, pause / resume, torch, and **camera switching while recording** (persistent recordings). |
+| **Video** | 4K / 1080p / 720p / 480p with automatic fallback, stabilization, 10-bit HLG HDR, pause / resume, torch with adjustable brightness (Android 15+ hardware), and **camera switching while recording** (persistent recordings). |
 | **Viewfinder** | Tap to focus with exposure slider, long-press AE/AF lock, pinch and preset zoom chips (0.6× … 5×), swipe to change mode or flip camera, self-timer, grids (thirds / golden / square), level indicator, live histogram with clipping warnings, volume-key shutter or zoom, haptics. Icons rotate with the device while the preview stays portrait. |
 | **Cameras** | Lens picker listing every camera Camera2 exposes (with 35 mm-equivalent focal length); if a camera fails to bind, the app falls back to the next working one automatically. |
 | **Scanner** | ML Kit on-device QR / barcode scanning with boxes mapped onto the preview; one-tap actions for links, Wi-Fi (system "add network" sheet), phone, SMS, email and geo codes. |

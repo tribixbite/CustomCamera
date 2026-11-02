@@ -1,7 +1,7 @@
 CustomCamera 3.0 — rebuilt from the ground up.
-• Pro mode with real ISO, shutter, white balance and focus control, plus RAW
-• Night, Portrait and HDR on supported phones
-• 4K video with stabilization, pause and camera switching
+• Pro mode with real ISO, shutter, white balance and focus control, focus peaking and RAW
+• Night, Portrait, HDR and Dual (picture-in-picture) video on supported phones
+• 4K video with stabilization, pause, camera switching and torch brightness
 • QR / barcode scanner with one-tap actions
-• Gallery with zoom, share, edit and details
+• Gallery with zoom, share, crop & rotate and details
 • Saves to your gallery (DCIM/CustomCamera); no network access

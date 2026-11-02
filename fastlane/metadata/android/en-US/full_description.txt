@@ -4,6 +4,7 @@ CustomCamera is a fast, private camera with real manual controls — no ads, no 
 • Set ISO, shutter speed, white balance and manual focus directly on the camera sensor
 • Live readouts of the automatic exposure while you shoot
 • Save RAW (DNG) next to every JPEG on supported cameras
+• Focus peaking highlights what is sharp while you focus by hand
 • Live histogram with highlight and shadow clipping warnings
 
 <b>Every lens, every mode</b>
@@ -15,12 +16,17 @@ CustomCamera is a fast, private camera with real manual controls — no ads, no 
 <b>Video</b>
 • Up to 4K, with stabilization and pause / resume
 • Switch between front and back cameras while recording
+• Dual video: record the front and back cameras at once, picture-in-picture, on supported phones
+• Adjustable torch brightness on supported phones
 
 <b>Made to be quick</b>
 • Tap to focus, long-press to lock focus and exposure, slide to adjust brightness
 • Swipe sideways to change mode, swipe up or down to flip the camera
 • Self-timer, composition grids, level indicator and volume-key shutter
 • Screen flash for selfies
+
+<b>Crop and rotate</b>
+• Crop, rotate and mirror photos in the built-in viewer; edits are saved as a new copy and the original is never changed
 
 <b>QR and barcode scanner</b>
 • Open links, join Wi-Fi networks, call, email, text or view locations straight from a code

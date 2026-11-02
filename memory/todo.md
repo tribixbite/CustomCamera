@@ -36,7 +36,8 @@ Owner chooses how `v3` lands on `main`; never force-push without explicit approv
 
 ## Verified on Pixel 8 Pro (API 37, 2026-11-01)
 
-- [x] 13/13 instrumented tests (`scripts/device-test.sh 192.168.0.216:5555`)
+- [x] 18/18 instrumented tests incl. DUAL recording, peaking, torch strength and the
+      crop editor (`scripts/device-test.sh 192.168.0.216:5555`)
 - [x] R8 staging build cold start 330 ms, no crash
 - [x] Night extension listed and captures (ext=3, 2560×1920 JPEG). Portrait and HDR
       are not offered by this device's extension service, so they stay hidden.
@@ -52,35 +53,36 @@ Owner chooses how `v3` lands on `main`; never force-push without explicit approv
 - [ ] API 26–28 storage path (WRITE_EXTERNAL_STORAGE + DATA column) — needs an old device/emulator
 - [ ] TalkBack pass (Pro slider did not appear in a uiautomator dump)
 
-## Ported from main (v2.4.3) — candidates
+## Ported from main (v2.4.3)
 
-- [ ] Dual-camera picture-in-picture (main `CameraEngine.kt` ConcurrentCamera bind,
-      `pip/ConcurrentCameraCapability.kt`); capture the PiP frame at sensor resolution
-      instead of main's `PreviewView.bitmap` composite. Spec: main
-      `docs/specs/features/concurrent-camera-pip.md`.
-- [x] Freeform crop → rebuilt as a non-destructive photo editor (branch `feat/crop-editor`):
-      viewer "Crop & rotate" → `gallery/PhotoEditorActivity` (aspect presets, rotate 90°,
-      mirror, reset) saves a NEW `IMG_<time>_edit.jpg` with copied EXIF. Geometry in
-      `core/CropMath.kt` (JVM-tested); `PhotoEditorActivityTest` covers a 1:1 save.
-      - [ ] Run `PhotoEditorActivityTest` on a test phone; check handles/gesture-nav
-            exclusion and landscape insets by hand.
+Audit of v2.4.3 (2026-11-02): every feature that worked there exists in v3; the
+items below were missing and are now implemented and verified on the Pixel 8 Pro.
+
+- [x] Dual-camera picture-in-picture → DUAL mode (CameraX concurrent cameras +
+      CompositionSettings; the inset is composited into the recording at stream
+      resolution, verified by extracting a frame from a 1080×1920 clip). Tap inset =
+      next corner (default top-right), flip = swap cameras; falls back to Video.
+- [x] Freeform crop → non-destructive Crop & rotate editor in the viewer (saves an
+      `_edit` copy with EXIF; `core/CropMath.kt`). Handle drag + 1:1 checked by hand.
       - [ ] Ultra HDR originals are re-encoded as plain JPEG (gain map dropped).
-- [ ] Focus peaking in Pro mode (main's version was never reachable — new work).
-- [ ] Torch strength / SOS: spec in main `docs/specs/FLASHLIGHT_MINI_APP.md` (backlog #8).
+      - [ ] Landscape insets / gesture-nav edge exclusion not checked by hand.
+- [x] Focus peaking in Pro mode while focus is manual (`core/FocusPeaking.kt`).
+      - [ ] Visual alignment check in a lit, textured scene (test phone faced a dark surface).
+- [x] Torch brightness slider (Android 15+ hardware with adjustable torch strength).
+- [x] Pro manual values persist between sessions (was backlog #2), clamped per camera.
+- Not ported (no working code in v2): SOS/strobe flashlight (spec only), AI scene/object
+  detection plugins (only ran during barcode scanning), debug/diagnostic activities.
 
 ## Backlog (prioritised)
 
 1. [ ] **Large screens / landscape layout.** Android 16+ ignores the portrait lock on
        ≥600dp screens for targetSdk 36 apps; the viewfinder layout is portrait-only and
        needs a landscape/tablet variant (capture rotation is already correct).
-2. [ ] Persist Pro-mode manual values across sessions (currently reset to auto).
-3. [ ] Burst / long-press shutter, and photo capture during video recording.
-4. [ ] Shutter-speed labels at sensor extremes show raw values (e.g. "1/11977");
+2. [ ] Burst / long-press shutter, and photo capture during video recording.
+3. [ ] Shutter-speed labels at sensor extremes show raw values (e.g. "1/11977");
        consider snapping display to the nearest standard stop.
-5. [ ] Upgrade to AGP 9.x + compileSdk 37 (unblocks core-ktx 1.19+).
-6. [ ] Localisation (strings are resource-based; arrays marked translatable).
-7. [ ] Baseline profile for faster cold start.
-8. [ ] Torch brightness (CameraX `setTorchStrengthLevel`, API 35+ devices) for video/scan
-       torch — idea carried over from the v2 line's flashlight spec.
-9. [ ] Optional: replace ML Kit with an Apache-licensed scanner to shrink the APK
+4. [ ] Upgrade to AGP 9.x + compileSdk 37 (unblocks core-ktx 1.19+).
+5. [ ] Localisation (strings are resource-based; arrays marked translatable).
+6. [ ] Baseline profile for faster cold start.
+7. [ ] Optional: replace ML Kit with an Apache-licensed scanner to shrink the APK
        (~5 MB native lib per ABI) and drop the Google ToS dependency.
