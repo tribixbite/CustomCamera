@@ -55,7 +55,7 @@ Requirements: JDK 17+, Android SDK with platform 36.
 ./gradlew :app:bundleRelease            # Play bundle (see PLAY_RELEASE.md for signing)
 ```
 
-On-device tests (27 instrumented tests; they delete every capture they make):
+On-device tests (30 instrumented tests; they delete every capture they make):
 
 ```bash
 ./gradlew :app:assembleDebug :app:assembleDebugAndroidTest

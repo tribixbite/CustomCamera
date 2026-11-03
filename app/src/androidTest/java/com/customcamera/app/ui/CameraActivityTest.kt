@@ -6,12 +6,19 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
+import android.media.MediaExtractor
+import android.media.MediaFormat
 import android.os.Build
 import android.os.SystemClock
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.provider.MediaStore
 import android.view.View
+import androidx.camera.core.CameraInfo
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.DynamicRange
+import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.video.Recorder
 import androidx.preference.PreferenceManager
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
@@ -24,6 +31,7 @@ import com.customcamera.app.core.CaptureMode
 import com.customcamera.app.core.CropAspect
 import com.customcamera.app.core.EditTransform
 import com.customcamera.app.core.PhotoEdit
+import com.customcamera.app.core.PhotoQualityOption
 import com.customcamera.app.core.VolumeKeyAction
 import com.customcamera.app.core.FlashOption
 import com.customcamera.app.core.TimerOption
@@ -369,6 +377,73 @@ class CameraActivityTest {
             scenario.awaitReady()
             InstrumentationRegistry.getInstrumentation().sendKeyDownUpSync(KeyEvent.KEYCODE_VOLUME_DOWN)
             waitUntil(20_000, message = "photo from volume key") { newItems().any { !it.isVideo } }
+        }
+    }
+
+    @Test
+    fun volumeKeysZoomWhenSetToZoom() {
+        prefs.edit().putString(AppSettings.Keys.VOLUME_KEYS, VolumeKeyAction.ZOOM.key).commit()
+        ActivityScenario.launch(CameraActivity::class.java).use { scenario ->
+            scenario.awaitReady()
+            val start = scenario.state()
+            assumeTrue("camera has no zoom range", start.maxZoom > start.zoomRatio)
+            val instrumentation = InstrumentationRegistry.getInstrumentation()
+            instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_VOLUME_UP)
+            waitUntil(5_000, message = "zoomed in") { scenario.state().zoomRatio > start.zoomRatio }
+            val zoomed = scenario.state().zoomRatio
+            instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_VOLUME_DOWN)
+            waitUntil(5_000, message = "zoomed out") { scenario.state().zoomRatio < zoomed }
+            assertTrue("volume key took a photo", newItems().isEmpty())
+        }
+    }
+
+    @Test
+    fun zeroShutterLagPhotoIsSaved() {
+        prefs.edit().putString(AppSettings.Keys.PHOTO_QUALITY, PhotoQualityOption.ZERO_SHUTTER_LAG.key).commit()
+        ActivityScenario.launch(CameraActivity::class.java).use { scenario ->
+            scenario.awaitReady()
+            assumeTrue("back camera does not support ZSL", backCameraInfo().isZslSupported)
+            scenario.clickShutter()
+            waitUntil(20_000, message = "ZSL photo in MediaStore") { newItems().any { !it.isVideo } }
+            assertTrue(newItems().first { !it.isVideo }.sizeBytes > 0)
+        }
+    }
+
+    @Test
+    fun hdrVideoIsRecordedAsHlg() {
+        prefs.edit().putBoolean(AppSettings.Keys.VIDEO_HDR, true).commit()
+        ActivityScenario.launch(CameraActivity::class.java).use { scenario ->
+            scenario.awaitReady()
+            val ranges = Recorder.getVideoCapabilities(backCameraInfo()).supportedDynamicRanges
+            assumeTrue("back camera records no HLG", DynamicRange.HLG_10_BIT in ranges)
+            scenario.selectMode(CaptureMode.VIDEO)
+            scenario.awaitStreaming()
+            scenario.clickShutter()
+            waitUntil(10_000, message = "recording started") { scenario.state().recording == RecordingStatus.RECORDING }
+            Thread.sleep(2_000)
+            scenario.clickShutter()
+            waitUntil(15_000, message = "video in MediaStore") { newItems().any { it.isVideo } }
+            val format = videoTrackFormat(newItems().first { it.isVideo }.uri)
+            assertEquals(
+                "colour transfer of ${format.getString(MediaFormat.KEY_MIME)}",
+                MediaFormat.COLOR_TRANSFER_HLG,
+                format.getInteger(MediaFormat.KEY_COLOR_TRANSFER, -1),
+            )
+        }
+    }
+
+    /** CameraInfo of the default back camera (what the activity binds on a fresh start). */
+    private fun backCameraInfo(): CameraInfo =
+        ProcessCameraProvider.getInstance(context).get().getCameraInfo(CameraSelector.DEFAULT_BACK_CAMERA)
+
+    private fun videoTrackFormat(uri: android.net.Uri): MediaFormat {
+        val extractor = MediaExtractor()
+        try {
+            extractor.setDataSource(context, uri, null)
+            return (0 until extractor.trackCount).map { extractor.getTrackFormat(it) }
+                .first { it.getString(MediaFormat.KEY_MIME).orEmpty().startsWith("video/") }
+        } finally {
+            extractor.release()
         }
     }
 

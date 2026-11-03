@@ -227,6 +227,7 @@ class CameraActivity : AppCompatActivity() {
     override fun onDestroy() {
         settings.unregisterListener(prefListener)
         orientationListener.disable()
+        binding.root.removeCallbacks(deferredIconTurn)
         getSystemService(DisplayManager::class.java).unregisterDisplayListener(displayListener)
         controller.release()
         feedback.release()
@@ -534,10 +535,25 @@ class CameraActivity : AppCompatActivity() {
                 deviceOrientation = snapped
                 controller.setTargetRotation(OrientationMath.surfaceRotation(snapped))
                 binding.levelView.deviceOrientation = snapped
-                rotateIcons()
+                // When the display can rotate too, turning the icons now would spin them
+                // 90° and straight back once the display follows (the sensor fires first).
+                if (displayMayFollowDevice()) {
+                    binding.root.removeCallbacks(deferredIconTurn)
+                    binding.root.postDelayed(deferredIconTurn, DISPLAY_FOLLOW_GRACE_MS)
+                } else {
+                    rotateIcons()
+                }
             }
         }
     }
+
+    /** Icon turn for a device rotation the display did not follow (see [orientationListener]). */
+    private val deferredIconTurn = Runnable { rotateIcons() }
+
+    /** True when the window rotates with the device: unlocked (large screens) and auto-rotate on. */
+    private fun displayMayFollowDevice(): Boolean =
+        requestedOrientation == ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED &&
+            Settings.System.getInt(contentResolver, Settings.System.ACCELEROMETER_ROTATION, 0) == 1
 
     private fun setupOrientation() {
         if (orientationListener.canDetectOrientation()) orientationListener.enable()
@@ -547,6 +563,7 @@ class CameraActivity : AppCompatActivity() {
     private fun uiOrientation(): Int = OrientationMath.uiOrientation(deviceOrientation, displayRotation())
 
     private fun rotateIcons() {
+        binding.root.removeCallbacks(deferredIconTurn)
         val ui = uiOrientation()
         val views = listOf<View>(
             binding.settingsButton, binding.flashButton, binding.timerButton, binding.aspectButton, binding.hdrButton,
@@ -1334,5 +1351,12 @@ class CameraActivity : AppCompatActivity() {
 
         /** smallestScreenWidthDp from which the viewfinder may rotate (Android's large-screen threshold). */
         private const val LARGE_SCREEN_DP = 600
+
+        /**
+         * How long a sensor-detected turn waits for the display to follow before the
+         * icons counter-rotate. The window manager rotates the display a few hundred
+         * milliseconds after the sensor settles.
+         */
+        private const val DISPLAY_FOLLOW_GRACE_MS = 700L
     }
 }

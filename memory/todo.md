@@ -36,7 +36,7 @@ Owner chooses how `v3` lands on `main`; never force-push without explicit approv
 
 ## Verified on Pixel 8 Pro (API 37, 2026-11-01)
 
-- [x] 27 instrumented tests (2026-11-02); earlier 18/18.
+- [x] 30 instrumented tests (2026-11-03; staging cold start 273 ms); earlier 27, 18.
 - [ ] Known flake (pre-existing): a DUAL recording made right after another camera session
       sometimes gets no encoder frames → ERROR_NO_VALID_DATA, no file. Baseline 44063c68: 2/20
       (photo test + DUAL test pair); current: 0/20 for that pair, 3/20 after the volume-key
@@ -54,11 +54,16 @@ Owner chooses how `v3` lands on `main`; never force-push without explicit approv
 - [ ] Portrait / HDR extensions (Night verified on Pixel; S25 Ultra's proxy times out)
 - [x] RAW (DNG) + JPEG saved from Pro (Pixel 8 Pro, `rawCaptureSavesDngBesideJpeg`)
 - [ ] Ultra HDR capture: CameraX offers no JPEG_R on the Pixel 8 Pro back camera (test skips)
-- [ ] 10-bit HLG video; ZSL
+- [x] 10-bit HLG video: the saved MP4's video track reports COLOR_TRANSFER_HLG
+      (`hdrVideoIsRecordedAsHlg`, Pixel 8 Pro, 2026-11-03)
+- [ ] ZSL: CameraX reports `isZslSupported=false` for the Pixel 8 Pro back camera
+      (`zeroShutterLagPhotoIsSaved` skips there); needs another device
 - [x] Location tagging writes EXIF GPS (`locationTaggingWritesGpsExif`, Pixel with location on)
 - [ ] Location permission prompt flow from Settings, by hand
 - [x] Volume-key shutter and 3 s self-timer (instrumented tests)
-- [ ] Volume-key zoom, level indicator in a lit scene
+- [x] Volume-key zoom (`volumeKeysZoomWhenSetToZoom`: up zooms in, down out, no photo)
+- [ ] Level indicator turning yellow when level: the line draws over the live scene, but
+      checking the colour change needs someone to tilt the phone
 - [ ] API 26–28 storage path (WRITE_EXTERNAL_STORAGE + DATA column) — needs an old device/emulator
 - [x] Pro slider: per-parameter TalkBack name and spoken values ("1/125", not the stop index);
       uiautomator dumps omit Material sliders (provider-based nodes) — test reads the provider.
@@ -78,9 +83,11 @@ items below were missing and are now implemented and verified on the Pixel 8 Pro
       - [x] Ultra HDR gain map survives crop + rotate on API 34+ (platform createBitmap /
             compress keep it; `ultraHdrGainmapSurvivesTheEditor`). Below API 34 copies are SDR.
       - [x] Landscape insets checked on the Pixel (phone and forced-tablet sizes).
-      - [ ] Gesture-nav edge exclusion for the side handles not checked by hand.
+      - [x] Gesture-nav edge exclusion (Pixel switched to gesture nav and back, 2026-11-03):
+            6 exclusion rects at the handles; a drag from x=8 moved the left edge, no Back.
 - [x] Focus peaking in Pro mode while focus is manual (`core/FocusPeaking.kt`).
-      - [ ] Visual alignment check in a lit, textured scene (test phone faced a dark surface).
+      - [x] Visual alignment (2026-11-03, dim room): at 37 cm the outlines sit on the pump
+            bottle's edges; at far focus they move to the mid-distance bag.
 - [x] Torch brightness slider (Android 15+ hardware with adjustable torch strength).
 - [x] Pro manual values persist between sessions (was backlog #2), clamped per camera.
 - Not ported (no working code in v2): SOS/strobe flashlight (spec only), AI scene/object
@@ -122,7 +129,10 @@ items below were missing and are now implemented and verified on the Pixel 8 Pro
 - [x] RTL landscape preview centred (absolute gravity)
 - [x] Burst click/blink flag carried on CaptureStarted; no burst through the HDR extension
 - [x] Window-shape/rotation rebinds deferred while any recording runs (was DUAL only)
-- [ ] Icons may turn twice on a tablet rotation (sensor fires before the display rotates) — cosmetic
+- [x] Icons turned twice on a tablet rotation (sensor fires before the display rotates):
+      while the display can follow (unlocked + auto-rotate on), a sensor turn now waits
+      700 ms and is cancelled by the display change. Not reproducible on the Pixel (the
+      fix needs a physical turn on a large screen); simulated-tablet layout re-checked.
 
 ## Backlog (prioritised)
 
