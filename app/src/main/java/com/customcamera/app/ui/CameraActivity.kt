@@ -345,6 +345,9 @@ class CameraActivity : AppCompatActivity() {
 
     private fun setupControls() {
         binding.shutterButton.setOnClickListener { onShutter() }
+        // Hold for a burst (Photo/Pro); lifting the finger ends it.
+        binding.shutterButton.setOnLongClickListener { startBurst() }
+        binding.shutterButton.onRelease = { controller.stopBurst() }
         binding.snapshotButton.setOnClickListener { takeSnapshot() }
         binding.flipButton.setOnClickListener { flipCamera() }
         binding.thumbnail.setOnClickListener { openLastCapture() }
@@ -595,8 +598,9 @@ class CameraActivity : AppCompatActivity() {
         if (mode == CaptureMode.PRO) proPanel.render(state)
         binding.barcodeOverlay.isVisible = mode == CaptureMode.SCAN
         if (mode != CaptureMode.SCAN) dismissScan()
-        binding.statusText.isVisible = mode == CaptureMode.SCAN && currentScan == null || captureBusy
+        binding.statusText.isVisible = mode == CaptureMode.SCAN && currentScan == null || captureBusy || state.burstShots > 0
         if (mode == CaptureMode.SCAN && currentScan == null) binding.statusText.setText(R.string.scan_hint)
+        if (state.burstShots > 0) binding.statusText.text = getString(R.string.burst_count, state.burstShots)
         binding.histogram.isVisible = controller.histogramEnabled && mode.isPhotoLike && !mode.usesExtension
         val peaking = mode == CaptureMode.PRO && state.peakingAvailable && state.manual.focusDiopters != null &&
             state.manualCapabilities.manualFocus
@@ -827,7 +831,12 @@ class CameraActivity : AppCompatActivity() {
 
     private fun onCameraEvent(event: CameraEvent) {
         when (event) {
-            is CameraEvent.CaptureStarted -> Unit
+            // Burst shots click and blink as each exposure starts (the counter is already
+            // advanced when the event is collected, so every shot of a running burst sees > 0).
+            is CameraEvent.CaptureStarted -> if (controller.state.value.burstShots > 0) {
+                feedback.shutter(settings.shutterSound)
+                blinkShutter()
+            }
             is CameraEvent.PhotoSaved -> {
                 setCaptureBusy(false)
                 if (launchMode == LaunchMode.IMAGE_CAPTURE) {
@@ -912,6 +921,19 @@ class CameraActivity : AppCompatActivity() {
         } else {
             controller.takePhoto(if (settings.saveLocation) location.currentOrNull() else null)
         }
+    }
+
+    /**
+     * Long-press burst. Not with a self-timer, capture intents, RAW or extension modes
+     * (returning false lets the press fall through to a normal click on release).
+     */
+    private fun startBurst(): Boolean {
+        val st = controller.state.value
+        if (launchMode != LaunchMode.NORMAL || settings.timer != TimerOption.OFF || captureBusy || !st.ready) return false
+        if (!controller.startBurst(if (settings.saveLocation) location.currentOrNull() else null)) return false
+        // Clicks and blinks follow each exposure via CameraEvent.CaptureStarted.
+        feedback.haptic(binding.shutterButton, settings.haptics, strong = true)
+        return true
     }
 
     /**

@@ -9,6 +9,7 @@ import android.graphics.ImageDecoder
 import android.os.Build
 import android.os.SystemClock
 import android.view.KeyEvent
+import android.view.MotionEvent
 import android.provider.MediaStore
 import android.view.View
 import androidx.preference.PreferenceManager
@@ -264,6 +265,29 @@ class CameraActivityTest {
         val edit = PhotoEdit(transform = EditTransform(rotation = 90), aspect = CropAspect.SQUARE)
         val copy = PhotoEditSaver(context).save(photo.uri, edit)
         assertTrue("edited copy lost the gain map", hasGainmap(copy))
+    }
+
+    @Test
+    fun holdingTheShutterTakesABurst() {
+        ActivityScenario.launch(CameraActivity::class.java).use { scenario ->
+            scenario.awaitReady()
+            scenario.onActivity { assertTrue("long press not handled", it.findViewById<View>(R.id.shutterButton).performLongClick()) }
+            waitUntil(20_000, message = "three burst shots") { scenario.state().burstShots >= 3 }
+            // Lifting the finger is what ends a burst.
+            var shotsAtRelease = 0
+            scenario.onActivity { a ->
+                shotsAtRelease = a.cameraStateForTest().burstShots
+                val up = MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis(), MotionEvent.ACTION_UP, 1f, 1f, 0)
+                a.findViewById<View>(R.id.shutterButton).dispatchTouchEvent(up)
+                up.recycle()
+            }
+            waitUntil(5_000, message = "burst stopped") { scenario.state().burstShots == 0 }
+            waitUntil(30_000, message = "burst photos saved") { newItems().count { !it.isVideo } >= 3 }
+            Thread.sleep(3_000)
+            // Each shot is requested only when the previous one starts, so at most one is in flight.
+            val saved = newItems().count { !it.isVideo }
+            assertTrue("burst kept shooting after release: $saved saved, $shotsAtRelease at release", saved <= shotsAtRelease + 1)
+        }
     }
 
     @Test

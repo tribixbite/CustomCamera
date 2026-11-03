@@ -330,6 +330,11 @@ class CameraController(
      */
     private fun bind(): Boolean {
         val p = provider ?: return false
+        // A rebind replaces the ImageCapture a running burst is chained to.
+        if (burstRunning) {
+            burstRunning = false
+            _state.update { it.copy(burstShots = 0) }
+        }
         val st = _state.value
         val infos = p.availableCameraInfos
         if (infos.isEmpty()) {
@@ -1060,8 +1065,60 @@ class CameraController(
         if (recording == null) videoCapture?.targetRotation = rotation
     }
 
-    /** Saves a photo to MediaStore (DCIM/CustomCamera). Results arrive as [CameraEvent]s. */
-    fun takePhoto(location: Location?) {
+    // ---------------------------------------------------------------------
+    // Burst
+    // ---------------------------------------------------------------------
+
+    private var burstRunning = false
+    private var burstLocation: Location? = null
+
+    /** A burst may run: a JPEG-only still capture outside extension modes. */
+    val burstAllowed: Boolean
+        get() {
+            val st = _state.value
+            return imageCapture != null && st.ready && st.mode.isPhotoLike && !st.mode.usesExtension && !st.rawActive &&
+                recording == null
+        }
+
+    /**
+     * Starts a burst. Each shot is requested when the previous one has started
+     * exposing, so the rate follows the capture pipeline instead of queueing
+     * requests that would keep firing after release. Flash is held off for the
+     * burst. Runs until [stopBurst] or [MAX_BURST] shots.
+     *
+     * @return false when a burst is not possible right now.
+     */
+    fun startBurst(location: Location?): Boolean {
+        if (burstRunning || !burstAllowed) return false
+        burstRunning = true
+        burstLocation = location
+        imageCapture?.flashMode = ImageCapture.FLASH_MODE_OFF
+        _state.update { it.copy(burstShots = 0) }
+        takeBurstShot()
+        return true
+    }
+
+    fun stopBurst() {
+        if (!burstRunning) return
+        burstRunning = false
+        _state.update { it.copy(burstShots = 0) }
+        applyFlash()
+    }
+
+    private fun takeBurstShot() {
+        takePhoto(burstLocation) {
+            if (!burstRunning) return@takePhoto
+            val shots = _state.value.burstShots + 1
+            _state.update { it.copy(burstShots = shots) }
+            if (shots >= MAX_BURST) stopBurst() else takeBurstShot()
+        }
+    }
+
+    /**
+     * Saves a photo to MediaStore (DCIM/CustomCamera). Results arrive as [CameraEvent]s.
+     * [onStarted] runs on the main thread when the sensor starts the exposure.
+     */
+    fun takePhoto(location: Location?, onStarted: (() -> Unit)? = null) {
         val ic = imageCapture ?: return emit(CameraEvent.Error("Camera not ready"))
         val time = Date()
         val metadata = ImageCapture.Metadata().apply {
@@ -1072,7 +1129,7 @@ class CameraController(
         val jpegOptions = ImageCapture.OutputFileOptions.Builder(context.contentResolver, jpeg.collection, jpeg.values)
             .setMetadata(metadata)
             .build()
-        val callback = savedCallback()
+        val callback = savedCallback(onStarted)
         if (ic.outputFormat == ImageCapture.OUTPUT_FORMAT_RAW_JPEG) {
             val raw = MediaStoreHelper.target(MediaNaming.Kind.RAW, time)
             val rawOptions = ImageCapture.OutputFileOptions.Builder(context.contentResolver, raw.collection, raw.values)
@@ -1092,11 +1149,17 @@ class CameraController(
         ic.takePicture(options, mainExecutor, savedCallback())
     }
 
-    private fun savedCallback() = object : ImageCapture.OnImageSavedCallback {
-        override fun onCaptureStarted() = emit(CameraEvent.CaptureStarted)
+    private fun savedCallback(onStarted: (() -> Unit)? = null) = object : ImageCapture.OnImageSavedCallback {
+        override fun onCaptureStarted() {
+            emit(CameraEvent.CaptureStarted)
+            onStarted?.invoke()
+        }
         override fun onImageSaved(output: ImageCapture.OutputFileResults) = emit(CameraEvent.PhotoSaved(output.savedUri))
-        override fun onError(exception: ImageCaptureException) =
+        override fun onError(exception: ImageCaptureException) {
+            // A failed shot ends the burst rather than retrying into the same failure.
+            if (burstRunning) stopBurst()
             emit(CameraEvent.Error("Photo capture failed: ${exception.message ?: exception.imageCaptureError}", exception))
+        }
     }
 
     val isRecording: Boolean get() = recording != null
@@ -1154,6 +1217,7 @@ class CameraController(
 
     /** Releases resources that outlive the lifecycle-bound use cases. */
     fun release() {
+        burstRunning = false
         recording?.stop()
         recording = null
         closeDualOwner()
@@ -1217,6 +1281,9 @@ class CameraController(
         private const val AUTO_CANCEL_SECONDS = 5L
         private const val HISTOGRAM_INTERVAL_MS = 125L
         private const val PEAKING_INTERVAL_MS = 100L
+
+        /** Upper bound on one burst, so a stuck finger cannot fill the storage. */
+        const val MAX_BURST = 30
         private const val DEFAULT_ISO = 100
         private const val DEFAULT_EXPOSURE_NS = 16_666_666L
 

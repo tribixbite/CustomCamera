@@ -22,6 +22,7 @@ CustomCamera is a fast, private camera with real manual controls — no ads, no 
 
 <b>Made to be quick</b>
 • Tap to focus, long-press to lock focus and exposure, slide to adjust brightness
+• Hold the shutter for a burst of photos
 • Swipe sideways to change mode, swipe up or down to flip the camera
 • Self-timer, composition grids, level indicator and volume-key shutter
 • Screen flash for selfies

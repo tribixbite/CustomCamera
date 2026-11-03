@@ -18,6 +18,8 @@
     <string name="cd_flash_on">Flash on</string>
     <string name="cd_torch_on">Torch on</string>
     <string name="cd_torch_strength">Torch brightness</string>
+    <!-- Shown while the shutter is held: number of photos taken in the burst so far. -->
+    <string name="burst_count">Burst · %1$d</string>
     <string name="cd_snapshot">Take a photo while recording</string>
     <string name="cd_swap_dual">Swap front and back cameras</string>
     <string name="dual_hint">Tap the inset to move it · flip button swaps cameras</string>

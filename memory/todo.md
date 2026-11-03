@@ -99,14 +99,17 @@ items below were missing and are now implemented and verified on the Pixel 8 Pro
       recording. 4032×2268 still beside a 1080p clip on the Pixel.
 - [x] Shutter labels snap to standard third stops within 1/6 stop, else 2 significant
       figures (sensor limit reads 1/38000, live 1/117 reads 1/125).
+- [x] Burst: hold the shutter in Photo/Pro (not RAW, extensions, timer or capture intents);
+      each shot is requested when the previous starts, max 30, flash held off. ~1.4 shots/s
+      on the Pixel 8 Pro with the default Quality priority (4 shots in a 3 s hold).
+      - [ ] Faster bursts would need pipelining >1 request or a latency-mode ImageCapture.
 - [x] Rail switch no longer resets child visibility (ConstraintSet VISIBILITY_MODE_IGNORE);
       rotating mid-recording keeps the chip, pause and snapshot buttons.
 
 ## Backlog (prioritised)
 
-1. [ ] Burst / long-press shutter.
-2. [ ] Upgrade to AGP 9.x + compileSdk 37 (unblocks core-ktx 1.19+).
-3. [ ] Localisation (strings are resource-based; arrays marked translatable).
-4. [ ] Baseline profile for faster cold start.
-5. [ ] Optional: replace ML Kit with an Apache-licensed scanner to shrink the APK
+1. [ ] Upgrade to AGP 9.x + compileSdk 37 (unblocks core-ktx 1.19+).
+2. [ ] Localisation (strings are resource-based; arrays marked translatable).
+3. [ ] Baseline profile for faster cold start.
+4. [ ] Optional: replace ML Kit with an Apache-licensed scanner to shrink the APK
        (~5 MB native lib per ABI) and drop the Google ToS dependency.

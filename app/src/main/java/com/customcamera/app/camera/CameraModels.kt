@@ -98,6 +98,8 @@ data class CameraState(
     val rawActive: Boolean = false,
     /** The bound still capture writes Ultra HDR (JPEG_R) photos. */
     val ultraHdrActive: Boolean = false,
+    /** Shots started in the running burst; 0 when no burst is running. */
+    val burstShots: Int = 0,
 ) {
     val evSupported: Boolean get() = evMax > evMin
     val torchStrengthAdjustable: Boolean get() = torchStrengthMax > 1
