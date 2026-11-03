@@ -80,6 +80,14 @@ class CameraOptionsTest {
     }
 
     @Test
+    fun `aspect label follows the window shape`() {
+        assertEquals("3:4", AspectOption.RATIO_4_3.label(landscape = false))
+        assertEquals("4:3", AspectOption.RATIO_4_3.label(landscape = true))
+        assertEquals("16:9", AspectOption.RATIO_16_9.label(landscape = true))
+        assertEquals("1:1", AspectOption.RATIO_1_1.label(landscape = true))
+    }
+
+    @Test
     fun `every option enum round trips its key`() {
         FlashOption.entries.forEach { assertEquals(it, FlashOption.fromKey(it.key)) }
         TimerOption.entries.forEach { assertEquals(it, TimerOption.fromKey(it.key)) }

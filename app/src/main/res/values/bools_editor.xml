@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- True when activity_photo_editor puts its tools in a side column (layout-land). -->
+    <bool name="editor_side_panel">false</bool>
+</resources>

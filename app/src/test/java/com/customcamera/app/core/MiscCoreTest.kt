@@ -47,6 +47,19 @@ class MediaNamingTest {
 class OrientationMathTest {
 
     @Test
+    fun `ui orientation is zero when the display follows the device`() {
+        // Device turned clockwise (left side up) → display goes to ROTATION_270.
+        assertEquals(0, OrientationMath.uiOrientation(90, 3))
+        assertEquals(0, OrientationMath.uiOrientation(270, 1))
+        assertEquals(0, OrientationMath.uiOrientation(180, 2))
+        // Portrait-locked phone: the display never rotates.
+        assertEquals(90, OrientationMath.uiOrientation(90, 0))
+        // Landscape-natural tablet shown in portrait (ROTATION_90), device held portrait.
+        assertEquals(0, OrientationMath.uiOrientation(270, 1))
+        assertEquals(270, OrientationMath.uiOrientation(180, 1))
+    }
+
+    @Test
     fun `snap keeps current orientation inside hysteresis band`() {
         assertEquals(0, OrientationMath.snap(50, 0))
         assertEquals(0, OrientationMath.snap(355, 0))

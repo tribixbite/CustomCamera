@@ -9,4 +9,6 @@
     <dimen name="zoom_chip">38dp</dimen>
     <dimen name="screen_margin">16dp</dimen>
     <dimen name="gallery_spacing">2dp</dimen>
+    <!-- Pro / scan panels stop growing on tablets and in landscape. -->
+    <dimen name="panel_max_width">560dp</dimen>
 </resources>

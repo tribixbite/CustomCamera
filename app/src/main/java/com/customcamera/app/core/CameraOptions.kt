@@ -112,6 +112,9 @@ enum class AspectOption(val key: String, val label: String, val width: Int, val 
 
     fun next(): AspectOption = entries[(ordinal + 1) % entries.size]
 
+    /** Label as width:height of the frame on screen: "3:4" in a portrait window, "4:3" in a landscape one. */
+    fun label(landscape: Boolean): String = if (landscape) "$height:$width" else label
+
     companion object {
         fun fromKey(key: String?): AspectOption = entries.firstOrNull { it.key == key } ?: RATIO_4_3
     }

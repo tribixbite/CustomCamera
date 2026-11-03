@@ -7,6 +7,8 @@ package com.customcamera.app.core
  * spans -1..1 on both axes with the origin in the centre and +y pointing up,
  * and `offset` moves the centre of a stream scaled by `scale`. Views use 0..1
  * with +y pointing down; [insetRect] converts so taps can be hit-tested.
+ * The composited frame is display-oriented: on a Pixel 8 Pro forced to
+ * landscape (ROTATION_90) a top-left request appeared top-left on screen.
  */
 enum class PipCorner(val key: String) {
     // Top-right first: on most phones the zoom chips and mode tabs cover the bottom of the frame.

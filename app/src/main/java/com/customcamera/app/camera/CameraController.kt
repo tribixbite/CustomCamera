@@ -150,6 +150,19 @@ class CameraController(
     /** Explicit camera from the lens picker; null = platform default for the facing. */
     private var requestedCameraId: String? = null
     private var targetRotation: Int = Surface.ROTATION_0
+
+    /**
+     * True while the viewfinder window is wider than tall (large screens, landscape
+     * multi-window). The ViewPort ratio is expressed in display coordinates, so a
+     * landscape window needs the long side horizontal or the crop comes out portrait.
+     */
+    private var landscapeWindow = false
+
+    /** Owner of the current DUAL session; replaced on every DUAL bind (see [SessionLifecycleOwner]). */
+    private var dualOwner: SessionLifecycleOwner? = null
+
+    /** Display rotation (Surface.ROTATION_*) at the last bind; the DUAL composition is laid out in display orientation. */
+    private var displayRotation = Surface.ROTATION_0
     private val liveExposure = AtomicReference<LiveExposure?>()
 
     /** Screen-flash implementation supplied by the activity (front cameras without a flash unit). */
@@ -402,9 +415,11 @@ class CameraController(
 
         // A persistent recording keeps running across unbind/rebind of its VideoCapture.
         p.unbindAll()
+        closeDualOwner()
 
         val useCases = buildUseCases(mode, baseInfo, extensionMode, baseSelector, facingFront, safeMode, allowAnalysis)
-        val ratio = if (mode == CaptureMode.VIDEO) Rational(9, 16) else Rational(st.aspect.width, st.aspect.height)
+        val (shortSide, longSide) = if (mode == CaptureMode.VIDEO) 9 to 16 else st.aspect.width to st.aspect.height
+        val ratio = if (landscapeWindow) Rational(longSide, shortSide) else Rational(shortSide, longSide)
         val viewPort = ViewPort.Builder(ratio, previewView.display?.rotation ?: Surface.ROTATION_0)
             .setScaleType(ViewPort.FILL_CENTER)
             .build()
@@ -470,6 +485,8 @@ class CameraController(
         val pair = dualPair ?: throw IllegalStateException("No concurrent camera pair")
         val (mainInfo, insetInfo) = if (st.dualFrontMain) pair.front to pair.back else pair.back to pair.front
         p.unbindAll()
+        closeDualOwner()
+        val owner = SessionLifecycleOwner(lifecycleOwner).also { dualOwner = it }
         val preview = Preview.Builder()
             .setResolutionSelector(ResolutionSelector.Builder().setAspectRatioStrategy(AspectRatioStrategy.RATIO_16_9_FALLBACK_AUTO_STRATEGY).build())
             .build()
@@ -481,8 +498,11 @@ class CameraController(
         // The same UseCaseGroup goes to both cameras; CameraX composes them per CompositionSettings.
         val group = UseCaseGroup.Builder().addUseCase(preview).addUseCase(video).build()
         val configs = listOf(
-            ConcurrentCamera.SingleCameraConfig(mainInfo.cameraSelector, group, PipLayout.FULL.toCameraX(), lifecycleOwner),
-            ConcurrentCamera.SingleCameraConfig(insetInfo.cameraSelector, group, PipLayout.inset(st.pipCorner).toCameraX(), lifecycleOwner),
+            ConcurrentCamera.SingleCameraConfig(mainInfo.cameraSelector, group, PipLayout.FULL.toCameraX(), owner),
+            ConcurrentCamera.SingleCameraConfig(
+                insetInfo.cameraSelector, group,
+                PipLayout.inset(st.pipCorner).toCameraX(), owner,
+            ),
         )
         val concurrent = p.bindToLifecycle(configs)
         // Zoom, focus and torch act on the main (full-frame) camera.
@@ -490,7 +510,9 @@ class CameraController(
         boundExtensionKey = idOf(mainInfo)
         val boundId = publishBound(main, mainInfo, CaptureMode.DUAL, st.dualFrontMain, supportedExtensions(idOf(mainInfo)), manualAllowed = false)
         concurrent.cameras.getOrNull(1)?.let { observeInsetCamera(it.cameraInfo) }
-        if (BuildConfig.DEBUG) Log.d(TAG, "Bound dual main=$boundId inset=${idOf(insetInfo)} corner=${st.pipCorner}")
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "Bound dual main=$boundId inset=${idOf(insetInfo)} corner=${st.pipCorner} rotation=$displayRotation")
+        }
     }
 
     private fun Composition.toCameraX(): CompositionSettings = CompositionSettings.Builder()
@@ -853,7 +875,29 @@ class CameraController(
     fun setAspect(aspect: AspectOption) {
         if (_state.value.aspect == aspect) return
         _state.update { it.copy(aspect = aspect) }
-        if (_state.value.mode != CaptureMode.VIDEO) rebind()
+        if (!_state.value.mode.isVideo) rebind()
+    }
+
+    /**
+     * Called by the activity when the window shape or display rotation changes.
+     * Single-camera modes rebind when the shape flips so the ViewPort crop follows (a
+     * persistent recording survives that). DUAL has no ViewPort, but CameraX lays the
+     * composition out for the display rotation at bind time, so it rebinds on any
+     * rotation change to keep the inset in the chosen screen corner — except while
+     * recording, where a rebind would end the clip.
+     */
+    fun onWindowChanged(landscape: Boolean, rotation: Int) {
+        val shapeChanged = landscapeWindow != landscape
+        landscapeWindow = landscape
+        if (_state.value.mode == CaptureMode.DUAL) {
+            // Left stale while recording; the activity calls again when the recording ends.
+            if (displayRotation == rotation || recording != null) return
+            displayRotation = rotation
+            rebind()
+        } else {
+            displayRotation = rotation
+            if (shapeChanged) rebind()
+        }
     }
 
     fun setHdr(enabled: Boolean) {
@@ -1079,10 +1123,16 @@ class CameraController(
     fun resumeRecording() = recording?.resume()
     fun stopRecording() = recording?.stop()
 
+    private fun closeDualOwner() {
+        dualOwner?.close()
+        dualOwner = null
+    }
+
     /** Releases resources that outlive the lifecycle-bound use cases. */
     fun release() {
         recording?.stop()
         recording = null
+        closeDualOwner()
         barcodeScanner?.close()
         barcodeScanner = null
         analysisExecutor.shutdown()

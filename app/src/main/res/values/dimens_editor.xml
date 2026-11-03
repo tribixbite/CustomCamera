@@ -2,4 +2,6 @@
 <resources>
     <!-- Half a 48dp touch target, so edge handles on the image border stay fully grabbable. -->
     <dimen name="editor_crop_padding">24dp</dimen>
+    <!-- Landscape: width of the tool column beside the crop area. -->
+    <dimen name="editor_side_panel_width">272dp</dimen>
 </resources>

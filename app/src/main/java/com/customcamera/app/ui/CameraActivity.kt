@@ -4,8 +4,10 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.SharedPreferences
+import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.hardware.display.DisplayManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -26,6 +28,7 @@ import androidx.annotation.VisibleForTesting
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.content.edit
+import androidx.core.graphics.Insets
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
@@ -51,6 +54,7 @@ import com.customcamera.app.core.ScanContent
 import com.customcamera.app.core.TimeFormat
 import com.customcamera.app.core.TimerOption
 import com.customcamera.app.core.VideoQualityOption
+import com.customcamera.app.core.ViewfinderGeometry
 import com.customcamera.app.core.VolumeKeyAction
 import com.customcamera.app.core.ZoomMath
 import com.customcamera.app.databinding.ActivityCameraBinding
@@ -91,6 +95,7 @@ class CameraActivity : AppCompatActivity() {
     private lateinit var proPanel: ProPanelController
     private lateinit var feedback: CaptureFeedback
     private lateinit var location: LocationTracker
+    private lateinit var viewfinderLayout: ViewfinderLayout
     private val repository by lazy { MediaRepository.get(this) }
 
     private var launchMode = LaunchMode.NORMAL
@@ -102,6 +107,10 @@ class CameraActivity : AppCompatActivity() {
     private var updatingTabs = false
 
     private var deviceOrientation = 0
+
+    /** Last system-bar / cutout insets, re-applied whenever the control arrangement changes. */
+    private var systemBars = Insets.NONE
+    private var cutoutTop = 0
     private var countdownJob: Job? = null
     private var liveLabelJob: Job? = null
     private var captureBusy = false
@@ -140,13 +149,21 @@ class CameraActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
+        // Phones stay portrait (manifest); large screens follow the device, as Android 16+
+        // enforces anyway, so tablets and unfolded foldables get the landscape layout.
+        if (resources.configuration.smallestScreenWidthDp >= LARGE_SCREEN_DP) {
+            requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+        }
         binding = ActivityCameraBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        viewfinderLayout = ViewfinderLayout(binding)
 
         settings = AppSettings(this)
         feedback = CaptureFeedback()
         location = LocationTracker(this)
         controller = CameraController(this, this, binding.previewView, settings)
+        // Best guess before the first layout; the root layout listener corrects it.
+        controller.onWindowChanged(resources.configuration.let { it.screenWidthDp > it.screenHeightDp }, displayRotation())
         proPanel = ProPanelController(this, binding.proPanel, controller)
 
         parseLaunchIntent(intent)
@@ -193,6 +210,7 @@ class CameraActivity : AppCompatActivity() {
     override fun onDestroy() {
         settings.unregisterListener(prefListener)
         orientationListener.disable()
+        getSystemService(DisplayManager::class.java).unregisterDisplayListener(displayListener)
         controller.release()
         feedback.release()
         super.onDestroy()
@@ -257,19 +275,72 @@ class CameraActivity : AppCompatActivity() {
         }
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, insets ->
             val types = WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
-            val bars = insets.getInsetsIgnoringVisibility(types)
-            val cutout = insets.getInsets(WindowInsetsCompat.Type.displayCutout())
-            binding.topBar.updateLayoutParams<androidx.constraintlayout.widget.ConstraintLayout.LayoutParams> {
-                topMargin = max(bars.top, cutout.top)
-            }
-            binding.bottomRow.updateLayoutParams<androidx.constraintlayout.widget.ConstraintLayout.LayoutParams> {
-                bottomMargin = bars.bottom
-            }
-            binding.controls.setPadding(bars.left, 0, bars.right, 0)
-            binding.reviewActions.setPadding(24.dp, 24.dp, 24.dp, 24.dp + bars.bottom)
+            systemBars = insets.getInsetsIgnoringVisibility(types)
+            cutoutTop = insets.getInsets(WindowInsetsCompat.Type.displayCutout()).top
+            applyInsetMargins()
             insets
         }
-        binding.root.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> layoutPreview(controller.state.value) }
+        binding.root.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
+            val landscape = ViewfinderGeometry.isLandscape(binding.root.width, binding.root.height)
+            if (viewfinderLayout.landscape != landscape) {
+                // Re-arranging inside a layout pass would be dropped; do it on the next frame.
+                binding.root.post { applyArrangement(landscape) }
+            } else {
+                layoutPreview(controller.state.value)
+            }
+        }
+        getSystemService(DisplayManager::class.java).registerDisplayListener(displayListener, null)
+    }
+
+    /** Switches the controls between portrait and landscape and rebinds the crop to match. */
+    private fun applyArrangement(landscape: Boolean) {
+        if (!viewfinderLayout.apply(landscape)) return
+        applyInsetMargins()
+        notifyWindowChanged()
+        rotateIcons()
+        renderTopBar(controller.state.value)
+        layoutPreview(controller.state.value)
+    }
+
+    /**
+     * Keeps controls clear of system bars and the cutout. Portrait: top bar under the
+     * cutout, shutter row above the navigation bar. Landscape: the rail spans the
+     * height, so both the rail and the mode tabs sit above the navigation bar.
+     */
+    private fun applyInsetMargins() {
+        val bars = systemBars
+        val landscape = viewfinderLayout.landscape == true
+        val top = max(bars.top, cutoutTop)
+        binding.topBar.updateLayoutParams<androidx.constraintlayout.widget.ConstraintLayout.LayoutParams> { topMargin = top }
+        binding.bottomRow.updateLayoutParams<androidx.constraintlayout.widget.ConstraintLayout.LayoutParams> {
+            topMargin = if (landscape) top else 0
+            bottomMargin = bars.bottom
+        }
+        binding.modeTabs.updateLayoutParams<androidx.constraintlayout.widget.ConstraintLayout.LayoutParams> {
+            bottomMargin = if (landscape) bars.bottom else 0
+        }
+        binding.controls.setPadding(bars.left, 0, bars.right, 0)
+        binding.reviewActions.setPadding(24.dp + bars.left, 24.dp, 24.dp + bars.right, 24.dp + bars.bottom)
+    }
+
+    @Suppress("DEPRECATION") // Activity.display needs API 30; windowManager.defaultDisplay is the same display here.
+    private fun displayRotation(): Int = (binding.root.display ?: windowManager.defaultDisplay)?.rotation ?: 0
+
+    /** Tells the controller the current window shape and display rotation (it rebinds only on a change). */
+    private fun notifyWindowChanged() {
+        val landscape = viewfinderLayout.landscape ?: return
+        controller.onWindowChanged(landscape, displayRotation())
+    }
+
+    /** A 180° turn (landscape ↔ reverse landscape) rotates the display without a configuration change. */
+    private val displayListener = object : DisplayManager.DisplayListener {
+        override fun onDisplayChanged(displayId: Int) {
+            if (displayId != binding.root.display?.displayId) return
+            rotateIcons()
+            notifyWindowChanged()
+        }
+        override fun onDisplayAdded(displayId: Int) = Unit
+        override fun onDisplayRemoved(displayId: Int) = Unit
     }
 
     private fun setupControls() {
@@ -451,13 +522,17 @@ class CameraActivity : AppCompatActivity() {
         if (orientationListener.canDetectOrientation()) orientationListener.enable()
     }
 
+    /** Device orientation relative to the display: how far icons must counter-rotate. */
+    private fun uiOrientation(): Int = OrientationMath.uiOrientation(deviceOrientation, displayRotation())
+
     private fun rotateIcons() {
+        val ui = uiOrientation()
         val views = listOf<View>(
             binding.settingsButton, binding.flashButton, binding.timerButton, binding.aspectButton, binding.hdrButton,
             binding.lensButton, binding.thumbnail, binding.flipButton, binding.pauseButton, binding.countdownText,
         ) + (0 until binding.zoomBar.childCount).map { binding.zoomBar.getChildAt(it) }
         views.forEach { v ->
-            v.animate().rotation(OrientationMath.iconRotation(deviceOrientation, v.rotation)).setDuration(220).start()
+            v.animate().rotation(OrientationMath.iconRotation(ui, v.rotation)).setDuration(220).start()
         }
     }
 
@@ -529,6 +604,8 @@ class CameraActivity : AppCompatActivity() {
         applyViewSettings()
 
         if (previous == null || previous.mode != mode || previous.aspect != state.aspect) layoutPreview(state)
+        // A DUAL rotation change is deferred while recording; apply it once the clip ends.
+        if (previous != null && previous.recording != RecordingStatus.IDLE && state.recording == RecordingStatus.IDLE) notifyWindowChanged()
         if (previous?.mode != mode) {
             settings.lastMode = mode
             binding.exposureSlider.isVisible = false
@@ -602,7 +679,7 @@ class CameraActivity : AppCompatActivity() {
             // Concurrent streams top out below 4K; the controller records DUAL at most at FHD.
             mode == CaptureMode.DUAL && settings.videoQuality == VideoQualityOption.UHD -> VideoQualityOption.FHD.label
             mode.isVideo -> settings.videoQuality.label
-            else -> state.aspect.label
+            else -> state.aspect.label(landscape = viewfinderLayout.landscape == true)
         }
         binding.aspectButton.contentDescription = getString(R.string.cd_aspect, binding.aspectButton.text)
 
@@ -639,7 +716,7 @@ class CameraActivity : AppCompatActivity() {
                     setTextColor(ContextCompat.getColorStateList(this@CameraActivity, R.color.zoom_chip_text))
                     textSize = 12f
                     typeface = android.graphics.Typeface.DEFAULT_BOLD
-                    rotation = OrientationMath.iconRotation(deviceOrientation, 0f)
+                    rotation = OrientationMath.iconRotation(uiOrientation(), 0f)
                     setOnClickListener { controller.setZoomRatio(ratio); feedback.haptic(this, settings.haptics) }
                 }
                 binding.zoomBar.addView(chip)
@@ -673,19 +750,30 @@ class CameraActivity : AppCompatActivity() {
         )
     }
 
-    /** Sizes the preview to the capture aspect ratio and places it under the top bar. */
+    /**
+     * Sizes the preview to the capture aspect ratio: under the top bar in portrait,
+     * centred beside the shutter rail in landscape ([ViewfinderGeometry]).
+     */
     private fun layoutPreview(state: CameraState) {
         val w = binding.root.width
         val h = binding.root.height
         if (w == 0 || h == 0) return
-        val ratio = if (state.mode.isVideo) 16f / 9f else state.aspect.heightOverWidth
-        val previewHeight = min((w * ratio).toInt(), h)
-        val topBarBottom = binding.topBar.bottom
-        val top = if (topBarBottom + previewHeight <= h) topBarBottom else max(0, (h - previewHeight) / 2)
+        val longOverShort = if (state.mode.isVideo) 16f / 9f else state.aspect.heightOverWidth
+        val rtl = binding.root.layoutDirection == View.LAYOUT_DIRECTION_RTL
+        val railInset = if (rtl) binding.controls.paddingLeft else binding.controls.paddingRight
+        val box = ViewfinderGeometry.preview(
+            w, h, longOverShort,
+            topBarBottom = binding.topBar.bottom,
+            railWidth = resources.getDimensionPixelSize(R.dimen.bottom_row_height) + railInset,
+            railOnLeft = rtl,
+        )
+        val width = if (viewfinderLayout.landscape == true) box.width else FrameLayout.LayoutParams.MATCH_PARENT
         val lp = binding.previewContainer.layoutParams as FrameLayout.LayoutParams
-        if (lp.height != previewHeight || lp.topMargin != top) {
-            lp.height = previewHeight
-            lp.topMargin = top
+        if (lp.width != width || lp.height != box.height || lp.topMargin != box.top || lp.leftMargin != box.left) {
+            lp.width = width
+            lp.height = box.height
+            lp.topMargin = box.top
+            lp.leftMargin = box.left
             binding.previewContainer.layoutParams = lp
         }
     }
@@ -1173,5 +1261,8 @@ class CameraActivity : AppCompatActivity() {
         private const val THUMB_PX = 192
         private const val REVIEW_MAX_PX = 2048
         private const val RESULT_THUMB_PX = 320
+
+        /** smallestScreenWidthDp from which the viewfinder may rotate (Android's large-screen threshold). */
+        private const val LARGE_SCREEN_DP = 600
     }
 }

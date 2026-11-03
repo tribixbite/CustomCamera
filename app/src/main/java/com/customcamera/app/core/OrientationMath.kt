@@ -5,9 +5,11 @@ import kotlin.math.abs
 import kotlin.math.sqrt
 
 /**
- * Device-orientation helpers. The viewfinder activity is locked to portrait
+ * Device-orientation helpers. On phones the viewfinder is locked to portrait
  * (like every major camera app) so the preview never relayouts; instead we
  * track physical orientation to rotate icons and tag captures correctly.
+ * Large screens rotate the display, so icons counter-rotate only by the
+ * difference between device and display ([uiOrientation]).
  */
 object OrientationMath {
 
@@ -40,6 +42,18 @@ object OrientationMath {
         270 -> 1 // Surface.ROTATION_90
         else -> 0 // Surface.ROTATION_0
     }
+
+    /**
+     * Device orientation relative to the current display rotation, i.e. how far
+     * the UI must counter-rotate icons. 0 whenever the display follows the device
+     * (unlocked large screens); equal to [orientationDegrees] on a portrait-locked
+     * phone (display rotation 0).
+     *
+     * @param orientationDegrees snapped OrientationEventListener angle (clockwise from natural).
+     * @param displayRotation android.view.Surface rotation constant (0..3) of the display.
+     */
+    fun uiOrientation(orientationDegrees: Int, displayRotation: Int): Int =
+        ((orientationDegrees + displayRotation * 90) % 360 + 360) % 360
 
     /**
      * Rotation to apply to on-screen icons so they stay upright. Returns the

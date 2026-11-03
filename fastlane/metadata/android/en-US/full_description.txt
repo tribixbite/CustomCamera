@@ -24,6 +24,7 @@ CustomCamera is a fast, private camera with real manual controls — no ads, no 
 • Swipe sideways to change mode, swipe up or down to flip the camera
 • Self-timer, composition grids, level indicator and volume-key shutter
 • Screen flash for selfies
+• Tablet and foldable layout: on large screens the controls move to a side rail in landscape
 
 <b>Crop and rotate</b>
 • Crop, rotate and mirror photos in the built-in viewer; edits are saved as a new copy and the original is never changed

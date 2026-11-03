@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
     Viewfinder. The preview container is sized in code to the chosen aspect
-    ratio (3:4, 9:16, 1:1) and placed under the top bar; controls float above
-    it on scrims so the layout works from small phones to tall 21:9 screens.
+    ratio (3:4, 9:16, 1:1). Portrait: full width under the top bar, controls on
+    scrims above it. Landscape windows (large screens, multi-window) switch the
+    controls to a shutter rail on the end side via ui/ViewfinderLayout.
 -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -284,7 +285,8 @@
             android:layout_marginBottom="4dp"
             app:layout_constraintBottom_toTopOf="@id/modeTabs"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent">
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintWidth_max="@dimen/panel_max_width">
 
             <LinearLayout
                 android:id="@+id/zoomBar"

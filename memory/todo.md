@@ -1,6 +1,6 @@
 # CustomCamera — Task List
 
-_Updated 2026-11-01 (v3.0.0 rebuild). Older history lives in git; the pre-3.0 task
+_Updated 2026-11-02 (v3.0.0 rebuild + large screens). Older history lives in git; the pre-3.0 task
 list described a plugin engine that has been removed._
 
 ## Status
@@ -65,7 +65,8 @@ items below were missing and are now implemented and verified on the Pixel 8 Pro
 - [x] Freeform crop → non-destructive Crop & rotate editor in the viewer (saves an
       `_edit` copy with EXIF; `core/CropMath.kt`). Handle drag + 1:1 checked by hand.
       - [ ] Ultra HDR originals are re-encoded as plain JPEG (gain map dropped).
-      - [ ] Landscape insets / gesture-nav edge exclusion not checked by hand.
+      - [x] Landscape insets checked on the Pixel (phone and forced-tablet sizes).
+      - [ ] Gesture-nav edge exclusion for the side handles not checked by hand.
 - [x] Focus peaking in Pro mode while focus is manual (`core/FocusPeaking.kt`).
       - [ ] Visual alignment check in a lit, textured scene (test phone faced a dark surface).
 - [x] Torch brightness slider (Android 15+ hardware with adjustable torch strength).
@@ -73,16 +74,27 @@ items below were missing and are now implemented and verified on the Pixel 8 Pro
 - Not ported (no working code in v2): SOS/strobe flashlight (spec only), AI scene/object
   detection plugins (only ran during barcode scanning), debug/diagnostic activities.
 
+## Large screens (2026-11-02)
+
+- [x] Landscape/tablet viewfinder: `ui/ViewfinderLayout` swaps ConstraintSets (shutter rail
+      on the end side), `core/ViewfinderGeometry` places the preview, the ViewPort ratio
+      follows the window shape, icons counter-rotate relative to the display. Phones stay
+      portrait-locked; sw ≥ 600dp request UNSPECIFIED. Verified on the Pixel forced to
+      1600x2560 @320dpi: 4:3 and 16:9 captures (4032×2268) correct, Pro panel capped at
+      560dp, portrait ↔ landscape switch while running, gallery/viewer/editor in landscape.
+- [x] DUAL inset never moved after the first bind (CameraX LifecycleCamera reuse, see
+      CLAUDE.md) — fixed with a per-bind `SessionLifecycleOwner`; TL→TR→BR verified on screen.
+- [x] Crop editor `layout-land` (tools in a side column); gallery grid side insets.
+- [ ] Not checked on real tablet/foldable hardware, in split-screen, or with RTL locales.
+- [ ] DUAL instrumented test asserts state only; a pixel-level check needs a lit scene.
+
 ## Backlog (prioritised)
 
-1. [ ] **Large screens / landscape layout.** Android 16+ ignores the portrait lock on
-       ≥600dp screens for targetSdk 36 apps; the viewfinder layout is portrait-only and
-       needs a landscape/tablet variant (capture rotation is already correct).
-2. [ ] Burst / long-press shutter, and photo capture during video recording.
-3. [ ] Shutter-speed labels at sensor extremes show raw values (e.g. "1/11977");
+1. [ ] Burst / long-press shutter, and photo capture during video recording.
+2. [ ] Shutter-speed labels at sensor extremes show raw values (e.g. "1/11977");
        consider snapping display to the nearest standard stop.
-4. [ ] Upgrade to AGP 9.x + compileSdk 37 (unblocks core-ktx 1.19+).
-5. [ ] Localisation (strings are resource-based; arrays marked translatable).
-6. [ ] Baseline profile for faster cold start.
-7. [ ] Optional: replace ML Kit with an Apache-licensed scanner to shrink the APK
+3. [ ] Upgrade to AGP 9.x + compileSdk 37 (unblocks core-ktx 1.19+).
+4. [ ] Localisation (strings are resource-based; arrays marked translatable).
+5. [ ] Baseline profile for faster cold start.
+6. [ ] Optional: replace ML Kit with an Apache-licensed scanner to shrink the APK
        (~5 MB native lib per ABI) and drop the Google ToS dependency.

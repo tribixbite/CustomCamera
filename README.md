@@ -15,7 +15,8 @@ network access (the `INTERNET` permission is removed from the merged manifest).
 | **Pro mode** | Manual ISO, shutter speed, white balance and focus distance applied through `Camera2CameraControl`, with live auto readings from the capture results. **Focus peaking** highlights sharp edges while focusing manually. Values are remembered between sessions. RAW (DNG) + JPEG when supported. |
 | **Photo** | Flash off/auto/on, front **screen flash**, HDR extension toggle, Ultra HDR (JPEG_R), 3:4 / 9:16 / 1:1 via a CameraX `ViewPort` so the preview matches the file, capture priority (quality / latency / zero shutter lag), JPEG quality, mirrored selfies, optional geotagging. |
 | **Video** | 4K / 1080p / 720p / 480p with automatic fallback, stabilization, 10-bit HLG HDR, pause / resume, torch with adjustable brightness (Android 15+ hardware), and **camera switching while recording** (persistent recordings). |
-| **Viewfinder** | Tap to focus with exposure slider, long-press AE/AF lock, pinch and preset zoom chips (0.6× … 5×), swipe to change mode or flip camera, self-timer, grids (thirds / golden / square), level indicator, live histogram with clipping warnings, volume-key shutter or zoom, haptics. Icons rotate with the device while the preview stays portrait. |
+| **Viewfinder** | Tap to focus with exposure slider, long-press AE/AF lock, pinch and preset zoom chips (0.6× … 5×), swipe to change mode or flip camera, self-timer, grids (thirds / golden / square), level indicator, live histogram with clipping warnings, volume-key shutter or zoom, haptics. On phones the preview stays portrait and icons rotate with the device. |
+| **Tablets & foldables** | Large screens rotate freely: a landscape window moves the shutter, flip and gallery buttons to a rail on the side, centres a landscape preview beside it and crops captures to match (4:3 / 16:9 / 1:1). Pro and scan panels stay a readable width. The crop editor puts its tools in a side column in landscape. |
 | **Cameras** | Lens picker listing every camera Camera2 exposes (with 35 mm-equivalent focal length); if a camera fails to bind, the app falls back to the next working one automatically. |
 | **Scanner** | ML Kit on-device QR / barcode scanning with boxes mapped onto the preview; one-tap actions for links, Wi-Fi (system "add network" sheet), phone, SMS, email and geo codes. |
 | **Gallery** | Grid of your captures and a swipeable viewer with pinch / double-tap zoom, video playback, share, edit, EXIF details and delete. A built-in **Crop & rotate** editor (free or fixed aspect, 90° rotation, mirror) saves a new `_edit` copy with the original EXIF and never changes the original. Captures are saved to `DCIM/CustomCamera` via MediaStore. |
@@ -48,13 +49,13 @@ Requirements: JDK 17+, Android SDK with platform 36.
 
 ```bash
 ./gradlew :app:assembleDebug            # debug APK (applicationId tribixbite.customcamera.debug)
-./gradlew :app:testDebugUnitTest        # 60 JVM unit tests
+./gradlew :app:testDebugUnitTest        # JVM unit tests (core/)
 ./gradlew :app:lintDebug
 ./gradlew :app:assembleStaging          # R8-shrunk build, installable beside a release
 ./gradlew :app:bundleRelease            # Play bundle (see PLAY_RELEASE.md for signing)
 ```
 
-On-device tests (13 instrumented tests; they delete every capture they make):
+On-device tests (18 instrumented tests; they delete every capture they make):
 
 ```bash
 ./gradlew :app:assembleDebug :app:assembleDebugAndroidTest

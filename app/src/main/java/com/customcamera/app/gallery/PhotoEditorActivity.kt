@@ -88,16 +88,37 @@ class PhotoEditorActivity : AppCompatActivity() {
         }
     }
 
-    /** Edge-to-edge: the toolbar takes the status bar / cutout, the tools take the nav bar. */
+    /**
+     * Edge-to-edge: the toolbar takes the status bar / cutout. Portrait: the tools
+     * below the photo take the nav bar. Landscape (`layout-land`, tools in a column
+     * on the end side): the crop area takes the start and bottom edges, the column
+     * the end and bottom edges.
+     */
     private fun applyInsets() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
+        val sidePanel = resources.getBoolean(R.bool.editor_side_panel)
+        val rtl = binding.root.layoutDirection == View.LAYOUT_DIRECTION_RTL
         val cropPadding = resources.getDimensionPixelSize(R.dimen.editor_crop_padding)
-        val bottomBase = binding.bottomPanel.paddingBottom
+        val panel = binding.bottomPanel
+        val panelBase = intArrayOf(panel.paddingLeft, panel.paddingRight, panel.paddingBottom)
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, insets ->
             val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout())
             binding.toolbar.updatePadding(top = bars.top, left = bars.left, right = bars.right)
-            binding.cropView.updatePadding(left = cropPadding + bars.left, right = cropPadding + bars.right)
-            binding.bottomPanel.updatePadding(bottom = bottomBase + bars.bottom, left = bars.left, right = bars.right)
+            if (sidePanel) {
+                // The panel sits on the end side: right in LTR, left in RTL.
+                val cropLeft = if (rtl) 0 else bars.left
+                val cropRight = if (rtl) bars.right else 0
+                binding.cropView.updatePadding(
+                    left = cropPadding + cropLeft, right = cropPadding + cropRight, bottom = cropPadding + bars.bottom,
+                )
+                panel.updatePadding(
+                    left = panelBase[0] + (bars.left - cropLeft), right = panelBase[1] + (bars.right - cropRight),
+                    bottom = panelBase[2] + bars.bottom,
+                )
+            } else {
+                binding.cropView.updatePadding(left = cropPadding + bars.left, right = cropPadding + bars.right)
+                panel.updatePadding(left = bars.left, right = bars.right, bottom = panelBase[2] + bars.bottom)
+            }
             insets
         }
     }

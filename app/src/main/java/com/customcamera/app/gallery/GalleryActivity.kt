@@ -51,9 +51,18 @@ class GalleryActivity : AppCompatActivity() {
         binding.grid.layoutManager = GridLayoutManager(this, span)
         binding.grid.adapter = adapter
         binding.grid.setHasFixedSize(true)
+        // Edge-to-edge (enforced at targetSdk 35+): the app bar takes the top inset via
+        // fitsSystemWindows; side insets (landscape nav bar, cutout) go to the toolbar and
+        // grid, the bottom one to the grid so the last row scrolls clear of the nav bar.
         val basePadding = binding.grid.paddingBottom
-        ViewCompat.setOnApplyWindowInsetsListener(binding.grid) { v, insets ->
-            v.updatePadding(bottom = basePadding + insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom)
+        // On the grid, not the root: CoordinatorLayout installs its own root listener to
+        // dispatch insets to the fitsSystemWindows app bar.
+        ViewCompat.setOnApplyWindowInsetsListener(binding.grid) { _, insets ->
+            val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout())
+            binding.toolbar.updatePadding(left = bars.left, right = bars.right)
+            binding.grid.updatePadding(
+                left = basePadding + bars.left, right = basePadding + bars.right, bottom = basePadding + bars.bottom,
+            )
             insets
         }
 

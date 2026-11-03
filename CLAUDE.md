@@ -7,12 +7,12 @@ manual controls never reached the camera. **Task list: `memory/todo.md`.**
 ## Commands
 
 ```bash
-scripts/gradle-locked.sh :app:testDebugUnitTest      # 60 JVM tests (core/ package)
+scripts/gradle-locked.sh :app:testDebugUnitTest      # JVM tests (core/ package)
 scripts/gradle-locked.sh :app:lintDebug              # should report only AGP-9 upgrade notices
 scripts/gradle-locked.sh :app:assembleDebug :app:assembleDebugAndroidTest
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 adb install -r -t app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
-adb shell am instrument -w tribixbite.customcamera.debug.test/androidx.test.runner.AndroidJUnitRunner   # 13 tests
+adb shell am instrument -w tribixbite.customcamera.debug.test/androidx.test.runner.AndroidJUnitRunner   # 18 tests
 scripts/gradle-locked.sh :app:assembleStaging :app:bundleRelease   # shrunk builds
 scripts/generate-store-assets.sh                     # Play icon + feature graphic
 ```
@@ -74,3 +74,15 @@ Seeker `192.168.0.170:5555`.
   VideoCapture here) and cap resolution below 4K.
 - **Pro + RAW + an ImageAnalysis = 4 streams**, not guaranteed below LEVEL_3: the bind
   falls back silently. RAW wins; peaking/histogram analysis is skipped while RAW is on.
+- **CameraX reuses a LifecycleCamera per (owner, camera pair)** and reads concurrent
+  `CompositionSettings` only when it is created (camera-lifecycle 1.6.2,
+  `LifecycleCameraProviderImpl.bindToLifecycleInternal`). Rebinding DUAL with a moved
+  inset under the activity owner silently kept the old corner; each DUAL bind now gets a
+  fresh `SessionLifecycleOwner`. State-only tests did not catch it — check the pixels.
+- **ViewPort ratio is in display coordinates**: a landscape window needs `long:short` or
+  captures come out as a portrait strip (16:9 → 1721×3060 instead of 4032×2268).
+- **Simulating a tablet on the Pixel**: `wm size 1600x2560; wm density 320` (sw 800dp) plus
+  `settings put system accelerometer_rotation 0; settings put system user_rotation 1`.
+  Restore with `wm size reset; wm density reset` and the original rotation settings
+  (Pixel: accelerometer_rotation=1, user_rotation=0). Leaving a portrait-locked activity
+  resets the forced rotation; re-set user_rotation before landscape screenshots.
