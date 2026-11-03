@@ -36,8 +36,12 @@ Owner chooses how `v3` lands on `main`; never force-push without explicit approv
 
 ## Verified on Pixel 8 Pro (API 37, 2026-11-01)
 
-- [x] 27 instrumented tests (2026-11-02); earlier 18/18. One unexplained DUAL failure in 4
-      full runs (passed 5/5 alone and 3 further full runs); device-test.sh now keeps stacks. incl. DUAL recording, peaking, torch strength and the
+- [x] 27 instrumented tests (2026-11-02); earlier 18/18.
+- [ ] Known flake (pre-existing): a DUAL recording made right after another camera session
+      sometimes gets no encoder frames → ERROR_NO_VALID_DATA, no file. Baseline 44063c68: 2/20
+      (photo test + DUAL test pair); current: 0/20 for that pair, 3/20 after the volume-key
+      test; 0/12 from a fresh start. Preview streams, encoder never gets a keyframe (CameraX
+      concurrent composition / HAL). Users now see "Nothing was recorded… Try again". incl. DUAL recording, peaking, torch strength and the
       crop editor (`scripts/device-test.sh 192.168.0.216:5555`)
 - [x] R8 staging build cold start 330 ms, no crash
 - [x] Night extension listed and captures (ext=3, 2560×1920 JPEG). Portrait and HDR
@@ -109,6 +113,16 @@ items below were missing and are now implemented and verified on the Pixel 8 Pro
       - [ ] Faster bursts would need pipelining >1 request or a latency-mode ImageCapture.
 - [x] Rail switch no longer resets child visibility (ConstraintSet VISIBILITY_MODE_IGNORE);
       rotating mid-recording keeps the chip, pause and snapshot buttons.
+
+## Review fixes (2026-11-02, independent review of this session's diff)
+
+- [x] VIDEO snapshot never fires the photo flash; start() applies the mode's flash rule
+- [x] Burst only from a real touch hold (key/accessibility long-press = one shot); onPause stops it
+- [x] Orientation lock re-decided on fold/unfold (onConfigurationChanged)
+- [x] RTL landscape preview centred (absolute gravity)
+- [x] Burst click/blink flag carried on CaptureStarted; no burst through the HDR extension
+- [x] Window-shape/rotation rebinds deferred while any recording runs (was DUAL only)
+- [ ] Icons may turn twice on a tablet rotation (sensor fires before the display rotates) — cosmetic
 
 ## Backlog (prioritised)
 

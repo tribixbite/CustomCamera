@@ -151,9 +151,7 @@ class CameraActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         // Phones stay portrait (manifest); large screens follow the device, as Android 16+
         // enforces anyway, so tablets and unfolded foldables get the landscape layout.
-        if (resources.configuration.smallestScreenWidthDp >= LARGE_SCREEN_DP) {
-            requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
-        }
+        applyOrientationLock(resources.configuration)
         binding = ActivityCameraBinding.inflate(layoutInflater)
         setContentView(binding.root)
         viewfinderLayout = ViewfinderLayout(binding)
@@ -181,6 +179,24 @@ class CameraActivity : AppCompatActivity() {
         if (savedInstanceState == null && launchMode == LaunchMode.NORMAL) AppShortcuts.publish(this)
     }
 
+    /**
+     * Folding or unfolding changes smallestScreenWidthDp without recreating the activity
+     * (configChanges), so the lock is re-decided here as well as in onCreate.
+     */
+    override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
+        super.onConfigurationChanged(newConfig)
+        applyOrientationLock(newConfig)
+    }
+
+    private fun applyOrientationLock(config: android.content.res.Configuration) {
+        val wanted = if (config.smallestScreenWidthDp >= LARGE_SCREEN_DP) {
+            ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+        } else {
+            ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        }
+        if (requestedOrientation != wanted) requestedOrientation = wanted
+    }
+
     override fun onResume() {
         super.onResume()
         applyViewSettings()
@@ -200,6 +216,7 @@ class CameraActivity : AppCompatActivity() {
 
     override fun onPause() {
         cancelCountdown()
+        controller.stopBurst()
         location.stop()
         // A recording in progress is stopped when the viewfinder leaves the screen,
         // matching system camera behaviour and avoiding a background camera.
@@ -767,6 +784,8 @@ class CameraActivity : AppCompatActivity() {
      * Sizes the preview to the capture aspect ratio: under the top bar in portrait,
      * centred beside the shutter rail in landscape ([ViewfinderGeometry]).
      */
+    // Absolute LEFT on purpose: ViewfinderGeometry returns absolute pixel offsets for both directions.
+    @SuppressLint("RtlHardcoded")
     private fun layoutPreview(state: CameraState) {
         val w = binding.root.width
         val h = binding.root.height
@@ -782,11 +801,15 @@ class CameraActivity : AppCompatActivity() {
         )
         val width = if (viewfinderLayout.landscape == true) box.width else FrameLayout.LayoutParams.MATCH_PARENT
         val lp = binding.previewContainer.layoutParams as FrameLayout.LayoutParams
-        if (lp.width != width || lp.height != box.height || lp.topMargin != box.top || lp.leftMargin != box.left) {
+        if (lp.width != width || lp.height != box.height || lp.topMargin != box.top || lp.leftMargin != box.left ||
+            lp.gravity != (android.view.Gravity.TOP or android.view.Gravity.LEFT)
+        ) {
             lp.width = width
             lp.height = box.height
             lp.topMargin = box.top
             lp.leftMargin = box.left
+            // Absolute gravity: under RTL the default START would pin the box right and ignore leftMargin.
+            lp.gravity = android.view.Gravity.TOP or android.view.Gravity.LEFT
             binding.previewContainer.layoutParams = lp
         }
     }
@@ -831,9 +854,8 @@ class CameraActivity : AppCompatActivity() {
 
     private fun onCameraEvent(event: CameraEvent) {
         when (event) {
-            // Burst shots click and blink as each exposure starts (the counter is already
-            // advanced when the event is collected, so every shot of a running burst sees > 0).
-            is CameraEvent.CaptureStarted -> if (controller.state.value.burstShots > 0) {
+            // Burst shots click and blink as each exposure starts (single shots did so on press).
+            is CameraEvent.CaptureStarted -> if (event.burst) {
                 feedback.shutter(settings.shutterSound)
                 blinkShutter()
             }
@@ -929,6 +951,7 @@ class CameraActivity : AppCompatActivity() {
      */
     private fun startBurst(): Boolean {
         val st = controller.state.value
+        if (!binding.shutterButton.touchHeld) return false
         if (launchMode != LaunchMode.NORMAL || settings.timer != TimerOption.OFF || captureBusy || !st.ready) return false
         if (!controller.startBurst(if (settings.saveLocation) location.currentOrNull() else null)) return false
         // Clicks and blinks follow each exposure via CameraEvent.CaptureStarted.

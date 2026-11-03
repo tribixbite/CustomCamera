@@ -108,7 +108,8 @@ data class CameraState(
 /** One-shot notifications from the controller to the UI. */
 sealed class CameraEvent {
     /** Sensor exposure started; the UI plays the shutter animation/sound now. */
-    object CaptureStarted : CameraEvent()
+    /** The sensor started exposing a still; [burst] marks shots of a long-press burst. */
+    data class CaptureStarted(val burst: Boolean = false) : CameraEvent()
     data class PhotoSaved(val uri: Uri?) : CameraEvent()
     data class VideoSaved(val uri: Uri) : CameraEvent()
     data class Error(val message: String, val cause: Throwable? = null) : CameraEvent()

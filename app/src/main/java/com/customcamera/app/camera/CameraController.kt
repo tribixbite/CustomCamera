@@ -220,7 +220,8 @@ class CameraController(
             it.copy(
                 mode = mode,
                 isFront = front,
-                flash = flash,
+                // The saved flash is the photo setting; video/scan start with the torch off.
+                flash = flashFor(mode, flash),
                 aspect = aspect,
                 hdrEnabled = hdr,
                 lenses = describeLenses(p.availableCameraInfos),
@@ -654,7 +655,11 @@ class CameraController(
             mirror = settings.mirrorFront,
             dual = dual,
         )
-        videoCapture?.let { existing -> if (recording != null || config == videoConfig) return existing }
+        // DUAL takes a fresh VideoCapture on every (idle) bind: each DUAL bind is a new
+        // LifecycleCamera, and a reused Recorder could still hold the previous session's
+        // encoder surface and ignore the new SurfaceRequest ("configured with a persistent
+        // in-progress recording"), giving ERROR_NO_VALID_DATA after quick corner/swap rebinds.
+        videoCapture?.let { existing -> if (recording != null || (config == videoConfig && !dual)) return existing }
 
         val preferred = when (config.quality) {
             VideoQualityOption.UHD -> Quality.UHD
@@ -836,11 +841,7 @@ class CameraController(
         if (recording != null) return
         // Video and scan only have a torch; photo modes never keep it on. Leaving Pro restores auto
         // exposure because applyManual() clears Camera2 options outside PRO.
-        val flash = when {
-            mode.usesTorch -> if (st.flash == FlashOption.TORCH) FlashOption.TORCH else FlashOption.OFF
-            st.flash == FlashOption.TORCH -> FlashOption.OFF
-            else -> st.flash
-        }
+        val flash = flashFor(mode, st.flash)
         // DUAL reports the main camera's facing; restore the user's own facing on the way out.
         if (mode == CaptureMode.DUAL) nonDualFront = st.isFront
         val front = if (st.mode == CaptureMode.DUAL) nonDualFront else st.isFront
@@ -916,23 +917,28 @@ class CameraController(
      * recording, where a rebind would end the clip.
      */
     fun onWindowChanged(landscape: Boolean, rotation: Int) {
+        // Never re-crop a running clip: the stale values make the activity's call after the
+        // recording ends (and any later one) detect the change and rebind then.
+        if (recording != null) return
         val shapeChanged = landscapeWindow != landscape
+        val rotationChanged = displayRotation != rotation
         landscapeWindow = landscape
-        if (_state.value.mode == CaptureMode.DUAL) {
-            // Left stale while recording; the activity calls again when the recording ends.
-            if (displayRotation == rotation || recording != null) return
-            displayRotation = rotation
-            rebind()
-        } else {
-            displayRotation = rotation
-            if (shapeChanged) rebind()
-        }
+        displayRotation = rotation
+        val dual = _state.value.mode == CaptureMode.DUAL
+        if (if (dual) rotationChanged else shapeChanged) rebind()
     }
 
     fun setHdr(enabled: Boolean) {
         if (_state.value.hdrEnabled == enabled) return
         _state.update { it.copy(hdrEnabled = enabled) }
         if (_state.value.mode == CaptureMode.PHOTO) rebind()
+    }
+
+    /** [flash] adjusted for [mode]: torch modes know only OFF/TORCH, photo modes never keep the torch. */
+    private fun flashFor(mode: CaptureMode, flash: FlashOption): FlashOption = when {
+        mode.usesTorch -> if (flash == FlashOption.TORCH) FlashOption.TORCH else FlashOption.OFF
+        flash == FlashOption.TORCH -> FlashOption.OFF
+        else -> flash
     }
 
     fun setFlash(option: FlashOption) {
@@ -953,6 +959,11 @@ class CameraController(
             cam.cameraControl.setTorchStrengthLevel(st.torchStrength)
         }
         val ic = imageCapture ?: return
+        // The VIDEO snapshot capture must never fire the flash into the recording.
+        if (st.mode.usesTorch) {
+            ic.flashMode = ImageCapture.FLASH_MODE_OFF
+            return
+        }
         ic.flashMode = when (st.flash) {
             FlashOption.OFF, FlashOption.TORCH -> ImageCapture.FLASH_MODE_OFF
             FlashOption.AUTO -> if (st.hasFlashUnit) ImageCapture.FLASH_MODE_AUTO else ImageCapture.FLASH_MODE_OFF
@@ -1076,8 +1087,10 @@ class CameraController(
     val burstAllowed: Boolean
         get() {
             val st = _state.value
-            return imageCapture != null && st.ready && st.mode.isPhotoLike && !st.mode.usesExtension && !st.rawActive &&
-                recording == null
+            // PHOTO with HDR on is bound through the HDR extension (multi-frame captures).
+            val hdrExtension = st.mode == CaptureMode.PHOTO && st.hdrEnabled && st.hdrAvailable
+            return imageCapture != null && st.ready && st.mode.isPhotoLike && !st.mode.usesExtension && !hdrExtension &&
+                !st.rawActive && recording == null
         }
 
     /**
@@ -1106,7 +1119,7 @@ class CameraController(
     }
 
     private fun takeBurstShot() {
-        takePhoto(burstLocation) {
+        takePhoto(burstLocation, burstShot = true) {
             if (!burstRunning) return@takePhoto
             val shots = _state.value.burstShots + 1
             _state.update { it.copy(burstShots = shots) }
@@ -1116,9 +1129,10 @@ class CameraController(
 
     /**
      * Saves a photo to MediaStore (DCIM/CustomCamera). Results arrive as [CameraEvent]s.
-     * [onStarted] runs on the main thread when the sensor starts the exposure.
+     * [onStarted] runs on the main thread when the sensor starts the exposure; [burstShot]
+     * is passed through on [CameraEvent.CaptureStarted] so the UI clicks for every burst shot.
      */
-    fun takePhoto(location: Location?, onStarted: (() -> Unit)? = null) {
+    fun takePhoto(location: Location?, burstShot: Boolean = false, onStarted: (() -> Unit)? = null) {
         val ic = imageCapture ?: return emit(CameraEvent.Error("Camera not ready"))
         val time = Date()
         val metadata = ImageCapture.Metadata().apply {
@@ -1129,7 +1143,7 @@ class CameraController(
         val jpegOptions = ImageCapture.OutputFileOptions.Builder(context.contentResolver, jpeg.collection, jpeg.values)
             .setMetadata(metadata)
             .build()
-        val callback = savedCallback(onStarted)
+        val callback = savedCallback(burstShot, onStarted)
         if (ic.outputFormat == ImageCapture.OUTPUT_FORMAT_RAW_JPEG) {
             val raw = MediaStoreHelper.target(MediaNaming.Kind.RAW, time)
             val rawOptions = ImageCapture.OutputFileOptions.Builder(context.contentResolver, raw.collection, raw.values)
@@ -1149,9 +1163,9 @@ class CameraController(
         ic.takePicture(options, mainExecutor, savedCallback())
     }
 
-    private fun savedCallback(onStarted: (() -> Unit)? = null) = object : ImageCapture.OnImageSavedCallback {
+    private fun savedCallback(burstShot: Boolean = false, onStarted: (() -> Unit)? = null) = object : ImageCapture.OnImageSavedCallback {
         override fun onCaptureStarted() {
-            emit(CameraEvent.CaptureStarted)
+            emit(CameraEvent.CaptureStarted(burstShot))
             onStarted?.invoke()
         }
         override fun onImageSaved(output: ImageCapture.OutputFileResults) = emit(CameraEvent.PhotoSaved(output.savedUri))
@@ -1196,7 +1210,13 @@ class CameraController(
                 val uri = event.outputResults.outputUri
                 if (event.hasError() && event.error != VideoRecordEvent.Finalize.ERROR_SOURCE_INACTIVE) {
                     if (uri != android.net.Uri.EMPTY) emit(CameraEvent.VideoSaved(uri))
-                    emit(CameraEvent.Error("Recording stopped: error ${event.error}", event.cause))
+                    val message = if (event.error == VideoRecordEvent.Finalize.ERROR_NO_VALID_DATA) {
+                        // Stopped before the first frame reached the encoder (e.g. right after a camera swap).
+                        context.getString(R.string.error_recording_empty)
+                    } else {
+                        context.getString(R.string.error_recording_stopped, event.error)
+                    }
+                    emit(CameraEvent.Error(message, event.cause))
                 } else if (uri != android.net.Uri.EMPTY) {
                     emit(CameraEvent.VideoSaved(uri))
                 }

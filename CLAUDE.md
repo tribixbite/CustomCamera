@@ -92,3 +92,7 @@ Seeker `192.168.0.170:5555`.
 - **Ultra HDR edits keep the gain map on API 34+ with no extra code**: ImageDecoder decodes
   it, `Bitmap.createBitmap(…, matrix, …)` transforms it, `compress(JPEG)` writes JPEG_R.
   Test with a synthetic `Gainmap` (the Pixel 8 Pro offers no JPEG_R through CameraX).
+- **DUAL + `ERROR_NO_VALID_DATA` is a pre-existing intermittent** (also on 44063c68): right
+  after another camera session the composited encoder can get no frames while the preview
+  streams. Reproduce with `-e class C#photoIsSavedToDcim,C#dualModeRecordsPictureInPictureVideo`
+  in a loop; one failing run in 20 is normal, compare against a baseline worktree build.

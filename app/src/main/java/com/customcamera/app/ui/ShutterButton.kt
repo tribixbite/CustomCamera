@@ -100,13 +100,24 @@ class ShutterButton @JvmOverloads constructor(
     /** Called when the finger lifts (or the gesture is cancelled); ends a long-press burst. */
     var onRelease: (() -> Unit)? = null
 
+    /**
+     * A finger is on the button. Long clicks also come from keys and accessibility
+     * actions, which have no release to end a burst; those fall back to one shot.
+     */
+    var touchHeld: Boolean = false
+        private set
+
     // Click/long-click handling (and performClick) stays in View.onTouchEvent; this only
     // animates and reports the release that ends a hold.
     @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent): Boolean {
         when (event.actionMasked) {
-            MotionEvent.ACTION_DOWN -> animatePress(0.9f)
+            MotionEvent.ACTION_DOWN -> {
+                touchHeld = true
+                animatePress(0.9f)
+            }
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                touchHeld = false
                 animatePress(1f)
                 onRelease?.invoke()
             }

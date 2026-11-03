@@ -113,6 +113,19 @@ class CameraActivityTest {
         waitUntil(10_000, message = "mode $mode bound") { state().let { it.mode == mode && it.ready } }
     }
 
+    /** Waits until the preview streams again after a rebind (it drops to IDLE first). */
+    private fun ActivityScenario<CameraActivity>.awaitStreaming() {
+        Thread.sleep(500)
+        waitUntil(10_000, message = "preview streaming") {
+            var streaming = false
+            onActivity {
+                streaming = it.findViewById<androidx.camera.view.PreviewView>(R.id.previewView).previewStreamState.value ==
+                    androidx.camera.view.PreviewView.StreamState.STREAMING
+            }
+            streaming
+        }
+    }
+
     private fun ActivityScenario<CameraActivity>.clickShutter() =
         onActivity { it.findViewById<View>(R.id.shutterButton).performClick() }
 
@@ -198,13 +211,17 @@ class CameraActivityTest {
             val corner = scenario.state().pipCorner
             scenario.onActivity { it.setPipCornerForTest(corner.next()) }
             waitUntil(10_000, message = "inset moved") { scenario.state().let { it.ready && it.pipCorner == corner.next() } }
+            scenario.awaitStreaming()
             val frontMain = scenario.state().dualFrontMain
             scenario.onActivity { it.findViewById<View>(R.id.flipButton).performClick() }
             waitUntil(10_000, message = "cameras swapped") { scenario.state().let { it.ready && it.dualFrontMain != frontMain && it.mode == CaptureMode.DUAL } }
+            // Concurrent cameras can take a moment to deliver frames after a rebind; recording
+            // before that yields ERROR_NO_VALID_DATA (no file).
+            scenario.awaitStreaming()
 
             scenario.clickShutter()
             waitUntil(10_000, message = "recording started") { scenario.state().recording == RecordingStatus.RECORDING }
-            Thread.sleep(2_000)
+            Thread.sleep(3_000)
             scenario.clickShutter()
             waitUntil(15_000, message = "video in MediaStore") { newItems().any { it.isVideo } }
             waitUntil(15_000, message = "video duration indexed") { newItems().any { it.isVideo && it.durationMs > 0 } }
@@ -271,7 +288,14 @@ class CameraActivityTest {
     fun holdingTheShutterTakesABurst() {
         ActivityScenario.launch(CameraActivity::class.java).use { scenario ->
             scenario.awaitReady()
-            scenario.onActivity { assertTrue("long press not handled", it.findViewById<View>(R.id.shutterButton).performLongClick()) }
+            // A real hold: touch down and let the view's own long-press timeout fire. (A long click
+            // without a finger, e.g. from a key or accessibility action, deliberately takes one shot.)
+            scenario.onActivity { a ->
+                val now = SystemClock.uptimeMillis()
+                val down = MotionEvent.obtain(now, now, MotionEvent.ACTION_DOWN, 1f, 1f, 0)
+                a.findViewById<View>(R.id.shutterButton).dispatchTouchEvent(down)
+                down.recycle()
+            }
             waitUntil(20_000, message = "three burst shots") { scenario.state().burstShots >= 3 }
             // Lifting the finger is what ends a burst.
             var shotsAtRelease = 0
