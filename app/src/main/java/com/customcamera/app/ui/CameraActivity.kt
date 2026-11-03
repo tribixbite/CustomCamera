@@ -345,6 +345,7 @@ class CameraActivity : AppCompatActivity() {
 
     private fun setupControls() {
         binding.shutterButton.setOnClickListener { onShutter() }
+        binding.snapshotButton.setOnClickListener { takeSnapshot() }
         binding.flipButton.setOnClickListener { flipCamera() }
         binding.thumbnail.setOnClickListener { openLastCapture() }
         binding.settingsButton.setOnClickListener { startActivity(Intent(this, SettingsActivity::class.java)) }
@@ -530,6 +531,7 @@ class CameraActivity : AppCompatActivity() {
         val views = listOf<View>(
             binding.settingsButton, binding.flashButton, binding.timerButton, binding.aspectButton, binding.hdrButton,
             binding.lensButton, binding.thumbnail, binding.flipButton, binding.pauseButton, binding.countdownText,
+            binding.snapshotButton,
         ) + (0 until binding.zoomBar.childCount).map { binding.zoomBar.getChildAt(it) }
         views.forEach { v ->
             v.animate().rotation(OrientationMath.iconRotation(ui, v.rotation)).setDuration(220).start()
@@ -622,7 +624,12 @@ class CameraActivity : AppCompatActivity() {
 
     private fun renderModes(state: CameraState) {
         val captureIntent = launchMode != LaunchMode.NORMAL
-        binding.modeTabs.isVisible = !captureIntent && state.recording == RecordingStatus.IDLE
+        // INVISIBLE (not GONE) while recording: keeps the zoom bar in place and holds the snapshot button's slot.
+        binding.modeTabs.visibility = when {
+            captureIntent -> View.GONE
+            state.recording != RecordingStatus.IDLE -> View.INVISIBLE
+            else -> View.VISIBLE
+        }
         val modes = when (launchMode) {
             LaunchMode.IMAGE_CAPTURE -> listOf(CaptureMode.PHOTO)
             LaunchMode.VIDEO_CAPTURE -> listOf(CaptureMode.VIDEO)
@@ -743,6 +750,8 @@ class CameraActivity : AppCompatActivity() {
         }
         binding.recordingDot.alpha = if (state.recording == RecordingStatus.PAUSED) 0.4f else 1f
         binding.pauseButton.isVisible = recording
+        binding.snapshotButton.isVisible = recording && state.mode == CaptureMode.VIDEO && state.snapshotAvailable &&
+            launchMode == LaunchMode.NORMAL
         binding.thumbnail.isVisible = !recording && launchMode == LaunchMode.NORMAL && !secureLaunch
         binding.pauseButton.setIconResource(if (state.recording == RecordingStatus.PAUSED) R.drawable.ic_videocam else R.drawable.ic_pause)
         binding.pauseButton.contentDescription = getString(
@@ -903,6 +912,18 @@ class CameraActivity : AppCompatActivity() {
         } else {
             controller.takePhoto(if (settings.saveLocation) location.currentOrNull() else null)
         }
+    }
+
+    /**
+     * Still photo during a recording, from the extra ImageCapture bound in VIDEO mode.
+     * No shutter sound: it would be recorded into the clip's audio.
+     */
+    private fun takeSnapshot() {
+        val st = controller.state.value
+        if (st.recording == RecordingStatus.IDLE || !st.snapshotAvailable) return
+        feedback.haptic(binding.snapshotButton, settings.haptics)
+        blinkShutter()
+        controller.takePhoto(if (settings.saveLocation) location.currentOrNull() else null)
     }
 
     private fun setCaptureBusy(busy: Boolean) {

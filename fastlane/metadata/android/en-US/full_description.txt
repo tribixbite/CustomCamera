@@ -16,6 +16,7 @@ CustomCamera is a fast, private camera with real manual controls — no ads, no 
 <b>Video</b>
 • Up to 4K, with stabilization and pause / resume
 • Switch between front and back cameras while recording
+• Take photos while recording
 • Dual video: record the front and back cameras at once, picture-in-picture, on supported phones
 • Adjustable torch brightness on supported phones
 

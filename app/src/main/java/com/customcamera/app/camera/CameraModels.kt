@@ -92,6 +92,12 @@ data class CameraState(
     val dualFrontMain: Boolean = false,
     /** The binding includes the focus-peaking analyzer (false e.g. with RAW or after a fallback). */
     val peakingAvailable: Boolean = false,
+    /** VIDEO binding includes a still-capture stream, so photos can be taken while recording. */
+    val snapshotAvailable: Boolean = false,
+    /** The bound still capture writes RAW (DNG) + JPEG. */
+    val rawActive: Boolean = false,
+    /** The bound still capture writes Ultra HDR (JPEG_R) photos. */
+    val ultraHdrActive: Boolean = false,
 ) {
     val evSupported: Boolean get() = evMax > evMin
     val torchStrengthAdjustable: Boolean get() = torchStrengthMax > 1

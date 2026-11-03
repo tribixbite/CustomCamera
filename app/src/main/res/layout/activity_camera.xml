@@ -342,6 +342,22 @@
             app:tabTextAppearance="@style/TextAppearance.CustomCamera.Mode"
             app:tabTextColor="@color/on_surface_variant" />
 
+        <!-- Photo while recording: sits where the mode tabs are (they are invisible during a recording). -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/snapshotButton"
+            style="@style/Widget.CustomCamera.IconButton"
+            android:layout_width="@dimen/icon_button"
+            android:layout_height="@dimen/icon_button"
+            android:background="@drawable/bg_round_scrim"
+            android:contentDescription="@string/cd_snapshot"
+            android:visibility="gone"
+            app:icon="@drawable/ic_camera"
+            app:layout_constraintBottom_toBottomOf="@id/modeTabs"
+            app:layout_constraintEnd_toEndOf="@id/modeTabs"
+            app:layout_constraintStart_toStartOf="@id/modeTabs"
+            app:layout_constraintTop_toTopOf="@id/modeTabs"
+            tools:visibility="visible" />
+
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/bottomRow"
             android:layout_width="0dp"

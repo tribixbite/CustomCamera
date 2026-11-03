@@ -14,6 +14,19 @@ class ExposureMathTest {
     }
 
     @Test
+    fun `fast shutter labels snap to standard values`() {
+        // Live auto reading between stops → nearest third stop.
+        assertEquals("1/125", ExposureMath.formatShutter(1_000_000_000L / 117))
+        assertEquals("1/60", ExposureMath.formatShutter(1_000_000_000L / 59))
+        // Sensor limit beyond the ladder → two significant figures.
+        assertEquals("1/12000", ExposureMath.formatShutter(1_000_000_000L / 11_977))
+        assertEquals("1/100000", ExposureMath.formatShutter(10_000L))
+        // Far from any stop (more than 1/6 stop) → rounded, not forced onto a stop.
+        assertEquals(35L, ExposureMath.displayDenominator(34.6))
+        assertEquals(8000L, ExposureMath.displayDenominator(8100.0))
+    }
+
+    @Test
     fun `long shutter speeds format as seconds`() {
         assertEquals("1\"", ExposureMath.formatShutter(1_000_000_000L))
         assertEquals("0.5\"", ExposureMath.formatShutter(500_000_000L))

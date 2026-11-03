@@ -468,6 +468,9 @@ class CameraController(
                 torchStrengthMax = torchMax,
                 torchStrength = (settings.torchLevel ?: deviceTorch).coerceIn(0, torchMax),
                 peakingAvailable = boundPeaking,
+                snapshotAvailable = mode == CaptureMode.VIDEO && imageCapture != null,
+                rawActive = imageCapture?.outputFormat == ImageCapture.OUTPUT_FORMAT_RAW_JPEG,
+                ultraHdrActive = imageCapture?.outputFormat == ImageCapture.OUTPUT_FORMAT_JPEG_ULTRA_HDR,
             )
         }
         applyFlash()
@@ -548,7 +551,13 @@ class CameraController(
         analysis = null
         boundPeaking = false
         when (mode) {
-            CaptureMode.VIDEO -> useCases += obtainVideoCapture(info, front, safeMode, dual = false)
+            CaptureMode.VIDEO -> {
+                useCases += obtainVideoCapture(info, front, safeMode, dual = false)
+                // Still capture while recording is an extra stream (PRIV preview + PRIV record +
+                // JPEG is guaranteed from LIMITED up, but not next to 10-bit HDR everywhere), so
+                // it is dropped with the other optional streams on the bind fallback ladder.
+                if (allowAnalysis && !safeMode) useCases += buildSnapshotCapture()
+            }
             CaptureMode.DUAL -> error("DUAL is bound by bindDual()")
             CaptureMode.SCAN -> useCases += buildBarcodeAnalysis()
             else -> {
@@ -613,6 +622,21 @@ class CameraController(
                 imageCapture = it
             }
     }
+
+    /**
+     * JPEG capture bound next to VideoCapture in VIDEO mode. Shares the video's 9:16
+     * ViewPort, so snapshots frame exactly what is being recorded; CameraX picks a size
+     * the session supports (typically the recording size).
+     */
+    private fun buildSnapshotCapture(): ImageCapture = ImageCapture.Builder()
+        .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+        .setJpegQuality(settings.jpegQuality)
+        .setTargetRotation(targetRotation)
+        .setResolutionSelector(
+            ResolutionSelector.Builder().setAspectRatioStrategy(AspectRatioStrategy.RATIO_16_9_FALLBACK_AUTO_STRATEGY).build(),
+        )
+        .build()
+        .also { imageCapture = it }
 
     /** Reuses the existing VideoCapture when possible so persistent recordings survive rebinds. */
     private fun obtainVideoCapture(info: CameraInfo, front: Boolean, safeMode: Boolean, dual: Boolean): VideoCapture<Recorder> {

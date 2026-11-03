@@ -2,6 +2,9 @@ package com.customcamera.app.core
 
 import java.util.Locale
 import kotlin.math.abs
+import kotlin.math.floor
+import kotlin.math.ln
+import kotlin.math.log10
 import kotlin.math.pow
 import kotlin.math.roundToInt
 import kotlin.math.roundToLong
@@ -30,17 +33,35 @@ object ExposureMath {
 
     /**
      * Human-readable shutter speed: "1/125" for fast exposures, "0.5\"" / "2\"" for long ones.
+     * Fast speeds snap to the standard value photographers know ([displayDenominator]),
+     * so live auto readings and sensor limits read "1/125" or "1/12000", not "1/117" or "1/11977".
      */
     fun formatShutter(exposureNanos: Long): String {
         require(exposureNanos > 0) { "exposure must be positive: $exposureNanos" }
         val seconds = exposureNanos.toDouble() / NANOS_PER_SECOND
         return if (seconds < 0.35) {
-            "1/${(1.0 / seconds).roundToLong()}"
+            "1/${displayDenominator(1.0 / seconds)}"
         } else {
             val rounded = (seconds * 10).roundToInt() / 10.0
             if (rounded == rounded.toLong().toDouble()) "${rounded.toLong()}\"" else "$rounded\""
         }
     }
+
+    /**
+     * Denominator to show for a 1/[raw] s exposure: the nearest standard third-stop
+     * value when within a sixth of a stop of it, otherwise [raw] rounded to two
+     * significant figures (speeds beyond 1/8000 or between ladder steps).
+     */
+    internal fun displayDenominator(raw: Double): Long {
+        require(raw > 0) { "denominator must be positive: $raw" }
+        val nearest = SHUTTER_DENOMINATORS.minBy { abs(ln(it / raw)) }
+        if (abs(ln(nearest / raw)) <= SNAP_TOLERANCE) return nearest
+        val unit = 10.0.pow(floor(log10(raw)) - 1)
+        return maxOf(1L, ((raw / unit).roundToLong() * unit).roundToLong())
+    }
+
+    /** A sixth of a stop in natural-log units: half the gap between third-stop values. */
+    private val SNAP_TOLERANCE = ln(2.0) / 6
 
     /**
      * Shutter speeds (nanoseconds, fastest first) that fall inside the sensor's

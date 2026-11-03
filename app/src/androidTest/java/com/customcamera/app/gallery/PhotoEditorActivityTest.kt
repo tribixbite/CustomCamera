@@ -5,6 +5,8 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
+import android.graphics.Gainmap
+import android.graphics.ImageDecoder
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
@@ -15,7 +17,9 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.customcamera.app.R
 import com.customcamera.app.core.CropAspect
+import com.customcamera.app.core.EditTransform
 import com.customcamera.app.core.MediaNaming
+import com.customcamera.app.core.PhotoEdit
 import com.customcamera.app.waitUntil
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
@@ -87,6 +91,40 @@ class PhotoEditorActivityTest {
             copy?.let { runCatching { resolver.delete(it, null, null) } }
             runCatching { resolver.delete(original, null, null) }
         }
+    }
+
+    /**
+     * Ultra HDR originals keep their gain map: a JPEG with a synthetic gain map (the
+     * platform encodes it as JPEG_R on API 34+) is rotated and cropped by the saver,
+     * which goes through Bitmap.createBitmap and compress like a real edit.
+     */
+    @Test
+    fun ultraHdrGainmapSurvivesTheEditor() {
+        assumeTrue("gain maps need API 34", Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
+        val original = MediaStoreHelper.publish(resolver, MediaStoreHelper.target(MediaNaming.Kind.PHOTO, Date())) { out ->
+            val base = Bitmap.createBitmap(SOURCE_WIDTH, SOURCE_HEIGHT, Bitmap.Config.ARGB_8888).apply { eraseColor(Color.CYAN) }
+            val contents = Bitmap.createBitmap(SOURCE_WIDTH / 4, SOURCE_HEIGHT / 4, Bitmap.Config.ARGB_8888).apply { eraseColor(Color.GRAY) }
+            base.gainmap = Gainmap(contents).apply {
+                setRatioMax(4f, 4f, 4f)
+                displayRatioForFullHdr = 4f
+            }
+            base.compress(Bitmap.CompressFormat.JPEG, 90, out)
+        }
+        var copy: Uri? = null
+        try {
+            assertTrue("platform did not write an Ultra HDR source", hasGainmap(original))
+            copy = PhotoEditSaver(context).save(original, PhotoEdit(transform = EditTransform(rotation = 90), aspect = CropAspect.SQUARE))
+            assertTrue("edited copy lost the gain map", hasGainmap(copy))
+            assertEquals("square copy", SOURCE_HEIGHT to SOURCE_HEIGHT, decodedSize(copy))
+        } finally {
+            copy?.let { runCatching { resolver.delete(it, null, null) } }
+            runCatching { resolver.delete(original, null, null) }
+        }
+    }
+
+    private fun hasGainmap(uri: Uri): Boolean {
+        val bitmap = ImageDecoder.decodeBitmap(ImageDecoder.createSource(resolver, uri))
+        return bitmap.hasGainmap().also { bitmap.recycle() }
     }
 
     private fun mediaStoreSize(uri: Uri): Pair<Int, Int> =

@@ -5,21 +5,30 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.ImageDecoder
 import android.os.Build
+import android.os.SystemClock
+import android.view.KeyEvent
 import android.provider.MediaStore
 import android.view.View
 import androidx.preference.PreferenceManager
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.rule.GrantPermissionRule
 import com.customcamera.app.R
 import com.customcamera.app.camera.RecordingStatus
 import com.customcamera.app.core.CaptureMode
+import com.customcamera.app.core.CropAspect
+import com.customcamera.app.core.EditTransform
+import com.customcamera.app.core.PhotoEdit
+import com.customcamera.app.core.VolumeKeyAction
 import com.customcamera.app.core.FlashOption
 import com.customcamera.app.core.TimerOption
 import com.customcamera.app.gallery.MediaItem
 import com.customcamera.app.gallery.MediaRepository
+import com.customcamera.app.gallery.PhotoEditSaver
 import com.customcamera.app.settings.AppSettings
 import com.customcamera.app.waitUntil
 import com.google.android.material.tabs.TabLayout
@@ -203,6 +212,94 @@ class CameraActivityTest {
     }
 
     @Test
+    fun photoCanBeTakenWhileRecording() {
+        ActivityScenario.launch(CameraActivity::class.java).use { scenario ->
+            scenario.awaitReady()
+            scenario.selectMode(CaptureMode.VIDEO)
+            assumeTrue("session has no room for a still stream", scenario.state().snapshotAvailable)
+            scenario.clickShutter()
+            waitUntil(10_000, message = "recording started") { scenario.state().recording == RecordingStatus.RECORDING }
+            val snapshotVisible = { var v = false; scenario.onActivity { v = it.findViewById<View>(R.id.snapshotButton).visibility == View.VISIBLE }; v }
+            waitUntil(5_000, message = "snapshot button shown") { snapshotVisible() }
+            scenario.onActivity { it.findViewById<View>(R.id.snapshotButton).performClick() }
+            waitUntil(15_000, message = "snapshot in MediaStore") { newItems().any { !it.isVideo } }
+            assertEquals(RecordingStatus.RECORDING, scenario.state().recording)
+            scenario.clickShutter()
+            waitUntil(15_000, message = "video in MediaStore") { newItems().any { it.isVideo } }
+            waitUntil(5_000, message = "snapshot button hidden") { !snapshotVisible() }
+        }
+    }
+
+    @Test
+    fun rawCaptureSavesDngBesideJpeg() {
+        prefs.edit().putBoolean(AppSettings.Keys.RAW, true).commit()
+        ActivityScenario.launch(CameraActivity::class.java).use { scenario ->
+            scenario.awaitReady()
+            scenario.selectMode(CaptureMode.PRO)
+            assumeTrue("camera offers no RAW + JPEG output", scenario.state().rawActive)
+            scenario.clickShutter()
+            waitUntil(30_000, message = "DNG and JPEG in MediaStore") {
+                newItems().let { items -> items.any { it.mimeType == DNG_MIME } && items.any { it.mimeType == "image/jpeg" } }
+            }
+            val dng = newItems().first { it.mimeType == DNG_MIME }
+            assertTrue(dng.displayName, dng.displayName.endsWith(".dng"))
+            // A DNG holds unprocessed sensor data: megabytes even for a dark frame.
+            assertTrue("DNG too small: ${dng.sizeBytes}", dng.sizeBytes > 1_000_000)
+        }
+    }
+
+    @Test
+    fun ultraHdrPhotoKeepsItsGainmapThroughTheEditor() {
+        assumeTrue("gain maps need API 34", Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
+        prefs.edit().putBoolean(AppSettings.Keys.ULTRA_HDR, true).commit()
+        ActivityScenario.launch(CameraActivity::class.java).use { scenario ->
+            scenario.awaitReady()
+            assumeTrue("camera offers no Ultra HDR output", scenario.state().ultraHdrActive)
+            scenario.clickShutter()
+            waitUntil(20_000, message = "photo in MediaStore") { newItems().any { !it.isVideo } }
+        }
+        val photo = newItems().first { !it.isVideo }
+        assertTrue("capture has no gain map", hasGainmap(photo.uri))
+        // Square crop + rotation exercises Bitmap.createBitmap's gain-map transform.
+        val edit = PhotoEdit(transform = EditTransform(rotation = 90), aspect = CropAspect.SQUARE)
+        val copy = PhotoEditSaver(context).save(photo.uri, edit)
+        assertTrue("edited copy lost the gain map", hasGainmap(copy))
+    }
+
+    @Test
+    fun volumeKeyTakesAPhoto() {
+        prefs.edit().putString(AppSettings.Keys.VOLUME_KEYS, VolumeKeyAction.SHUTTER.key).commit()
+        ActivityScenario.launch(CameraActivity::class.java).use { scenario ->
+            scenario.awaitReady()
+            InstrumentationRegistry.getInstrumentation().sendKeyDownUpSync(KeyEvent.KEYCODE_VOLUME_DOWN)
+            waitUntil(20_000, message = "photo from volume key") { newItems().any { !it.isVideo } }
+        }
+    }
+
+    @Test
+    fun selfTimerDelaysTheCapture() {
+        prefs.edit().putString(AppSettings.Keys.TIMER, TimerOption.THREE.key).commit()
+        ActivityScenario.launch(CameraActivity::class.java).use { scenario ->
+            scenario.awaitReady()
+            val pressed = SystemClock.uptimeMillis()
+            scenario.clickShutter()
+            scenario.onActivity { assertEquals(View.VISIBLE, it.findViewById<View>(R.id.countdownText).visibility) }
+            waitUntil(20_000, message = "timed photo") { newItems().any { !it.isVideo } }
+            val elapsed = SystemClock.uptimeMillis() - pressed
+            assertTrue("photo after ${elapsed}ms, before the 3 s countdown ended", elapsed >= 3_000)
+        }
+    }
+
+    private fun hasGainmap(uri: android.net.Uri): Boolean {
+        val source = ImageDecoder.createSource(context.contentResolver, uri)
+        val bitmap = ImageDecoder.decodeBitmap(source) { decoder, info, _ ->
+            // Small decode: only the presence of the gain map matters.
+            decoder.setTargetSize(info.size.width / 8, info.size.height / 8)
+        }
+        return bitmap.hasGainmap().also { bitmap.recycle() }
+    }
+
+    @Test
     fun focusPeakingAppearsWithManualFocus() {
         // RAW capture takes priority over the peaking analyzer, so make sure it is off.
         prefs.edit().putBoolean(AppSettings.Keys.FOCUS_PEAKING, true).putBoolean(AppSettings.Keys.RAW, false).commit()
@@ -273,3 +370,6 @@ class CameraActivityTest {
         }
     }
 }
+
+/** MIME type MediaStore records for the DNG half of a RAW + JPEG capture. */
+private const val DNG_MIME = "image/x-adobe-dng"

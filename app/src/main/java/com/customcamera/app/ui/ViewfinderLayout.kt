@@ -17,12 +17,15 @@ import com.customcamera.app.databinding.ActivityCameraBinding
  * itself: recreating it would rebind the camera and stop a recording.
  *
  * Margins that depend on window insets are not part of either set; the
- * activity re-applies them after every [apply].
+ * activity re-applies them after every [apply]. ConstraintSet.applyTo would
+ * also restore each child's clone-time visibility (hiding the recording chip
+ * mid-recording, showing the shutter in Scan mode), so visibility is excluded;
+ * it also resets rotation, so the activity re-rotates icons afterwards.
  */
 internal class ViewfinderLayout(private val binding: ActivityCameraBinding) {
 
-    private val portraitControls = ConstraintSet().apply { clone(binding.controls) }
-    private val portraitRow = ConstraintSet().apply { clone(binding.bottomRow) }
+    private val portraitControls = ConstraintSet().apply { clone(binding.controls); ignoreVisibility() }
+    private val portraitRow = ConstraintSet().apply { clone(binding.bottomRow); ignoreVisibility() }
     private val landscapeControls by lazy { buildLandscapeControls() }
     private val landscapeRow by lazy { buildLandscapeRow() }
 
@@ -39,8 +42,14 @@ internal class ViewfinderLayout(private val binding: ActivityCameraBinding) {
         return true
     }
 
+    /** Leaves visibility to the activity's render pass. */
+    private fun ConstraintSet.ignoreVisibility() {
+        knownIds.forEach { setVisibilityMode(it, ConstraintSet.VISIBILITY_MODE_IGNORE) }
+    }
+
     private fun buildLandscapeControls() = ConstraintSet().apply {
         clone(portraitControls)
+        ignoreVisibility()
         val parent = ConstraintSet.PARENT_ID
         val rail = R.id.bottomRow
         val railWidth = binding.root.resources.getDimensionPixelSize(R.dimen.bottom_row_height)
@@ -69,6 +78,7 @@ internal class ViewfinderLayout(private val binding: ActivityCameraBinding) {
 
     private fun buildLandscapeRow() = ConstraintSet().apply {
         clone(portraitRow)
+        ignoreVisibility()
         val parent = ConstraintSet.PARENT_ID
         val shutter = R.id.shutterButton
         // Flip above the shutter, gallery/pause below, both centred on the rail.

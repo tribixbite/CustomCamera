@@ -12,7 +12,7 @@ scripts/gradle-locked.sh :app:lintDebug              # should report only AGP-9 
 scripts/gradle-locked.sh :app:assembleDebug :app:assembleDebugAndroidTest
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 adb install -r -t app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
-adb shell am instrument -w tribixbite.customcamera.debug.test/androidx.test.runner.AndroidJUnitRunner   # 18 tests
+adb shell am instrument -w tribixbite.customcamera.debug.test/androidx.test.runner.AndroidJUnitRunner   # 24 tests
 scripts/gradle-locked.sh :app:assembleStaging :app:bundleRelease   # shrunk builds
 scripts/generate-store-assets.sh                     # Play icon + feature graphic
 ```
@@ -86,3 +86,9 @@ Seeker `192.168.0.170:5555`.
   Restore with `wm size reset; wm density reset` and the original rotation settings
   (Pixel: accelerometer_rotation=1, user_rotation=0). Leaving a portrait-locked activity
   resets the forced rotation; re-set user_rotation before landscape screenshots.
+- **`ConstraintSet.applyTo` also applies each child's clone-time visibility, alpha and
+  rotation.** Use `setVisibilityMode(id, VISIBILITY_MODE_IGNORE)` on every id and re-rotate
+  icons afterwards, or a mid-recording rotation hides the recording chip.
+- **Ultra HDR edits keep the gain map on API 34+ with no extra code**: ImageDecoder decodes
+  it, `Bitmap.createBitmap(…, matrix, …)` transforms it, `compress(JPEG)` writes JPEG_R.
+  Test with a synthetic `Gainmap` (the Pixel 8 Pro offers no JPEG_R through CameraX).
