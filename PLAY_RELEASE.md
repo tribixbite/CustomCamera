@@ -202,3 +202,5 @@ git tag -a v3.0.1 -m "CustomCamera 3.0.1" && git push origin main v3.0.1
 - CI (`android.yml`: tests, lint, builds on every push) and tag-triggered signed
   bundle workflow (`release.yml`)
 - Application ID `tribixbite.customcamera` has no existing Play listing (checked 2026-11-01)
+- Large screens: the viewfinder is not orientation-locked on ≥600dp screens (Play's large-screen
+  quality checks flag locked orientation); landscape layout verified on a simulated tablet
