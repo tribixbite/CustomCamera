@@ -52,6 +52,12 @@
     <string name="pro_wb">WB</string>
     <string name="pro_auto">Auto</string>
     <string name="pro_value_auto">%1$s A</string>
+    <!-- TalkBack names of the Pro slider for each parameter. -->
+    <string name="cd_pro_iso">ISO sensitivity</string>
+    <string name="cd_pro_shutter">Shutter speed</string>
+    <string name="cd_pro_wb">White balance</string>
+    <string name="cd_pro_focus">Focus distance</string>
+    <string name="cd_pro_ev">Exposure compensation</string>
     <string name="pro_unsupported">This camera does not support manual sensor control</string>
     <string name="wb_auto">Auto</string>
     <string name="wb_incandescent">Incandescent</string>

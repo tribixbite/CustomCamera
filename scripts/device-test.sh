@@ -26,6 +26,17 @@ echo "== instrumented tests"
 out=$(adb_ shell am instrument -w -r "$ID.debug.test/androidx.test.runner.AndroidJUnitRunner")
 echo "$out" | awk '/^INSTRUMENTATION_STATUS: test=/{t=$2} /^INSTRUMENTATION_STATUS_CODE: -2/{print "  FAIL " t} /^OK \(|^Tests run|^FAILURES/'
 echo "$out" | rg -q '^OK \(' && result=0 || result=1
+if [ "$result" -ne 0 ]; then
+    # Keep the first lines of every failure's stack: intermittent failures are otherwise lost.
+    # A stack is reported before its test's status code; print it only for failures (-2), not skips (-4).
+    echo "$out" | awk '
+        /^INSTRUMENTATION_STATUS: stack=/ { stack = ""; n = 8 }
+        n > 0 { stack = stack "    " $0 "\n"; n-- }
+        /^INSTRUMENTATION_STATUS_CODE: -2/ { printf "%s", stack; stack = "" }
+        /^INSTRUMENTATION_STATUS_CODE: / { stack = "" }'
+    log="${TMPDIR:-/tmp}/customcamera-instrument-$(date +%Y%m%d-%H%M%S).log"
+    echo "$out" > "$log" && echo "  full output: $log"
+fi
 
 echo "== staging (R8) cold start"
 adb_ install -r -g "$APK/staging/app-staging.apk" >/dev/null

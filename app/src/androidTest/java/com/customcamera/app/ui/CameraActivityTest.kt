@@ -291,6 +291,54 @@ class CameraActivityTest {
     }
 
     @Test
+    fun locationTaggingWritesGpsExif() {
+        // Granted (not revoked afterwards: revoking a runtime permission kills the process under test).
+        val automation = InstrumentationRegistry.getInstrumentation().uiAutomation
+        automation.grantRuntimePermission(context.packageName, Manifest.permission.ACCESS_FINE_LOCATION)
+        automation.grantRuntimePermission(context.packageName, Manifest.permission.ACCESS_COARSE_LOCATION)
+        prefs.edit().putBoolean(AppSettings.Keys.LOCATION, true).commit()
+        ActivityScenario.launch(CameraActivity::class.java).use { scenario ->
+            scenario.awaitReady()
+            val fix = runCatching {
+                waitUntil(20_000, message = "location fix") {
+                    var has = false
+                    scenario.onActivity { has = it.locationFixForTest() != null }
+                    has
+                }
+            }.isSuccess
+            assumeTrue("no location fix (location off or no provider)", fix)
+            scenario.clickShutter()
+            waitUntil(20_000, message = "photo in MediaStore") { newItems().any { !it.isVideo } }
+        }
+        val photo = newItems().first { !it.isVideo }
+        // MediaStore redacts location only for apps that neither own the file nor hold
+        // ACCESS_MEDIA_LOCATION; the app (and this test, same uid) owns it.
+        val latLong = context.contentResolver.openInputStream(photo.uri)!!.use {
+            androidx.exifinterface.media.ExifInterface(it).latLong
+        }
+        assertNotNull("photo has no GPS EXIF", latLong)
+    }
+
+    @Test
+    fun proSliderSpeaksValuesNotIndices() {
+        ActivityScenario.launch(CameraActivity::class.java).use { scenario ->
+            scenario.awaitReady()
+            scenario.selectMode(CaptureMode.PRO)
+            assumeTrue("no manual sensor control", scenario.state().manualCapabilities.manualSensor)
+            scenario.onActivity { it.findViewById<View>(R.id.chipShutter).performClick() }
+            scenario.onActivity { a ->
+                val slider = a.findViewById<com.google.android.material.slider.Slider>(R.id.proSlider)
+                assertEquals(a.getString(R.string.cd_pro_shutter), slider.contentDescription)
+                assertTrue("slider hidden from accessibility", slider.isImportantForAccessibility)
+                // The thumb is a virtual view; what TalkBack reads comes from the label formatter.
+                val thumb = slider.accessibilityNodeProvider!!.createAccessibilityNodeInfo(0)!!
+                val spoken = listOfNotNull(thumb.contentDescription, thumb.text, thumb.stateDescription).joinToString(" ")
+                assertTrue("thumb reads '$spoken'", Regex("""1/\d+|\d+(\.\d)?"""").containsMatchIn(spoken))
+            }
+        }
+    }
+
+    @Test
     fun volumeKeyTakesAPhoto() {
         prefs.edit().putString(AppSettings.Keys.VOLUME_KEYS, VolumeKeyAction.SHUTTER.key).commit()
         ActivityScenario.launch(CameraActivity::class.java).use { scenario ->

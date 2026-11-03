@@ -47,6 +47,9 @@ class ProPanelController(
         binding.proSlider.addOnChangeListener { _, value, fromUser ->
             if (fromUser && !updatingSlider) onSlider(value)
         }
+        // The slider runs over stop indices; the formatter turns them back into values. Labels
+        // are hidden, but Material's slider also uses the formatter for what TalkBack reads.
+        binding.proSlider.setLabelFormatter { value -> sliderValueText(value.roundToInt()) }
         binding.proAuto.setOnClickListener { resetSelectedToAuto() }
     }
 
@@ -112,6 +115,15 @@ class ProPanelController(
         binding.proSlider.isEnabled = count > 1
         // EV only acts while exposure is automatic.
         binding.proAuto.isVisible = param != Param.EV
+        binding.proSlider.contentDescription = context.getString(
+            when (param) {
+                Param.ISO -> R.string.cd_pro_iso
+                Param.SHUTTER -> R.string.cd_pro_shutter
+                Param.WB -> R.string.cd_pro_wb
+                Param.FOCUS -> R.string.cd_pro_focus
+                Param.EV -> R.string.cd_pro_ev
+            },
+        )
         updatingSlider = false
         syncSliderValue()
     }
@@ -149,6 +161,21 @@ class ProPanelController(
             )
             Param.EV -> camera.setExposureIndex(state.evMin + i)
         }
+    }
+
+    /** Value at slider position [i] of the selected parameter, as shown on its chip. */
+    private fun sliderValueText(i: Int): String {
+        val state = lastState ?: return ""
+        return when (selected) {
+            Param.ISO -> isoStops.getOrNull(i)?.let { "ISO $it" }
+            Param.SHUTTER -> shutterStops.getOrNull(i)?.let { ExposureMath.formatShutter(it) }
+            Param.WB -> awbModes.getOrNull(i)?.let { wbLabel(it) }
+            Param.FOCUS -> ExposureMath.formatFocusDistance(
+                ExposureMath.sliderToDiopters(i.toFloat() / FOCUS_STEPS, state.manualCapabilities.minFocusDiopters),
+            )
+            Param.EV -> ExposureMath.formatEv(state.evMin + i, state.evStep)
+            null -> null
+        }.orEmpty()
     }
 
     private fun resetSelectedToAuto() {

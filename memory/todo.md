@@ -36,7 +36,8 @@ Owner chooses how `v3` lands on `main`; never force-push without explicit approv
 
 ## Verified on Pixel 8 Pro (API 37, 2026-11-01)
 
-- [x] 24 instrumented tests (2026-11-02); earlier 18/18 incl. DUAL recording, peaking, torch strength and the
+- [x] 27 instrumented tests (2026-11-02); earlier 18/18. One unexplained DUAL failure in 4
+      full runs (passed 5/5 alone and 3 further full runs); device-test.sh now keeps stacks. incl. DUAL recording, peaking, torch strength and the
       crop editor (`scripts/device-test.sh 192.168.0.216:5555`)
 - [x] R8 staging build cold start 330 ms, no crash
 - [x] Night extension listed and captures (ext=3, 2560×1920 JPEG). Portrait and HDR
@@ -50,11 +51,14 @@ Owner chooses how `v3` lands on `main`; never force-push without explicit approv
 - [x] RAW (DNG) + JPEG saved from Pro (Pixel 8 Pro, `rawCaptureSavesDngBesideJpeg`)
 - [ ] Ultra HDR capture: CameraX offers no JPEG_R on the Pixel 8 Pro back camera (test skips)
 - [ ] 10-bit HLG video; ZSL
-- [ ] Location tagging end-to-end (permission flow + EXIF GPS)
+- [x] Location tagging writes EXIF GPS (`locationTaggingWritesGpsExif`, Pixel with location on)
+- [ ] Location permission prompt flow from Settings, by hand
 - [x] Volume-key shutter and 3 s self-timer (instrumented tests)
 - [ ] Volume-key zoom, level indicator in a lit scene
 - [ ] API 26–28 storage path (WRITE_EXTERNAL_STORAGE + DATA column) — needs an old device/emulator
-- [ ] TalkBack pass (Pro slider did not appear in a uiautomator dump)
+- [x] Pro slider: per-parameter TalkBack name and spoken values ("1/125", not the stop index);
+      uiautomator dumps omit Material sliders (provider-based nodes) — test reads the provider.
+- [ ] Full TalkBack walk-through by hand
 
 ## Ported from main (v2.4.3)
 

@@ -1289,6 +1289,10 @@ class CameraActivity : AppCompatActivity() {
     @VisibleForTesting
     internal fun setTorchStrengthForTest(level: Int) = controller.setTorchStrength(level)
 
+    /** The fix a capture would be tagged with right now (null without one). */
+    @VisibleForTesting
+    internal fun locationFixForTest(): android.location.Location? = location.currentOrNull()
+
     companion object {
         /** Shortcut / deep-link extra: initial [CaptureMode] key. */
         const val EXTRA_MODE = "com.customcamera.app.extra.MODE"
