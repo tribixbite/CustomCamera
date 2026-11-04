@@ -48,6 +48,18 @@ Owner chooses how `v3` lands on `main`; never force-push without explicit approv
       are not offered by this device's extension service, so they stay hidden.
 - Shared test phones: check out/in via `/sdcard/agent-sharing.md` on the device.
 
+## Verified on Saga (API 33, 192.168.0.224, 2026-11-03)
+
+- [x] 30/30 instrumented tests twice; staging cold start 251–376 ms. Ran (not skipped):
+      DUAL, RAW+DNG, ZSL, focus peaking, location EXIF, snapshot while recording, volume zoom,
+      every-lens rebind, Pro slider. Skipped by hardware: Ultra HDR (API 34), HLG, torch strength.
+- [x] DUAL flake pair (photo test + DUAL test) 10/10 on the Saga — the flake looks Pixel-specific.
+- [ ] Vendor camera HAL crashed once at app launch (`camera.qcom.so CamX::OIS::LensPositionThread`,
+      ubsan sub-overflow abort; tombstone_10). CameraX reported it as ERROR_CAMERA_IN_USE and
+      reconnected ~9 s later. The toast now says "busy or restarting" instead of blaming another
+      app. Not reproduced in the following 30 tests + 10 DUAL loops.
+- Other Sagas: 192.168.1.130 (API 34) is PIN-locked; 192.168.0.203 was in use (game open).
+
 ## Not yet verified on device
 
 - [ ] Actual QR decode + bounding-box alignment (needs a code in front of the camera)
@@ -56,8 +68,8 @@ Owner chooses how `v3` lands on `main`; never force-push without explicit approv
 - [ ] Ultra HDR capture: CameraX offers no JPEG_R on the Pixel 8 Pro back camera (test skips)
 - [x] 10-bit HLG video: the saved MP4's video track reports COLOR_TRANSFER_HLG
       (`hdrVideoIsRecordedAsHlg`, Pixel 8 Pro, 2026-11-03)
-- [ ] ZSL: CameraX reports `isZslSupported=false` for the Pixel 8 Pro back camera
-      (`zeroShutterLagPhotoIsSaved` skips there); needs another device
+- [x] ZSL photo saved on the Saga (API 33, `zeroShutterLagPhotoIsSaved` ran, 2026-11-03);
+      the Pixel 8 Pro back camera reports no ZSL and skips
 - [x] Location tagging writes EXIF GPS (`locationTaggingWritesGpsExif`, Pixel with location on)
 - [ ] Location permission prompt flow from Settings, by hand
 - [x] Volume-key shutter and 3 s self-timer (instrumented tests)

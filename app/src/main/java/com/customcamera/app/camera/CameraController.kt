@@ -339,7 +339,7 @@ class CameraController(
         val st = _state.value
         val infos = p.availableCameraInfos
         if (infos.isEmpty()) {
-            emit(CameraEvent.Error("No cameras available on this device"))
+            emit(CameraEvent.Error(context.getString(R.string.error_no_camera)))
             return false
         }
         if (st.mode == CaptureMode.DUAL) {
@@ -382,7 +382,7 @@ class CameraController(
             }
         }
         _state.update { it.copy(ready = false) }
-        emit(CameraEvent.Error("Could not open any camera", lastError))
+        emit(CameraEvent.Error(context.getString(R.string.error_camera_open_failed), lastError))
         return false
     }
 
@@ -815,12 +815,12 @@ class CameraController(
         val cameraState = Observer<XCameraState> { s ->
             val error = s.error ?: return@Observer
             val message = when (error.code) {
-                XCameraState.ERROR_CAMERA_IN_USE, XCameraState.ERROR_MAX_CAMERAS_IN_USE -> "Camera is in use by another app"
-                XCameraState.ERROR_CAMERA_DISABLED -> "Camera is disabled by device policy"
-                XCameraState.ERROR_DO_NOT_DISTURB_MODE_ENABLED -> "Camera unavailable while Do Not Disturb is on"
-                XCameraState.ERROR_CAMERA_FATAL_ERROR -> "Camera stopped working"
-                else -> "Camera error (${error.code})"
-            }
+                XCameraState.ERROR_CAMERA_IN_USE, XCameraState.ERROR_MAX_CAMERAS_IN_USE -> R.string.error_camera_busy
+                XCameraState.ERROR_CAMERA_DISABLED -> R.string.error_camera_disabled
+                XCameraState.ERROR_DO_NOT_DISTURB_MODE_ENABLED -> R.string.error_camera_dnd
+                XCameraState.ERROR_CAMERA_FATAL_ERROR -> R.string.error_camera_stopped
+                else -> null
+            }?.let(context::getString) ?: context.getString(R.string.error_camera_code, error.code)
             emit(CameraEvent.Error(message, error.cause))
         }
         info.zoomState.observe(lifecycleOwner, zoom)
@@ -1133,7 +1133,7 @@ class CameraController(
      * is passed through on [CameraEvent.CaptureStarted] so the UI clicks for every burst shot.
      */
     fun takePhoto(location: Location?, burstShot: Boolean = false, onStarted: (() -> Unit)? = null) {
-        val ic = imageCapture ?: return emit(CameraEvent.Error("Camera not ready"))
+        val ic = imageCapture ?: return emit(CameraEvent.Error(context.getString(R.string.error_camera_not_ready)))
         val time = Date()
         val metadata = ImageCapture.Metadata().apply {
             isReversedHorizontal = _state.value.isFront && settings.mirrorFront
@@ -1157,7 +1157,7 @@ class CameraController(
 
     /** Captures into a private file (used for ACTION_IMAGE_CAPTURE review). */
     fun takePhotoToFile(file: File) {
-        val ic = imageCapture ?: return emit(CameraEvent.Error("Camera not ready"))
+        val ic = imageCapture ?: return emit(CameraEvent.Error(context.getString(R.string.error_camera_not_ready)))
         val metadata = ImageCapture.Metadata().apply { isReversedHorizontal = _state.value.isFront && settings.mirrorFront }
         val options = ImageCapture.OutputFileOptions.Builder(file).setMetadata(metadata).build()
         ic.takePicture(options, mainExecutor, savedCallback())
@@ -1172,7 +1172,7 @@ class CameraController(
         override fun onError(exception: ImageCaptureException) {
             // A failed shot ends the burst rather than retrying into the same failure.
             if (burstRunning) stopBurst()
-            emit(CameraEvent.Error("Photo capture failed: ${exception.message ?: exception.imageCaptureError}", exception))
+            emit(CameraEvent.Error(context.getString(R.string.error_photo_failed, exception.message ?: exception.imageCaptureError.toString()), exception))
         }
     }
 
@@ -1184,7 +1184,7 @@ class CameraController(
      */
     @SuppressLint("MissingPermission") // Checked explicitly below.
     fun startRecording(withAudio: Boolean, location: Location?) {
-        val vc = videoCapture ?: return emit(CameraEvent.Error("Video not ready"))
+        val vc = videoCapture ?: return emit(CameraEvent.Error(context.getString(R.string.error_video_not_ready)))
         if (recording != null) return
         val target = MediaStoreHelper.target(MediaNaming.Kind.VIDEO, Date())
         val options = MediaStoreOutputOptions.Builder(context.contentResolver, target.collection)

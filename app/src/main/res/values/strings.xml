@@ -96,6 +96,16 @@
     <!-- Messages -->
     <string name="error_camera_generic">Camera error: %1$s</string>
     <string name="error_no_camera">No working camera was found on this device</string>
+    <string name="error_camera_open_failed">Could not open any camera</string>
+    <string name="error_camera_not_ready">Camera not ready</string>
+    <string name="error_video_not_ready">Video not ready</string>
+    <string name="error_photo_failed">Photo capture failed: %1$s</string>
+    <!-- CameraX reports a camera that another app took, or one the camera service restarted after a driver crash, the same way. -->
+    <string name="error_camera_busy">The camera is busy or restarting. It reconnects on its own when it is free.</string>
+    <string name="error_camera_disabled">Camera is disabled by device policy</string>
+    <string name="error_camera_dnd">Camera unavailable while Do Not Disturb is on</string>
+    <string name="error_camera_stopped">Camera stopped working</string>
+    <string name="error_camera_code">Camera error (%1$d)</string>
     <string name="camera_fallback">Camera %1$s failed — switched to camera %2$s</string>
     <string name="copied">Copied to clipboard</string>
     <string name="no_app_for_action">No app can handle this</string>
