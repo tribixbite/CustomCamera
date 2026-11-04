@@ -31,7 +31,7 @@ namespace stays `com.customcamera.app`. Release steps for the owner: `PLAY_RELEA
 `../swype/cleverkeys` notes: Pixel 8 Pro `192.168.0.216` (port rotates; 5555 or
 wireless-debug port), Saga `192.168.0.224:5555` (API 33; never `stop`/`start` it),
 Seeker `192.168.0.170:5555`. Addresses drift: `nmap -sT -p 5555 --open -n 192.168.0.0/24`
-then `getprop ro.product.model` on each. Saga `192.168.1.130` (API 34) is PIN-locked.
+then `getprop ro.product.model` on each. Saga `192.168.1.130` (API 34) is PIN-locked (ask the owner; relock after use).
 
 ## Layout
 

@@ -58,14 +58,18 @@ Owner chooses how `v3` lands on `main`; never force-push without explicit approv
       ubsan sub-overflow abort; tombstone_10). CameraX reported it as ERROR_CAMERA_IN_USE and
       reconnected ~9 s later. The toast now says "busy or restarting" instead of blaming another
       app. Not reproduced in the following 30 tests + 10 DUAL loops.
-- Other Sagas: 192.168.1.130 (API 34) is PIN-locked; 192.168.0.203 was in use (game open).
+- [x] Saga 192.168.1.130 (API 34, PIN-locked; unlocked with the owner's PIN, 2026-11-04): 30/30,
+      each test also run singly — 27 ran, 3 skipped by hardware (camera Ultra HDR, HLG, torch
+      strength). The editor's Ultra HDR gain-map test ran on API 34 here. No tombstones.
+- 192.168.0.203 was in use (game open) and was not touched.
 
 ## Not yet verified on device
 
 - [ ] Actual QR decode + bounding-box alignment (needs a code in front of the camera)
 - [ ] Portrait / HDR extensions (Night verified on Pixel; S25 Ultra's proxy times out)
 - [x] RAW (DNG) + JPEG saved from Pro (Pixel 8 Pro, `rawCaptureSavesDngBesideJpeg`)
-- [ ] Ultra HDR capture: CameraX offers no JPEG_R on the Pixel 8 Pro back camera (test skips)
+- [ ] Ultra HDR capture: CameraX offers no JPEG_R on the Pixel 8 Pro or the API 34 Saga
+      (`media.camera` lists no JPEG_R stream); needs a phone whose HAL advertises JPEG_R
 - [x] 10-bit HLG video: the saved MP4's video track reports COLOR_TRANSFER_HLG
       (`hdrVideoIsRecordedAsHlg`, Pixel 8 Pro, 2026-11-03)
 - [x] ZSL photo saved on the Saga (API 33, `zeroShutterLagPhotoIsSaved` ran, 2026-11-03);
