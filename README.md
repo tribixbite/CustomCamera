@@ -18,7 +18,7 @@ network access (the `INTERNET` permission is removed from the merged manifest).
 | **Viewfinder** | Tap to focus with exposure slider, long-press AE/AF lock, pinch and preset zoom chips (0.6× … 5×), swipe to change mode or flip camera, self-timer, grids (thirds / golden / square), level indicator, live histogram with clipping warnings, volume-key shutter or zoom, haptics. On phones the preview stays portrait and icons rotate with the device. |
 | **Tablets & foldables** | Large screens rotate freely: a landscape window moves the shutter, flip and gallery buttons to a rail on the side, centres a landscape preview beside it and crops captures to match (4:3 / 16:9 / 1:1). Pro and scan panels stay a readable width. The crop editor puts its tools in a side column in landscape. |
 | **Cameras** | Lens picker listing every camera Camera2 exposes (with 35 mm-equivalent focal length); if a camera fails to bind, the app falls back to the next working one automatically. |
-| **Scanner** | ML Kit on-device QR / barcode scanning with boxes mapped onto the preview; one-tap actions for links, Wi-Fi (system "add network" sheet), phone, SMS, email and geo codes. |
+| **Scanner** | On-device QR / barcode scanning (ZXing: QR, Data Matrix, Aztec, PDF417, EAN/UPC, Code 128/39/93, Codabar, ITF) with boxes mapped onto the preview; one-tap actions for links, Wi-Fi (system "add network" sheet), phone, SMS, email and geo codes. |
 | **Gallery** | Grid of your captures and a swipeable viewer with pinch / double-tap zoom, video playback, share, edit, EXIF details and delete. A built-in **Crop & rotate** editor (free or fixed aspect, 90° rotation, mirror) saves a new `_edit` copy with the original EXIF and never changes the original. Captures are saved to `DCIM/CustomCamera` via MediaStore. |
 | **System integration** | Handles `IMAGE_CAPTURE` (with review), `VIDEO_CAPTURE`, `STILL_IMAGE_CAMERA(_SECURE)` and `VIDEO_CAMERA`; launcher shortcuts for Selfie, Video and Scan; splash screen; adaptive + themed icon. |
 
@@ -52,7 +52,7 @@ Requirements: JDK 17+, Android SDK with platform 36.
 ./gradlew :app:testDebugUnitTest        # JVM unit tests (core/)
 ./gradlew :app:lintDebug
 ./gradlew :app:assembleStaging          # R8-shrunk build, installable beside a release
-./gradlew :app:bundleRelease            # Play bundle (see PLAY_RELEASE.md for signing)
+./gradlew :app:assembleRelease          # release APK: signed with keystore.properties, else unsigned
 ```
 
 On-device tests (35 instrumented tests; they delete every capture they make):
@@ -71,9 +71,10 @@ device-wide `~/.gradle/gradle.properties`). `scripts/gradle-locked.sh` wraps
 
 ## Releasing
 
-See [PLAY_RELEASE.md](PLAY_RELEASE.md) — the single checklist for the upload
-key, signed bundles, Play Console forms and store-listing assets
-(`fastlane/metadata/android/en-US/`). Privacy policy: [PRIVACY.md](PRIVACY.md).
+Signed APKs are published on [GitHub Releases](https://github.com/tribixbite/CustomCamera/releases)
+and are built to be reproducible for F-Droid. See [RELEASING.md](RELEASING.md) for the signing
+key, tagging, developer verification and F-Droid ([fdroid/README.md](fdroid/README.md)).
+Privacy policy: [PRIVACY.md](PRIVACY.md).
 
 ## License
 

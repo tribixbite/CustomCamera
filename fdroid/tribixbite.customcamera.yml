@@ -1,0 +1,68 @@
+# F-Droid build recipe for CustomCamera — reproducible-build / published-binary mode.
+#
+# A draft of what belongs in fdroiddata, kept here so it is reviewed with the code
+# it builds. To submit, copy it to fdroiddata/metadata/tribixbite.customcamera.yml
+# and open a merge request against https://gitlab.com/fdroid/fdroiddata —
+# F-Droid does not read this copy. Listing text, screenshots and changelogs are
+# read from fastlane/metadata/android/en-US/ in the tagged commit.
+#
+# `binary:` puts the app in reproducible-build mode: F-Droid builds the tag,
+# compares the result with the APK on GitHub Releases and, if they match apart
+# from the signature, publishes OUR signed APK. release.yml rehearses exactly
+# that comparison (apksigcopier, JDK 17, no key) before publishing a release.
+
+Categories:
+  - Multimedia
+  - Graphics
+License: MIT
+AuthorName: tribixbite
+SourceCode: https://github.com/tribixbite/CustomCamera
+IssueTracker: https://github.com/tribixbite/CustomCamera/issues
+Changelog: https://github.com/tribixbite/CustomCamera/releases
+
+AutoName: CustomCamera
+
+RepoType: git
+Repo: https://github.com/tribixbite/CustomCamera.git
+
+# One universal APK: the only native code is CameraX's prebuilt helper libraries
+# (Google Maven), identical on both sides, so no per-ABI split is needed.
+# 3.0.0 is not buildable for F-Droid (it still used Google ML Kit); 3.1.0 is the
+# first release without proprietary dependencies.
+Builds:
+  - versionName: 3.1.0
+    versionCode: 30100
+    commit: v3.1.0
+    subdir: app
+    gradle:
+      - yes
+    binary: https://github.com/tribixbite/CustomCamera/releases/download/v%v/CustomCamera-v%v.apk
+
+MaintainerNotes: |
+    Reproducible builds: release.yml builds the signed APK with JDK 21, then
+    rebuilds the tag with JDK 17 in another directory without the key and runs
+    `apksigcopier compare --unsigned` against it before publishing; a release
+    only exists if that passed. Without keystore.properties / CC_KEYSTORE_*
+    the release build is unsigned (app-release-unsigned.apk), and the
+    dependency-metadata block is disabled (dependenciesInfo).
+
+    Versioning: version.properties is the only source; versionCode =
+    MAJOR*10000 + MINOR*100 + PATCH, computed in app/build.gradle.kts, so the
+    release notes carry Version:/VersionCode: lines for UpdateCheckMode HTTP.
+
+    Dependencies: AndroidX (CameraX, AppCompat, Preference, …), Material
+    Components, Kotlin coroutines and ZXing core — all Apache-2.0 from Google
+    Maven / Maven Central. No Google Play Services, Firebase, ML Kit,
+    analytics, ads or crash reporting. The manifest has no INTERNET permission.
+
+# SHA-256 of the release signing certificate; F-Droid only publishes a binary
+# signed by this key. From: apksigner verify --print-certs CustomCamera-v<ver>.apk
+# DN: CN=tribixbite, OU=arch, O=techneesh, L=Grand Rapids, ST=Michigan, C=US
+AllowedAPKSigningKeys: b975d2e172aa1783f05a831dea86d3f220c7602c4155a3be6a5484d81e7277cb
+
+AutoUpdateMode: Version
+UpdateCheckMode: HTTP
+UpdateCheckData: https://github.com/tribixbite/CustomCamera/releases/latest|VersionCode:\
+  (\d+)|.|Version:\ ([\d.]+)
+CurrentVersion: 3.1.0
+CurrentVersionCode: 30100

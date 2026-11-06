@@ -4,9 +4,9 @@
 # secrets CI reads, and print the certificate's SHA-256 fingerprint (what Play
 # Console / Android developer verification asks for).
 #
-# One key signs every channel — GitHub release APKs, CI builds, and (exported to
-# Play App Signing, see PLAY_RELEASE.md) Play installs — so users can move between
-# channels without uninstalling. Same arrangement as Embeddy.
+# One key signs every channel — GitHub release APKs, CI builds, and F-Droid (which
+# republishes our APK after reproducing it, see fdroid/README.md) — so users can
+# move between channels without uninstalling. Same arrangement as Embeddy.
 #
 # Passwords are never taken on the command line or written by this script:
 # keytool prompts for them, and `gh secret set` prompts for its values, so they

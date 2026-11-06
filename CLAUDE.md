@@ -1,6 +1,6 @@
 # CustomCamera — Claude Code project notes
 
-Kotlin / CameraX 1.6 camera app targeting Google Play (targetSdk 36, minSdk 26).
+Kotlin / CameraX 1.6 camera app shipped via GitHub Releases + F-Droid (targetSdk 36, minSdk 26).
 Rebuilt in v3.0.0 (2026-11-01); the pre-3.0 "plugin engine" was removed because its
 manual controls never reached the camera. **Task list: `memory/todo.md`.**
 
@@ -13,8 +13,8 @@ scripts/gradle-locked.sh :app:assembleDebug :app:assembleDebugAndroidTest
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 adb install -r -t app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
 adb shell am instrument -w tribixbite.customcamera.debug.test/androidx.test.runner.AndroidJUnitRunner   # 35 tests
-scripts/gradle-locked.sh :app:assembleStaging :app:bundleRelease   # shrunk builds
-scripts/generate-store-assets.sh                     # Play icon + feature graphic
+scripts/gradle-locked.sh :app:assembleStaging :app:assembleRelease   # shrunk builds (release unsigned without keystore.properties)
+scripts/generate-store-assets.sh                     # listing icon + feature graphic
 scripts/generate-release-key.sh [--fingerprint]      # release key + CI secrets / print SHA-256
 ```
 
@@ -24,8 +24,8 @@ Always build through `scripts/gradle-locked.sh` on the Termux box (shared
 and run `am instrument` with Termux's adb instead.
 
 applicationId `tribixbite.customcamera` (+ `.debug`, `.staging`); the Kotlin
-namespace stays `com.customcamera.app`. Release steps for the owner: `PLAY_RELEASE.md`
-(keep it the single source). The S25 Ultra (this host) also has the **old v2 app**
+namespace stays `com.customcamera.app`. Release steps for the owner: `RELEASING.md`
+(keep it the single source); F-Droid: `fdroid/README.md`. The S25 Ultra (this host) also has the **old v2 app**
 `com.customcamera.app` with photos in private storage — never uninstall it.
 
 **Do not test on the host phone (S25 Ultra).** Use the test devices listed in
@@ -51,7 +51,11 @@ then `getprop ro.product.model` on each. Saga `192.168.1.130` (API 34) is PIN-lo
   are cached per camera key, and main only reads the cache. Keep it that way.
 - **No `singleTask` on CameraActivity**: `IMAGE_CAPTURE`/`VIDEO_CAPTURE` callers use
   `startActivityForResult`, which cannot return a result across tasks.
-- **ML Kit merges `INTERNET` + `ACCESS_NETWORK_STATE`**; they are removed with
+- **No proprietary deps (F-Droid).** Scanning is ZXing (`core/BarcodeDecoder`); ML Kit was
+  removed after 3.0.0. ZXing's Data Matrix/Aztec detectors start at the frame centre, and
+  two QR codes in one frame need `QRCodeMultiReader` (GenericMultipleBarcodeReader finds none).
+  Keep `dependenciesInfo` off and the keyless release unsigned — F-Droid compares builds.
+- **ML Kit merged `INTERNET` + `ACCESS_NETWORK_STATE`** (until 3.0.0); they are removed with
   `tools:node="remove"` so the privacy policy's "no network" claim is OS-enforced.
   Re-check the merged manifest after adding any dependency.
 - **MediaStore fills `DURATION` asynchronously** after a video is published — poll,

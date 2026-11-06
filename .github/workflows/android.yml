@@ -48,7 +48,7 @@ jobs:
           echo "path=$RUNNER_TEMP/release.jks" >> "$GITHUB_OUTPUT"
           echo "signed=true" >> "$GITHUB_OUTPUT"
 
-      - name: Unit tests, lint, debug + release builds
+      - name: Unit tests, lint, debug (+ signed release) builds
         env:
           CC_KEYSTORE_PATH: ${{ steps.keystore.outputs.path }}
           CC_KEYSTORE_PASSWORD: ${{ secrets.CC_KEYSTORE_PASSWORD }}
@@ -59,7 +59,7 @@ jobs:
           set -euo pipefail
           # Gradle treats an empty CC_KEYSTORE_PATH as "no keystore".
           [ -n "$CC_KEYSTORE_PATH" ] || unset CC_KEYSTORE_PATH
-          tasks=(:app:testDebugUnitTest :app:lintDebug :app:assembleDebug :app:assembleDebugAndroidTest :app:bundleRelease)
+          tasks=(:app:testDebugUnitTest :app:lintDebug :app:assembleDebug :app:assembleDebugAndroidTest)
           if [ "$SIGNED" = "true" ]; then
             tasks+=(:app:assembleRelease -PrequireReleaseSigning)
           fi
@@ -107,9 +107,3 @@ jobs:
           path: dist/
           retention-days: 30
           if-no-files-found: error
-
-      - name: Upload bundle (debug-signed unless signing secrets are configured)
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-release-aab
-          path: app/build/outputs/bundle/release/app-release.aab

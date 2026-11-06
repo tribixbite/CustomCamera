@@ -170,10 +170,26 @@ items below were missing and are now implemented and verified on the Pixel 8 Pro
       — installed and launched on the Pixel (411 ms, QR scan works).
 - [ ] `release.yml` (tag → GitHub Release) not yet exercised; needs the owner to push a tag.
 
+## Distribution: GitHub + F-Droid, no Play (owner decision 2026-11-06)
+
+- [x] v3.0.0 tagged and released on GitHub (signed APK + SHA256SUMS; still contains ML Kit,
+      so it is not F-Droid-buildable).
+- [x] PLAY_RELEASE.md → RELEASING.md (key, developer verification snippet APK, tagging);
+      AAB builds dropped from CI.
+- [x] F-Droid prep: keyless release is unsigned, dependenciesInfo + vcsInfo off, recipe draft
+      `fdroid/tribixbite.customcamera.yml` (targets v3.1.0), `fdroid/README.md`, 5 phone
+      screenshots in fastlane, release.yml `reproducible` job (JDK 17, other path, no key,
+      apksigcopier compare) gates publishing.
+- [ ] Owner: approve v3.1.0 (version bump + changelog 30100 + tag), then submit the recipe MR.
+- [ ] Owner: developer-console key-ownership proof needs the console's snippet in
+      `assets/adi-registration.properties` and a signed APK (RELEASING.md §2).
+
 ## Backlog (prioritised)
 
 1. [ ] Upgrade to AGP 9.x + compileSdk 37 (unblocks core-ktx 1.19+).
 2. [ ] Localisation (strings are resource-based; arrays marked translatable).
 3. [ ] Baseline profile for faster cold start.
-4. [ ] Optional: replace ML Kit with an Apache-licensed scanner to shrink the APK
-       (~5 MB native lib per ABI) and drop the Google ToS dependency.
+4. [x] ML Kit replaced by ZXing 3.5.4 (`core/BarcodeDecoder`, 7 JVM tests; 2026-11-06). Release
+       APK 24.8 MB → 3.3 MB. Real QR on the Pixel: decoded, boxes aligned, ~97 ms/frame at
+       1280x960 (debug log), also in the R8 build. Limits: Data Matrix/Aztec must cover the
+       frame centre (ZXing detectors); TRY_HARDER on.

@@ -1,8 +1,10 @@
 name: Release
 
-# On a version tag (or on demand): builds the release-key-signed APK and Play
-# bundle. A tag push also publishes a GitHub Release with the APK and checksums;
-# the AAB stays a workflow artifact for manual upload to Play Console.
+# On a version tag (or on demand): builds the release-key-signed APK, then
+# rebuilds it the way F-Droid will (other JDK, other path, no key) and checks the
+# two match apart from the signature. A tag push publishes a GitHub Release with
+# the APK; F-Droid verifies its own build against that file and republishes it
+# (see fdroid/README.md).
 #
 # Required repository secrets (scripts/generate-release-key.sh sets them):
 #   CC_KEYSTORE_B64       base64 of the release keystore (.jks)
@@ -21,6 +23,9 @@ jobs:
   release:
     runs-on: ubuntu-latest
     timeout-minutes: 40
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      version_code: ${{ steps.version.outputs.version_code }}
     steps:
       - uses: actions/checkout@v4
 
@@ -35,10 +40,13 @@ jobs:
         id: version
         run: |
           set -euo pipefail
-          version=$(awk -F= '/^VERSION_(MAJOR|MINOR|PATCH)=/ { v = v (v ? "." : "") $2 } END { print v }' version.properties)
+          source version.properties
+          version="$VERSION_MAJOR.$VERSION_MINOR.$VERSION_PATCH"
+          # Same formula as app/build.gradle.kts.
           echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "version_code=$((VERSION_MAJOR * 10000 + VERSION_MINOR * 100 + VERSION_PATCH))" >> "$GITHUB_OUTPUT"
           # A tag that disagrees with version.properties would publish an APK whose
-          # versionName differs from its release title.
+          # versionName differs from its release title (and F-Droid builds the tag).
           if [ "${GITHUB_REF_TYPE}" = "tag" ] && [ "${GITHUB_REF_NAME}" != "v$version" ]; then
             echo "::error::Tag ${GITHUB_REF_NAME} does not match version.properties (v$version)"
             exit 1
@@ -60,42 +68,33 @@ jobs:
             exit 1
           fi
 
-      - name: Test, lint and build signed APK + bundle
+      - name: Test, lint and build signed APK
         env:
           CC_KEYSTORE_PATH: ${{ runner.temp }}/release.jks
           CC_KEYSTORE_PASSWORD: ${{ secrets.CC_KEYSTORE_PASSWORD }}
           CC_KEY_ALIAS: ${{ secrets.CC_KEY_ALIAS }}
           CC_KEY_PASSWORD: ${{ secrets.CC_KEY_PASSWORD }}
-        run: ./gradlew --stacktrace -PrequireReleaseSigning :app:testDebugUnitTest :app:lintRelease :app:assembleRelease :app:bundleRelease
+        run: ./gradlew --stacktrace -PrequireReleaseSigning :app:testDebugUnitTest :app:lintRelease :app:assembleRelease
 
       - name: Remove keystore
         if: always()
         run: rm -f "$RUNNER_TEMP/release.jks"
 
-      - name: Verify signatures and collect files
+      - name: Verify signature and collect files
         env:
           VERSION: ${{ steps.version.outputs.version }}
         run: |
           set -euo pipefail
           apksigner="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)/apksigner"
-          mkdir -p dist play
+          mkdir -p dist
           cp app/build/outputs/apk/release/app-release.apk "dist/CustomCamera-v$VERSION.apk"
-          cp app/build/outputs/bundle/release/app-release.aab "play/CustomCamera-v$VERSION.aab"
-          cp app/build/outputs/mapping/release/mapping.txt play/
+          cp app/build/outputs/mapping/release/mapping.txt "dist/mapping-v$VERSION.txt"
           "$apksigner" verify --print-certs "dist/CustomCamera-v$VERSION.apk" | awk '/SHA-256 digest|DN:/'
           # A debug-signed artifact must never be published.
           if "$apksigner" verify --print-certs "dist/CustomCamera-v$VERSION.apk" | awk '/DN:/ && /Android Debug/ { found = 1 } END { exit !found }'; then
             echo "::error::APK is signed with a debug key"; exit 1
           fi
-          jarsigner -verify "play/CustomCamera-v$VERSION.aab" | tail -1
           (cd dist && sha256sum *.apk | tee SHA256SUMS.txt)
-
-      - name: Upload Play bundle
-        uses: actions/upload-artifact@v4
-        with:
-          name: customcamera-v${{ steps.version.outputs.version }}-play
-          path: play/
-          retention-days: 90
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
@@ -104,12 +103,73 @@ jobs:
           path: dist/
           retention-days: 90
 
+  # F-Droid builds the tag itself and only publishes our APK if its build is
+  # identical apart from the signature. Rehearse that here with deliberately
+  # different conditions: JDK 17 (F-Droid's build server default) instead of 21,
+  # another checkout path, a cold Gradle cache and no signing key.
+  reproducible:
+    needs: release
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: elsewhere/customcamera-src
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Build unsigned release APK
+        working-directory: elsewhere/customcamera-src
+        run: ./gradlew --no-daemon --no-build-cache --stacktrace :app:assembleRelease
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: customcamera-v${{ needs.release.outputs.version }}-apk
+          path: signed
+
+      - name: Compare with the signed APK (apksigcopier, as F-Droid does)
+        env:
+          VERSION: ${{ needs.release.outputs.version }}
+        run: |
+          set -euo pipefail
+          export PATH="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1):$PATH"
+          pip install --quiet apksigcopier
+          unsigned=elsewhere/customcamera-src/app/build/outputs/apk/release/app-release-unsigned.apk
+          signed="signed/CustomCamera-v$VERSION.apk"
+          ls -l "$unsigned" "$signed"
+          if apksigcopier compare --unsigned "$signed" "$unsigned"; then
+            echo "Reproducible: the unsigned rebuild matches the signed APK."
+          else
+            echo "::error::Rebuild differs from the signed APK — F-Droid verification would fail."
+            mkdir -p a b
+            (cd a && unzip -q "../$signed") ; (cd b && unzip -q "../$unsigned")
+            diff -rq a b | grep -v 'META-INF/(CERT|MANIFEST)' || true
+            exit 1
+          fi
+
+  publish:
+    if: github.ref_type == 'tag'
+    needs: [release, reproducible]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: customcamera-v${{ needs.release.outputs.version }}-apk
+          path: dist
+
       - name: Publish GitHub Release
-        if: github.ref_type == 'tag'
         uses: softprops/action-gh-release@v2
         with:
-          name: CustomCamera v${{ steps.version.outputs.version }}
+          name: CustomCamera v${{ needs.release.outputs.version }}
           generate_release_notes: true
+          # F-Droid's UpdateCheckMode: HTTP reads these two lines (see
+          # fdroid/tribixbite.customcamera.yml) — keep their exact shape.
+          body: |
+            Version: ${{ needs.release.outputs.version }}
+            VersionCode: ${{ needs.release.outputs.version_code }}
           files: |
-            dist/*.apk
+            dist/CustomCamera-v${{ needs.release.outputs.version }}.apk
             dist/SHA256SUMS.txt
