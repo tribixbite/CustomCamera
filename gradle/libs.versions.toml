@@ -17,7 +17,7 @@ preference = "1.2.1"
 splashscreen = "1.2.0"
 exifinterface = "1.4.2"
 camerax = "1.6.2"
-mlkitBarcode = "17.3.0"
+zxing = "3.5.4"
 coroutines = "1.11.0"
 
 junit = "4.13.2"
@@ -47,8 +47,7 @@ camerax-lifecycle = { group = "androidx.camera", name = "camera-lifecycle", vers
 camerax-view = { group = "androidx.camera", name = "camera-view", version.ref = "camerax" }
 camerax-video = { group = "androidx.camera", name = "camera-video", version.ref = "camerax" }
 camerax-extensions = { group = "androidx.camera", name = "camera-extensions", version.ref = "camerax" }
-camerax-mlkit-vision = { group = "androidx.camera", name = "camera-mlkit-vision", version.ref = "camerax" }
-mlkit-barcode = { group = "com.google.mlkit", name = "barcode-scanning", version.ref = "mlkitBarcode" }
+zxing-core = { group = "com.google.zxing", name = "core", version.ref = "zxing" }
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
 
 junit = { group = "junit", name = "junit", version.ref = "junit" }

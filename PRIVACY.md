@@ -36,9 +36,10 @@ the app removes its settings; your photos and videos stay in your gallery.
 
 ## Third-party components
 
-Barcode scanning uses Google ML Kit's on-device model, bundled inside the app.
-ML Kit can attempt to send anonymous diagnostics to Google, but because the app
-has no internet permission those requests cannot leave the device.
+Barcode scanning uses ZXing, an open-source (Apache-2.0) decoder that runs
+entirely inside the app. No component sends data anywhere: the app has no
+internet permission, so nothing can leave the device. (Version 3.0.0 used Google
+ML Kit for scanning; it is no longer included.)
 
 ## Children
 

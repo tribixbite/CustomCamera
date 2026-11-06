@@ -68,6 +68,7 @@ import androidx.lifecycle.Observer
 import com.customcamera.app.BuildConfig
 import com.customcamera.app.R
 import com.customcamera.app.core.AspectOption
+import com.customcamera.app.core.BarcodeDecoder
 import com.customcamera.app.core.CaptureMode
 import com.customcamera.app.core.Composition
 import com.customcamera.app.core.ExtensionIds
@@ -84,9 +85,6 @@ import com.customcamera.app.core.VideoQualityOption
 import com.customcamera.app.gallery.MediaStoreHelper
 import com.customcamera.app.settings.AppSettings
 import com.customcamera.app.util.await
-import com.google.mlkit.vision.barcode.BarcodeScanner
-import com.google.mlkit.vision.barcode.BarcodeScanning
-import com.google.mlkit.vision.common.InputImage
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -141,7 +139,6 @@ class CameraController(
     private var videoConfig: VideoConfig? = null
     private var analysis: ImageAnalysis? = null
     private var recording: Recording? = null
-    private var barcodeScanner: BarcodeScanner? = null
 
     private var zoomObserver: Observer<ZoomState>? = null
     private var cameraStateObserver: Observer<XCameraState>? = null
@@ -737,8 +734,14 @@ class CameraController(
             }
     }
 
+    /**
+     * SCAN: decodes each frame's luminance plane with ZXing ([BarcodeDecoder]) on
+     * [analysisExecutor] and maps the upright boxes onto the preview. Decoding is
+     * synchronous, so with KEEP_ONLY_LATEST a slow frame simply skips the next ones.
+     */
     private fun buildBarcodeAnalysis(): ImageAnalysis {
-        val scanner = barcodeScanner ?: BarcodeScanning.getClient().also { barcodeScanner = it }
+        val decoder = BarcodeDecoder()
+        var frames = 0
         val transformFactory = ImageProxyTransformFactory().apply { isUsingRotationDegrees = true }
         return ImageAnalysis.Builder()
             .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
@@ -750,24 +753,29 @@ class CameraController(
             .build()
             .also { a ->
                 a.setAnalyzer(analysisExecutor) { proxy ->
-                    val media = proxy.image
-                    if (media == null) {
-                        proxy.close()
-                        return@setAnalyzer
-                    }
-                    val sourceTransform = transformFactory.getOutputTransform(proxy)
-                    val input = InputImage.fromMediaImage(media, proxy.imageInfo.rotationDegrees)
-                    scanner.process(input).addOnCompleteListener(mainExecutor) { task ->
-                        proxy.close()
-                        val codes = task.result.orEmpty().mapNotNull { it.rawValue?.let { raw -> raw to it.boundingBox } }
-                        if (!task.isSuccessful || codes.isEmpty()) return@addOnCompleteListener
-                        val target = previewView.outputTransform
-                        val mapper = target?.let { CoordinateTransform(sourceTransform, it) }
-                        val results = codes.map { (raw, rect) ->
-                            val box = rect?.let { r -> RectF(r).also { mapper?.mapRect(it) } }
-                            DetectedCode(ScanContent.parse(raw), box)
+                    try {
+                        val plane = proxy.planes[0]
+                        val started = SystemClock.elapsedRealtime()
+                        val codes = decoder.decode(
+                            plane.buffer, proxy.width, proxy.height, plane.rowStride, plane.pixelStride,
+                            proxy.imageInfo.rotationDegrees,
+                        )
+                        if (BuildConfig.DEBUG && frames++ % 30 == 0) {
+                            Log.d(TAG, "Scan ${proxy.width}x${proxy.height}: ${codes.size} code(s) in ${SystemClock.elapsedRealtime() - started} ms")
                         }
-                        emit(CameraEvent.BarcodesDetected(results))
+                        if (codes.isEmpty()) return@setAnalyzer
+                        val sourceTransform = transformFactory.getOutputTransform(proxy)
+                        mainExecutor.execute {
+                            // previewView.outputTransform is main-thread only.
+                            val mapper = previewView.outputTransform?.let { CoordinateTransform(sourceTransform, it) }
+                            val results = codes.map { code ->
+                                val box = code.box?.let { b -> RectF(b.left, b.top, b.right, b.bottom).also { mapper?.mapRect(it) } }
+                                DetectedCode(ScanContent.parse(code.text), box)
+                            }
+                            emit(CameraEvent.BarcodesDetected(results))
+                        }
+                    } finally {
+                        proxy.close()
                     }
                 }
                 analysis = a
@@ -1241,8 +1249,6 @@ class CameraController(
         recording?.stop()
         recording = null
         closeDualOwner()
-        barcodeScanner?.close()
-        barcodeScanner = null
         analysisExecutor.shutdown()
         extensionExecutor.shutdownNow()
     }

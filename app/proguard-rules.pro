@@ -1,6 +1,6 @@
 # CustomCamera R8 rules.
 #
-# CameraX, ML Kit, Material and AndroidX ship their own consumer rules, so the
+# CameraX, Material and AndroidX ship their own consumer rules (ZXing needs none), so the
 # app needs very few. Do NOT add a blanket -keep for com.customcamera.app.**:
 # that disables shrinking/obfuscation for all app code.
 

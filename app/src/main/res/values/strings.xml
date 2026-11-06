@@ -211,6 +211,6 @@
     <string name="pref_licenses">Open-source licenses</string>
     <string name="pref_reset">Reset settings</string>
     <string name="pref_reset_done">Settings reset to defaults</string>
-    <string name="licenses_body">CustomCamera is released under the MIT License.\n\nIt uses the following open-source libraries, all under the Apache License 2.0:\n• AndroidX (CameraX, AppCompat, Core, Lifecycle, Preference, RecyclerView, ViewPager2, ExifInterface, SplashScreen)\n• Material Components for Android\n• Kotlin and kotlinx.coroutines\n\nBarcode scanning uses Google ML Kit, provided under the ML Kit Terms of Service.</string>
+    <string name="licenses_body">CustomCamera is released under the MIT License.\n\nIt uses the following open-source libraries, all under the Apache License 2.0:\n• AndroidX (CameraX, AppCompat, Core, Lifecycle, Preference, RecyclerView, ViewPager2, ExifInterface, SplashScreen)\n• Material Components for Android\n• Kotlin and kotlinx.coroutines\n• ZXing (barcode and QR decoding)</string>
     <string name="privacy_url" translatable="false">https://github.com/tribixbite/CustomCamera/blob/main/PRIVACY.md</string>
 </resources>

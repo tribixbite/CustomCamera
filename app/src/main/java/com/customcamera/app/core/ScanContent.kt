@@ -1,7 +1,7 @@
 package com.customcamera.app.core
 
 /**
- * Classified content of a scanned QR/barcode, independent of ML Kit so the
+ * Classified content of a scanned QR/barcode, independent of the decoder so the
  * parsing rules can be unit-tested and reused.
  */
 sealed class ScanContent {

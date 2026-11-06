@@ -18,9 +18,9 @@
         android:maxSdkVersion="28" />
 
     <!--
-        The app never uses the network. ML Kit's bundled barcode model works
-        offline; its optional diagnostics transport merges these permissions in,
-        so they are removed to guarantee captures and scans never leave the device.
+        The app never uses the network. No current dependency requests these
+        (ML Kit did until 3.0.0); the removals stay so a future library cannot
+        merge them in and captures and scans can never leave the device.
     -->
     <uses-permission android:name="android.permission.INTERNET" tools:node="remove" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" tools:node="remove" />
