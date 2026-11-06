@@ -15,7 +15,13 @@ commands from the repo root (`~/git/CustomCamera`).
 
 ---
 
-## 1. Create the release key and CI secrets (no CustomCamera key exists yet)
+## 1. Create the release key and CI secrets — DONE 2026-11-06
+
+Release certificate SHA-256 (what Play Console / developer verification asks for):
+`B9:75:D2:E1:72:AA:17:83:F0:5A:83:1D:EA:86:D3:F2:20:C7:60:2C:41:55:A3:BE:6A:54:84:D8:1E:72:77:CB`.
+Any APK or AAB from CI must show this; if a build shows another, the wrong key was used.
+
+How it was made (for reference / a future app):
 
 Checked on 2026-11-06: the keystores on this device belong to other apps
 (`~/.android/cleverkeys-release.keystore`, `~/git/carify-release.jks`,

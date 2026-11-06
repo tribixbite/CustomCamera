@@ -65,7 +65,10 @@ Owner chooses how `v3` lands on `main`; never force-push without explicit approv
 
 ## Not yet verified on device
 
-- [ ] Actual QR decode + bounding-box alignment (needs a code in front of the camera)
+- [x] QR decode + bounding-box alignment (Pixel 8 Pro, real printed code, 2026-11-06): URL
+      decoded into a Link sheet, brackets sit on the code's corners; also in the R8 release
+      build signed by CI (ML Kit survives shrinking).
+- [x] Level line drawn white and tilted while the phone is held off level (by hand)
 - [ ] Portrait / HDR extensions (Night verified on Pixel; S25 Ultra's proxy times out)
 - [x] RAW (DNG) + JPEG saved from Pro (Pixel 8 Pro, `rawCaptureSavesDngBesideJpeg`)
 - [ ] Ultra HDR capture: CameraX offers no JPEG_R on the Pixel 8 Pro or the API 34 Saga
@@ -161,8 +164,11 @@ items below were missing and are now implemented and verified on the Pixel 8 Pro
 - [x] Every push uploads `customcamera-v<ver>-apk` (debug APK; plus release-key-signed APK
       once secrets exist, with certificate SHA-256 in the log). `v*` tags publish a GitHub
       Release with the signed APK; the AAB + mapping stay a workflow artifact.
-- [ ] Owner: run `scripts/generate-release-key.sh` (no CustomCamera key exists yet) — it sets
-      the CC_* secrets and prints the SHA-256 for Play Console / developer verification.
+- [x] Release key created by the owner (2026-11-06; `~/git/customcamera-release.jks`, backup in
+      Documents), CC_* secrets set. CI run 42183410372 built the signed APK:
+      SHA-256 B9:75:D2:E1:72:AA:17:83:F0:5A:83:1D:EA:86:D3:F2:20:C7:60:2C:41:55:A3:BE:6A:54:84:D8:1E:72:77:CB
+      — installed and launched on the Pixel (411 ms, QR scan works).
+- [ ] `release.yml` (tag → GitHub Release) not yet exercised; needs the owner to push a tag.
 
 ## Backlog (prioritised)
 
