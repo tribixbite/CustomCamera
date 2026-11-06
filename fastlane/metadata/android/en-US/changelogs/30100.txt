@@ -1,0 +1,5 @@
+CustomCamera 3.1
+• QR and barcode scanning now uses the open-source ZXing decoder; Google ML Kit is gone, so the app has no proprietary code
+• Reads several QR codes at once, plus Data Matrix, Aztec, PDF417, EAN/UPC, Code 128/39/93, Codabar and ITF
+• Download is about 3 MB instead of 25 MB
+• Still no network access

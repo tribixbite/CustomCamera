@@ -180,7 +180,8 @@ items below were missing and are now implemented and verified on the Pixel 8 Pro
       `fdroid/tribixbite.customcamera.yml` (targets v3.1.0), `fdroid/README.md`, 5 phone
       screenshots in fastlane, release.yml `reproducible` job (JDK 17, other path, no key,
       apksigcopier compare) gates publishing.
-- [ ] Owner: approve v3.1.0 (version bump + changelog 30100 + tag), then submit the recipe MR.
+- [x] v3.1.0 approved and tagged (2026-11-06): first release without ML Kit.
+- [ ] Owner: submit the recipe MR to fdroiddata (public, under the owner's GitLab account).
 - [ ] Owner: developer-console key-ownership proof needs the console's snippet in
       `assets/adi-registration.properties` and a signed APK (RELEASING.md §2).
 
