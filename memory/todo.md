@@ -36,7 +36,7 @@ Owner chooses how `v3` lands on `main`; never force-push without explicit approv
 
 ## Verified on Pixel 8 Pro (API 37, 2026-11-01)
 
-- [x] 30 instrumented tests (2026-11-03; staging cold start 273 ms); earlier 27, 18.
+- [x] 35 instrumented tests (5 new LevelViewTest, 2026-11-06); 30 on 2026-11-03 (staging cold start 273 ms).
 - [ ] Known flake (pre-existing): a DUAL recording made right after another camera session
       sometimes gets no encoder frames → ERROR_NO_VALID_DATA, no file. Baseline 44063c68: 2/20
       (photo test + DUAL test pair); current: 0/20 for that pair, 3/20 after the volume-key
@@ -78,8 +78,9 @@ Owner chooses how `v3` lands on `main`; never force-push without explicit approv
 - [ ] Location permission prompt flow from Settings, by hand
 - [x] Volume-key shutter and 3 s self-timer (instrumented tests)
 - [x] Volume-key zoom (`volumeKeysZoomWhenSetToZoom`: up zooms in, down out, no photo)
-- [ ] Level indicator turning yellow when level: the line draws over the live scene, but
-      checking the colour change needs someone to tilt the phone
+- [x] Level indicator colour: `LevelViewTest` feeds synthetic gravity vectors and reads the
+      drawn pixels — accent when level (portrait and landscape), white at 5°, nothing when
+      flat (Pixel 8 Pro, 2026-11-06). A physical tilt by hand is still unchecked.
 - [ ] API 26–28 storage path (WRITE_EXTERNAL_STORAGE + DATA column) — needs an old device/emulator
 - [x] Pro slider: per-parameter TalkBack name and spoken values ("1/125", not the stop index);
       uiautomator dumps omit Material sliders (provider-based nodes) — test reads the provider.
@@ -120,7 +121,10 @@ items below were missing and are now implemented and verified on the Pixel 8 Pro
 - [x] DUAL inset never moved after the first bind (CameraX LifecycleCamera reuse, see
       CLAUDE.md) — fixed with a per-bind `SessionLifecycleOwner`; TL→TR→BR verified on screen.
 - [x] Crop editor `layout-land` (tools in a side column); gallery grid side insets.
-- [ ] Not checked on real tablet/foldable hardware, in split-screen, or with RTL locales.
+- [x] RTL: per-app locale `ar` (`cmd locale set-app-locales`) on the Pixel — top bar, Pro chips,
+      mode tabs, zoom chips and gallery/switch buttons all mirror (2026-11-06).
+- [ ] Not checked on real tablet/foldable hardware or in split-screen; RTL gallery/settings
+      screens not screenshotted.
 - [ ] DUAL instrumented test asserts state only; a pixel-level check needs a lit scene.
 
 ## Done 2026-11-02 (second round)
@@ -133,7 +137,9 @@ items below were missing and are now implemented and verified on the Pixel 8 Pro
 - [x] Burst: hold the shutter in Photo/Pro (not RAW, extensions, timer or capture intents);
       each shot is requested when the previous starts, max 30, flash held off. ~1.4 shots/s
       on the Pixel 8 Pro with the default Quality priority (4 shots in a 3 s hold).
-      - [ ] Faster bursts would need pipelining >1 request or a latency-mode ImageCapture.
+      - [x] Burst speed is set by Capture priority: 4–5 shots per 4 s hold with Best quality,
+            24–25 with Fastest (~7/s, Pixel 8 Pro, 2026-11-06). The capture mode is fixed at
+            bind time, so the option is now labelled "Fastest shutter and bursts".
 - [x] Rail switch no longer resets child visibility (ConstraintSet VISIBILITY_MODE_IGNORE);
       rotating mid-recording keeps the chip, pause and snapshot buttons.
 
@@ -149,6 +155,14 @@ items below were missing and are now implemented and verified on the Pixel 8 Pro
       while the display can follow (unlocked + auto-rotate on), a sensor turn now waits
       700 ms and is cancelled by the display change. Not reproducible on the Pixel (the
       fix needs a physical turn on a large screen); simulated-tablet layout re-checked.
+
+## CI / signing (2026-11-06)
+
+- [x] Every push uploads `customcamera-v<ver>-apk` (debug APK; plus release-key-signed APK
+      once secrets exist, with certificate SHA-256 in the log). `v*` tags publish a GitHub
+      Release with the signed APK; the AAB + mapping stay a workflow artifact.
+- [ ] Owner: run `scripts/generate-release-key.sh` (no CustomCamera key exists yet) — it sets
+      the CC_* secrets and prints the SHA-256 for Play Console / developer verification.
 
 ## Backlog (prioritised)
 

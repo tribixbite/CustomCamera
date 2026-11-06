@@ -24,9 +24,11 @@
         <item>volume</item>
     </string-array>
 
+    <!-- "Fastest" also sets burst speed: about 7 shots/s instead of 1.3 on a Pixel 8 Pro,
+         because "Best quality" runs the camera's multi-frame processing for every shot. -->
     <string-array name="photo_quality_entries">
         <item>Best quality</item>
-        <item>Fastest shutter</item>
+        <item>Fastest shutter and bursts</item>
         <item>Zero shutter lag (when supported)</item>
     </string-array>
     <string-array name="photo_quality_values" translatable="false">

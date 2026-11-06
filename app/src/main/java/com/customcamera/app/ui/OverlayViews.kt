@@ -16,6 +16,7 @@ import android.hardware.SensorManager
 import android.util.AttributeSet
 import android.view.View
 import android.view.animation.DecelerateInterpolator
+import androidx.annotation.VisibleForTesting
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.withRotation
@@ -121,13 +122,27 @@ class LevelView @JvmOverloads constructor(context: Context, attrs: AttributeSet?
         registered = false
     }
 
-    override fun onSensorChanged(event: SensorEvent) {
+    override fun onSensorChanged(event: SensorEvent) =
+        onAcceleration(event.values[0], event.values[1], event.values[2])
+
+    /**
+     * Feeds one accelerometer reading (m/s², device axes) through the low-pass
+     * filter and redraws. Separate from [onSensorChanged] so tests can drive the
+     * level without tilting a phone (SensorEvent has no public constructor).
+     */
+    @VisibleForTesting
+    internal fun onAcceleration(x: Float, y: Float, z: Float) {
         // Low-pass filter to steady the line.
-        for (i in 0..2) filtered[i] = filtered[i] * 0.8f + event.values[i] * 0.2f
+        filtered[0] = filtered[0] * 0.8f + x * 0.2f
+        filtered[1] = filtered[1] * 0.8f + y * 0.2f
+        filtered[2] = filtered[2] * 0.8f + z * 0.2f
         flat = OrientationMath.isFlat(filtered[0], filtered[1], filtered[2])
         tilt = OrientationMath.tiltFromLevel(OrientationMath.rollDegrees(filtered[0], filtered[1]), deviceOrientation)
         invalidate()
     }
+
+    /** True when the horizon line is drawn in the accent colour (within [LEVEL_TOLERANCE_DEG]). */
+    internal val isLevel: Boolean get() = !flat && abs(tilt) < LEVEL_TOLERANCE_DEG
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) = Unit
 
@@ -135,14 +150,18 @@ class LevelView @JvmOverloads constructor(context: Context, attrs: AttributeSet?
         if (flat) return
         val cx = width / 2f
         val cy = height / 2f
-        val level = abs(tilt) < 0.5f
-        linePaint.color = if (level) levelColor else Color.argb(200, 255, 255, 255)
+        linePaint.color = if (isLevel) levelColor else Color.argb(200, 255, 255, 255)
         val half = 56f * density
         val gap = 10f * density
         // Fixed reference ticks on both sides.
         canvas.drawLine(cx - half - 2 * gap - 16 * density, cy, cx - half - 2 * gap, cy, linePaint)
         canvas.drawLine(cx + half + 2 * gap, cy, cx + half + 2 * gap + 16 * density, cy, linePaint)
         canvas.withRotation(-tilt, cx, cy) { drawLine(cx - half, cy, cx + half, cy, linePaint) }
+    }
+
+    companion object {
+        /** Tilt (degrees) within which the line counts as level and turns the accent colour. */
+        const val LEVEL_TOLERANCE_DEG = 0.5f
     }
 }
 
