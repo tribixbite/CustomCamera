@@ -12,9 +12,10 @@ scripts/gradle-locked.sh :app:lintDebug              # should report only AGP-9 
 scripts/gradle-locked.sh :app:assembleDebug :app:assembleDebugAndroidTest
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 adb install -r -t app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
-adb shell am instrument -w tribixbite.customcamera.debug.test/androidx.test.runner.AndroidJUnitRunner   # 30 tests
+adb shell am instrument -w tribixbite.customcamera.debug.test/androidx.test.runner.AndroidJUnitRunner   # 35 tests
 scripts/gradle-locked.sh :app:assembleStaging :app:bundleRelease   # shrunk builds
 scripts/generate-store-assets.sh                     # Play icon + feature graphic
+scripts/generate-release-key.sh [--fingerprint]      # release key + CI secrets / print SHA-256
 ```
 
 Always build through `scripts/gradle-locked.sh` on the Termux box (shared

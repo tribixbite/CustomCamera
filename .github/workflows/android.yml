@@ -24,8 +24,71 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
+      # Signing secrets (scripts/generate-release-key.sh) are absent on fork PRs and
+      # until the key exists; the build then still runs and only the debug APK ships.
+      - name: Restore release keystore (when configured)
+        id: keystore
+        env:
+          KEYSTORE_B64: ${{ secrets.CC_KEYSTORE_B64 }}
+          CC_KEYSTORE_PASSWORD: ${{ secrets.CC_KEYSTORE_PASSWORD }}
+          CC_KEY_ALIAS: ${{ secrets.CC_KEY_ALIAS }}
+        run: |
+          set -euo pipefail
+          if [ -z "${KEYSTORE_B64:-}" ]; then
+            echo "::notice::No release keystore secret — release APK not built; debug APK only."
+            echo "signed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          printf '%s' "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/release.jks"
+          # Fail here with a clear message rather than deep inside packageRelease.
+          if ! keytool -list -keystore "$RUNNER_TEMP/release.jks" -storepass "$CC_KEYSTORE_PASSWORD" -alias "$CC_KEY_ALIAS" >/dev/null 2>&1; then
+            echo "::error::CC_KEYSTORE_B64 decoded but CC_KEYSTORE_PASSWORD / CC_KEY_ALIAS do not open it (an empty secret looks like this too)."
+            exit 1
+          fi
+          echo "path=$RUNNER_TEMP/release.jks" >> "$GITHUB_OUTPUT"
+          echo "signed=true" >> "$GITHUB_OUTPUT"
+
       - name: Unit tests, lint, debug + release builds
-        run: ./gradlew --stacktrace :app:testDebugUnitTest :app:lintDebug :app:assembleDebug :app:assembleDebugAndroidTest :app:bundleRelease
+        env:
+          CC_KEYSTORE_PATH: ${{ steps.keystore.outputs.path }}
+          CC_KEYSTORE_PASSWORD: ${{ secrets.CC_KEYSTORE_PASSWORD }}
+          CC_KEY_ALIAS: ${{ secrets.CC_KEY_ALIAS }}
+          CC_KEY_PASSWORD: ${{ secrets.CC_KEY_PASSWORD }}
+          SIGNED: ${{ steps.keystore.outputs.signed }}
+        run: |
+          set -euo pipefail
+          # Gradle treats an empty CC_KEYSTORE_PATH as "no keystore".
+          [ -n "$CC_KEYSTORE_PATH" ] || unset CC_KEYSTORE_PATH
+          tasks=(:app:testDebugUnitTest :app:lintDebug :app:assembleDebug :app:assembleDebugAndroidTest :app:bundleRelease)
+          if [ "$SIGNED" = "true" ]; then
+            tasks+=(:app:assembleRelease -PrequireReleaseSigning)
+          fi
+          ./gradlew --stacktrace "${tasks[@]}"
+
+      - name: Name APKs and print signing certificates
+        id: apks
+        env:
+          SIGNED: ${{ steps.keystore.outputs.signed }}
+        run: |
+          set -euo pipefail
+          version=$(awk -F= '/^VERSION_(MAJOR|MINOR|PATCH)=/ { v = v (v ? "." : "") $2 } END { print v }' version.properties)
+          short=${GITHUB_SHA::8}
+          apksigner="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)/apksigner"
+          mkdir -p dist
+          cp app/build/outputs/apk/debug/app-debug.apk "dist/CustomCamera-v$version-$short-debug.apk"
+          if [ "$SIGNED" = "true" ]; then
+            cp app/build/outputs/apk/release/app-release.apk "dist/CustomCamera-v$version-$short.apk"
+          fi
+          for apk in dist/*.apk; do
+            echo "== $apk"
+            "$apksigner" verify --print-certs "$apk" | awk '/SHA-256 digest|DN:/'
+          done
+          (cd dist && sha256sum *.apk | tee SHA256SUMS.txt)
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Remove keystore
+        if: always()
+        run: rm -f "$RUNNER_TEMP/release.jks"
 
       - name: Upload reports
         if: always()
@@ -36,6 +99,14 @@ jobs:
             app/build/reports/
             app/build/test-results/
           if-no-files-found: ignore
+
+      - name: Upload APKs
+        uses: actions/upload-artifact@v4
+        with:
+          name: customcamera-v${{ steps.apks.outputs.version }}-apk
+          path: dist/
+          retention-days: 30
+          if-no-files-found: error
 
       - name: Upload bundle (debug-signed unless signing secrets are configured)
         uses: actions/upload-artifact@v4

@@ -15,55 +15,54 @@ commands from the repo root (`~/git/CustomCamera`).
 
 ---
 
-## 1. Create the upload key (no CustomCamera key exists yet)
+## 1. Create the release key and CI secrets (no CustomCamera key exists yet)
 
-Checked on 2026-11-01: the keystores on this device belong to other apps
+Checked on 2026-11-06: the keystores on this device belong to other apps
 (`~/.android/cleverkeys-release.keystore`, `~/git/carify-release.jks`,
 `~/git/embeddy-release.jks`, …) and the `tribixbite/CustomCamera` repo has no
-signing secrets. Create a dedicated upload key — separate keys per app limit the
-blast radius if one leaks. Play App Signing keeps the real app-signing key; this
-key only proves uploads come from you.
+signing secrets. One key signs every channel (GitHub APKs, CI builds, and Play
+once exported in step 5b), as with Embeddy, so users can switch between channels
+without uninstalling.
 
 ```bash
-keytool -genkeypair -v \
-  -keystore ~/.android/customcamera-upload.jks -storetype PKCS12 \
-  -alias customcamera-upload -keyalg RSA -keysize 4096 -validity 10000 \
-  -dname "CN=tribixbite, O=tribixbite.com, C=US"
-# keytool prompts for a password; use the same one for store and key when asked.
+scripts/generate-release-key.sh
 ```
 
-Back it up off-device now (losing it means a key-reset request to Google):
+It runs `keytool` (prompts for the password and a name), writes
+`~/git/customcamera-release.jks` outside the repo, copies a backup to
+`~/storage/shared/Documents/`, stores `CC_KEYSTORE_B64`, `CC_KEY_ALIAS`,
+`CC_KEYSTORE_PASSWORD` and `CC_KEY_PASSWORD` in the GitHub repo (prompting for the
+passwords), and prints the **SHA-256 certificate fingerprint** that Play Console
+and Android developer verification ask for. Read it again any time with:
 
 ```bash
-cp ~/.android/customcamera-upload.jks ~/storage/shared/Documents/customcamera-upload.jks
-# and put the password in your password manager
+scripts/generate-release-key.sh --fingerprint
 ```
 
-Point the local build at it (`keystore.properties` is gitignored):
+Keep a copy of the `.jks` and its password off this phone: a GitHub secret
+cannot be read back, and losing the key means installed copies never update.
 
-```bash
-cat > keystore.properties <<'EOF'
-storeFile=/data/data/com.termux/files/home/.android/customcamera-upload.jks
+For local signed builds, create `keystore.properties` (gitignored) in the repo root:
+
+```
+storeFile=/data/data/com.termux/files/home/git/customcamera-release.jks
 storePassword=YOUR_PASSWORD
-keyAlias=customcamera-upload
+keyAlias=customcamera
 keyPassword=YOUR_PASSWORD
-EOF
-chmod 600 keystore.properties
 ```
 
 > Use `keystore.properties` locally rather than `CC_KEYSTORE_*` environment
 > variables: on Termux an already-running Gradle daemon keeps its startup
 > environment and ignores new env vars (add `--no-daemon` if you must use them).
 
-## 2. Store the key in GitHub so CI can build signed bundles
+## 2. What CI builds
 
-```bash
-base64 -w0 ~/.android/customcamera-upload.jks | gh secret set CC_UPLOAD_KEYSTORE_B64 -R tribixbite/CustomCamera
-gh secret set CC_KEYSTORE_PASSWORD -R tribixbite/CustomCamera   # paste password at prompt
-gh secret set CC_KEY_PASSWORD      -R tribixbite/CustomCamera   # paste password at prompt
-printf 'customcamera-upload' | gh secret set CC_KEY_ALIAS -R tribixbite/CustomCamera
-gh secret list -R tribixbite/CustomCamera
-```
+- Every push (`android.yml`): artifact `customcamera-v<version>-apk` holds a debug
+  APK and, once the secrets exist, `CustomCamera-v<version>-<sha>.apk` signed with
+  the release key, plus `SHA256SUMS.txt`. The log prints each APK's certificate.
+- A `v*` tag (`release.yml`): tests, lint, the signed APK and AAB; publishes a
+  GitHub Release with the APK; the AAB + R8 mapping are the `…-play` artifact.
+  The tag must equal `version.properties` (`v3.0.0`) or the run fails.
 
 ## 3. Build the signed bundle
 
@@ -73,16 +72,15 @@ Either locally:
 scripts/gradle-locked.sh -PrequireReleaseSigning \
   :app:testDebugUnitTest :app:lintRelease :app:bundleRelease
 keytool -printcert -jarfile app/build/outputs/bundle/release/app-release.aab | head -6
-# Owner must show CN=tribixbite — NOT "Android Debug"
+# Owner must NOT be "Android Debug"
 ```
 
-…or in CI by tagging (the `Release bundle` workflow fails rather than produce a
-debug-signed bundle):
+…or in CI by tagging (fails rather than produce a debug-signed build):
 
 ```bash
 git tag -a v3.0.0 -m "CustomCamera 3.0.0" && git push origin v3.0.0
 gh run list -R tribixbite/CustomCamera --workflow release.yml -L 1
-gh run download -R tribixbite/CustomCamera -n customcamera-v3.0.0 -D dist/
+gh run download -R tribixbite/CustomCamera -n customcamera-v3.0.0-play -D dist/
 ```
 
 The R8 mapping file is embedded in the bundle
@@ -122,8 +120,22 @@ test early because it is the longest step.
 ### 5b. Upload
 
 **Testing → Internal testing → Create release** → upload
-`app-release.aab` → when asked, keep **Google-generated app signing key**
-(Play App Signing) → release notes: paste
+`app-release.aab` → at **App signing**, choose **Use a different key → Export and
+upload a key from Java keystore** so Play signs with the same key as the GitHub
+APKs (step 1). The page gives `pepk.jar` and `encryption_public_key.pem`; save both
+to `~/storage/shared/Download/`, then on this phone:
+
+```bash
+java -jar ~/storage/shared/Download/pepk.jar \
+  --keystore=$HOME/git/customcamera-release.jks --alias=customcamera \
+  --output=$HOME/storage/shared/Download/customcamera-signing-key.zip \
+  --include-cert --rsa-aes-encryption \
+  --encryption-key-path=$HOME/storage/shared/Download/encryption_public_key.pem
+# prompts for the keystore and key passwords; upload the zip on the same page
+```
+
+(Keeping the Google-generated key also works, but then Play installs and GitHub
+APKs are signed differently and cannot update each other.) → release notes: paste
 `fastlane/metadata/android/en-US/changelogs/30000.txt` → roll out. Then do the
 same on **Closed testing** (required above) and later **Production**.
 

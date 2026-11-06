@@ -1,20 +1,24 @@
-name: Release bundle
+name: Release
 
-# Builds a Play-ready, upload-key-signed AAB when a version tag is pushed
-# (or on demand). Upload the artifact to Play Console manually.
+# On a version tag (or on demand): builds the release-key-signed APK and Play
+# bundle. A tag push also publishes a GitHub Release with the APK and checksums;
+# the AAB stays a workflow artifact for manual upload to Play Console.
 #
-# Required repository secrets:
-#   CC_UPLOAD_KEYSTORE_B64  base64 of the upload keystore (.jks)
-#   CC_KEYSTORE_PASSWORD    keystore password
-#   CC_KEY_ALIAS            key alias
-#   CC_KEY_PASSWORD         key password
+# Required repository secrets (scripts/generate-release-key.sh sets them):
+#   CC_KEYSTORE_B64       base64 of the release keystore (.jks)
+#   CC_KEYSTORE_PASSWORD  keystore password
+#   CC_KEY_ALIAS          key alias
+#   CC_KEY_PASSWORD       key password
 on:
   push:
     tags: ["v*"]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
-  bundle:
+  release:
     runs-on: ubuntu-latest
     timeout-minutes: 40
     steps:
@@ -27,36 +31,85 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
-      - name: Restore upload keystore
-        env:
-          KEYSTORE_B64: ${{ secrets.CC_UPLOAD_KEYSTORE_B64 }}
+      - name: Read version
+        id: version
         run: |
-          if [ -z "$KEYSTORE_B64" ]; then
-            echo "::error::CC_UPLOAD_KEYSTORE_B64 secret is not set"; exit 1
+          set -euo pipefail
+          version=$(awk -F= '/^VERSION_(MAJOR|MINOR|PATCH)=/ { v = v (v ? "." : "") $2 } END { print v }' version.properties)
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          # A tag that disagrees with version.properties would publish an APK whose
+          # versionName differs from its release title.
+          if [ "${GITHUB_REF_TYPE}" = "tag" ] && [ "${GITHUB_REF_NAME}" != "v$version" ]; then
+            echo "::error::Tag ${GITHUB_REF_NAME} does not match version.properties (v$version)"
+            exit 1
           fi
-          mkdir -p release
-          echo "$KEYSTORE_B64" | base64 -d > release/upload.jks
 
-      - name: Test, lint and build signed bundle
+      - name: Restore release keystore
         env:
-          CC_KEYSTORE_PATH: release/upload.jks
+          KEYSTORE_B64: ${{ secrets.CC_KEYSTORE_B64 }}
+          CC_KEYSTORE_PASSWORD: ${{ secrets.CC_KEYSTORE_PASSWORD }}
+          CC_KEY_ALIAS: ${{ secrets.CC_KEY_ALIAS }}
+        run: |
+          set -euo pipefail
+          if [ -z "${KEYSTORE_B64:-}" ]; then
+            echo "::error::CC_KEYSTORE_B64 secret is not set (run scripts/generate-release-key.sh)"; exit 1
+          fi
+          printf '%s' "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/release.jks"
+          if ! keytool -list -keystore "$RUNNER_TEMP/release.jks" -storepass "$CC_KEYSTORE_PASSWORD" -alias "$CC_KEY_ALIAS" >/dev/null 2>&1; then
+            echo "::error::CC_KEYSTORE_PASSWORD / CC_KEY_ALIAS do not open the keystore (an empty secret looks like this too)."
+            exit 1
+          fi
+
+      - name: Test, lint and build signed APK + bundle
+        env:
+          CC_KEYSTORE_PATH: ${{ runner.temp }}/release.jks
           CC_KEYSTORE_PASSWORD: ${{ secrets.CC_KEYSTORE_PASSWORD }}
           CC_KEY_ALIAS: ${{ secrets.CC_KEY_ALIAS }}
           CC_KEY_PASSWORD: ${{ secrets.CC_KEY_PASSWORD }}
-        run: ./gradlew --stacktrace -PrequireReleaseSigning :app:testDebugUnitTest :app:lintRelease :app:bundleRelease
-
-      - name: Verify bundle signature
-        run: |
-          jarsigner -verify -verbose:summary app/build/outputs/bundle/release/app-release.aab | tail -3
-          keytool -printcert -jarfile app/build/outputs/bundle/release/app-release.aab | head -8
+        run: ./gradlew --stacktrace -PrequireReleaseSigning :app:testDebugUnitTest :app:lintRelease :app:assembleRelease :app:bundleRelease
 
       - name: Remove keystore
         if: always()
-        run: rm -f release/upload.jks
+        run: rm -f "$RUNNER_TEMP/release.jks"
 
-      - uses: actions/upload-artifact@v4
+      - name: Verify signatures and collect files
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          apksigner="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)/apksigner"
+          mkdir -p dist play
+          cp app/build/outputs/apk/release/app-release.apk "dist/CustomCamera-v$VERSION.apk"
+          cp app/build/outputs/bundle/release/app-release.aab "play/CustomCamera-v$VERSION.aab"
+          cp app/build/outputs/mapping/release/mapping.txt play/
+          "$apksigner" verify --print-certs "dist/CustomCamera-v$VERSION.apk" | awk '/SHA-256 digest|DN:/'
+          # A debug-signed artifact must never be published.
+          if "$apksigner" verify --print-certs "dist/CustomCamera-v$VERSION.apk" | awk '/DN:/ && /Android Debug/ { found = 1 } END { exit !found }'; then
+            echo "::error::APK is signed with a debug key"; exit 1
+          fi
+          jarsigner -verify "play/CustomCamera-v$VERSION.aab" | tail -1
+          (cd dist && sha256sum *.apk | tee SHA256SUMS.txt)
+
+      - name: Upload Play bundle
+        uses: actions/upload-artifact@v4
         with:
-          name: customcamera-${{ github.ref_name }}
-          path: |
-            app/build/outputs/bundle/release/app-release.aab
-            app/build/outputs/mapping/release/mapping.txt
+          name: customcamera-v${{ steps.version.outputs.version }}-play
+          path: play/
+          retention-days: 90
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: customcamera-v${{ steps.version.outputs.version }}-apk
+          path: dist/
+          retention-days: 90
+
+      - name: Publish GitHub Release
+        if: github.ref_type == 'tag'
+        uses: softprops/action-gh-release@v2
+        with:
+          name: CustomCamera v${{ steps.version.outputs.version }}
+          generate_release_notes: true
+          files: |
+            dist/*.apk
+            dist/SHA256SUMS.txt
